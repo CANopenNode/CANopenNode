@@ -2,7 +2,6 @@
  * CAN module object for Microchip PIC32MX microcontroller.
  *
  * @file        CO_driver.h
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *
@@ -29,16 +28,16 @@
 #define CO_DRIVER_H
 
 
+/* For documentation see file drvTemplate/CO_driver.h */
+
+
 #include <p32xxxx.h>        /* processor header file */
 #include <plib.h>
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 
 
-/* For documentation see file genericDriver/CO_driver.h */
-
-
-/* Peripheral addresses */
+/* CAN module base address */
 #define ADDR_CAN1    0
 #define ADDR_CAN2    (_CAN2_BASE_ADDRESS - _CAN1_BASE_ADDRESS)
 

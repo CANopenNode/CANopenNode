@@ -3,7 +3,6 @@
  *
  * @file        CO_SDOmaster.h
  * @ingroup     CO_SDOmaster
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @author      Matej Severkar
  * @copyright   2004 - 2013 Janez Paternoster

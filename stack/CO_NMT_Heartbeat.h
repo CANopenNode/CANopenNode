@@ -3,7 +3,6 @@
  *
  * @file        CO_NMT_Heartbeat.h
  * @ingroup     CO_NMT_Heartbeat
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *

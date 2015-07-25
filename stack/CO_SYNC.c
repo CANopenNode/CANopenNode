@@ -3,7 +3,6 @@
  *
  * @file        CO_SYNC.c
  * @ingroup     CO_SYNC
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *

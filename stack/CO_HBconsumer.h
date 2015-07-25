@@ -3,7 +3,6 @@
  *
  * @file        CO_HBconsumer.h
  * @ingroup     CO_HBconsumer
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *

@@ -2,7 +2,6 @@
  * CAN module object for Microchip dsPIC33 or PIC24 microcontroller.
  *
  * @file        CO_driver.h
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @author      Péter Rózsahegyi
  * @copyright   2004 - 2013 Janez Paternoster
@@ -30,6 +29,9 @@
 #define CO_DRIVER_H
 
 
+/* For documentation see file drvTemplate/CO_driver.h */
+
+
 #if defined(__dsPIC33F__) || defined(__PIC24H__)
 #include <p33fxxxx.h>       /* processor header file */
 #elif defined(__dsPIC33E__) || defined(__PIC24E__)
@@ -44,7 +46,7 @@
 #define EDS_PTR
 #endif
 
-/* Peripheral addresses */
+/* CAN module base address */
 #define ADDR_CAN1    ((uint16_t)&C1CTRL1)
 #define ADDR_CAN2    ((uint16_t)&C2CTRL1)
 

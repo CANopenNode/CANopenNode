@@ -3,7 +3,6 @@
  *
  * @file        crc16-ccitt.c
  * @ingroup     crc16-ccitt
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2012 - 2013 Janez Paternoster
  *

@@ -3,7 +3,6 @@
  *
  * @file        CO_PDO.c
  * @ingroup     CO_PDO
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *

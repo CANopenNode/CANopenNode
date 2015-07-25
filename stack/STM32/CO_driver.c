@@ -2,7 +2,6 @@
  * CAN module object for Microchip STM32F103 microcontroller.
  *
  * @file        CO_driver.c
- * @version     SVN: \$Id: co_driver.c 42 2013-07-09 11:14:12Z jani22 $
  * @author      Janez Paternoster
  * @author      Ondrej Netik
  * @author      Vijayendra

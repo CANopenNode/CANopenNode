@@ -4,7 +4,6 @@
  *
  * @file        CANopen.c
  * @ingroup     CO_CANopen
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2010 - 2013 Janez Paternoster
  *

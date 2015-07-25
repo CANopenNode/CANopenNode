@@ -3,7 +3,6 @@
  *
  * @file        crc16-ccitt.h
  * @ingroup     CO_crc16_ccitt
- * @version     SVN: \$Id$
  * @author      Lammert Bies
  * @author      Janez Paternoster
  * @copyright   2012 - 2013 Janez Paternoster

@@ -3,7 +3,6 @@
  *
  * @file        CO_driver_eCos.c
  * @ingroup     CO_driver
- * @version     SVN: \$Id: CO_driver.c 32 2013-03-11 08:24:27Z jani22 $
  * @author      Uwe Kindler
  * @copyright   2013 Uwe Kindler
  *

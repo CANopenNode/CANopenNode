@@ -2,7 +2,6 @@
  * eCos flash support for CANopen stack
  *
  * @file        CO_Flash.c
- * @version     SVN: \$Id: CO_Flash.c 32 2013-03-11 08:24:27Z jani22 $
  * @author      Uwe Kindler
  * @copyright   2013 Uwe Kindler
  *

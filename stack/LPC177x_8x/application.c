@@ -3,7 +3,6 @@
  *
  * @file        application.c
  * @ingroup     application
- * @version     SVN: \$Id: application.c 31 2013-03-08 17:57:40Z jani22 $
  * @author      Janez Paternoster
  * @copyright   2012 - 2013 Janez Paternoster
  *

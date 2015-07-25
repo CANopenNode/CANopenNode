@@ -2,7 +2,6 @@
  * CAN module object for Microchip dsPIC30F microcontroller.
  *
  * @file        CO_driver.c
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *

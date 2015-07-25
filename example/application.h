@@ -3,7 +3,6 @@
  *
  * @file        application.h
  * @ingroup     CO_application
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2012 - 2013 Janez Paternoster
  *

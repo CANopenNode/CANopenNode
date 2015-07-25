@@ -5,7 +5,6 @@
  *
  * @file        CO_driver.c
  * @ingroup     CO_driver
- * @version     SVN: \$Id: CO_driver.c 46 2013-08-24 09:18:16Z jani22 $
  * @author      Janez Paternoster
  * @author      Amit H
  * @copyright   2004 - 2014 Janez Paternoster

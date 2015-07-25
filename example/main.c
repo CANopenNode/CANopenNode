@@ -4,7 +4,6 @@
  * This file is a template for other microcontrollers.
  *
  * @file        main_generic.c
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *

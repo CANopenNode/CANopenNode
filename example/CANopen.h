@@ -8,7 +8,6 @@
  *
  * @file        CANopen.h
  * @ingroup     CO_CANopen
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @author      Uwe Kindler
  * @copyright   2010 - 2013 Janez Paternoster

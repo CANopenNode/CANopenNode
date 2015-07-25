@@ -2,7 +2,6 @@
  * Eeprom object for Microchip PIC32MX microcontroller.
  *
  * @file        eeprom.h
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *
@@ -29,7 +28,7 @@
 #define EEPROM_H
 
 
-/* For documentation see file genericDriver/eeprom.h */
+/* For documentation see file drvTemplate/eeprom.h */
 
 
 /*

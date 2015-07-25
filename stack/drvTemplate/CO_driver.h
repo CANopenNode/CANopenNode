@@ -5,7 +5,6 @@
  *
  * @file        CO_driver.h
  * @ingroup     CO_driver
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *

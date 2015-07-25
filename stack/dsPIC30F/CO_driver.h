@@ -2,7 +2,6 @@
  * CAN module object for Microchip dsPIC30F microcontroller.
  *
  * @file        CO_driver.h
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
  * @copyright   2004 - 2013 Janez Paternoster
  *
@@ -29,12 +28,15 @@
 #define CO_DRIVER_H
 
 
+/* For documentation see file drvTemplate/CO_driver.h */
+
+
 #include <p30fxxxx.h>       /* processor header file */
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 
 
-/* Peripheral addresses */
+/* CAN module base address */
 #define ADDR_CAN1    0x300
 #define ADDR_CAN2    0x3C0
 

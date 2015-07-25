@@ -2,7 +2,6 @@
  * CAN module object for Microchip STM32F103 microcontroller.
  *
  * @file        CO_driver.h
- * @version     SVN: \$Id: CO_driver.h 42 2013-07-09 11:14:12Z jani22 $
  * @author      Janez Paternoster
  * @author      Ondrej Netik
  * @author      Vijayendra
@@ -27,8 +26,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #ifndef CO_DRIVER_H
 #define CO_DRIVER_H
+
+
+/* For documentation see file drvTemplate/CO_driver.h */
+
 
 /* Includes ------------------------------------------------------------------*/
 #include "common.h"
@@ -129,14 +133,15 @@ typedef struct{
                                    stored in the mailbox passes through */
 }CO_CANrxMsg_t;
 
+
 /* Received message object */
 typedef struct{
     uint16_t            ident;
     uint16_t            mask;
     void               *object;
-//    void              (*pFunct)(void *object, CO_CANrxMsg_t *message); // Changed by JvL
     void              (*pFunct)(void *object, CanRxMsg *message); // Changed by VJ
 }CO_CANrx_t;
+
 
 /* Transmit message object. */
 typedef struct{
@@ -146,6 +151,7 @@ typedef struct{
     volatile uint8_t    bufferFull;
     volatile uint8_t    syncFlag;
 }CO_CANtx_t;/* ALIGN_STRUCT_DWORD; */
+
 
 /* CAN module object. */
 typedef struct{
@@ -239,4 +245,4 @@ void CO_CANinterrupt_Tx(CO_CANmodule_t *CANmodule);
 void CO_CANinterrupt_Status(CO_CANmodule_t *CANmodule);
 
 
-#endif    /* CO_DRIVER_H */
+#endif
