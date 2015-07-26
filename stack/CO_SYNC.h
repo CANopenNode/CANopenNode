@@ -56,7 +56,7 @@ typedef struct{
     uint8_t            *operatingState; /**< From CO_SYNC_init() */
     /** True, if device is SYNC producer. Calculated from _COB ID SYNC Message_
     variable from Object dictionary (index 0x1005). */
-    CO_bool_t           isProducer;
+    bool_t              isProducer;
     /** COB_ID of SYNC message. Calculated from _COB ID SYNC Message_
     variable from Object dictionary (index 0x1005). */
     uint16_t            COB_ID;
@@ -71,9 +71,9 @@ typedef struct{
     uint8_t             counterOverflowValue;
     /** True, if current time is inside synchronous window.
     In this case synchronous PDO may be sent. */
-    CO_bool_t           curentSyncTimeIsInsideWindow;
+    bool_t              curentSyncTimeIsInsideWindow;
     /** True in operational, after first SYNC was received or transmitted */
-    CO_bool_t           running;
+    bool_t              running;
     /** Counter of the SYNC message if counterOverflowValue is different than zero */
     uint8_t             counter;
     /** Timer for the SYNC message in [microseconds].

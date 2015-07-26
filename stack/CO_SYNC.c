@@ -42,7 +42,7 @@
 static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
     CO_SYNC_t *SYNC;
     uint8_t operState;
-    CO_bool_t err = CO_false;
+    bool_t err = false;
 
     SYNC = (CO_SYNC_t*)object;   /* this is the correct pointer type of the first argument */
     operState = *SYNC->operatingState;
@@ -51,7 +51,7 @@ static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
         if(SYNC->counterOverflowValue != 0){
             if(msg->DLC != 1U){
                 SYNC->receiveError = (uint16_t)msg->DLC | 0x0100U;
-                err = CO_true;
+                err = true;
             }
             else{
                 SYNC->counter = msg->data[0];
@@ -60,13 +60,13 @@ static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
         else{
             if(msg->DLC != 0U){
                 SYNC->receiveError = (uint16_t)msg->DLC | 0x0200U;
-                err = CO_true;
+                err = true;
             }
         }
 
         if(!err){
             if(operState == CO_NMT_OPERATIONAL){
-                SYNC->running = CO_true;
+                SYNC->running = true;
             }
             SYNC->timer = 0;
         }
@@ -116,7 +116,7 @@ static CO_SDO_abortCode_t CO_ODF_1005(CO_ODF_arg_t *ODF_arg){
                 if(SYNC->counterOverflowValue != 0U){
                     len = 1U;
                     SYNC->counter = 0U;
-                    SYNC->running = CO_false;
+                    SYNC->running = false;
                     SYNC->timer = 0U;
                 }
                 SYNC->CANtxBuff = CO_CANtxBufferInit(
@@ -126,10 +126,10 @@ static CO_SDO_abortCode_t CO_ODF_1005(CO_ODF_arg_t *ODF_arg){
                         0,                      /* rtr */
                         len,                    /* number of data bytes */
                         0);                     /* synchronous message flag bit */
-                SYNC->isProducer = CO_true;
+                SYNC->isProducer = true;
             }
             else{
-                SYNC->isProducer = CO_false;
+                SYNC->isProducer = false;
             }
 
             CO_CANrxBufferInit(
@@ -173,7 +173,7 @@ static CO_SDO_abortCode_t CO_ODF_1006(CO_ODF_arg_t *ODF_arg){
             SYNC->periodTimeoutTime = 0xFFFFFFFFUL;
         }
 
-        SYNC->running = CO_false;
+        SYNC->running = false;
         SYNC->timer = 0;
     }
 
@@ -237,7 +237,7 @@ int16_t CO_SYNC_init(
     uint8_t len = 0;
 
     /* Configure object variables */
-    SYNC->isProducer = (COB_ID_SYNCMessage&0x40000000L) ? CO_true : CO_false;
+    SYNC->isProducer = (COB_ID_SYNCMessage&0x40000000L) ? true : false;
     SYNC->COB_ID = COB_ID_SYNCMessage&0x7FF;
 
     SYNC->periodTime = communicationCyclePeriod;
@@ -248,9 +248,9 @@ int16_t CO_SYNC_init(
     SYNC->counterOverflowValue = synchronousCounterOverflowValue;
     if(synchronousCounterOverflowValue) len = 1;
 
-    SYNC->curentSyncTimeIsInsideWindow = CO_true;
+    SYNC->curentSyncTimeIsInsideWindow = true;
 
-    SYNC->running = CO_false;
+    SYNC->running = false;
     SYNC->timer = 0;
     SYNC->counter = 0;
     SYNC->receiveError = 0U;
@@ -314,7 +314,7 @@ uint8_t CO_SYNC_process(
         if(SYNC->isProducer && SYNC->periodTime){
             if(SYNC->timer >= SYNC->periodTime){
                 if(++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
-                SYNC->running = CO_true;
+                SYNC->running = true;
                 SYNC->timer = 0;
                 SYNC->CANtxBuff->data[0] = SYNC->counter;
                 CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
@@ -328,14 +328,14 @@ uint8_t CO_SYNC_process(
                 if(SYNC->curentSyncTimeIsInsideWindow){
                     ret = 2;
                 }
-                SYNC->curentSyncTimeIsInsideWindow = CO_false;
+                SYNC->curentSyncTimeIsInsideWindow = false;
             }
             else{
-                SYNC->curentSyncTimeIsInsideWindow = CO_true;
+                SYNC->curentSyncTimeIsInsideWindow = true;
             }
         }
         else{
-            SYNC->curentSyncTimeIsInsideWindow = CO_true;
+            SYNC->curentSyncTimeIsInsideWindow = true;
         }
 
         /* Verify timeout of SYNC */
@@ -344,7 +344,7 @@ uint8_t CO_SYNC_process(
     }
 
     if(*SYNC->operatingState != CO_NMT_OPERATIONAL){
-        SYNC->running = CO_false;
+        SYNC->running = false;
     }
 
     /* verify error from receive function */

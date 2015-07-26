@@ -88,11 +88,11 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
     if((COB_IDUsedByRPDO & 0xBFFFF800L) == 0 && RPDO->dataLength && ID){
         /* is used default COB-ID? */
         if(ID == RPDO->defaultCOB_ID) ID += RPDO->nodeId;
-        RPDO->valid = CO_true;
+        RPDO->valid = true;
     }
     else{
         ID = 0;
-        RPDO->valid = CO_false;
+        RPDO->valid = false;
         RPDO->CANrxNew = 0;
     }
     r = CO_CANrxBufferInit(
@@ -104,7 +104,7 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
             (void*)RPDO,            /* object passed to receive function */
             CO_PDO_receive);        /* this function will process received message */
     if(r != CO_ERROR_NO){
-        RPDO->valid = CO_false;
+        RPDO->valid = false;
         RPDO->CANrxNew = 0;
     }
 }
@@ -133,11 +133,11 @@ static void CO_TPDOconfigCom(CO_TPDO_t* TPDO, uint32_t COB_IDUsedByTPDO, uint8_t
     if((COB_IDUsedByTPDO & 0xBFFFF800L) == 0 && TPDO->dataLength && ID){
         /* is used default COB-ID? */
         if(ID == TPDO->defaultCOB_ID) ID += TPDO->nodeId;
-        TPDO->valid = CO_true;
+        TPDO->valid = true;
     }
     else{
         ID = 0;
-        TPDO->valid = CO_false;
+        TPDO->valid = false;
     }
 
     TPDO->CANtxBuff = CO_CANtxBufferInit(
@@ -149,7 +149,7 @@ static void CO_TPDOconfigCom(CO_TPDO_t* TPDO, uint32_t COB_IDUsedByTPDO, uint8_t
             syncFlag);                 /* synchronous message flag bit */
 
     if(TPDO->CANtxBuff == 0){
-        TPDO->valid = CO_false;
+        TPDO->valid = false;
     }
 }
 
@@ -767,7 +767,7 @@ int16_t CO_TPDO_init(
     if((TPDOCommPar->transmissionType>240 &&
          TPDOCommPar->transmissionType<254) ||
          TPDOCommPar->SYNCStartValue>240){
-            TPDO->valid = CO_false;
+            TPDO->valid = false;
     }
 
     return CO_ERROR_NO;

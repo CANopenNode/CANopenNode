@@ -49,7 +49,7 @@ typedef struct{
     uint8_t     *OD_ROMAddress;         /**< From CO_EE_init_1() */
     uint32_t     OD_ROMSize;            /**< From CO_EE_init_1() */
     uint32_t     OD_EEPROMCurrentIndex; /**< Internal variable controls the OD_EEPROM vrite */
-    CO_bool_t    OD_EEPROMWriteEnable;  /**< Writing to EEPROM is enabled */
+    bool_t       OD_EEPROMWriteEnable;  /**< Writing to EEPROM is enabled */
 }CO_EE_t;
 
 

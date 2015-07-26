@@ -137,7 +137,7 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
             SDO->CANrxData[6] = msg->data[6];
             SDO->CANrxData[7] = msg->data[7];
 
-            SDO->CANrxNew = CO_true;
+            SDO->CANrxNew = true;
         }
         else {
             /* block download, copy data directly */
@@ -160,7 +160,7 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
                     if(SDO->bufferOffset >= CO_SDO_BUFFER_SIZE) {
                         /* buffer full, break reception */
                         SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
-                        SDO->CANrxNew = CO_true;
+                        SDO->CANrxNew = true;
                         break;
                     }
                 }
@@ -168,7 +168,7 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
                 /* break reception if last segment or block sequence is too large */
                 if(((SDO->CANrxData[0] & 0x80U) == 0x80U) || (SDO->sequence >= SDO->blksize)) {
                     SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
-                    SDO->CANrxNew = CO_true;
+                    SDO->CANrxNew = true;
                 }
             }
             else if((seqno == SDO->sequence) || (SDO->sequence == 0U)){
@@ -177,7 +177,7 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
             else {
                 /* seqno is totally wrong, break reception. */
                 SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
-                SDO->CANrxNew = CO_true;
+                SDO->CANrxNew = true;
             }
         }
 
@@ -233,7 +233,7 @@ int16_t CO_SDO_init(
     if(parentSDO == NULL){
         uint16_t i;
 
-        SDO->ownOD = CO_true;
+        SDO->ownOD = true;
         SDO->OD = OD;
         SDO->ODSize = ODSize;
         SDO->ODExtensions = ODExtensions;
@@ -247,7 +247,7 @@ int16_t CO_SDO_init(
     }
     /* copy object dictionary from parent */
     else{
-        SDO->ownOD = CO_false;
+        SDO->ownOD = false;
         SDO->OD = parentSDO->OD;
         SDO->ODSize = parentSDO->ODSize;
         SDO->ODExtensions = parentSDO->ODExtensions;
@@ -256,7 +256,7 @@ int16_t CO_SDO_init(
     /* Configure object variables */
     SDO->nodeId = nodeId;
     SDO->state = CO_SDO_ST_IDLE;
-    SDO->CANrxNew = CO_false;
+    SDO->CANrxNew = false;
     SDO->pFunctSignal = 0;
     SDO->functArg = 0;
 
@@ -499,8 +499,8 @@ uint32_t CO_SDO_initTransfer(CO_SDO_t *SDO, uint16_t index, uint8_t subIndex){
     SDO->ODF_arg.attribute = CO_OD_getAttribute(SDO, SDO->entryNo, subIndex);
     SDO->ODF_arg.pFlags = CO_OD_getFlagsPointer(SDO, SDO->entryNo, subIndex);
 
-    SDO->ODF_arg.firstSegment = CO_true;
-    SDO->ODF_arg.lastSegment = CO_true;
+    SDO->ODF_arg.firstSegment = true;
+    SDO->ODF_arg.lastSegment = true;
 
     /* indicate total data length, if not domain */
     SDO->ODF_arg.dataLengthTotal = (SDO->ODF_arg.ODdataStorage) ? SDO->ODF_arg.dataLength : 0U;
@@ -544,7 +544,7 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
     }
 
     /* call Object dictionary function if registered */
-    SDO->ODF_arg.reading = CO_true;
+    SDO->ODF_arg.reading = true;
     if(ext->pODFunc != NULL){
         uint32_t abortCode = ext->pODFunc(&SDO->ODF_arg);
         if(abortCode != 0U){
@@ -556,7 +556,7 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
             return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
         }
     }
-    SDO->ODF_arg.firstSegment = CO_false;
+    SDO->ODF_arg.firstSegment = false;
 
     /* swap data if processor is not little endian (CANopen is) */
 #ifdef CO_BIG_ENDIAN
@@ -615,7 +615,7 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
 #endif
 
     /* call Object dictionary function if registered */
-    SDO->ODF_arg.reading = CO_false;
+    SDO->ODF_arg.reading = false;
     if(SDO->ODExtensions != NULL){
         CO_OD_extension_t *ext = &SDO->ODExtensions[SDO->entryNo];
 
@@ -626,7 +626,7 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
             }
         }
     }
-    SDO->ODF_arg.firstSegment = CO_false;
+    SDO->ODF_arg.firstSegment = false;
 
     /* copy data from SDO buffer to OD if not domain */
     if(ODdata != NULL){
@@ -649,7 +649,7 @@ static void CO_SDO_abort(CO_SDO_t *SDO, uint32_t code){
     SDO->CANtxBuff->data[3] = SDO->ODF_arg.subIndex;
     CO_memcpySwap4(&SDO->CANtxBuff->data[4], (uint8_t*)&code);
     SDO->state = CO_SDO_ST_IDLE;
-    SDO->CANrxNew = CO_false;
+    SDO->CANrxNew = false;
     CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
 }
 
@@ -657,13 +657,13 @@ static void CO_SDO_abort(CO_SDO_t *SDO, uint32_t code){
 /******************************************************************************/
 int8_t CO_SDO_process(
         CO_SDO_t               *SDO,
-        CO_bool_t               NMTisPreOrOperational,
+        bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_ms,
         uint16_t                SDOtimeoutTime)
 {
     CO_SDO_state_t state = CO_SDO_ST_IDLE;
-    CO_bool_t timeoutSubblockDownolad = CO_false;
-    CO_bool_t sendResponse = CO_false;
+    bool_t timeoutSubblockDownolad = false;
+    bool_t sendResponse = false;
 
     /* return if idle */
     if((SDO->state == CO_SDO_ST_IDLE) && (!SDO->CANrxNew)){
@@ -673,7 +673,7 @@ int8_t CO_SDO_process(
     /* SDO is allowed to work only in operational or pre-operational NMT state */
     if(!NMTisPreOrOperational){
         SDO->state = CO_SDO_ST_IDLE;
-        SDO->CANrxNew = CO_false;
+        SDO->CANrxNew = false;
         return 0;
     }
 
@@ -692,7 +692,7 @@ int8_t CO_SDO_process(
         /* Is abort from client? */
         if((SDO->CANrxNew) && (SDO->CANrxData[0] == CCS_ABORT)){
             SDO->state = CO_SDO_ST_IDLE;
-            SDO->CANrxNew = CO_false;
+            SDO->CANrxNew = false;
             return -1;
         }
 
@@ -758,7 +758,7 @@ int8_t CO_SDO_process(
     }
     if(SDO->timeoutTimer >= SDOtimeoutTime){
         if((SDO->state == CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK) && (SDO->sequence != 0) && (!SDO->CANtxBuff->bufferFull)){
-            timeoutSubblockDownolad = CO_true;
+            timeoutSubblockDownolad = true;
             state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
         }
         else{
@@ -776,7 +776,7 @@ int8_t CO_SDO_process(
     switch(state){
         uint32_t abortCode;
         uint16_t len, i;
-        CO_bool_t lastSegmentInSubblock;
+        bool_t lastSegmentInSubblock;
 
         case CO_SDO_ST_DOWNLOAD_INITIATE:{
             /* default response */
@@ -810,7 +810,7 @@ int8_t CO_SDO_process(
 
                 /* finish the communication */
                 SDO->state = CO_SDO_ST_IDLE;
-                sendResponse = CO_true;
+                sendResponse = true;
             }
 
             /* Segmented transfer */
@@ -830,7 +830,7 @@ int8_t CO_SDO_process(
                 SDO->bufferOffset = 0;
                 SDO->sequence = 0;
                 SDO->state = CO_SDO_ST_DOWNLOAD_SEGMENTED;
-                sendResponse = CO_true;
+                sendResponse = true;
             }
             break;
         }
@@ -860,7 +860,7 @@ int8_t CO_SDO_process(
                 }
                 else{
                     /* empty buffer in domain data type */
-                    SDO->ODF_arg.lastSegment = CO_false;
+                    SDO->ODF_arg.lastSegment = false;
                     abortCode = CO_SDO_writeOD(SDO, SDO->bufferOffset);
                     if(abortCode != 0U){
                         CO_SDO_abort(SDO, abortCode);
@@ -878,7 +878,7 @@ int8_t CO_SDO_process(
 
             /* If no more segments to be downloaded, write data to the Object dictionary */
             if((SDO->CANrxData[0] & 0x01U) != 0U){
-                SDO->ODF_arg.lastSegment = CO_true;
+                SDO->ODF_arg.lastSegment = true;
                 abortCode = CO_SDO_writeOD(SDO, SDO->bufferOffset);
                 if(abortCode != 0U){
                     CO_SDO_abort(SDO, abortCode);
@@ -892,7 +892,7 @@ int8_t CO_SDO_process(
             /* download segment response and alternate toggle bit */
             SDO->CANtxBuff->data[0] = 0x20 | (SDO->sequence ? 0x10 : 0x00);
             SDO->sequence = (SDO->sequence) ? 0 : 1;
-            sendResponse = CO_true;
+            sendResponse = true;
             break;
         }
 
@@ -914,7 +914,7 @@ int8_t CO_SDO_process(
             SDO->CANtxBuff->data[4] = SDO->blksize;
 
             /* is CRC enabled */
-            SDO->crcEnabled = (SDO->CANrxData[0] & 0x04) ? CO_true : CO_false;
+            SDO->crcEnabled = (SDO->CANrxData[0] & 0x04) ? true : false;
             SDO->crc = 0;
 
             /* verify length if size is indicated */
@@ -935,7 +935,7 @@ int8_t CO_SDO_process(
             SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK;
 
             /* send response */
-            sendResponse = CO_true;
+            sendResponse = true;
             break;
         }
 
@@ -947,7 +947,7 @@ int8_t CO_SDO_process(
         case CO_SDO_ST_DOWNLOAD_BL_SUB_RESP:{
             /* no new message received, SDO timeout occured, try to response */
             lastSegmentInSubblock = (!timeoutSubblockDownolad &&
-                        ((SDO->CANrxData[0] & 0x80U) == 0x80U)) ? CO_true : CO_false;
+                        ((SDO->CANrxData[0] & 0x80U) == 0x80U)) ? true : false;
 
             /* prepare response */
             SDO->CANtxBuff->data[0] = 0xA2;
@@ -962,7 +962,7 @@ int8_t CO_SDO_process(
                 }
 
                 /* write data to the Object dictionary */
-                SDO->ODF_arg.lastSegment = CO_false;
+                SDO->ODF_arg.lastSegment = false;
                 abortCode = CO_SDO_writeOD(SDO, SDO->bufferOffset);
                 if(abortCode != 0U){
                     CO_SDO_abort(SDO, abortCode);
@@ -991,7 +991,7 @@ int8_t CO_SDO_process(
             }
 
             /* send response */
-            sendResponse = CO_true;
+            sendResponse = true;
 
             break;
         }
@@ -1021,7 +1021,7 @@ int8_t CO_SDO_process(
             }
 
             /* write data to the Object dictionary */
-            SDO->ODF_arg.lastSegment = CO_true;
+            SDO->ODF_arg.lastSegment = true;
             abortCode = CO_SDO_writeOD(SDO, SDO->bufferOffset);
             if(abortCode != 0U){
                 CO_SDO_abort(SDO, abortCode);
@@ -1031,7 +1031,7 @@ int8_t CO_SDO_process(
             /* send response */
             SDO->CANtxBuff->data[0] = 0xA1;
             SDO->state = CO_SDO_ST_IDLE;
-            sendResponse = CO_true;
+            sendResponse = true;
             break;
         }
 
@@ -1049,7 +1049,7 @@ int8_t CO_SDO_process(
                 SDO->CANtxBuff->data[0] = 0x43U | ((4U-SDO->ODF_arg.dataLength) << 2U);
                 SDO->state = CO_SDO_ST_IDLE;
 
-                sendResponse = CO_true;
+                sendResponse = true;
             }
 
             /* Segmented transfer */
@@ -1069,7 +1069,7 @@ int8_t CO_SDO_process(
                 }
 
                 /* send response */
-                sendResponse = CO_true;
+                sendResponse = true;
             }
             break;
         }
@@ -1135,7 +1135,7 @@ int8_t CO_SDO_process(
             }
 
             /* send response */
-            sendResponse = CO_true;
+            sendResponse = true;
             break;
         }
 
@@ -1147,11 +1147,11 @@ int8_t CO_SDO_process(
 
             /* calculate CRC, if enabled */
             if((SDO->CANrxData[0] & 0x04U) != 0U){
-                SDO->crcEnabled = CO_true;
+                SDO->crcEnabled = true;
                 SDO->crc = crc16_ccitt(SDO->ODF_arg.data, SDO->ODF_arg.dataLength, 0);
             }
             else{
-                SDO->crcEnabled = CO_false;
+                SDO->crcEnabled = false;
                 SDO->crc = 0;
             }
 
@@ -1182,7 +1182,7 @@ int8_t CO_SDO_process(
 
             /* send response */
             SDO->state = CO_SDO_ST_UPLOAD_BL_INITIATE_2;
-            sendResponse = CO_true;
+            sendResponse = true;
             break;
         }
 
@@ -1195,8 +1195,8 @@ int8_t CO_SDO_process(
 
             SDO->bufferOffset = 0;
             SDO->sequence = 0;
-            SDO->endOfTransfer = CO_false;
-            SDO->CANrxNew = CO_false;
+            SDO->endOfTransfer = false;
+            SDO->CANrxNew = false;
             SDO->state = CO_SDO_ST_UPLOAD_BL_SUBBLOCK;
             /* continue in next case */
         }
@@ -1233,7 +1233,7 @@ int8_t CO_SDO_process(
                     SDO->state = CO_SDO_ST_UPLOAD_BL_END;
 
                     /* send response */
-                    sendResponse = CO_true;
+                    sendResponse = true;
                     break;
                 }
 
@@ -1279,10 +1279,10 @@ int8_t CO_SDO_process(
 
                 SDO->bufferOffset = 0U;
                 SDO->sequence = 0U;
-                SDO->endOfTransfer = CO_false;
+                SDO->endOfTransfer = false;
 
                 /* clear flag here */
-                SDO->CANrxNew = CO_false;
+                SDO->CANrxNew = false;
             }
 
             /* return, if all segments was allready transfered or on end of transfer */
@@ -1312,7 +1312,7 @@ int8_t CO_SDO_process(
                 SDO->CANtxBuff->data[0] |= 0x80;
                 SDO->lastLen = len;
                 SDO->blksize = SDO->sequence;
-                SDO->endOfTransfer = CO_true;
+                SDO->endOfTransfer = true;
             }
 
             /* send response */
@@ -1340,7 +1340,7 @@ int8_t CO_SDO_process(
     }
 
     /* free buffer and send message */
-    SDO->CANrxNew = CO_false;
+    SDO->CANrxNew = false;
     if(sendResponse) {
         CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
     }

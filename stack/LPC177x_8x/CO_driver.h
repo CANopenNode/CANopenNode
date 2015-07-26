@@ -70,12 +70,8 @@
 
 
 /* Data types */
-    typedef unsigned char CO_bool_t;
-    typedef enum{
-        CO_false = 0,
-        CO_true = 1
-    }CO_boolval_t;
     /* int8_t to uint64_t are defined in stdint.h */
+    typedef unsigned char           bool_t;
     typedef float                   float32_t;
     typedef long double             float64_t;
     typedef char                    char_t;
@@ -128,8 +124,8 @@ typedef struct{
 	uint32_t Type;					/*!< Message Type. which can include: - CAN_REMOTE_MSG type*/
 	uint32_t DLC;					/*!< Message Data Length: 0~8 */
 	uint8_t  data[CAN_MSG_MAX_DATA_LEN];/*!< Message Data */
-    volatile CO_bool_t  bufferFull;
-    volatile CO_bool_t  syncFlag;
+    volatile bool_t     bufferFull;
+    volatile bool_t     syncFlag;
 }CO_CANtx_t;
 
 
@@ -140,9 +136,9 @@ typedef struct{
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
     uint16_t            txSize;
-    volatile CO_bool_t  useCANrxFilters;
-    volatile CO_bool_t  bufferInhibitFlag;
-    volatile CO_bool_t  firstCANtxMessage;
+    volatile bool_t     useCANrxFilters;
+    volatile bool_t     bufferInhibitFlag;
+    volatile bool_t     firstCANtxMessage;
     volatile uint16_t   CANtxCount;
     uint32_t            errOld;
     void               *em;
@@ -183,7 +179,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
         uint16_t                index,
         uint16_t                ident,
         uint16_t                mask,
-        CO_bool_t               rtr,
+        bool_t                  rtr,
         void                   *object,
         void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message));
 
@@ -193,9 +189,9 @@ CO_CANtx_t *CO_CANtxBufferInit(
         CO_CANmodule_t         *CANmodule,
         uint16_t                index,
         uint16_t                ident,
-        CO_bool_t               rtr,
+        bool_t                  rtr,
         uint8_t                 noOfBytes,
-        CO_bool_t               syncFlag);
+        bool_t                  syncFlag);
 
 
 /* Send CAN message. */

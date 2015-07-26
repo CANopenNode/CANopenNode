@@ -73,7 +73,7 @@ static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg){
                 EE_readBlock((uint8_t*)&MBR, EE_SIZE - EE_PAGE_SIZE, sizeof(MBR));
                 /* if EEPROM is not yet initilalized, enable it now */
                 if(MBR.OD_EEPROMSize != ee->OD_EEPROMSize)
-                    ee->OD_EEPROMWriteEnable = CO_true;
+                    ee->OD_EEPROMWriteEnable = true;
 
                 /* prepare MBR */
                 MBR.CRC = crc16_ccitt(ee->OD_ROMAddress, ee->OD_ROMSize, 0);
@@ -194,7 +194,7 @@ CO_ReturnError_t CO_EE_init_1(
     ee->OD_ROMAddress = OD_ROMAddress;
     ee->OD_ROMSize = OD_ROMSize;
     ee->OD_EEPROMCurrentIndex = 0;
-    ee->OD_EEPROMWriteEnable = CO_false;
+    ee->OD_EEPROMWriteEnable = false;
 
     /* read the master boot record from the last page in eeprom */
     EE_MBR_t MBR;
@@ -208,7 +208,7 @@ CO_ReturnError_t CO_EE_init_1(
         EE_readBlock((uint8_t*)&lastWordEE, OD_EEPROMSize-4, 4);
         if(firstWordRAM == firstWordEE && firstWordRAM == lastWordEE){
             EE_readBlock(OD_EEPROMAddress, 0, OD_EEPROMSize);
-            ee->OD_EEPROMWriteEnable = CO_true;
+            ee->OD_EEPROMWriteEnable = true;
         }
         else{
             return CO_ERROR_DATA_CORRUPT;

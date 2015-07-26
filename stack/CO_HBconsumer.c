@@ -48,7 +48,7 @@ static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg){
     if((msg->DLC == 1) && !HBconsNode->CANrxNew){
         /* copy data and set 'new message' flag */
         HBconsNode->NMTstate = msg->data[0];
-        HBconsNode->CANrxNew = CO_true;
+        HBconsNode->CANrxNew = true;
     }
 }
 
@@ -179,7 +179,7 @@ int16_t CO_HBconsumer_init(
 /******************************************************************************/
 void CO_HBconsumer_process(
         CO_HBconsumer_t        *HBcons,
-        CO_bool_t               NMTisPreOrOperational,
+        bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_ms)
 {
     uint8_t i;
@@ -200,7 +200,7 @@ void CO_HBconsumer_process(
                         monitoredNode->timeoutTimer = 0;  /* reset timer */
                         timeDifference_ms = 0;
                     }
-                    monitoredNode->CANrxNew = CO_false;
+                    monitoredNode->CANrxNew = false;
                 }
                 /* Verify timeout */
                 if(monitoredNode->timeoutTimer < monitoredNode->time) monitoredNode->timeoutTimer += timeDifference_ms;
@@ -224,7 +224,7 @@ void CO_HBconsumer_process(
     else{ /* not in (pre)operational state */
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
             monitoredNode->NMTstate = 0;
-            monitoredNode->CANrxNew = CO_false;
+            monitoredNode->CANrxNew = false;
             monitoredNode->monStarted = 0;
             monitoredNode++;
         }

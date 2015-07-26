@@ -81,11 +81,7 @@
 
 
 /* Data types */
-    typedef unsigned char CO_bool_t;
-    typedef enum{
-        CO_false = 0,
-        CO_true = 1
-    }CO_boolval_t;
+    typedef unsigned char           bool_t;
     typedef cyg_uint8               uint8_t;
     typedef cyg_uint16              uint16_t;
     typedef cyg_uint32              uint32_t;

@@ -302,7 +302,7 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
  * @return false: Error is not present.
  * @return true: Error is present.
  */
-CO_bool_t CO_isError(CO_EM_t *em, const uint8_t errorBit);
+bool_t CO_isError(CO_EM_t *em, const uint8_t errorBit);
 
 
 #ifdef CO_DOXYGEN
@@ -379,7 +379,7 @@ CO_ReturnError_t CO_EM_init(
  */
 void CO_EM_process(
         CO_EMpr_t              *emPr,
-        CO_bool_t               NMTisPreOrOperational,
+        bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_100us,
         uint16_t                emInhTime);
 
