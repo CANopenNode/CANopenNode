@@ -27,7 +27,6 @@
 
 
 #include "CANopen.h"
-#include "application.h"
 
 
 /* Global variables and objects */
@@ -42,10 +41,6 @@ int main (void){
 
 
     /* initialize EEPROM */
-
-
-    /* Application interface */
-    programStart();
 
 
     /* increase variable each startup. Variable is stored in EEPROM. */
@@ -79,10 +74,6 @@ int main (void){
         /* Configure CAN transmit and receive interrupt */
 
 
-        /* Application interface */
-        communicationReset();
-
-
         /* start CAN and enable interrupts */
         CO_CANsetNormalMode(ADDR_CAN1);
 
@@ -97,10 +88,6 @@ int main (void){
             CO_ENABLE_INTERRUPTS();
 
 
-            /* Application interface */
-            programAsync(timer1msDiff);
-
-
             /* CANopen process */
             reset = CO_process(CO, timer1msDiff);
 
@@ -112,10 +99,6 @@ int main (void){
 
 /* program exit ***************************************************************/
     CO_DISABLE_INTERRUPTS();
-
-
-    /* Application interface */
-    programEnd();
 
 
     /* delete objects from memory */
@@ -137,10 +120,6 @@ void /* interrupt */ CO_TimerInterruptHandler(void){
 
 
     CO_process_RPDO(CO);
-
-
-    /* Application interface */
-    program1ms();
 
 
     CO_process_TPDO(CO);
