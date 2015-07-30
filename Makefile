@@ -1,8 +1,8 @@
 # Makefile for CANopenNode, basic compile with no CAN device.
 
 
-STACK_SRC =  ../stack
-STACKDRV_SRC =  ../stack/drvTemplate
+STACK_SRC =  stack
+STACKDRV_SRC =  stack/drvTemplate
 
 
 INCLUDE_DIRS = $(STACK_SRC) \
@@ -30,14 +30,16 @@ CC = gcc
 CFLAGS = -Wall -I$(INCLUDE_DIRS)
 
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $*.o $<
+.PHONY: all clean
 
-
-canopennode: $(OBJS)
-	$(CC) $(CFLAGS)  $(OBJS) -o canopennode
-
+all: canopennode
 
 clean:
 	rm -f $(OBJS) canopennode
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $*.o $<
+
+canopennode: $(OBJS)
+	$(CC) $(CFLAGS)  $(OBJS) -o canopennode
 

@@ -1,0 +1,105 @@
+CANopenNode is an opensource CANopen Stack.
+
+CANopen is the internationally standardized (EN 50325-4) CAN-based higher-layer protocol for embedded control system. For more information on CANopen see http://www.can-cia.org/
+
+Stack is written in ANSI C in object-oriented way. Code is documented. License is LGPL V2.1.
+
+Variables (communication, device, custom) are ordered in CANopen object dictionary and are accessible from both: C code and from CAN network.
+
+
+CANopen Features:
+ - NMT slave to start, stop, reset device.
+ - Heartbeat producer/consumer error control.
+ - PDO linking and dynamic mapping for fast exchange of process variables.
+ - SDO expedited, segmented and block transfer for service access to all parameters.
+ - SDO master.
+ - Emergency message.
+ - Sync producer/consumer.
+ - Nonvolatile storage.
+
+
+Supported microcontrollers:
+ - Template for new microcontroller support for CANopenNode:
+   - Contributed by Janez Paternoster
+   - Status:
+     - Well commented.
+     - Should compile on any system.
+     - No interface to any CAN hardware.
+     - Template for parameter storage via objects 0x1010 and 0x1011.
+
+ - Linux socketCAN:
+   - Contributed by Janez Paternoster
+   - Status:
+     - ...
+
+ - eCos RTOS:
+   - The driver supports any hardware that is supported by the eCos CAN framework.
+     See http://ecos.sourceware.org/
+   - Contributed by Uwe Kindler:
+     - See: http://sourceforge.net/p/canopennode/discussion/387151/thread/7603e3b5/
+   - Tested (sep 2013):
+     - Olimex LCP-E2294-1MB board: https://www.olimex.com/Products/ARM/NXP/LPC-E2294-1MB/
+     - Olimex LPC-L2294-1MB board: https://www.olimex.com/Products/ARM/NXP/LPC-L2294-1MB/
+   - Status:
+     - stable.
+     - Parameter storage via objects 0x1010 and 0x1011 (eCos generic flash support).
+
+ - Microchip PIC32MX:
+   - Contributed by Janez Paternoster
+   - Tested (date):
+     - 
+   - Status:
+     - Stable.
+     - Parameter storage via objects 0x1010 and 0x1011 (external eeprom).
+
+ - Microchip PIC24H and dsPIC33F:
+   - Contributed by Janez Paternoster
+   - Tested (date):
+     - 
+   - Status:
+     - stable/unconfirmed
+
+ - Microchip dsPIC30F:
+   - Contributed by Janez Paternoster
+   - Tested (?):
+
+ - NXP LPC177x (Cortex M3) and FreeRTOS.
+   - Contributed by AmitH(sourceforge) (17.9.2014):
+     - See: http://sourceforge.net/p/canopennode/discussion/387151/thread/d1b43992
+   - Status:
+     - unconfirmed
+
+ - Atmel SAM3X:
+   - Used with Atmel ASF library.
+   - Contributed by Olof Larsson (dec 2014):
+     - See: http://sourceforge.net/p/canopennode/discussion/387151/thread/8e789d60/
+   - Status:
+     - unconfirmed
+
+ - ST STM32:
+   - Contributed by ?
+   - Status:
+     - unknown
+
+
+Other known implementations with source code:
+ - AD ADSP-CM408 mixed signal controller
+   - http://www.analog.com/en/processors-dsp/cm4xx/adsp-cm408f/products/cm40x-ez/eb.html
+   - Contributed by Analog devices, Inc. (dec 2014):
+     - See: http://sourceforge.net/p/canopennode/discussion/387151/thread/bfbcab97/
+   - Package and setup user guide are available at:
+     - http://sourceforge.net/projects/canopennode-for-adsp-cm408f/
+     - http://sourceforge.net/projects/canopennode-for-adsp-cm408f/files
+
+
+Discontinued implementations from earlier versions of CANopenNode:
+ - Microchip PIC18F
+ - BECK IPC Embedded Web-Controller SC243
+
+
+History of the project:
+Project was initially hosted on http://sourceforge.net/projects/canopennode/
+It started in 2004 with PIC18F microcontrollers from Microchip.
+Fresh, cleaned repository of CANopenNode stack started on 25.7.2015.
+For older history see http://sourceforge.net/p/canopennode/code_complete/
+
