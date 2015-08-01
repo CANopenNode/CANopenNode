@@ -1,10 +1,9 @@
 /*
- * CAN module object for BECK SC243 computer.
+ * CAN module object for Linux SocketCAN.
  *
  * @file        CO_driver.h
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @copyright   2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -29,34 +28,31 @@
 #define CO_DRIVER_H
 
 
-#include <clib.h>           /* processor header file */
+/* For documentation see file drvTemplate/CO_driver.h */
+
+
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 
 
-/* Peripheral addresses */
+/* CAN module base address */
 #define ADDR_CAN1    CAN_PORT_CAN1
 #define ADDR_CAN2    CAN_PORT_CAN2
 
 
 /* Disabling interrupts */
-#define CO_DISABLE_INTERRUPTS()     MaskInterrupts()
-#define CO_ENABLE_INTERRUPTS()      EnableInterrupts()
+#define CO_DISABLE_INTERRUPTS()     //MaskInterrupts()
+#define CO_ENABLE_INTERRUPTS()      //EnableInterrupts()
 
 
 /* Other configuration */
 #define CO_LOG_CAN_MESSAGES                 /* Call external function for each received
                                                or transmitted CAN message. */
 #define CO_SDO_BUFFER_SIZE           889    /* Override default SDO buffer size. */
-//#define USE_CAN_CALLBACKS                   /* If defined, callbacks will be used for CAN RX and TX instead pooling.
 
 /* Data types */
-    typedef unsigned char CO_bool_t;
-    typedef enum{
-        CO_false = 0,
-        CO_true = 1
-    }CO_boolval_t;
     /* int8_t to uint64_t are defined in stdint.h */
+    typedef _Bool                   bool_t;
     typedef float                   float32_t;
     typedef double                  float64_t;
     typedef char                    char_t;
@@ -84,8 +80,7 @@ typedef enum{
 }CO_ReturnError_t;
 
 
-/* CAN receive message structure as aligned in CAN module. In SC2x3 this
- * structure has the same alignment as in the _CanMsg_ structure from canAPI.h */
+/* CAN receive message structure as aligned in CAN module. */
 typedef struct{
     uint32_t        ident;
     uint8_t         DLC;
@@ -102,14 +97,13 @@ typedef struct{
 }CO_CANrx_t;
 
 
-/* Transmit message object. In SC2x3 this structure has the same alignment
- * of first three members as in the _CanMsg_ structure from canAPI.h */
+/* Transmit message object. */
 typedef struct{
     uint32_t            ident;
     uint8_t             DLC;
     uint8_t             data[8];
-    volatile CO_bool_t  bufferFull;
-    volatile CO_bool_t  syncFlag;
+    volatile bool_t     bufferFull;
+    volatile bool_t     syncFlag;
 }CO_CANtx_t;
 
 
@@ -123,8 +117,8 @@ typedef struct{
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
     uint16_t            txSize;
-    volatile CO_bool_t  bufferInhibitFlag;
-    volatile CO_bool_t  firstCANtxMessage;
+    volatile bool_t     bufferInhibitFlag;
+    volatile bool_t     firstCANtxMessage;
     volatile uint8_t    error;
     volatile uint16_t   CANtxCount;
     uint32_t            errOld;
@@ -133,7 +127,7 @@ typedef struct{
 
 
 /* Endianes */
-#define CO_BIG_ENDIAN
+#define CO_LITTLE_ENDIAN
 
 
 /* Request CAN configuration or normal mode */
@@ -166,7 +160,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
         uint16_t                index,
         uint16_t                ident,
         uint16_t                mask,
-        CO_bool_t               rtr,
+        bool_t                  rtr,
         void                   *object,
         void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message));
 
@@ -176,9 +170,9 @@ CO_CANtx_t *CO_CANtxBufferInit(
         CO_CANmodule_t         *CANmodule,
         uint16_t                index,
         uint16_t                ident,
-        CO_bool_t               rtr,
+        bool_t                  rtr,
         uint8_t                 noOfBytes,
-        CO_bool_t               syncFlag);
+        bool_t                  syncFlag);
 
 
 /* Send CAN message. */

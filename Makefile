@@ -1,28 +1,31 @@
 # Makefile for CANopenNode, basic compile with no CAN device.
 
 
-STACK_SRC =  stack
+STACK_SRC =     stack
 STACKDRV_SRC =  stack/drvTemplate
+CANOPEN_SRC =   .
+APPL_SRC =      example
 
 
-INCLUDE_DIRS = $(STACK_SRC) \
-	-I$(STACKDRV_SRC) \
-	-I.
+INCLUDE_DIRS =  $(CANOPEN_SRC)  \
+              -I$(STACK_SRC)    \
+              -I$(STACKDRV_SRC) \
+              -I$(APPL_SRC)
 
 
-SOURCES = $(STACKDRV_SRC)/CO_driver.c \
-	$(STACKDRV_SRC)/eeprom.c \
-	$(STACK_SRC)/crc16-ccitt.c \
-	$(STACK_SRC)/CO_SDO.c \
-	$(STACK_SRC)/CO_Emergency.c \
-	$(STACK_SRC)/CO_NMT_Heartbeat.c \
-	$(STACK_SRC)/CO_SYNC.c \
-	$(STACK_SRC)/CO_PDO.c \
-	$(STACK_SRC)/CO_HBconsumer.c \
-	$(STACK_SRC)/CO_SDOmaster.c \
-	CANopen.c \
-	CO_OD.c \
-	main.c
+SOURCES =       $(STACKDRV_SRC)/CO_driver.c     \
+                $(STACKDRV_SRC)/eeprom.c        \
+                $(STACK_SRC)/crc16-ccitt.c      \
+                $(STACK_SRC)/CO_SDO.c           \
+                $(STACK_SRC)/CO_Emergency.c     \
+                $(STACK_SRC)/CO_NMT_Heartbeat.c \
+                $(STACK_SRC)/CO_SYNC.c          \
+                $(STACK_SRC)/CO_PDO.c           \
+                $(STACK_SRC)/CO_HBconsumer.c    \
+                $(STACK_SRC)/CO_SDOmaster.c     \
+                $(CANOPEN_SRC)/CANopen.c        \
+                $(APPL_SRC)/CO_OD.c             \
+                $(APPL_SRC)/main.c
 
 
 OBJS = ${SOURCES:%.c=%.o}
@@ -41,5 +44,5 @@ clean:
 	$(CC) $(CFLAGS) -c -o $*.o $<
 
 canopennode: $(OBJS)
-	$(CC) $(CFLAGS)  $(OBJS) -o canopennode
+	$(CC) $(CFLAGS)  $(OBJS) -o $@
 
