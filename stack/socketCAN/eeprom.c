@@ -1,10 +1,9 @@
 /*
- * Eeprom object for BECK SC243 computer.
+ * Eeprom object for Linux SocketCAN.
  *
  * @file        eeprom.c
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @copyright   2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -34,7 +33,7 @@
 #include <string.h>     /* for memcpy */
 #include <stdlib.h>     /* for malloc, free */
 
-/******************************************************************************/
+/* Store parameters ***********************************************************/
 static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg){
     CO_EE_t *ee;
     uint32_t value;
@@ -101,7 +100,7 @@ static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg){
 }
 
 
-/******************************************************************************/
+/* Restore default parameters *************************************************/
 static CO_SDO_abortCode_t CO_ODF_1011(CO_ODF_arg_t *ODF_arg){
     CO_EE_t *ee;
     uint32_t value;
@@ -159,7 +158,7 @@ CO_ReturnError_t CO_EE_init_1(
     ee->OD_ROMAddress = OD_ROMAddress;
     ee->OD_ROMSize = OD_ROMSize;
     ee->OD_EEPROMCurrentIndex = 0;
-    ee->OD_EEPROMWriteEnable = CO_false;
+    ee->OD_EEPROMWriteEnable = false;
 
     /* read the CO_OD_EEPROM from SRAM, first verify, if data are OK */
     if(ee->pSRAM == 0) return CO_ERROR_OUT_OF_MEMORY;
@@ -171,7 +170,7 @@ CO_ReturnError_t CO_EE_init_1(
         for(i=0; i<ee->OD_EEPROMSize; i++)
             (ee->OD_EEPROMAddress)[i] = (ee->pSRAM)[i];
     }
-    ee->OD_EEPROMWriteEnable = CO_true;
+    ee->OD_EEPROMWriteEnable = true;
 
     /* read the CO_OD_ROM from file and verify CRC */
     void *buf = malloc(ee->OD_ROMSize);

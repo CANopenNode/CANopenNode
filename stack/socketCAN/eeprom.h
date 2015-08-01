@@ -1,10 +1,9 @@
 /*
- * Eeprom object for BECK SC243 computer.
+ * Eeprom object for Linux SocketCAN.
  *
  * @file        eeprom.h
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @copyright   2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -29,11 +28,11 @@
 #define EEPROM_H
 
 
-/* For documentation see file genericDriver/eeprom.h */
+/* For documentation see file drvTemplate/eeprom.h */
 
 
 /*
- * SC243 specific
+ * Linux specific
  *
  * Usage of device file system or SRAM for storing non-volatile variables.
  *
@@ -68,7 +67,7 @@ typedef struct{
     uint32_t           *pSRAM;          /* SC243 specific: Pointer to start
                                            address of the battery powered SRAM */
     uint32_t            OD_EEPROMCurrentIndex;
-    CO_bool_t           OD_EEPROMWriteEnable;
+    bool_t           OD_EEPROMWriteEnable;
 }CO_EE_t;
 
 

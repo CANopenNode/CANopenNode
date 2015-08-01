@@ -3,10 +3,12 @@
 
 STACK_SRC =  stack
 STACKDRV_SRC =  stack/drvTemplate
+APPL_SRC =  example
 
 
 INCLUDE_DIRS = $(STACK_SRC) \
 	-I$(STACKDRV_SRC) \
+	-I$(APPL_SRC) \
 	-I.
 
 
@@ -20,9 +22,9 @@ SOURCES = $(STACKDRV_SRC)/CO_driver.c \
 	$(STACK_SRC)/CO_PDO.c \
 	$(STACK_SRC)/CO_HBconsumer.c \
 	$(STACK_SRC)/CO_SDOmaster.c \
-	CANopen.c \
-	CO_OD.c \
-	main.c
+	$(APPL_SRC)/CO_OD.c \
+	$(APPL_SRC)/main.c \
+	CANopen.c
 
 
 OBJS = ${SOURCES:%.c=%.o}
