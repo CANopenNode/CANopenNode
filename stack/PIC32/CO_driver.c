@@ -481,7 +481,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
     uint8_t ICODE;
     ICODE = (uint8_t) CAN_REG(CANmodule->CANbaseAddress, C_VEC) & 0x7F;
 
-    /* receive interrupt (New CAN messagge is available in RX FIFO 0 buffer) */
+    /* receive interrupt (New CAN message is available in RX FIFO 0 buffer) */
     if(ICODE == 0){
         CO_CANrxMsg_t *rcvMsg;      /* pointer to received message in CAN module */
         uint16_t index;             /* index of received message */
