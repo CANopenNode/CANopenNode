@@ -18,6 +18,50 @@ CANopen Features:
  - Nonvolatile storage.
 
 
+Flowchart of a typical CANopenNode implementation:
+                           +-----------------------+
+                           |     Program start     |
+                           +-----------------------+
+                                       |
+                           +-----------------------+
+                           |     CANopen init      |
+                           +-----------------------+
+                                       |
+                           +-----------------------+
+                           |     Start threads     |
+                           +-----------------------+
+                                 |     |     |
+            +--------------------+     |     +--------------------+
+            |                          |                          |
++-----------------------+  +-----------------------+  +-----------------------+
+| CAN receive thread    |  | Mainline thread       |  | Timer interval thread |
+|                       |  |                       |  |                       |
+| - Fast response.      |  | - Processing of time  |  | - Realtime thread with|
+| - Detect CAN ID.      |  |   consuming tasks     |  |   constant interval,  |
+| - Partially process   |  |   in CANopen objects: |  |   typically 1ms.      |
+|   messages and copy   |  |    - SDO server,      |  | - Network synchronized|
+|   data to target      |  |    - Emergency,       |  | - Copy inputs (RPDOs, |
+|   CANopen objects.    |  |    - Network state,   |  |   HW) to Object Dict. |
+|                       |  |    - Heartbeat.       |  | - May call application|
+|                       |  | - May cyclically call |  |   for some processing.|
+|                       |  |   application code.   |  | - Copy variables from |
+|                       |  |                       |  |   Object Dictionary to|
+|                       |  |                       |  |   outputs (TPDOs, HW).|
++-----------------------+  +-----------------------+  +-----------------------+
+
+             +-----------------------+
+             | SDO client (optional) |
+             |                       |
+             | - Can be called by    |
+             |   external application|
+             | - Can read or write   |
+             |   any variable from   |
+             |   Object Dictionary   |
+             |   from any node in the|
+             |   CANopen network.    |
+             +-----------------------+
+
+
 Supported microcontrollers:
  - Template for new microcontroller support for CANopenNode:
    - Contributed by Janez Paternoster
@@ -108,4 +152,3 @@ Project was initially hosted on http://sourceforge.net/projects/canopennode/
 It started in 2004 with PIC18F microcontrollers from Microchip.
 Fresh, cleaned repository of CANopenNode stack started on 25.7.2015.
 For older history see http://sourceforge.net/p/canopennode/code_complete/
-

@@ -166,7 +166,8 @@ void CO_delete(void);
  * Process CANopen objects.
  *
  * Function must be called cyclically. It processes all "asynchronous" CANopen
- * objects. Function returns value from CO_NMT_process().
+ * objects. Function returns value from CO_NMT_process(). SYNC, RPDO and TPDO
+ * objects are considered as realtime. They must be processed separatelly.
  *
  * @param CO This object
  * @param timeDifference_ms Time difference from previous function call in [milliseconds].
@@ -176,28 +177,6 @@ void CO_delete(void);
 CO_NMT_reset_cmd_t CO_process(
         CO_t                   *CO,
         uint16_t                timeDifference_ms);
-
-
-/**
- * Process CANopen SYNC and RPDO objects.
- *
- * Function must be called cyclically from synchronous 1ms task. It processes
- * SYNC and receive PDO CANopen objects.
- *
- * @param CO This object
- */
-void CO_process_RPDO(CO_t *CO);
-
-
-/**
- * Process CANopen TPDO objects.
- *
- * Function must be called cyclically from synchronous 1ms task. It processes
- * transmit PDO CANopen objects.
- *
- * @param CO This object
- */
-void CO_process_TPDO(CO_t *CO);
 
 
 /** @} */

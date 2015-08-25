@@ -38,13 +38,28 @@
  *
  * For CAN identifier see #CO_Default_CAN_ID_t
  *
- * SYNC message is used for synchronization of the nodes on network. There is
- * one SYNC producer and zero or more SYNC consumers.
+ * SYNC message is used for synchronization of the nodes on network. One node
+ * can be SYNC producer, others can be SYNC consumers. Synchronous TPDOs are
+ * transmitted after the CANopen SYNC message. Synchronous received PDOs are
+ * accepted(copied to OD) immediatelly after the reception of the next SYNC
+ * message.
  *
  * ####Contents of SYNC message
  * By default SYNC message has no data. If _Synchronous counter overflow value_
  * from Object dictionary (index 0x1019) is different than 0, SYNC message has
- * one data byte: counter incremented by 1 with every SYNC transmission.
+ * one data byte: _counter_ incremented by 1 with every SYNC transmission.
+ *
+ * ####SYNC in CANopenNode
+ * If callback is configured by CO_SYNC_initCallback(), then it is called from
+ * CO_SYNC_receive thread, after SYNC message is received. Or, if node is SYNC
+ * producer, function is called just before SYNC message is transmitted.
+ * Usage of callback is microcontroller specific. It may, for example, temporary
+ * disable CAN message reception. Reception is then reenabled after all RPDOs
+ * are processed. This is necessary because reception of PDOs must be disabled
+ * after sync message, before old RPDOs are processed completelly.
+ *
+ * Besides callback, information about SYNC message is returned also from
+ * CO_SYNC_process() function.
  */
 
 
@@ -72,8 +87,8 @@ typedef struct{
     /** True, if current time is inside synchronous window.
     In this case synchronous PDO may be sent. */
     bool_t              curentSyncTimeIsInsideWindow;
-    /** True in operational, after first SYNC was received or transmitted */
-    bool_t              running;
+    /** Variable indicates, if new SYNC message received from CAN bus */
+    bool_t              CANrxNew;
     /** Counter of the SYNC message if counterOverflowValue is different than zero */
     uint8_t             counter;
     /** Timer for the SYNC message in [microseconds].
@@ -81,6 +96,8 @@ typedef struct{
     uint32_t            timer;
     /** Set to nonzero value, if SYNC with wrong data length is received from CAN */
     uint16_t            receiveError;
+    void              (*cbSync)(void *arg);/**< From CO_SYNC_initCallback() or NULL */
+    void               *cbSyncArg;    /**< From CO_SYNC_initCallback() or NULL */
     CO_CANmodule_t     *CANdevRx;       /**< From CO_SYNC_init() */
     uint16_t            CANdevRxIdx;    /**< From CO_SYNC_init() */
     CO_CANmodule_t     *CANdevTx;       /**< From CO_SYNC_init() */
@@ -120,6 +137,22 @@ int16_t CO_SYNC_init(
         uint16_t                CANdevRxIdx,
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx);
+
+
+/**
+ * Initialize SYNC callback function.
+ *
+ * Function initializes optional callback function, which executes after the SYNC.
+ *
+ * @param SYNC This object.
+ * @param cbSync Callback function, which will be called just after the
+ * presence of CANopen SYNC message on the bus.
+ * @param arg Will be used as argument to cbSync function.
+ */
+void CO_SYNC_initCallback(
+        CO_SYNC_t              *SYNC,
+        void                  (*cbSync)(void *arg),
+        void                   *arg);
 
 
 /**

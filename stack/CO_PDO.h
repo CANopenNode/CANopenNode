@@ -170,13 +170,15 @@ typedef struct{
     uint8_t             restrictionFlags;/**< From CO_RPDO_init() */
     /** True, if PDO is enabled and valid */
     bool_t              valid;
+    /** True, if PDO synchronous (transmissionType <= 240) */
+    bool_t              synchronous;
     /** Data length of the received PDO message. Calculated from mapping */
     uint8_t             dataLength;
     /** Pointers to 8 data objects, where PDO will be copied */
     uint8_t            *mapPointer[8];
     /** Variable indicates, if new PDO message received from CAN bus.
     Must be 2-byte variable because of correct alignment of CANrxData. */
-    uint16_t            CANrxNew;
+    volatile uint16_t   CANrxNew;
     /** 8 data bytes of the received message. Take care for correct (word) alignment!*/
     uint8_t             CANrxData[8];
     CO_CANmodule_t     *CANdevRx;       /**< From CO_RPDO_init() */
@@ -210,12 +212,10 @@ typedef struct{
     uint8_t             sendIfCOSFlags;
     /** SYNC counter used for PDO sending */
     uint8_t             syncCounter;
-    /** Previous timer from CO_SYNC_t */
-    uint32_t            SYNCtimerPrevious;
-    /** Inhibit timer used for inhibit PDO sending */
-    uint16_t            inhibitTimer;
-    /** Event timer used for PDO sending */
-    uint16_t            eventTimer;
+    /** Inhibit timer used for inhibit PDO sending translated to microseconds */
+    uint32_t            inhibitTimer;
+    /** Event timer used for PDO sending translated to microseconds */
+    uint32_t            eventTimer;
     CO_CANmodule_t     *CANdevTx;       /**< From CO_TPDO_init() */
     CO_CANtx_t         *CANtxBuff;      /**< CAN transmit buffer inside CANdev */
     uint16_t            CANdevTxIdx;    /**< From CO_TPDO_init() */
@@ -351,8 +351,9 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO);
  * operating state is operational. It does not verify _transmission type_.
  *
  * @param RPDO This object.
+ * @param syncWas True, if CANopen SYNC message was just received or transmitted
  */
-void CO_RPDO_process(CO_RPDO_t *RPDO);
+void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas);
 
 
 /**
@@ -364,14 +365,14 @@ void CO_RPDO_process(CO_RPDO_t *RPDO);
  *
  * @param TPDO This object.
  * @param SYNC SYNC object. Ignored if NULL.
- * @param timeDifference_100us Time difference from previous function call in [100 * microseconds].
- * @param timeDifference_ms Time difference from previous function call in [milliseconds].
+ * @param syncWas True, if CANopen SYNC message was just received or transmitted
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
  */
 void CO_TPDO_process(
         CO_TPDO_t              *TPDO,
         CO_SYNC_t              *SYNC,
-        uint16_t                timeDifference_100us,
-        uint16_t                timeDifference_ms);
+        bool_t                  syncWas,
+        uint32_t                timeDifference_us);
 
 
 /** @} */

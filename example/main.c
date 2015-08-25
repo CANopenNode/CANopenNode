@@ -29,8 +29,13 @@
 #include "CANopen.h"
 
 
+#define TMR_TASK_INTERVAL   (1000)          /* Interval of tmrTask thread in microseconds */
+#define INCREMENT_1MS(var)  (var++)         /* Increment 1ms variable in tmrTask */
+
+
 /* Global variables and objects */
-    volatile uint16_t CO_timer1ms = 0U; /* variable increments each millisecond */
+    volatile uint16_t   CO_timer1ms = 0U;   /* variable increments each millisecond */
+    volatile bool_t     CO_CAN_OK = false;  /* CAN in normal mode indicator */
 
 
 /* main ***********************************************************************/
@@ -53,6 +58,7 @@ int main (void){
         uint16_t timer1msPrevious;
 
         /* disable timer and CAN interrupts */
+        CO_CAN_OK = false;
 
 
         /* initialize CANopen */
@@ -63,34 +69,32 @@ int main (void){
         }
 
 
-        /* initialize variables */
-        timer1msPrevious = CO_timer1ms;
-        reset = CO_RESET_NOT;
-
-
         /* Configure Timer interrupt function for execution every 1 millisecond */
 
 
         /* Configure CAN transmit and receive interrupt */
 
 
-        /* start CAN and enable interrupts */
+        /* start CAN */
         CO_CANsetNormalMode(ADDR_CAN1);
+        CO_CAN_OK = true;
 
+        reset = CO_RESET_NOT;
+        timer1msPrevious = CO_timer1ms;
 
         while(reset == CO_RESET_NOT){
 /* loop for normal program execution ******************************************/
-            uint16_t timer1msDiff;
+            uint16_t timer1msCopy, timer1msDiff;
 
-            CO_DISABLE_INTERRUPTS();
-            timer1msDiff = CO_timer1ms - timer1msPrevious;
-            timer1msPrevious = CO_timer1ms;
-            CO_ENABLE_INTERRUPTS();
+            timer1msCopy = CO_timer1ms;
+            timer1msDiff = timer1msCopy - timer1msPrevious;
+            timer1msPrevious = timer1msCopy;
 
 
             /* CANopen process */
             reset = CO_process(CO, timer1msDiff);
 
+            /* Nonblocking application code may go here. */
 
             /* Process EEPROM */
         }
@@ -110,22 +114,44 @@ int main (void){
 }
 
 
-/* timer interrupt function executes every millisecond ************************/
-void /* interrupt */ CO_TimerInterruptHandler(void){
+/* timer thread executes in constant intervals ********************************/
+static void tmrTask_thread(void){
 
-    /* clear interrupt flag */
+    for(;;) {
 
+        /* sleep for interval */
 
-    CO_timer1ms++;
+        INCREMENT_1MS(CO_timer1ms);
 
+        if(CO_CAN_OK) {
+            int16_t i;
+            bool_t syncWas = false;
 
-    CO_process_RPDO(CO);
+            /* Process SYNC */
+            switch(CO_SYNC_process(CO->SYNC, TMR_TASK_INTERVAL, OD_synchronousWindowLength)){
+                case 1: syncWas = true; break;  //immediatelly after SYNC message
+                case 2: CO_CANclearPendingSyncPDOs(CO->CANmodule[0]); break; //outside SYNC window
+            }
 
+            /* Process RPDOs */
+            for(i=0; i<CO_NO_RPDO; i++){
+                CO_RPDO_process(CO->RPDO[i], syncWas);
+            }
 
-    CO_process_TPDO(CO);
+            /* Reenable CANrx, if it was disabled by SYNC callback */
 
+            /* Further I/O or nonblocking application code may go here. */
 
-    /* verify timer overflow (is flag set again?) */
+            /* Verify PDO Change Of State and process PDOs */
+            for(i=0; i<CO_NO_TPDO; i++){
+                if(!CO->TPDO[i]->sendRequest) CO->TPDO[i]->sendRequest = CO_TPDOisCOS(CO->TPDO[i]);
+                CO_TPDO_process(CO->TPDO[i], CO->SYNC, syncWas, TMR_TASK_INTERVAL);
+            }
+        }
+
+    }
+
+    /* verify timer overflow */
     if(0){
         CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0U);
     }

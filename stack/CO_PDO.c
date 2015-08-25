@@ -39,6 +39,8 @@
  * Function will be called (by CAN receive interrupt) every time, when CAN
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
+ * If new message arrives and previous message wasn't processed yet, then
+ * previous message will be lost and overwritten by new message. That's OK with PDOs.
  */
 static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
     CO_RPDO_t *RPDO;
@@ -47,8 +49,7 @@ static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
 
     if( (RPDO->valid) &&
         (*RPDO->operatingState == CO_NMT_OPERATIONAL) &&
-        (msg->DLC >= RPDO->dataLength) &&
-        (!RPDO->CANrxNew))
+        (msg->DLC >= RPDO->dataLength))
     {
         /* copy data and set 'new message' flag */
         RPDO->CANrxData[0] = msg->data[0];
@@ -89,6 +90,7 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
         /* is used default COB-ID? */
         if(ID == RPDO->defaultCOB_ID) ID += RPDO->nodeId;
         RPDO->valid = true;
+        RPDO->synchronous = (RPDO->RPDOCommPar->transmissionType <= 240) ? true : false;
     }
     else{
         ID = 0;
@@ -528,7 +530,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOcom(CO_ODF_arg_t *ODF_arg){
     else if(ODF_arg->subIndex == 5){   /* Event_Timer */
         uint16_t *value = (uint16_t*) ODF_arg->data;
 
-        TPDO->eventTimer = *value;
+        TPDO->eventTimer = ((uint32_t) *value) * 1000;
     }
     else if(ODF_arg->subIndex == 6){   /* SYNC start value */
         uint8_t *value = (uint8_t*) ODF_arg->data;
@@ -757,8 +759,7 @@ int16_t CO_TPDO_init(
     TPDO->CANdevTxIdx = CANdevTxIdx;
     TPDO->syncCounter = 255;
     TPDO->inhibitTimer = 0;
-    TPDO->eventTimer = TPDOCommPar->eventTimer;
-    TPDO->SYNCtimerPrevious = 0;
+    TPDO->eventTimer = ((uint32_t) TPDOCommPar->eventTimer) * 1000;
     if(TPDOCommPar->transmissionType>=254) TPDO->sendRequest = 1;
 
     CO_TPDOconfigMap(TPDO, TPDOMapPar->numberOfMappedObjects);
@@ -832,11 +833,14 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
         }
     }
 #endif
+    i = TPDO->dataLength;
     pPDOdataByte = &TPDO->CANtxBuff->data[0];
     ppODdataByte = &TPDO->mapPointer[0];
 
-    for(i=TPDO->dataLength; i>0; i--)
+    /* Copy data from Object dictionary. */
+    for(; i>0; i--) {
         *(pPDOdataByte++) = **(ppODdataByte++);
+    }
 
     TPDO->sendRequest = 0;
 
@@ -845,48 +849,59 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
 
 //#define RPDO_CALLS_EXTENSION
 /******************************************************************************/
-void CO_RPDO_process(CO_RPDO_t *RPDO){
+void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 
-    if(RPDO->CANrxNew && RPDO->valid && *RPDO->operatingState == CO_NMT_OPERATIONAL){
-        int16_t i;
-        uint8_t* pPDOdataByte;
-        uint8_t** ppODdataByte;
+    if(RPDO->valid && (*RPDO->operatingState == CO_NMT_OPERATIONAL) &&
+      ((RPDO->synchronous && syncWas) || !RPDO->synchronous)){
+        while(RPDO->CANrxNew){
+            int16_t i;
+            uint8_t* pPDOdataByte;
+            uint8_t** ppODdataByte;
 
-        pPDOdataByte = &RPDO->CANrxData[0];
-        ppODdataByte = &RPDO->mapPointer[0];
-        for(i=RPDO->dataLength; i>0; i--)
-            **(ppODdataByte++) = *(pPDOdataByte++);
+            i = RPDO->dataLength;
+            pPDOdataByte = &RPDO->CANrxData[0];
+            ppODdataByte = &RPDO->mapPointer[0];
+
+            /* Copy data to Object dictionary. If between the copy operation CANrxNew
+             * is set to true by receive thread, then copy the latest data again. */
+            RPDO->CANrxNew = 0;
+            for(; i>0; i--) {
+                **(ppODdataByte++) = *(pPDOdataByte++);
+            }
 
 #ifdef RPDO_CALLS_EXTENSION
-        if(RPDO->SDO->ODExtensions){
-            /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
-            const uint32_t* pMap = &RPDO->RPDOMapPar->mappedObject1;
-            CO_SDO_t *pSDO = RPDO->SDO;
+            if(RPDO->SDO->ODExtensions){
+                /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
+                const uint32_t* pMap = &RPDO->RPDOMapPar->mappedObject1;
+                CO_SDO_t *pSDO = RPDO->SDO;
 
-            for(i=RPDO->RPDOMapPar->numberOfMappedObjects; i>0; i--){
-                uint32_t map = *(pMap++);
-                uint16_t index = (uint16_t)(map>>16);
-                uint8_t subIndex = (uint8_t)(map>>8);
-                uint16_t entryNo = CO_OD_find(pSDO, index);
-                CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
-                if( ext->pODFunc == NULL) continue;
-                CO_ODF_arg_t ODF_arg;
-                memset((void*)&ODF_arg, 0, sizeof(CO_ODF_arg_t));
-                ODF_arg.reading = false;
-                ODF_arg.index = index;
-                ODF_arg.subIndex = subIndex;
-                ODF_arg.object = ext->object;
-                ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
-                ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
-                ODF_arg.data = pSDO->OD[entryNo].pData;
-                ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
-                ext->pODFunc(&ODF_arg);
+                for(i=RPDO->RPDOMapPar->numberOfMappedObjects; i>0; i--){
+                    uint32_t map = *(pMap++);
+                    uint16_t index = (uint16_t)(map>>16);
+                    uint8_t subIndex = (uint8_t)(map>>8);
+                    uint16_t entryNo = CO_OD_find(pSDO, index);
+                    CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
+                    if( ext->pODFunc == NULL) continue;
+                    CO_ODF_arg_t ODF_arg;
+                    memset((void*)&ODF_arg, 0, sizeof(CO_ODF_arg_t));
+                    ODF_arg.reading = false;
+                    ODF_arg.index = index;
+                    ODF_arg.subIndex = subIndex;
+                    ODF_arg.object = ext->object;
+                    ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
+                    ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
+                    ODF_arg.data = pSDO->OD[entryNo].pData;
+                    ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
+                    ext->pODFunc(&ODF_arg);
+                }
             }
-        }
 #endif
+        }
     }
 
-    RPDO->CANrxNew = 0;
+    else{
+        RPDO->CANrxNew = 0;
+    }
 }
 
 
@@ -894,11 +909,9 @@ void CO_RPDO_process(CO_RPDO_t *RPDO){
 void CO_TPDO_process(
         CO_TPDO_t              *TPDO,
         CO_SYNC_t              *SYNC,
-        uint16_t                timeDifference_100us,
-        uint16_t                timeDifference_ms)
+        bool_t                  syncWas,
+        uint32_t                timeDifference_us)
 {
-    int32_t i;
-
     if(TPDO->valid && *TPDO->operatingState == CO_NMT_OPERATIONAL){
 
         /* Send PDO by application request or by Event timer */
@@ -906,41 +919,38 @@ void CO_TPDO_process(
             if(TPDO->inhibitTimer == 0 && (TPDO->sendRequest || (TPDO->TPDOCommPar->eventTimer && TPDO->eventTimer == 0))){
                 if(CO_TPDOsend(TPDO) == CO_ERROR_NO){
                     /* successfully sent */
-                    TPDO->inhibitTimer = TPDO->TPDOCommPar->inhibitTime;
-                    TPDO->eventTimer = TPDO->TPDOCommPar->eventTimer;
+                    TPDO->inhibitTimer = ((uint32_t) TPDO->TPDOCommPar->inhibitTime) * 100;
+                    TPDO->eventTimer = ((uint32_t) TPDO->TPDOCommPar->eventTimer) * 1000;
                 }
             }
         }
 
         /* Synchronous PDOs */
-        else if(SYNC && SYNC->running && SYNC->curentSyncTimeIsInsideWindow){
-            /* detect SYNC message */
-            if(SYNC->timer < TPDO->SYNCtimerPrevious){
-                /* send synchronous acyclic PDO */
-                if(TPDO->TPDOCommPar->transmissionType == 0){
-                    if(TPDO->sendRequest) CO_TPDOsend(TPDO);
+        else if(SYNC && syncWas){
+            /* send synchronous acyclic PDO */
+            if(TPDO->TPDOCommPar->transmissionType == 0){
+                if(TPDO->sendRequest) CO_TPDOsend(TPDO);
+            }
+            /* send synchronous cyclic PDO */
+            else{
+                /* is the start of synchronous TPDO transmission */
+                if(TPDO->syncCounter == 255){
+                    if(SYNC->counterOverflowValue && TPDO->TPDOCommPar->SYNCStartValue)
+                        TPDO->syncCounter = 254;   /* SYNCStartValue is in use */
+                    else
+                        TPDO->syncCounter = TPDO->TPDOCommPar->transmissionType;
                 }
-                /* send synchronous cyclic PDO */
-                else{
-                    /* is the start of synchronous TPDO transmission */
-                    if(TPDO->syncCounter == 255){
-                        if(SYNC->counterOverflowValue && TPDO->TPDOCommPar->SYNCStartValue)
-                            TPDO->syncCounter = 254;   /* SYNCStartValue is in use */
-                        else
-                            TPDO->syncCounter = TPDO->TPDOCommPar->transmissionType;
-                    }
-                    /* if the SYNCStartValue is in use, start first TPDO after SYNC with matched SYNCStartValue. */
-                    if(TPDO->syncCounter == 254){
-                        if(SYNC->counter == TPDO->TPDOCommPar->SYNCStartValue){
-                            TPDO->syncCounter = TPDO->TPDOCommPar->transmissionType;
-                            CO_TPDOsend(TPDO);
-                        }
-                    }
-                    /* Send PDO after every N-th Sync */
-                    else if(--TPDO->syncCounter == 0){
+                /* if the SYNCStartValue is in use, start first TPDO after SYNC with matched SYNCStartValue. */
+                if(TPDO->syncCounter == 254){
+                    if(SYNC->counter == TPDO->TPDOCommPar->SYNCStartValue){
                         TPDO->syncCounter = TPDO->TPDOCommPar->transmissionType;
                         CO_TPDOsend(TPDO);
                     }
+                }
+                /* Send PDO after every N-th Sync */
+                else if(--TPDO->syncCounter == 0){
+                    TPDO->syncCounter = TPDO->TPDOCommPar->transmissionType;
+                    CO_TPDOsend(TPDO);
                 }
             }
         }
@@ -953,13 +963,6 @@ void CO_TPDO_process(
     }
 
     /* update timers */
-    i = TPDO->inhibitTimer;
-    i -= timeDifference_100us;
-    TPDO->inhibitTimer = (i<=0) ? 0 : (uint16_t)i;
-
-    i = TPDO->eventTimer;
-    i -= timeDifference_ms;
-    TPDO->eventTimer = (i<=0) ? 0 : (uint16_t)i;
-
-    TPDO->SYNCtimerPrevious = SYNC->timer;
+    TPDO->inhibitTimer = (TPDO->inhibitTimer > timeDifference_us) ? (TPDO->inhibitTimer - timeDifference_us) : 0;
+    TPDO->eventTimer = (TPDO->eventTimer > timeDifference_us) ? (TPDO->eventTimer - timeDifference_us) : 0;
 }

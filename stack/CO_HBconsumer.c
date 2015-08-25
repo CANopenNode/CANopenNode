@@ -44,9 +44,9 @@ static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg){
 
     HBconsNode = (CO_HBconsNode_t*) object; /* this is the correct pointer type of the first argument */
 
-    /* verify message length and message overflow (previous message was not processed yet) */
-    if((msg->DLC == 1) && !HBconsNode->CANrxNew){
-        /* copy data and set 'new message' flag */
+    /* verify message length */
+    if(msg->DLC == 1){
+        /* copy data and set 'new message' flag. */
         HBconsNode->NMTstate = msg->data[0];
         HBconsNode->CANrxNew = true;
     }
@@ -71,7 +71,7 @@ static void CO_HBcons_monitoredNodeConfig(
     monitoredNode = &HBcons->monitoredNodes[idx];
     monitoredNode->time = (uint16_t)HBconsTime;
     monitoredNode->NMTstate = 0;
-    monitoredNode->monStarted = 0;
+    monitoredNode->monStarted = false;
 
     /* is channel used */
     if(NodeID && monitoredNode->time){
@@ -196,7 +196,7 @@ void CO_HBconsumer_process(
                 if(monitoredNode->CANrxNew){
                     if(monitoredNode->NMTstate){
                         /* not a bootup message */
-                        monitoredNode->monStarted = 1;
+                        monitoredNode->monStarted = true;
                         monitoredNode->timeoutTimer = 0;  /* reset timer */
                         timeDifference_ms = 0;
                     }
@@ -225,7 +225,7 @@ void CO_HBconsumer_process(
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
             monitoredNode->NMTstate = 0;
             monitoredNode->CANrxNew = false;
-            monitoredNode->monStarted = 0;
+            monitoredNode->monStarted = false;
             monitoredNode++;
         }
         AllMonitoredOperationalCopy = 0;

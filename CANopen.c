@@ -654,29 +654,3 @@ CO_NMT_reset_cmd_t CO_process(
 
     return reset;
 }
-
-
-/******************************************************************************/
-void CO_process_RPDO(CO_t *CO){
-    uint8_t SYNCret;
-    int16_t i;
-
-    SYNCret = CO_SYNC_process(CO->SYNC, 1000L, OD_synchronousWindowLength);
-    if(SYNCret == 2) CO_CANclearPendingSyncPDOs(CO->CANmodule[0]);
-
-    for(i=0; i<CO_NO_RPDO; i++){
-        CO_RPDO_process(CO->RPDO[i]);
-    }
-}
-
-
-/******************************************************************************/
-void CO_process_TPDO(CO_t *CO){
-    int16_t i;
-
-    /* Verify PDO Change Of State and process PDOs */
-    for(i=0; i<CO_NO_TPDO; i++){
-        if(!CO->TPDO[i]->sendRequest) CO->TPDO[i]->sendRequest = CO_TPDOisCOS(CO->TPDO[i]);
-        CO_TPDO_process(CO->TPDO[i], CO->SYNC, 10, 1);
-    }
-}

@@ -257,7 +257,7 @@ int16_t CO_SDO_init(
     SDO->nodeId = nodeId;
     SDO->state = CO_SDO_ST_IDLE;
     SDO->CANrxNew = false;
-    SDO->pFunctSignal = 0;
+    SDO->pFunctSignal = NULL;
     SDO->functArg = 0;
 
 

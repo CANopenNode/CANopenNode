@@ -42,33 +42,30 @@
 static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
     CO_SYNC_t *SYNC;
     uint8_t operState;
-    bool_t err = false;
 
     SYNC = (CO_SYNC_t*)object;   /* this is the correct pointer type of the first argument */
     operState = *SYNC->operatingState;
 
     if((operState == CO_NMT_OPERATIONAL) || (operState == CO_NMT_PRE_OPERATIONAL)){
-        if(SYNC->counterOverflowValue != 0){
-            if(msg->DLC != 1U){
-                SYNC->receiveError = (uint16_t)msg->DLC | 0x0100U;
-                err = true;
+        if(SYNC->counterOverflowValue == 0){
+            if(msg->DLC == 0U){
+                SYNC->CANrxNew = true;
             }
             else{
-                SYNC->counter = msg->data[0];
+                SYNC->receiveError = (uint16_t)msg->DLC | 0x0100U;
             }
         }
         else{
-            if(msg->DLC != 0U){
+            if(msg->DLC == 1U){
+                SYNC->counter = msg->data[0];
+                SYNC->CANrxNew = true;
+            }
+            else{
                 SYNC->receiveError = (uint16_t)msg->DLC | 0x0200U;
-                err = true;
             }
         }
-
-        if(!err){
-            if(operState == CO_NMT_OPERATIONAL){
-                SYNC->running = true;
-            }
-            SYNC->timer = 0;
+        if(SYNC->CANrxNew && (SYNC->cbSync != NULL)){
+            SYNC->cbSync(SYNC->cbSyncArg); //callback
         }
     }
 }
@@ -116,7 +113,6 @@ static CO_SDO_abortCode_t CO_ODF_1005(CO_ODF_arg_t *ODF_arg){
                 if(SYNC->counterOverflowValue != 0U){
                     len = 1U;
                     SYNC->counter = 0U;
-                    SYNC->running = false;
                     SYNC->timer = 0U;
                 }
                 SYNC->CANtxBuff = CO_CANtxBufferInit(
@@ -173,7 +169,6 @@ static CO_SDO_abortCode_t CO_ODF_1006(CO_ODF_arg_t *ODF_arg){
             SYNC->periodTimeoutTime = 0xFFFFFFFFUL;
         }
 
-        SYNC->running = false;
         SYNC->timer = 0;
     }
 
@@ -250,13 +245,16 @@ int16_t CO_SYNC_init(
 
     SYNC->curentSyncTimeIsInsideWindow = true;
 
-    SYNC->running = false;
+    SYNC->CANrxNew = false;
     SYNC->timer = 0;
     SYNC->counter = 0;
     SYNC->receiveError = 0U;
 
     SYNC->em = em;
     SYNC->operatingState = operatingState;
+    SYNC->cbSync = NULL;
+    SYNC->cbSyncArg = NULL;
+
     SYNC->CANdevRx = CANdevRx;
     SYNC->CANdevRxIdx = CANdevRxIdx;
 
@@ -291,6 +289,17 @@ int16_t CO_SYNC_init(
 
 
 /******************************************************************************/
+void CO_SYNC_initCallback(
+        CO_SYNC_t              *SYNC,
+        void                  (*cbSync)(void *arg),
+        void                   *arg)
+{
+    SYNC->cbSync = cbSync;
+    SYNC->cbSyncArg = arg;
+}
+
+
+/******************************************************************************/
 uint8_t CO_SYNC_process(
         CO_SYNC_t              *SYNC,
         uint32_t                timeDifference_us,
@@ -300,25 +309,27 @@ uint8_t CO_SYNC_process(
     uint32_t timerNew;
 
     if(*SYNC->operatingState == CO_NMT_OPERATIONAL || *SYNC->operatingState == CO_NMT_PRE_OPERATIONAL){
-        /* was SYNC just received */
-        if(SYNC->running && SYNC->timer == 0)
-            ret = 1;
-
         /* update sync timer, no overflow */
-        CO_DISABLE_INTERRUPTS();
         timerNew = SYNC->timer + timeDifference_us;
         if(timerNew > SYNC->timer) SYNC->timer = timerNew;
-        CO_ENABLE_INTERRUPTS();
+
+        /* was SYNC just received */
+        if(SYNC->CANrxNew){
+            SYNC->timer = 0;
+            ret = 1;
+        }
 
         /* SYNC producer */
         if(SYNC->isProducer && SYNC->periodTime){
             if(SYNC->timer >= SYNC->periodTime){
                 if(++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
-                SYNC->running = true;
                 SYNC->timer = 0;
+                ret = 1;
+                if(SYNC->cbSync != NULL){
+                    SYNC->cbSync(SYNC->cbSyncArg); //callback
+                }
                 SYNC->CANtxBuff->data[0] = SYNC->counter;
                 CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
-                ret = 1;
             }
         }
 
@@ -343,15 +354,13 @@ uint8_t CO_SYNC_process(
             CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
     }
 
-    if(*SYNC->operatingState != CO_NMT_OPERATIONAL){
-        SYNC->running = false;
-    }
-
     /* verify error from receive function */
     if(SYNC->receiveError != 0U){
         CO_errorReport(SYNC->em, CO_EM_SYNC_LENGTH, CO_EMC_SYNC_DATA_LENGTH, (uint32_t)SYNC->receiveError);
         SYNC->receiveError = 0U;
     }
+
+    SYNC->CANrxNew = false;
 
     return ret;
 }
