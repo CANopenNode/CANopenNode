@@ -213,7 +213,7 @@ static CO_SDO_abortCode_t CO_ODF_1200(CO_ODF_arg_t *ODF_arg){
 
 
 /******************************************************************************/
-int16_t CO_SDO_init(
+CO_ReturnError_t CO_SDO_init(
         CO_SDO_t               *SDO,
         uint16_t                COB_IDClientToServer,
         uint16_t                COB_IDServerToClient,
@@ -228,6 +228,10 @@ int16_t CO_SDO_init(
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx)
 {
+    /* verify arguments */
+    if(SDO==NULL || CANdevRx==NULL || CANdevTx==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* configure own object dictionary */
     if(parentSDO == NULL){

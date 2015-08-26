@@ -251,7 +251,7 @@ typedef struct{
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-int16_t CO_RPDO_init(
+CO_ReturnError_t CO_RPDO_init(
         CO_RPDO_t              *RPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
@@ -296,7 +296,7 @@ int16_t CO_RPDO_init(
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-int16_t CO_TPDO_init(
+CO_ReturnError_t CO_TPDO_init(
         CO_TPDO_t              *TPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
@@ -351,7 +351,7 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO);
  * operating state is operational. It does not verify _transmission type_.
  *
  * @param RPDO This object.
- * @param syncWas True, if CANopen SYNC message was just received or transmitted
+ * @param syncWas True, if CANopen SYNC message was just received or transmitted.
  */
 void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas);
 
@@ -365,7 +365,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas);
  *
  * @param TPDO This object.
  * @param SYNC SYNC object. Ignored if NULL.
- * @param syncWas True, if CANopen SYNC message was just received or transmitted
+ * @param syncWas True, if CANopen SYNC message was just received or transmitted.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
  */
 void CO_TPDO_process(

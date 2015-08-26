@@ -145,7 +145,7 @@ static CO_SDO_abortCode_t CO_ODF_1016(CO_ODF_arg_t *ODF_arg){
 
 
 /******************************************************************************/
-int16_t CO_HBconsumer_init(
+CO_ReturnError_t CO_HBconsumer_init(
         CO_HBconsumer_t        *HBcons,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
@@ -156,6 +156,12 @@ int16_t CO_HBconsumer_init(
         uint16_t                CANdevRxIdxStart)
 {
     uint8_t i;
+
+    /* verify arguments */
+    if(HBcons==NULL || em==NULL || SDO==NULL || HBconsTime==NULL ||
+        monitoredNodes==NULL || CANdevRx==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* Configure object variables */
     HBcons->em = em;

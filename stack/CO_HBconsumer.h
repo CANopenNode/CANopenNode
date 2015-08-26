@@ -96,7 +96,7 @@ typedef struct{
  *
  * @return #CO_ReturnError_t CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-int16_t CO_HBconsumer_init(
+CO_ReturnError_t CO_HBconsumer_init(
         CO_HBconsumer_t        *HBcons,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,

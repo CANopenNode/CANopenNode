@@ -125,7 +125,7 @@ typedef struct{
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-int16_t CO_SYNC_init(
+CO_ReturnError_t CO_SYNC_init(
         CO_SYNC_t              *SYNC,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
@@ -148,8 +148,10 @@ int16_t CO_SYNC_init(
  * @param cbSync Callback function, which will be called just after the
  * presence of CANopen SYNC message on the bus.
  * @param arg Will be used as argument to cbSync function.
+ *
+ * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-void CO_SYNC_initCallback(
+CO_ReturnError_t CO_SYNC_initCallback(
         CO_SYNC_t              *SYNC,
         void                  (*cbSync)(void *arg),
         void                   *arg);

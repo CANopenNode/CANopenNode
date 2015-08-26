@@ -115,11 +115,11 @@ CO_ReturnError_t CO_EM_init(
         uint16_t                CANidTxEM)
 {
     uint8_t i;
-    CO_ReturnError_t ret = CO_ERROR_NO;
 
-    /* verify parameters */
-    if(errorStatusBitsSize < 6U){
-        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    /* verify arguments */
+    if(em==NULL || emPr==NULL || SDO==NULL || errorStatusBits==NULL ||
+        errorStatusBitsSize<6U || errorRegister==NULL || preDefErr==NULL || CANdev==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* Configure object variables */
@@ -157,7 +157,7 @@ CO_ReturnError_t CO_EM_init(
             8U,                  /* number of data bytes */
             0);                 /* synchronous message flag bit */
 
-    return ret;
+    return CO_ERROR_NO;
 }
 
 

@@ -176,7 +176,7 @@ typedef struct{
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-int16_t CO_SDOclient_init(
+CO_ReturnError_t CO_SDOclient_init(
         CO_SDOclient_t         *SDO_C,
         CO_SDO_t               *SDO,
         CO_SDOclientPar_t      *SDOClientPar,

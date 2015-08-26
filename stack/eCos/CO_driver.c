@@ -487,16 +487,21 @@ Cyg_ErrNo canInit(CO_CANmodule_t* CANmodule, uint16_t CANbitRate)
 
 
 /******************************************************************************/
-int16_t CO_CANmodule_init(
+CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
         uint16_t                CANbaseAddress,
-        CO_CANrx_t             *rxArray,
+        CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
-        CO_CANtx_t             *txArray,
+        CO_CANtx_t              txArray[],
         uint16_t                txSize,
         uint16_t                CANbitRate)
 {
     uint16_t i;
+
+    /* verify arguments */
+    if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* Configure object variables */
     CANmodule->rxArray = rxArray;

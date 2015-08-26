@@ -216,7 +216,7 @@ static CO_SDO_abortCode_t CO_ODF_1019(CO_ODF_arg_t *ODF_arg){
 
 
 /******************************************************************************/
-int16_t CO_SYNC_init(
+CO_ReturnError_t CO_SYNC_init(
         CO_SYNC_t              *SYNC,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
@@ -230,6 +230,12 @@ int16_t CO_SYNC_init(
         uint16_t                CANdevTxIdx)
 {
     uint8_t len = 0;
+
+    /* verify arguments */
+    if(SYNC==NULL || em==NULL || SDO==NULL || operatingState==NULL ||
+        CANdevRx==NULL || CANdevTx==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* Configure object variables */
     SYNC->isProducer = (COB_ID_SYNCMessage&0x40000000L) ? true : false;
@@ -289,13 +295,20 @@ int16_t CO_SYNC_init(
 
 
 /******************************************************************************/
-void CO_SYNC_initCallback(
+CO_ReturnError_t CO_SYNC_initCallback(
         CO_SYNC_t              *SYNC,
         void                  (*cbSync)(void *arg),
         void                   *arg)
 {
+    /* verify arguments */
+    if(SYNC==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
     SYNC->cbSync = cbSync;
     SYNC->cbSyncArg = arg;
+
+    return CO_ERROR_NO;
 }
 
 

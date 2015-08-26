@@ -10,7 +10,7 @@
  * @ingroup     CO_CANopen
  * @author      Janez Paternoster
  * @author      Uwe Kindler
- * @copyright   2010 - 2013 Janez Paternoster
+ * @copyright   2010 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -33,9 +33,6 @@
 
 #ifndef CANopen_H
 #define CANopen_H
-
-
-/* TODO: protect public functions against null pointers */
 
 
 /**
@@ -166,8 +163,7 @@ void CO_delete(void);
  * Process CANopen objects.
  *
  * Function must be called cyclically. It processes all "asynchronous" CANopen
- * objects. Function returns value from CO_NMT_process(). SYNC, RPDO and TPDO
- * objects are considered as realtime. They must be processed separatelly.
+ * objects. Function returns value from CO_NMT_process().
  *
  * @param CO This object
  * @param timeDifference_ms Time difference from previous function call in [milliseconds].
@@ -177,6 +173,38 @@ void CO_delete(void);
 CO_NMT_reset_cmd_t CO_process(
         CO_t                   *CO,
         uint16_t                timeDifference_ms);
+
+
+/**
+ * Process CANopen SYNC and RPDO objects.
+ *
+ * Function must be called cyclically from real time thread with constant
+ * interval (1ms typically). It processes SYNC and receive PDO CANopen objects.
+ *
+ * @param CO This object.
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
+ *
+ * @return True, if CANopen SYNC message was just received or transmitted.
+ */
+bool_t CO_process_SYNC_RPDO(
+        CO_t                   *CO,
+        uint32_t                timeDifference_us);
+
+
+/**
+ * Process CANopen TPDO objects.
+ *
+ * Function must be called cyclically from real time thread with constant.
+ * interval (1ms typically). It processes transmit PDO CANopen objects.
+ *
+ * @param CO This object.
+ * @param syncWas True, if CANopen SYNC message was just received or transmitted.
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
+ */
+void CO_process_TPDO(
+        CO_t                   *CO,
+        bool_t                  syncWas,
+        uint32_t                timeDifference_us);
 
 
 /** @} */

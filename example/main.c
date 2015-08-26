@@ -5,7 +5,7 @@
  *
  * @file        main_generic.c
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -124,29 +124,17 @@ static void tmrTask_thread(void){
         INCREMENT_1MS(CO_timer1ms);
 
         if(CO_CAN_OK) {
-            int16_t i;
-            bool_t syncWas = false;
+            bool_t syncWas;
 
-            /* Process SYNC */
-            switch(CO_SYNC_process(CO->SYNC, TMR_TASK_INTERVAL, OD_synchronousWindowLength)){
-                case 1: syncWas = true; break;  //immediatelly after SYNC message
-                case 2: CO_CANclearPendingSyncPDOs(CO->CANmodule[0]); break; //outside SYNC window
-            }
-
-            /* Process RPDOs */
-            for(i=0; i<CO_NO_RPDO; i++){
-                CO_RPDO_process(CO->RPDO[i], syncWas);
-            }
+            /* Process Sync and read inputs */
+            syncWas = CO_process_SYNC_RPDO(CO, TMR_TASK_INTERVAL);
 
             /* Reenable CANrx, if it was disabled by SYNC callback */
 
             /* Further I/O or nonblocking application code may go here. */
 
-            /* Verify PDO Change Of State and process PDOs */
-            for(i=0; i<CO_NO_TPDO; i++){
-                if(!CO->TPDO[i]->sendRequest) CO->TPDO[i]->sendRequest = CO_TPDOisCOS(CO->TPDO[i]);
-                CO_TPDO_process(CO->TPDO[i], CO->SYNC, syncWas, TMR_TASK_INTERVAL);
-            }
+            /* Write outputs */
+            CO_process_TPDO(CO, syncWas, TMR_TASK_INTERVAL);
         }
 
     }

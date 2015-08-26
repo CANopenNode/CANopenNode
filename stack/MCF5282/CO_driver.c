@@ -69,6 +69,11 @@ CO_ReturnError_t CO_CANmodule_init(
     uint16_t i;
     uint8_t nb_CANbuff = 16; //16 CAN buffers
 
+    /* verify arguments */
+    if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
     /* Configure object variables */
     CANmodule->CANbaseAddress = CANbaseAddress;
     CANmodule->CANmsgBuffSize = nb_CANbuff;

@@ -139,6 +139,11 @@ CO_ReturnError_t CO_CANmodule_init(
     uint16_t i;
     volatile uint16_t *pRXF;
 
+    /* verify arguments */
+    if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
     /* Configure object variables */
     CANmodule->CANbaseAddress = CANbaseAddress;
     CANmodule->CANmsgBuff = CANmsgBuff;

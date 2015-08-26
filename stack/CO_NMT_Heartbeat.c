@@ -72,7 +72,7 @@ static void CO_NMT_receive(void *object, const CO_CANrxMsg_t *msg){
 
 
 /******************************************************************************/
-int16_t CO_NMT_init(
+CO_ReturnError_t CO_NMT_init(
         CO_NMT_t               *NMT,
         CO_EMpr_t              *emPr,
         uint8_t                 nodeId,
@@ -84,6 +84,10 @@ int16_t CO_NMT_init(
         uint16_t                HB_txIdx,
         uint16_t                CANidTxHB)
 {
+    /* verify arguments */
+    if(NMT==NULL || emPr==NULL || NMT_CANdev==NULL || HB_CANdev==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* blinking bytes */
     NMT->LEDflickering          = 0;

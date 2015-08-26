@@ -681,7 +681,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
 
 
 /******************************************************************************/
-int16_t CO_RPDO_init(
+CO_ReturnError_t CO_RPDO_init(
         CO_RPDO_t              *RPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
@@ -696,6 +696,11 @@ int16_t CO_RPDO_init(
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdx)
 {
+    /* verify arguments */
+    if(RPDO==NULL || em==NULL || SDO==NULL || operatingState==NULL ||
+        RPDOCommPar==NULL || RPDOMapPar==NULL || CANdevRx==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* Configure object variables */
     RPDO->em = em;
@@ -724,7 +729,7 @@ int16_t CO_RPDO_init(
 
 
 /******************************************************************************/
-int16_t CO_TPDO_init(
+CO_ReturnError_t CO_TPDO_init(
         CO_TPDO_t              *TPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
@@ -739,6 +744,11 @@ int16_t CO_TPDO_init(
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx)
 {
+    /* verify arguments */
+    if(TPDO==NULL || em==NULL || SDO==NULL || operatingState==NULL ||
+        TPDOCommPar==NULL || TPDOMapPar==NULL || CANdevTx==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* Configure object variables */
     TPDO->em = em;

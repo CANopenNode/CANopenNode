@@ -713,7 +713,7 @@ void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]);
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-int16_t CO_SDO_init(
+CO_ReturnError_t CO_SDO_init(
         CO_SDO_t               *SDO,
         uint16_t                COB_IDClientToServer,
         uint16_t                COB_IDServerToClient,

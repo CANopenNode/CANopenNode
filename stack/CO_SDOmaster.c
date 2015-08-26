@@ -168,7 +168,7 @@ static void CO_SDOclient_receive(void *object, const CO_CANrxMsg_t *msg){
 
 
 /******************************************************************************/
-int16_t CO_SDOclient_init(
+CO_ReturnError_t CO_SDOclient_init(
         CO_SDOclient_t         *SDO_C,
         CO_SDO_t               *SDO,
         CO_SDOclientPar_t      *SDOClientPar,
@@ -177,9 +177,11 @@ int16_t CO_SDOclient_init(
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx)
 {
-
-    /* verify parameters */
-    if(SDOClientPar->maxSubIndex!=3) return CO_ERROR_ILLEGAL_ARGUMENT;
+    /* verify arguments */
+    if(SDO_C==NULL || SDO==NULL || SDOClientPar==NULL || SDOClientPar->maxSubIndex!=3 ||
+        CANdevRx==NULL || CANdevTx==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* Configure object variables */
     SDO_C->state = SDO_STATE_NOTDEFINED;

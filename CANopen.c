@@ -5,7 +5,7 @@
  * @file        CANopen.c
  * @ingroup     CO_CANopen
  * @author      Janez Paternoster
- * @copyright   2010 - 2013 Janez Paternoster
+ * @copyright   2010 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -653,4 +653,45 @@ CO_NMT_reset_cmd_t CO_process(
 
 
     return reset;
+}
+
+
+/******************************************************************************/
+bool_t CO_process_SYNC_RPDO(
+        CO_t                   *CO,
+        uint32_t                timeDifference_us)
+{
+    int16_t i;
+    bool_t syncWas = false;
+
+    switch(CO_SYNC_process(CO->SYNC, timeDifference_us, OD_synchronousWindowLength)){
+        case 1:     //immediatelly after the SYNC message
+            syncWas = true;
+            break;
+        case 2:     //outside SYNC window
+            CO_CANclearPendingSyncPDOs(CO->CANmodule[0]);
+            break;
+    }
+
+    for(i=0; i<CO_NO_RPDO; i++){
+        CO_RPDO_process(CO->RPDO[i], syncWas);
+    }
+
+    return syncWas;
+}
+
+
+/******************************************************************************/
+void CO_process_TPDO(
+        CO_t                   *CO,
+        bool_t                  syncWas,
+        uint32_t                timeDifference_us)
+{
+    int16_t i;
+
+    /* Verify PDO Change Of State and process PDOs */
+    for(i=0; i<CO_NO_TPDO; i++){
+        if(!CO->TPDO[i]->sendRequest) CO->TPDO[i]->sendRequest = CO_TPDOisCOS(CO->TPDO[i]);
+        CO_TPDO_process(CO->TPDO[i], CO->SYNC, syncWas, timeDifference_us);
+    }
 }

@@ -68,19 +68,24 @@ void CanLedsSet(eCoLeds led)
 
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
-        CO_CANmodule_t *CANmodule,
-        CAN_TypeDef *CANbaseAddress,
-        CO_CANrx_t *rxArray,
-        uint16_t rxSize,
-        CO_CANtx_t *txArray,
-        uint16_t txSize,
-        uint16_t CANbitRate)
+        CO_CANmodule_t         *CANmodule,
+        CAN_TypeDef            *CANbaseAddress,
+        CO_CANrx_t              rxArray[],
+        uint16_t                rxSize,
+        CO_CANtx_t              txArray[],
+        uint16_t                txSize,
+        uint16_t                CANbitRate)
 {
     CAN_InitTypeDef CAN_InitStruct;
     CAN_FilterInitTypeDef CAN_FilterInitStruct;
     NVIC_InitTypeDef NVIC_InitStructure;
     int i;
     uint8_t result;
+
+    /* verify arguments */
+    if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     CANmodule->CANbaseAddress = CANbaseAddress;
     CANmodule->rxArray = rxArray;
