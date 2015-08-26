@@ -169,6 +169,11 @@ CO_ReturnError_t CO_EE_init_1(
 {
     uint32_t rdata;
 
+    /* verify arguments */
+    if(ee==NULL || OD_EEPROMAddress==NULL || OD_ROMAddress==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
     /* Configure SPI port for use with eeprom */
     SPICON = 0;           /* Stops and restes the SPI */
     SPISTAT = 0;

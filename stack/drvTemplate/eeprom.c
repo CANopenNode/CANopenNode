@@ -112,6 +112,10 @@ CO_ReturnError_t CO_EE_init_1(
         uint8_t                *OD_ROMAddress,
         uint32_t                OD_ROMSize)
 {
+    /* verify arguments */
+    if(ee==NULL || OD_EEPROMAddress==NULL || OD_ROMAddress==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* Configure eeprom */
 
