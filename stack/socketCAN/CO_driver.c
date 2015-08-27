@@ -30,19 +30,21 @@
 
 
 /******************************************************************************/
-pthread_mutex_t CO_CANsend_mtx = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t CO_EMCY_mtx = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t CO_OD_mtx = PTHREAD_MUTEX_INITIALIZER;
+#ifndef CO_SINGLE_THREAD
+    pthread_mutex_t CO_CANsend_mtx = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t CO_EMCY_mtx = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t CO_OD_mtx = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
+void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
     canEnableRx(CANbaseAddress, FALSE);
 }
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(uint16_t CANbaseAddress){
+void CO_CANsetNormalMode(int32_t CANbaseAddress){
     canEnableRx(CANbaseAddress, TRUE);
 }
 
@@ -50,7 +52,7 @@ void CO_CANsetNormalMode(uint16_t CANbaseAddress){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        int32_t                 CANbaseAddress,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -60,7 +62,7 @@ CO_ReturnError_t CO_CANmodule_init(
     uint16_t i;
 
     /* verify arguments */
-    if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
+    if(CANmodule==NULL || CANbaseAddress<0 || rxArray==NULL || txArray==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 

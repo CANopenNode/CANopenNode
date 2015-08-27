@@ -2,7 +2,8 @@
  * Main CANopen stack file.
  *
  * It combines Object dictionary (CO_OD) and all other CANopen source files.
- * Configuration information are read from CO_OD.h file. This file may be
+ * Configuration information are read from CO_OD.h file. This file uses one
+ * CAN module. If multiple CAN modules are to be used, then this file may be
  * customized for different CANopen configuration. (One or multiple CANopen
  * device on one or multiple CAN modules.)
  *
@@ -91,21 +92,10 @@ typedef enum{
 
 
 /**
- * Number of CAN modules in use.
- *
- * If constant is set globaly to 2, second CAN module is initialized and fifth
- * and sixth RPDO (if exist) are configured to it.
- */
-#ifndef CO_NO_CAN_MODULES
-    #define CO_NO_CAN_MODULES 1
-#endif
-
-
-/**
  * CANopen stack object combines pointers to all CANopen objects.
  */
 typedef struct{
-    CO_CANmodule_t     *CANmodule[CO_NO_CAN_MODULES];/**< CAN module objects */
+    CO_CANmodule_t     *CANmodule[1];   /**< CAN module objects */
     CO_SDO_t           *SDO;            /**< SDO object */
     CO_EM_t            *em;             /**< Emergency report object */
     CO_EMpr_t          *emPr;           /**< Emergency process object */
@@ -147,16 +137,20 @@ typedef struct{
  *
  * Function must be called in the communication reset section.
  *
+ * @param CANbaseAddress Address of the CAN module, passed to CO_CANmodule_init().
+ *
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_OUT_OF_MEMORY, CO_ERROR_ILLEGAL_BAUDRATE
  */
-CO_ReturnError_t CO_init(void);
+CO_ReturnError_t CO_init(int32_t CANbaseAddress);
 
 
 /**
  * Delete CANopen object and free memory. Must be called at program exit.
+ *
+ * @param CANbaseAddress Address of the CAN module, passed to CO_CANmodule_init().
  */
-void CO_delete(void);
+void CO_delete(int32_t CANbaseAddress);
 
 
 /**

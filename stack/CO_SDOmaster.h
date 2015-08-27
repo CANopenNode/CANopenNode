@@ -124,9 +124,9 @@ typedef struct{
     uint16_t            CANdevRxIdx;
     /** Flag indicates, if new SDO message received from CAN bus.
     It is not cleared, until received message is completely processed. */
-    uint16_t            CANrxNew;      /* must be 2-byte variable because of correct alignment of CANrxData */
+    bool_t              CANrxNew;
     /** 8 data bytes of the received message */
-    uint8_t             CANrxData[8];  /* take care for correct (word) alignment! */
+    uint8_t             CANrxData[8];
     /** Pointer to optional external function. If defined, it is called from high
     priority interrupt after new CAN SDO response message is received. Function
     may wake up external task, which processes SDO client functions */

@@ -51,23 +51,13 @@
     #define CO_CANmsgBuffSize   8
 #ifdef __HAS_EDS__
     __eds__ CO_CANrxMsg_t CO_CANmsg[CO_CANmsgBuffSize] __attribute__((eds,space(dma),aligned(128)));
- #if CO_NO_CAN_MODULES >= 2
-    __eds__ CO_CANrxMsg_t CO_CAN2msg[CO_CANmsgBuffSize] __attribute__((eds,space(dma),aligned(128)));
- #endif
 #else
     CO_CANrxMsg_t CO_CANmsg[CO_CANmsgBuffSize] __attribute__((space(dma),aligned(128)));
- #if CO_NO_CAN_MODULES >= 2
-    CO_CANrxMsg_t CO_CAN2msg[CO_CANmsgBuffSize] __attribute__((space(dma),aligned(128)));
- #endif
 #endif
 #endif
 
     static CO_CANrx_t          *CO_CANmodule_rxArray0;
     static CO_CANtx_t          *CO_CANmodule_txArray0;
-  #if CO_NO_CAN_MODULES >= 2
-    static CO_CANrx_t          *CO_CANmodule_rxArray1;
-    static CO_CANtx_t          *CO_CANmodule_txArray1;
-  #endif
     static CO_OD_extension_t   *CO_SDO_ODExtensions;
     static CO_HBconsNode_t     *CO_HBcons_monitoredNodes;
 
@@ -115,13 +105,9 @@
 
 
 #ifdef CO_USE_GLOBALS
-    static CO_CANmodule_t       COO_CANmodule[CO_NO_CAN_MODULES];
+    static CO_CANmodule_t       COO_CANmodule;
     static CO_CANrx_t           COO_CANmodule_rxArray0[CO_RXCAN_NO_MSGS];
     static CO_CANtx_t           COO_CANmodule_txArray0[CO_TXCAN_NO_MSGS];
-  #if CO_NO_CAN_MODULES >= 2
-    static CO_CANrx_t           COO_CANmodule_rxArray1[2];
-    static CO_CANtx_t           COO_CANmodule_txArray1[2];
-  #endif
     static CO_SDO_t             COO_SDO;
     static CO_OD_extension_t    COO_SDO_ODExtensions[CO_OD_NoOfElements];
     static CO_EM_t              COO_EM;
@@ -205,7 +191,7 @@ static CO_SDO_abortCode_t CO_ODF_bitRate(CO_ODF_arg_t *ODF_arg){
 
 
 /******************************************************************************/
-CO_ReturnError_t CO_init(){
+CO_ReturnError_t CO_init(int32_t CANbaseAddress){
 
     int16_t i;
     uint8_t nodeId;
@@ -238,11 +224,6 @@ CO_ReturnError_t CO_init(){
     CO->CANmodule[0]                    = &COO_CANmodule[0];
     CO_CANmodule_rxArray0               = &COO_CANmodule_rxArray0[0];
     CO_CANmodule_txArray0               = &COO_CANmodule_txArray0[0];
-  #if CO_NO_CAN_MODULES >= 2
-    CO->CANmodule[1]                    = &COO_CANmodule[1];
-    CO_CANmodule_rxArray1               = &COO_CANmodule_rxArray1[0];
-    CO_CANmodule_txArray1               = &COO_CANmodule_txArray1[0];
-  #endif
     CO->SDO                             = &COO_SDO;
     CO_SDO_ODExtensions                 = &COO_SDO_ODExtensions[0];
     CO->em                              = &COO_EM;
@@ -265,11 +246,6 @@ CO_ReturnError_t CO_init(){
         CO->CANmodule[0]                    = (CO_CANmodule_t *)    malloc(sizeof(CO_CANmodule_t));
         CO_CANmodule_rxArray0               = (CO_CANrx_t *)        malloc(sizeof(CO_CANrx_t) * CO_RXCAN_NO_MSGS);
         CO_CANmodule_txArray0               = (CO_CANtx_t *)        malloc(sizeof(CO_CANtx_t) * CO_TXCAN_NO_MSGS);
-      #if CO_NO_CAN_MODULES >= 2
-        CO->CANmodule[1]                    = (CO_CANmodule_t *)    malloc(sizeof(CO_CANmodule_t));
-        CO_CANmodule_rxArray1               = (CO_CANrx_t *)        malloc(sizeof(CO_CANrx_t) * 2);
-        CO_CANmodule_txArray1               = (CO_CANtx_t *)        malloc(sizeof(CO_CANtx_t) * 2);
-      #endif
         CO->SDO                             = (CO_SDO_t *)          malloc(sizeof(CO_SDO_t));
         CO_SDO_ODExtensions                 = (CO_OD_extension_t*)  malloc(sizeof(CO_OD_extension_t) * CO_OD_NoOfElements);
         CO->em                              = (CO_EM_t *)           malloc(sizeof(CO_EM_t));
@@ -292,11 +268,6 @@ CO_ReturnError_t CO_init(){
     CO_memoryUsed = sizeof(CO_CANmodule_t)
                   + sizeof(CO_CANrx_t) * CO_RXCAN_NO_MSGS
                   + sizeof(CO_CANtx_t) * CO_TXCAN_NO_MSGS
-  #if CO_NO_CAN_MODULES >= 2
-                  + sizeof(CO_CANmodule_t)
-                  + sizeof(CO_CANrx_t) * 2
-                  + sizeof(CO_CANtx_t) * 2
-  #endif
                   + sizeof(CO_SDO_t)
                   + sizeof(CO_OD_extension_t) * CO_OD_NoOfElements
                   + sizeof(CO_EM_t)
@@ -316,11 +287,6 @@ CO_ReturnError_t CO_init(){
     if(CO->CANmodule[0]                 == NULL) errCnt++;
     if(CO_CANmodule_rxArray0            == NULL) errCnt++;
     if(CO_CANmodule_txArray0            == NULL) errCnt++;
-  #if CO_NO_CAN_MODULES >= 2
-    if(CO->CANmodule[1]                 == NULL) errCnt++;
-    if(CO_CANmodule_rxArray1            == NULL) errCnt++;
-    if(CO_CANmodule_txArray1            == NULL) errCnt++;
-  #endif
     if(CO->SDO                          == NULL) errCnt++;
     if(CO_SDO_ODExtensions              == NULL) errCnt++;
     if(CO->em                           == NULL) errCnt++;
@@ -343,7 +309,7 @@ CO_ReturnError_t CO_init(){
 #endif
 
 
-    CO_CANsetConfigurationMode(ADDR_CAN1);
+    CO_CANsetConfigurationMode(CANbaseAddress);
 
     /* Read CANopen Node-ID and CAN bit-rate from object dictionary */
     nodeId = OD_CANNodeID; if(nodeId<1 || nodeId>127) nodeId = 0x10;
@@ -352,7 +318,7 @@ CO_ReturnError_t CO_init(){
 
     err = CO_CANmodule_init(
             CO->CANmodule[0],
-            ADDR_CAN1,
+            CANbaseAddress,
 #if defined(__dsPIC33F__) || defined(__PIC24H__) \
     || defined(__dsPIC33E__) || defined(__PIC24E__)
             ADDR_DMA0,
@@ -371,32 +337,6 @@ CO_ReturnError_t CO_init(){
             CANBitRate);
 
     if(err){CO_delete(); return err;}
-
-
-#if CO_NO_CAN_MODULES >= 2
-    CO_CANsetConfigurationMode(ADDR_CAN2);
-    err = CO_CANmodule_init(
-            CO->CANmodule[1],
-            ADDR_CAN2,
-#if defined(__dsPIC33F__) || defined(__PIC24H__) \
-    || defined(__dsPIC33E__) || defined(__PIC24E__)
-            ADDR_DMA2,
-            ADDR_DMA3,
-            &CO_CAN2msg[0],
-            CO_CANmsgBuffSize,
-            __builtin_dmaoffset(&CO_CAN2msg[0]),
-#if defined(__HAS_EDS__)
-            __builtin__dmapage(&CO_CANmsg2[0]),
-#endif
-#endif
-            CO_CANmodule_rxArray1,
-            2,
-            CO_CANmodule_txArray1,
-            2,
-            250);
-
-    if(err){CO_delete(); return err;}
-#endif
 
 
     err = CO_SDO_init(
@@ -479,13 +419,6 @@ CO_ReturnError_t CO_init(){
         CO_CANmodule_t *CANdevRx = CO->CANmodule[0];
         uint16_t CANdevRxIdx = CO_RXCAN_RPDO + i;
 
-#if CO_NO_CAN_MODULES >= 2
-        if(i >= 4){
-            CANdevRx = CO->CANmodule[1];
-            CANdevRxIdx = i-4;
-        }
-#endif
-
         err = CO_RPDO_init(
                 CO->RPDO[i],
                 CO->em,
@@ -561,17 +494,13 @@ CO_ReturnError_t CO_init(){
 
 
 /******************************************************************************/
-void CO_delete(){
+void CO_delete(int32_t CANbaseAddress){
 #ifndef CO_USE_GLOBALS
     int16_t i;
 #endif
 
-    CO_CANsetConfigurationMode(ADDR_CAN1);
+    CO_CANsetConfigurationMode(CANbaseAddress);
     CO_CANmodule_disable(CO->CANmodule[0]);
-#if CO_NO_CAN_MODULES >= 2
-    CO_CANsetConfigurationMode(ADDR_CAN2);
-    CO_CANmodule_disable(CO->CANmodule[1]);
-#endif
 
 #ifndef CO_USE_GLOBALS
   #if CO_NO_SDO_CLIENT == 1
@@ -594,11 +523,6 @@ void CO_delete(){
     free(CO_CANmodule_txArray0);
     free(CO_CANmodule_rxArray0);
     free(CO->CANmodule[0]);
-  #if CO_NO_CAN_MODULES >= 2
-    free(CO_CANmodule_txArray1);
-    free(CO_CANmodule_rxArray1);
-    free(CO->CANmodule[1]);
-  #endif
     CO = NULL;
 #endif
 }

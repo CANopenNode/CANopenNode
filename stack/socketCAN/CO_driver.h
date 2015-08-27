@@ -33,15 +33,28 @@
 
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
+
+#ifndef CO_SINGLE_THREAD
 #include <pthread.h>
+#endif
 
 
-/* CAN module base address */
-    #define ADDR_CAN1               CAN_PORT_CAN1
-    #define ADDR_CAN2               CAN_PORT_CAN2
+/* general configuration */
+//    #define CO_LOG_CAN_MESSAGES   /* Call external function for each received or transmitted CAN message. */
+    #define CO_SDO_BUFFER_SIZE           889    /* Override default SDO buffer size. */
 
 
 /* Critical sections */
+#ifdef CO_SINGLE_THREAD
+    #define CO_LOCK_CAN_SEND()
+    #define CO_UNLOCK_CAN_SEND()
+
+    #define CO_LOCK_EMCY()
+    #define CO_UNLOCK_EMCY()
+
+    #define CO_LOCK_OD()
+    #define CO_UNLOCK_OD()
+#else
     extern pthread_mutex_t CO_CANsend_mtx;
     #define CO_LOCK_CAN_SEND()      {if(pthread_mutex_lock(&CO_CANsend_mtx) != 0) CO_errExit("Mutex lock CO_CANsend_mtx failed");}
     #define CO_UNLOCK_CAN_SEND()    {if(pthread_mutex_unlock(&CO_CANsend_mtx) != 0) CO_errExit("Mutex unlock CO_CANsend_mtx failed");}
@@ -53,12 +66,8 @@
     extern pthread_mutex_t CO_OD_mtx;
     #define CO_LOCK_OD()            {if(pthread_mutex_lock(&CO_OD_mtx) != 0) CO_errExit("Mutex lock CO_OD_mtx failed");}
     #define CO_UNLOCK_OD()          {if(pthread_mutex_unlock(&CO_OD_mtx) != 0) CO_errExit("Mutex unlock CO_OD_mtx failed");}
+#endif
 
-
-/* Other configuration */
-    #define CO_LOG_CAN_MESSAGES                 /* Call external function for each received
-                                                   or transmitted CAN message. */
-    #define CO_SDO_BUFFER_SIZE           889    /* Override default SDO buffer size. */
 
 /* Data types */
     /* int8_t to uint64_t are defined in stdint.h */
@@ -94,7 +103,7 @@ typedef enum{
 typedef struct{
     uint32_t        ident;
     uint8_t         DLC;
-    uint8_t         data[8];
+    uint8_t         data[8] __attribute__((aligned(8)));
 }CO_CANrxMsg_t;
 
 
@@ -111,7 +120,7 @@ typedef struct{
 typedef struct{
     uint32_t            ident;
     uint8_t             DLC;
-    uint8_t             data[8];
+    uint8_t             data[8] __attribute__((aligned(8)));
     volatile bool_t     bufferFull;
     volatile bool_t     syncFlag;
 }CO_CANtx_t;
@@ -119,7 +128,7 @@ typedef struct{
 
 /* CAN module object. */
 typedef struct{
-    uint16_t            CANbaseAddress;
+    int32_t             CANbaseAddress; //CAN_RAW socket file descriptor
 #ifdef CO_LOG_CAN_MESSAGES
     CO_CANtx_t          txRecord;
 #endif
@@ -145,14 +154,14 @@ void CO_errExit(char* msg);
 
 
 /* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress);
-void CO_CANsetNormalMode(uint16_t CANbaseAddress);
+void CO_CANsetConfigurationMode(int32_t CANbaseAddress);
+void CO_CANsetNormalMode(int32_t CANbaseAddress);
 
 
 /* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        int32_t                 CANbaseAddress, //CAN_RAW socket file descriptor
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

@@ -62,7 +62,7 @@ int main (void){
 
 
         /* initialize CANopen */
-        err = CO_init();
+        err = CO_init(0/* CAN module address */);
         if(err != CO_ERROR_NO){
             while(1);
             /* CO_errorReport(CO->em, CO_EM_MEMORY_ALLOCATION_ERROR, CO_EMC_SOFTWARE_INTERNAL, err); */
@@ -109,7 +109,7 @@ int main (void){
 
 
     /* delete objects from memory */
-    CO_delete();
+    CO_delete(0/* CAN module address */);
 
 
     /* reset */
@@ -151,7 +151,7 @@ static void tmrTask_thread(void){
 
 /* CAN interrupt function *****************************************************/
 void /* interrupt */ CO_CAN1InterruptHandler(void){
-    CO_CANinterrupt(CO->CANmodule[0]);
+    CO_CANinterrupt(CO->CANmodule);
 
 
     /* clear interrupt flag */

@@ -558,9 +558,9 @@ typedef struct{
  */
 typedef struct{
     /** 8 data bytes of the received message. */
-    uint8_t             CANrxData[8];   /* Take care for correct (word) alignment! */
+    uint8_t             CANrxData[8];
     /** SDO data buffer of size #CO_SDO_BUFFER_SIZE. */
-    uint8_t             databuffer[CO_SDO_BUFFER_SIZE]; /* Take care for correct (word) alignment! */
+    uint8_t             databuffer[CO_SDO_BUFFER_SIZE];
     /** Internal flag indicates, that this object has own OD */
     bool_t              ownOD;
     /** Pointer to the @ref CO_SDO_objectDictionary (array) */

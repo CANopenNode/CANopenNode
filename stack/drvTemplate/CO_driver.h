@@ -115,15 +115,6 @@
 
 
 /**
- * @name CAN module base address
- * @{
- */
-    #define ADDR_CAN1   0   /**< Starting address of CAN module 1 registers */
-    #define ADDR_CAN2   1   /**< Starting address of CAN module 2 registers */
-/** @} */
-
-
-/**
  * @name Critical sections
  * CANopenNode is designed to run in different threads, as described in README.
  * Threads are implemented differently in different systems. In microcontrollers
@@ -246,7 +237,7 @@ typedef struct{
  * CAN module object. It may be different in different microcontrollers.
  */
 typedef struct{
-    uint16_t            CANbaseAddress; /**< From CO_CANmodule_init() */
+    int32_t             CANbaseAddress; /**< From CO_CANmodule_init() */
     CO_CANrx_t         *rxArray;        /**< From CO_CANmodule_init() */
     uint16_t            rxSize;         /**< From CO_CANmodule_init() */
     CO_CANtx_t         *txArray;        /**< From CO_CANmodule_init() */
@@ -284,7 +275,7 @@ typedef struct{
  *
  * @param CANbaseAddress CAN module base address.
  */
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress);
+void CO_CANsetConfigurationMode(int32_t CANbaseAddress);
 
 
 /**
@@ -292,7 +283,7 @@ void CO_CANsetConfigurationMode(uint16_t CANbaseAddress);
  *
  * @param CANbaseAddress CAN module base address.
  */
-void CO_CANsetNormalMode(uint16_t CANbaseAddress);
+void CO_CANsetNormalMode(int32_t CANbaseAddress);
 
 
 /**
@@ -314,7 +305,7 @@ void CO_CANsetNormalMode(uint16_t CANbaseAddress);
  */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        int32_t                 CANbaseAddress,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

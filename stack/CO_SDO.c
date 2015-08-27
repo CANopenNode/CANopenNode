@@ -706,6 +706,7 @@ int8_t CO_SDO_process(
         }
         else{
             uint32_t abortCode;
+            uint16_t index;
 
             /* Is client command specifier valid */
             if((CCS != CCS_DOWNLOAD_INITIATE) && (CCS != CCS_UPLOAD_INITIATE) &&
@@ -715,7 +716,9 @@ int8_t CO_SDO_process(
             }
 
             /* init ODF_arg */
-            abortCode = CO_SDO_initTransfer(SDO, (uint16_t)SDO->CANrxData[2]<<8 | SDO->CANrxData[1], SDO->CANrxData[3]);
+            index = SDO->CANrxData[2];
+            index = index << 8 | SDO->CANrxData[1];
+            abortCode = CO_SDO_initTransfer(SDO, index, SDO->CANrxData[3]);
             if(abortCode != 0U){
                 CO_SDO_abort(SDO, abortCode);
                 return -1;
