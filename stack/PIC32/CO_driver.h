@@ -38,14 +38,20 @@
 
 
 /* CAN module base address */
-#define ADDR_CAN1    0
-#define ADDR_CAN2    (_CAN2_BASE_ADDRESS - _CAN1_BASE_ADDRESS)
+    #define ADDR_CAN1               0
+    #define ADDR_CAN2               (_CAN2_BASE_ADDRESS - _CAN1_BASE_ADDRESS)
 
 
-/* Disabling interrupts */
-extern unsigned int CO_interruptStatus;
-#define CO_DISABLE_INTERRUPTS() CO_interruptStatus = INTDisableInterrupts()
-#define CO_ENABLE_INTERRUPTS()  INTRestoreInterrupts(CO_interruptStatus)
+/* Critical sections */
+    extern unsigned int CO_interruptStatus;
+    #define CO_LOCK_CAN_SEND()      CO_interruptStatus = INTDisableInterrupts()
+    #define CO_UNLOCK_CAN_SEND()    INTRestoreInterrupts(CO_interruptStatus)
+
+    #define CO_LOCK_EMCY()          CO_interruptStatus = INTDisableInterrupts()
+    #define CO_UNLOCK_EMCY()        INTRestoreInterrupts(CO_interruptStatus)
+
+    #define CO_LOCK_OD()            CO_interruptStatus = INTDisableInterrupts()
+    #define CO_UNLOCK_OD()          INTRestoreInterrupts(CO_interruptStatus)
 
 
 /* Data types */

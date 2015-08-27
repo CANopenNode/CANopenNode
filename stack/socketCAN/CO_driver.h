@@ -33,22 +33,32 @@
 
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
+#include <pthread.h>
 
 
 /* CAN module base address */
-#define ADDR_CAN1    CAN_PORT_CAN1
-#define ADDR_CAN2    CAN_PORT_CAN2
+    #define ADDR_CAN1               CAN_PORT_CAN1
+    #define ADDR_CAN2               CAN_PORT_CAN2
 
 
-/* Disabling interrupts */
-#define CO_DISABLE_INTERRUPTS()     //MaskInterrupts()
-#define CO_ENABLE_INTERRUPTS()      //EnableInterrupts()
+/* Critical sections */
+    extern pthread_mutex_t CO_CANsend_mtx;
+    #define CO_LOCK_CAN_SEND()      {if(pthread_mutex_lock(&CO_CANsend_mtx) != 0) CO_errExit("Mutex lock CO_CANsend_mtx failed");}
+    #define CO_UNLOCK_CAN_SEND()    {if(pthread_mutex_unlock(&CO_CANsend_mtx) != 0) CO_errExit("Mutex unlock CO_CANsend_mtx failed");}
+
+    extern pthread_mutex_t CO_EMCY_mtx;
+    #define CO_LOCK_EMCY()          {if(pthread_mutex_lock(&CO_EMCY_mtx) != 0) CO_errExit("Mutex lock CO_EMCY_mtx failed");}
+    #define CO_UNLOCK_EMCY()        {if(pthread_mutex_unlock(&CO_EMCY_mtx) != 0) CO_errExit("Mutex unlock CO_EMCY_mtx failed");}
+
+    extern pthread_mutex_t CO_OD_mtx;
+    #define CO_LOCK_OD()            {if(pthread_mutex_lock(&CO_OD_mtx) != 0) CO_errExit("Mutex lock CO_OD_mtx failed");}
+    #define CO_UNLOCK_OD()          {if(pthread_mutex_unlock(&CO_OD_mtx) != 0) CO_errExit("Mutex unlock CO_OD_mtx failed");}
 
 
 /* Other configuration */
-#define CO_LOG_CAN_MESSAGES                 /* Call external function for each received
-                                               or transmitted CAN message. */
-#define CO_SDO_BUFFER_SIZE           889    /* Override default SDO buffer size. */
+    #define CO_LOG_CAN_MESSAGES                 /* Call external function for each received
+                                                   or transmitted CAN message. */
+    #define CO_SDO_BUFFER_SIZE           889    /* Override default SDO buffer size. */
 
 /* Data types */
     /* int8_t to uint64_t are defined in stdint.h */
@@ -128,6 +138,10 @@ typedef struct{
 
 /* Endianes */
 #define CO_LITTLE_ENDIAN
+
+
+/* Helper function, must be defined externally. */
+void CO_errExit(char* msg);
 
 
 /* Request CAN configuration or normal mode */

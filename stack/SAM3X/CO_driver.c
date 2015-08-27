@@ -351,7 +351,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     err = CO_ERROR_TX_OVERFLOW;
   }
 
-  CO_DISABLE_INTERRUPTS();
+  CO_LOCK_CAN_SEND();
 
   /* If CAN TX buffer is free, copy message to it */
   if (((can_mailbox_get_status(CANmodule->CANbaseAddress, CANMB_TX) & CAN_MSR_MRDY) == CAN_MSR_MRDY) && (CANmodule->CANtxCount == 0))
@@ -377,7 +377,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     CANmodule->CANtxCount++;
   }
   can_enable_interrupt(CANmodule->CANbaseAddress, 0x1u << CANMB_TX);
-  CO_ENABLE_INTERRUPTS();
+  CO_UNLOCK_CAN_SEND();
 
   return err;
 }
@@ -388,7 +388,7 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
 {
   uint32_t tpdoDeleted = 0U;
 
-  CO_DISABLE_INTERRUPTS();
+  CO_LOCK_CAN_SEND();
   /* Abort message from CAN module, if there is synchronous TPDO.
   * Take special care with this functionality. */
   if(/*messageIsOnCanBuffer && */CANmodule->bufferInhibitFlag){
@@ -411,7 +411,7 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
       buffer++;
     }
   }
-  CO_ENABLE_INTERRUPTS();
+  CO_UNLOCK_CAN_SEND();
 
   if(tpdoDeleted != 0U){
     CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_TPDO_OUTSIDE_WINDOW, CO_EMC_COMMUNICATION, tpdoDeleted);

@@ -124,14 +124,47 @@
 
 
 /**
- * @name Disabling interrupts
- * Interrupt masking is used to protect critical sections.
- * It is used in some places in library to protect short sections of code in
- * functions, which may be accessed from different tasks.
+ * @name Critical sections
+ * CANopenNode is designed to run in different threads, as described in README.
+ * Threads are implemented differently in different systems. In microcontrollers
+ * threads are interrupts with different priorities, for example.
+ * It is necessary to protect sections, where different threads access to the
+ * same resource. In simple systems interrupts or scheduler may be temporary
+ * disabled between access to the shared resource. Otherwise mutexes or
+ * semaphores can be used.
+ *
+ * ####Reentrant functions.
+ * Functions CO_CANsend() from C_driver.h, CO_errorReport() from CO_Emergency.h
+ * and CO_errorReset() from CO_Emergency.h may be called from different threads.
+ * Critical sections must be protected. Eather by disabling scheduler or
+ * interrupts or by mutexes or semaphores.
+ *
+ * ####Object Dictionary variables.
+ * In general, there are two threads, which accesses OD variables: mainline and
+ * timer. CANopenNode initialization and SDO server runs in mainline. PDOs runs
+ * in faster timer thread. Processing of PDOs must not be interrupted by
+ * mainline. Mainline thread must protect sections, which accesses the same OD
+ * variables as timer thread. This care must also take the application. Note
+ * that not all variables are allowed to be mapped to PDOs, so they may not need
+ * to be protected. SDO server protects sections with access to OD variables.
+ *
+ * ####CAN receive thread.
+ * It partially processes received CAN data and puts them into appropriate
+ * objects. Objects are later processed. It does not need protection of
+ * critical sections. There is one circumstance, where CANrx should be disabled:
+ * After presence of SYNC message on CANopen bus, CANrx should be temporary
+ * disabled untill all receive PDOs are processed. See also CO_SYNC.h file and
+ * CO_SYNC_initCallback() function.
  * @{
  */
-    #define CO_DISABLE_INTERRUPTS()     /**< Disable all interrupts */
-    #define CO_ENABLE_INTERRUPTS()      /**< Reenable interrupts */
+    #define CO_LOCK_CAN_SEND()  /**< Lock critical section in CO_CANsend() */
+    #define CO_UNLOCK_CAN_SEND()/**< Unlock critical section in CO_CANsend() */
+
+    #define CO_LOCK_EMCY()      /**< Lock critical section in CO_errorReport() or CO_errorReset() */
+    #define CO_UNLOCK_EMCY()    /**< Unlock critical section in CO_errorReport() or CO_errorReset() */
+
+    #define CO_LOCK_OD()        /**< Lock critical section when accessing Object Dictionary */
+    #define CO_UNLOCK_OD()      /**< Unock critical section when accessing Object Dictionary */
 /** @} */
 
 

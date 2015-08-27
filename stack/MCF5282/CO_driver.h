@@ -38,14 +38,19 @@
 
 
 /* CAN module base address */
-#define ADDR_CAN1    0
-#define ADDR_CAN2    (_CAN2_BASE_ADDRESS - _CAN1_BASE_ADDRESS)
+    #define ADDR_CAN1               0
+    #define ADDR_CAN2               (_CAN2_BASE_ADDRESS - _CAN1_BASE_ADDRESS)
 
 
-/* Disabling interrupts */
-extern unsigned int CO_interruptStatus;
-#define CO_DISABLE_INTERRUPTS() asm{ move.w        #0x2700,sr};
-#define CO_ENABLE_INTERRUPTS()  asm{ move.w        #0x2000,sr};
+/* Critical sections */
+    #define CO_LOCK_CAN_SEND()      asm{ move.w        #0x2700,sr};
+    #define CO_UNLOCK_CAN_SEND()    asm{ move.w        #0x2000,sr};
+
+    #define CO_LOCK_EMCY()          asm{ move.w        #0x2700,sr};
+    #define CO_UNLOCK_EMCY()        asm{ move.w        #0x2000,sr};
+
+    #define CO_LOCK_OD()            asm{ move.w        #0x2700,sr};
+    #define CO_UNLOCK_OD()          asm{ move.w        #0x2000,sr};
 
 
 /* MACRO : get information from Rx buffer */

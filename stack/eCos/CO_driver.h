@@ -67,16 +67,22 @@
 /* CAN module base address */
 // we don't really care about the addresses here because the eCos port
 // uses I/O handles for accessing its CAN devices
-#define ADDR_CAN1   0
-#define ADDR_CAN2   1
+    #define ADDR_CAN1               0
+    #define ADDR_CAN2               1
 
 
-/* Disabling interrupts */
+/* Critical sections */
 // shared data is accessed only from thread level code (not from ISR or DSR)
 // so we simply do a scheduler lock here to prevent access from different
 // threads
-#define CO_DISABLE_INTERRUPTS() cyg_scheduler_lock()
-#define CO_ENABLE_INTERRUPTS() cyg_scheduler_unlock()
+    #define CO_LOCK_CAN_SEND()      cyg_scheduler_lock()
+    #define CO_UNLOCK_CAN_SEND()    cyg_scheduler_unlock()
+
+    #define CO_LOCK_EMCY()          cyg_scheduler_lock()
+    #define CO_UNLOCK_EMCY()        cyg_scheduler_unlock()
+
+    #define CO_LOCK_OD()            cyg_scheduler_lock()
+    #define CO_UNLOCK_OD()          cyg_scheduler_unlock()
 
 
 

@@ -96,8 +96,7 @@ typedef struct{
     uint32_t            timer;
     /** Set to nonzero value, if SYNC with wrong data length is received from CAN */
     uint16_t            receiveError;
-    void              (*cbSync)(void *arg);/**< From CO_SYNC_initCallback() or NULL */
-    void               *cbSyncArg;    /**< From CO_SYNC_initCallback() or NULL */
+    void              (*cbSync)(bool_t syncReceived);/**< From CO_SYNC_initCallback() or NULL */
     CO_CANmodule_t     *CANdevRx;       /**< From CO_SYNC_init() */
     uint16_t            CANdevRxIdx;    /**< From CO_SYNC_init() */
     CO_CANmodule_t     *CANdevTx;       /**< From CO_SYNC_init() */
@@ -146,15 +145,13 @@ CO_ReturnError_t CO_SYNC_init(
  *
  * @param SYNC This object.
  * @param cbSync Callback function, which will be called just after the
- * presence of CANopen SYNC message on the bus.
- * @param arg Will be used as argument to cbSync function.
- *
- * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
+ * presence of CANopen SYNC message on the bus. If SYNC was received,
+ * syncReceived will be true, if SYNC will be transmitted, syncReceived
+ * will be false.
  */
-CO_ReturnError_t CO_SYNC_initCallback(
+void CO_SYNC_initCallback(
         CO_SYNC_t              *SYNC,
-        void                  (*cbSync)(void *arg),
-        void                   *arg);
+        void                  (*cbSync)(bool_t syncReceived));
 
 
 /**

@@ -37,13 +37,19 @@
 
 
 /* CAN module base address */
-#define ADDR_CAN1    0x300
-#define ADDR_CAN2    0x3C0
+    #define ADDR_CAN1               0x300
+    #define ADDR_CAN2               0x3C0
 
 
-/* Disabling interrupts */
-#define CO_DISABLE_INTERRUPTS()  asm volatile ("disi #0x3FFF")
-#define CO_ENABLE_INTERRUPTS()   asm volatile ("disi #0x0000")
+/* Critical sections */
+    #define CO_LOCK_CAN_SEND()      asm volatile ("disi #0x3FFF")
+    #define CO_UNLOCK_CAN_SEND()    asm volatile ("disi #0x0000")
+
+    #define CO_LOCK_EMCY()          asm volatile ("disi #0x3FFF")
+    #define CO_UNLOCK_EMCY()        asm volatile ("disi #0x0000")
+
+    #define CO_LOCK_OD()            asm volatile ("disi #0x3FFF")
+    #define CO_UNLOCK_OD()          asm volatile ("disi #0x0000")
 
 
 /* Data types */

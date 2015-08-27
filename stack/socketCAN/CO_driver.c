@@ -30,6 +30,12 @@
 
 
 /******************************************************************************/
+pthread_mutex_t CO_CANsend_mtx = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t CO_EMCY_mtx = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t CO_OD_mtx = PTHREAD_MUTEX_INITIALIZER;
+
+
+/******************************************************************************/
 void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
     canEnableRx(CANbaseAddress, FALSE);
 }
@@ -187,13 +193,13 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CO_ReturnError_t err = CO_ERROR_NO;
     CanError canErr = CAN_ERROR_NO;
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     canErr = canSend(CANmodule->CANbaseAddress, (const CanMsg*) buffer, FALSE);
 #ifdef CO_LOG_CAN_MESSAGES
     void CO_logMessage(const CanMsg *msg);
     CO_logMessage((const CanMsg*) buffer);
 #endif
-    CO_ENABLE_INTERRUPTS();
+    CO_UNLOCK_CAN_SEND();
 
     if(canErr != CAN_ERROR_NO){
         CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_GENERIC_ERROR, CO_EMC_GENERIC, canErr);

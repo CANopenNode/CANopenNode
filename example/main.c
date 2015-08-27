@@ -69,6 +69,9 @@ int main (void){
         }
 
 
+        /* set callback functions for task control. */
+
+
         /* Configure Timer interrupt function for execution every 1 millisecond */
 
 
@@ -102,7 +105,7 @@ int main (void){
 
 
 /* program exit ***************************************************************/
-    CO_DISABLE_INTERRUPTS();
+    /* stop threads */
 
 
     /* delete objects from memory */

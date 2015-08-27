@@ -356,7 +356,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
         err = CO_ERROR_TX_OVERFLOW;
     }
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     TX_FIFOconCopy = *TX_FIFOcon;
     /* if CAN TX buffer is free, copy message to it */
     if((TX_FIFOconCopy & 0x8) == 0 && CANmodule->CANtxCount == 0){
@@ -377,7 +377,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     }
     /* Enable 'Tx buffer empty' (TXEMPTYIE) interrupt in FIFO 1 (third layer interrupt) */
     CAN_REG(addr, C_FIFOINT+0x48) = 0x01000000;
-    CO_ENABLE_INTERRUPTS();
+    CO_UNLOCK_CAN_SEND();
 
     return err;
 }
@@ -389,7 +389,7 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
     volatile uint32_t* TX_FIFOcon = &CAN_REG(CANmodule->CANbaseAddress, C_FIFOCON+0x40);
     volatile uint32_t* TX_FIFOconClr = &CAN_REG(CANmodule->CANbaseAddress, C_FIFOCON+0x44);
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     /* Abort message from CAN module, if there is synchronous TPDO.
      * Take special care with this functionality. */
     if((*TX_FIFOcon & 0x8) && CANmodule->bufferInhibitFlag){
@@ -412,7 +412,7 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
             buffer++;
         }
     }
-    CO_ENABLE_INTERRUPTS();
+    CO_UNLOCK_CAN_SEND();
 
 
     if(tpdoDeleted != 0U){

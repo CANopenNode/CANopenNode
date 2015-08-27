@@ -65,7 +65,7 @@ static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
             }
         }
         if(SYNC->CANrxNew && (SYNC->cbSync != NULL)){
-            SYNC->cbSync(SYNC->cbSyncArg); //callback
+            SYNC->cbSync(true); //callback
         }
     }
 }
@@ -259,7 +259,6 @@ CO_ReturnError_t CO_SYNC_init(
     SYNC->em = em;
     SYNC->operatingState = operatingState;
     SYNC->cbSync = NULL;
-    SYNC->cbSyncArg = NULL;
 
     SYNC->CANdevRx = CANdevRx;
     SYNC->CANdevRxIdx = CANdevRxIdx;
@@ -295,20 +294,13 @@ CO_ReturnError_t CO_SYNC_init(
 
 
 /******************************************************************************/
-CO_ReturnError_t CO_SYNC_initCallback(
+void CO_SYNC_initCallback(
         CO_SYNC_t              *SYNC,
-        void                  (*cbSync)(void *arg),
-        void                   *arg)
+        void                  (*cbSync)(bool_t syncReceived))
 {
-    /* verify arguments */
-    if(SYNC==NULL){
-        return CO_ERROR_ILLEGAL_ARGUMENT;
+    if(SYNC != NULL){
+        SYNC->cbSync = cbSync;
     }
-
-    SYNC->cbSync = cbSync;
-    SYNC->cbSyncArg = arg;
-
-    return CO_ERROR_NO;
 }
 
 
@@ -339,7 +331,7 @@ uint8_t CO_SYNC_process(
                 SYNC->timer = 0;
                 ret = 1;
                 if(SYNC->cbSync != NULL){
-                    SYNC->cbSync(SYNC->cbSyncArg); //callback
+                    SYNC->cbSync(false); //callback
                 }
                 SYNC->CANtxBuff->data[0] = SYNC->counter;
                 CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);

@@ -201,7 +201,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
         err = CO_ERROR_TX_OVERFLOW;
     }
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     /* if CAN TX buffer is free, copy message to it */
     if(1 && CANmodule->CANtxCount == 0){
         CANmodule->bufferInhibitFlag = buffer->syncFlag;
@@ -212,7 +212,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
         buffer->bufferFull = true;
         CANmodule->CANtxCount++;
     }
-    CO_ENABLE_INTERRUPTS();
+    CO_UNLOCK_CAN_SEND();
 
     return err;
 }
@@ -222,7 +222,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
 void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
     uint32_t tpdoDeleted = 0U;
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     /* Abort message from CAN module, if there is synchronous TPDO.
      * Take special care with this functionality. */
     if(/*messageIsOnCanBuffer && */CANmodule->bufferInhibitFlag){
@@ -245,7 +245,7 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
             buffer++;
         }
     }
-    CO_ENABLE_INTERRUPTS();
+    CO_UNLOCK_CAN_SEND();
 
 
     if(tpdoDeleted != 0U){

@@ -291,7 +291,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
                             i++;
                         }
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     /* if CAN TX buffer is free, copy message to it */
     if(i<16){
         MCF_CANMB_CTRL(i)    = 0x0000|MCF_CANMB_CTRL_CODE(0b1000); //Tx MB inactive
@@ -307,7 +307,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
         buffer->bufferFull = true;
         CANmodule->CANtxCount++;
     }
-    CO_ENABLE_INTERRUPTS();
+    CO_UNLOCK_CAN_SEND();
 
     return err;
 }
@@ -316,15 +316,15 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
 /******************************************************************************/
 void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     if(CANmodule->bufferInhibitFlag){
         MCF_CANMB_CTRL14 = MCF_CANMB_CTRL_CODE(0b1000);  //clear TXREQ
             MCF_CANMB_CTRL15 = MCF_CANMB_CTRL_CODE(0b1000);  //clear TXREQ
-        CO_ENABLE_INTERRUPTS();
+        CO_UNLOCK_CAN_SEND();
         CO_errorReport((CO_emergencyReport_t*)CANmodule->em, ERROR_TPDO_OUTSIDE_WINDOW, 0);
     }
     else{
-        CO_ENABLE_INTERRUPTS();
+        CO_UNLOCK_CAN_SEND();
     }
 }
 

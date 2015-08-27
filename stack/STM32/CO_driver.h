@@ -43,13 +43,20 @@
 #define ALIGN_STRUCT_DWORD          __attribute__((aligned(4)))
 
 /* Peripheral addresses */
-#define ADDR_CAN1    CAN1
-#define TMIDxR_TXRQ  ((uint32_t)0x00000001) /* Transmit mailbox request */
+    #define ADDR_CAN1               CAN1
+    #define TMIDxR_TXRQ  ((uint32_t)0x00000001) /* Transmit mailbox request */
 
-/* Disabling interrupts */
-#define CO_DISABLE_INTERRUPTS()     __set_PRIMASK(1);
-#define CO_ENABLE_INTERRUPTS()      __set_PRIMASK(0);
+/* Critical sections */
+    #define CO_LOCK_CAN_SEND()      __set_PRIMASK(1);
+    #define CO_UNLOCK_CAN_SEND()    __set_PRIMASK(0);
 
+    #define CO_LOCK_EMCY()          __set_PRIMASK(1);
+    #define CO_UNLOCK_EMCY()        __set_PRIMASK(0);
+
+    #define CO_LOCK_OD()            __set_PRIMASK(1);
+    #define CO_UNLOCK_OD()          __set_PRIMASK(0);
+
+    
 #define CLOCK_CAN                   RCC_APB1Periph_CAN1
 
 #define CAN_REMAP_2                 /* Select CAN1 remap 2 */

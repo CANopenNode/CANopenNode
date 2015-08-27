@@ -46,18 +46,25 @@
 
 
 /* CAN module base address */
-#define ADDR_CAN1   CAN0
-#define ADDR_CAN2   CAN1
-   /*
-   Remember to set:
+    #define ADDR_CAN1               CAN0
+    #define ADDR_CAN2               CAN1
+    /*
+    Remember to set:
      #define CONF_BOARD_CAN0
      #define CONF_BOARD_CAN1
-   in conf_board.h
-   */
+    in conf_board.h
+    */
 
-/* Disabling interrupts */
-#define CO_DISABLE_INTERRUPTS() //taskENTER_CRITICAL()   /**< Disable all interrupts */
-#define CO_ENABLE_INTERRUPTS()  //taskEXIT_CRITICAL()    /**< Reenable interrupts */
+
+/* Critical sections */
+    #define CO_LOCK_CAN_SEND()      //taskENTER_CRITICAL()
+    #define CO_UNLOCK_CAN_SEND()    //taskEXIT_CRITICAL()
+
+    #define CO_LOCK_EMCY()          //taskENTER_CRITICAL()
+    #define CO_UNLOCK_EMCY()        //taskEXIT_CRITICAL()
+
+    #define CO_LOCK_OD()            //taskENTER_CRITICAL()
+    #define CO_UNLOCK_OD()          //taskEXIT_CRITICAL()
 
 
 /* Data types */

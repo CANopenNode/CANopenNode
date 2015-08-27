@@ -41,27 +41,35 @@
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 
 #ifdef __HAS_EDS__
-#define EDS_PTR __eds__
+    #define EDS_PTR __eds__
 #else
-#define EDS_PTR
+    #define EDS_PTR
 #endif
 
+
 /* CAN module base address */
-#define ADDR_CAN1    ((uint16_t)&C1CTRL1)
-#define ADDR_CAN2    ((uint16_t)&C2CTRL1)
+    #define ADDR_CAN1               ((uint16_t)&C1CTRL1)
+    #define ADDR_CAN2               ((uint16_t)&C2CTRL1)
 
-#define ADDR_DMA0    ((uint16_t)&DMA0CON)
-#define ADDR_DMA1    ((uint16_t)&DMA1CON)
-#define ADDR_DMA2    ((uint16_t)&DMA2CON)
-#define ADDR_DMA3    ((uint16_t)&DMA3CON)
-#define ADDR_DMA4    ((uint16_t)&DMA4CON)
-#define ADDR_DMA5    ((uint16_t)&DMA5CON)
-#define ADDR_DMA6    ((uint16_t)&DMA6CON)
-#define ADDR_DMA7    ((uint16_t)&DMA7CON)
+    #define ADDR_DMA0               ((uint16_t)&DMA0CON)
+    #define ADDR_DMA1               ((uint16_t)&DMA1CON)
+    #define ADDR_DMA2               ((uint16_t)&DMA2CON)
+    #define ADDR_DMA3               ((uint16_t)&DMA3CON)
+    #define ADDR_DMA4               ((uint16_t)&DMA4CON)
+    #define ADDR_DMA5               ((uint16_t)&DMA5CON)
+    #define ADDR_DMA6               ((uint16_t)&DMA6CON)
+    #define ADDR_DMA7               ((uint16_t)&DMA7CON)
 
-/* Disabling interrupts */
-#define CO_DISABLE_INTERRUPTS()  asm volatile ("disi #0x3FFF")
-#define CO_ENABLE_INTERRUPTS()   asm volatile ("disi #0x0000")
+
+/* Critical sections */
+    #define CO_LOCK_CAN_SEND()      asm volatile ("disi #0x3FFF")
+    #define CO_UNLOCK_CAN_SEND()    asm volatile ("disi #0x0000")
+
+    #define CO_LOCK_EMCY()          asm volatile ("disi #0x3FFF")
+    #define CO_UNLOCK_EMCY()        asm volatile ("disi #0x0000")
+
+    #define CO_LOCK_OD()            asm volatile ("disi #0x3FFF")
+    #define CO_UNLOCK_OD()          asm volatile ("disi #0x0000")
 
 
 /* Data types */

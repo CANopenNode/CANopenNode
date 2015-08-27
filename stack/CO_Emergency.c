@@ -291,13 +291,13 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
             CO_memcpySwap4(&bufCopy[4], (uint8_t*)&infoCode);
 
             /* copy data to the buffer, increment writePtr and verify buffer full */
-            CO_DISABLE_INTERRUPTS();
+            CO_LOCK_EMCY();
             CO_memcpy(em->bufWritePtr, &bufCopy[0], 8);
             em->bufWritePtr += 8;
 
             if(em->bufWritePtr == em->bufEnd) em->bufWritePtr = em->buf;
             if(em->bufWritePtr == em->bufReadPtr) em->bufFull = 1;
-            CO_ENABLE_INTERRUPTS();
+            CO_UNLOCK_EMCY();
         }
     }
 }
@@ -345,13 +345,13 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
             CO_memcpySwap4(&bufCopy[4], (uint8_t*)&infoCode);
 
             /* copy data to the buffer, increment writePtr and verify buffer full */
-            CO_DISABLE_INTERRUPTS();
+            CO_LOCK_EMCY();
             CO_memcpy(em->bufWritePtr, &bufCopy[0], 8);
             em->bufWritePtr += 8;
 
             if(em->bufWritePtr == em->bufEnd) em->bufWritePtr = em->buf;
             if(em->bufWritePtr == em->bufReadPtr) em->bufFull = 1;
-            CO_ENABLE_INTERRUPTS();
+            CO_UNLOCK_EMCY();
         }
     }
 }

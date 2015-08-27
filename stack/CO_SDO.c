@@ -536,9 +536,9 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
 
     /* copy data from OD to SDO buffer if not domain */
     if(ODdata != NULL){
-        CO_DISABLE_INTERRUPTS();
+        CO_LOCK_OD();
         while(length--) *(SDObuffer++) = *(ODdata++);
-        CO_ENABLE_INTERRUPTS();
+        CO_UNLOCK_OD();
     }
     /* if domain, Object dictionary function MUST exist */
     else{
@@ -634,11 +634,11 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
 
     /* copy data from SDO buffer to OD if not domain */
     if(ODdata != NULL){
-        CO_DISABLE_INTERRUPTS();
+        CO_LOCK_OD();
         while(length--){
             *(ODdata++) = *(SDObuffer++);
         }
-        CO_ENABLE_INTERRUPTS();
+        CO_UNLOCK_OD();
     }
 
     return 0;

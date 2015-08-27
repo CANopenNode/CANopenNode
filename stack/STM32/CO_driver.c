@@ -313,7 +313,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
         err = CO_ERROR_TX_OVERFLOW;
     }
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     //if CAN TB buffer0 is free, copy message to it
      txBuff = getFreeTxBuff(CANmodule);
    // #error change this - use only one buffer for transmission - see generic driver
@@ -330,7 +330,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
         // vsechny buffery jsou plny, musime povolit preruseni od vysilace, odvysilat az v preruseni
         CAN_ITConfig(CANmodule->CANbaseAddress, CAN_IT_TME, ENABLE);
     }
-    CO_ENABLE_INTERRUPTS();
+    CO_UNLOCK_CAN_SEND();
 
     return err;
 }

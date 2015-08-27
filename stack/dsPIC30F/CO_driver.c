@@ -342,7 +342,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
         err = CO_ERROR_TX_OVERFLOW;
     }
 
-    CO_DISABLE_INTERRUPTS();
+    CO_LOCK_CAN_SEND();
     /* if CAN TB buffer is free, copy message to it */
     if((CAN_REG(addr, C_TXBUF0 + C_TXCON) & 0x8) == 0 && CANmodule->CANtxCount == 0){
         CANmodule->bufferInhibitFlag = buffer->syncFlag;
@@ -353,7 +353,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
         buffer->bufferFull = true;
         CANmodule->CANtxCount++;
     }
-    CO_ENABLE_INTERRUPTS();
+    CO_UNLOCK_CAN_SEND();
 
     return err;
 }

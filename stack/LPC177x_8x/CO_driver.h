@@ -42,31 +42,34 @@
 
 
 /* CAN module base address */
-#define ADDR_CAN1    0
-#define ADDR_CAN2    1
+    #define ADDR_CAN1               0
+    #define ADDR_CAN2               1
 
 
-#define CAN_NODE_ID_0_PORT      1   
-#define CAN_NODE_ID_0_PIN       23
-#define CAN_NODE_ID_1_PORT      1   
-#define CAN_NODE_ID_1_PIN       24
-#define CAN_NODE_ID_2_PORT      1   
-#define CAN_NODE_ID_2_PIN       25
-#define CAN_NODE_ID_3_PORT      1   
-#define CAN_NODE_ID_3_PIN       26
-#define CAN_NODE_ID_4_PORT      1   
-#define CAN_NODE_ID_4_PIN       28
+    #define CAN_NODE_ID_0_PORT      1
+    #define CAN_NODE_ID_0_PIN       23
+    #define CAN_NODE_ID_1_PORT      1
+    #define CAN_NODE_ID_1_PIN       24
+    #define CAN_NODE_ID_2_PORT      1
+    #define CAN_NODE_ID_2_PIN       25
+    #define CAN_NODE_ID_3_PORT      1
+    #define CAN_NODE_ID_3_PIN       26
+    #define CAN_NODE_ID_4_PORT      1
+    #define CAN_NODE_ID_4_PIN       28
 
-#define CAN_RUN_LED_PORT			1
-#define CAN_RUN_LED_PIN			    20
+    #define CAN_RUN_LED_PORT        1
+    #define CAN_RUN_LED_PIN         20
 
-/* Disabling interrupts
- * shared data is accessed only from thread level code (not from ISR or DSR)
- * so we simply do a scheduler lock here to prevent access from different
- * threads
- */
-#define CO_DISABLE_INTERRUPTS()     taskENTER_CRITICAL() /**Preemptive context switches cannot occur when in a critical region */
-#define CO_ENABLE_INTERRUPTS()      taskEXIT_CRITICAL() /**< Reenable Preemptive context switches */
+
+/* Critical sections */
+    #define CO_LOCK_CAN_SEND()      taskENTER_CRITICAL()
+    #define CO_UNLOCK_CAN_SEND()    taskEXIT_CRITICAL()
+
+    #define CO_LOCK_EMCY()          taskENTER_CRITICAL()
+    #define CO_UNLOCK_EMCY()        taskEXIT_CRITICAL()
+
+    #define CO_LOCK_OD()            taskENTER_CRITICAL()
+    #define CO_UNLOCK_OD()          taskEXIT_CRITICAL()
 
 
 /* Data types */
