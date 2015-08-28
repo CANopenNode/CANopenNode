@@ -229,9 +229,9 @@ static uint32_t CO_PDOfindMap(
 
     attr = CO_OD_getAttribute(SDO, entryNo, subIndex);
     /* Is object Mappable for RPDO? */
-    if(R_T==0 && !(attr&CO_ODA_RPDO_MAPABLE && attr&CO_ODA_WRITEABLE)) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
+    if(R_T==0 && !((attr&CO_ODA_RPDO_MAPABLE) && (attr&CO_ODA_WRITEABLE))) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
     /* Is object Mappable for TPDO? */
-    if(R_T!=0 && !(attr&CO_ODA_TPDO_MAPABLE && attr&CO_ODA_READABLE)) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
+    if(R_T!=0 && !((attr&CO_ODA_TPDO_MAPABLE) && (attr&CO_ODA_READABLE))) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
 
     /* is size of variable big enough for map */
     objectLen = CO_OD_getLength(SDO, entryNo, subIndex);

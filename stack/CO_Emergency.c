@@ -363,7 +363,7 @@ bool_t CO_isError(CO_EM_t *em, const uint8_t errorBit){
     uint8_t bitmask = 1 << (errorBit & 0x7);
     bool_t ret = false;
 
-    if(index < em->errorStatusBitsSize){
+    if(em != NULL && index < em->errorStatusBitsSize){
         if((em->errorStatusBits[index] & bitmask) != 0){
             ret = true;
         }

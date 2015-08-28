@@ -32,7 +32,7 @@
 
 #include <string.h>     /* for memcpy */
 #include <stdlib.h>     /* for malloc, free */
-
+#if 0
 /* Store parameters ***********************************************************/
 static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg){
     CO_EE_t *ee;
@@ -241,3 +241,4 @@ void CO_EE_process(CO_EE_t *ee){
         (ee->pSRAM)[i] = (ee->OD_EEPROMAddress)[i];
   }
 }
+#endif

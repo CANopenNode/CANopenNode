@@ -6,7 +6,7 @@
  * @file        CO_driver.h
  * @ingroup     CO_driver
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -281,9 +281,9 @@ void CO_CANsetConfigurationMode(int32_t CANbaseAddress);
 /**
  * Request CAN normal (opearational) mode and *wait* untill it is set.
  *
- * @param CANbaseAddress CAN module base address.
+ * @param CANmodule This object.
  */
-void CO_CANsetNormalMode(int32_t CANbaseAddress);
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 
 /**

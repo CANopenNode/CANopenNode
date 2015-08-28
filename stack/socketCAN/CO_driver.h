@@ -33,10 +33,16 @@
 
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
+#include <stdbool.h>        /* for 'true', 'false' */
+#include <unistd.h>
 
 #ifndef CO_SINGLE_THREAD
 #include <pthread.h>
 #endif
+
+#include <linux/can.h>
+#include <linux/can/raw.h>
+#include <linux/can/error.h>
 
 
 /* general configuration */
@@ -55,9 +61,8 @@
     #define CO_LOCK_OD()
     #define CO_UNLOCK_OD()
 #else
-    extern pthread_mutex_t CO_CANsend_mtx;
-    #define CO_LOCK_CAN_SEND()      {if(pthread_mutex_lock(&CO_CANsend_mtx) != 0) CO_errExit("Mutex lock CO_CANsend_mtx failed");}
-    #define CO_UNLOCK_CAN_SEND()    {if(pthread_mutex_unlock(&CO_CANsend_mtx) != 0) CO_errExit("Mutex unlock CO_CANsend_mtx failed");}
+    #define CO_LOCK_CAN_SEND()      /* not needed */
+    #define CO_UNLOCK_CAN_SEND()
 
     extern pthread_mutex_t CO_EMCY_mtx;
     #define CO_LOCK_EMCY()          {if(pthread_mutex_lock(&CO_EMCY_mtx) != 0) CO_errExit("Mutex lock CO_EMCY_mtx failed");}
@@ -116,7 +121,7 @@ typedef struct{
 }CO_CANrx_t;
 
 
-/* Transmit message object. */
+/* Transmit message object as aligned in CAN module. */
 typedef struct{
     uint32_t            ident;
     uint8_t             DLC;
@@ -136,6 +141,10 @@ typedef struct{
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
     uint16_t            txSize;
+    struct can_filter  *filter;     /* array of CAN filters of size rxSize */
+    socklen_t           filterSize; /* size of filter usage in bytes */
+    volatile bool_t     CANnormal;  /* CAN in normal mode */
+    volatile bool_t     useCANrxFilters;
     volatile bool_t     bufferInhibitFlag;
     volatile bool_t     firstCANtxMessage;
     volatile uint8_t    error;
@@ -155,7 +164,7 @@ void CO_errExit(char* msg);
 
 /* Request CAN configuration or normal mode */
 void CO_CANsetConfigurationMode(int32_t fdSocket);
-void CO_CANsetNormalMode(int32_t fdSocket);
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 
 /* Initialize CAN module object. */
@@ -166,7 +175,7 @@ CO_ReturnError_t CO_CANmodule_init(
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
         uint16_t                txSize,
-        uint16_t                bitRate); //not used
+        uint16_t                CANbitRate); //not used
 
 
 /* Switch off CANmodule. */
@@ -210,14 +219,11 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
 void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
 
 
-/* CAN interrupt receives and transmits CAN messages.
+/* Functions receives CAN messages.
  *
- * @param event From _CanCallback_ function from _CAN API_ for SC243.
- * @param msg From _CanCallback_ function from _CAN API_ for SC243.
- *
- * @return For _CanCallback_ function from _CAN API_ for SC243.
+ * @param can_frame From socket read.
  */
-int CO_CANinterrupt(CO_CANmodule_t *CANmodule, CanEvent event, const CanMsg *msg);
+void CO_CANreceive(CO_CANmodule_t *CANmodule, const struct can_frame *msg);
 
 
 #endif

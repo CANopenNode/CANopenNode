@@ -6,7 +6,7 @@
  * @file        CO_driver.c
  * @ingroup     CO_driver
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -32,19 +32,19 @@
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
+void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
 }
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(uint16_t CANbaseAddress){
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 }
 
 
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        int32_t                 CANbaseAddress,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

@@ -30,7 +30,7 @@
 
 
 /* If defined, global variables will be used, otherwise CANopen objects will
-   be generated with malloc(). */
+   be generated with calloc(). */
 /* #define CO_USE_GLOBALS */
 
 
@@ -195,25 +195,25 @@ CO_ReturnError_t CO_init(
 #else
     if(CO == NULL){    /* Use malloc only once */
         CO = &COO;
-        CO->CANmodule[0]                    = (CO_CANmodule_t *)    malloc(sizeof(CO_CANmodule_t));
-        CO_CANmodule_rxArray0               = (CO_CANrx_t *)        malloc(sizeof(CO_CANrx_t) * CO_RXCAN_NO_MSGS);
-        CO_CANmodule_txArray0               = (CO_CANtx_t *)        malloc(sizeof(CO_CANtx_t) * CO_TXCAN_NO_MSGS);
-        CO->SDO                             = (CO_SDO_t *)          malloc(sizeof(CO_SDO_t));
-        CO_SDO_ODExtensions                 = (CO_OD_extension_t*)  malloc(sizeof(CO_OD_extension_t) * CO_OD_NoOfElements);
-        CO->em                              = (CO_EM_t *)           malloc(sizeof(CO_EM_t));
-        CO->emPr                            = (CO_EMpr_t *)         malloc(sizeof(CO_EMpr_t));
-        CO->NMT                             = (CO_NMT_t *)          malloc(sizeof(CO_NMT_t));
-        CO->SYNC                            = (CO_SYNC_t *)         malloc(sizeof(CO_SYNC_t));
+        CO->CANmodule[0]                    = (CO_CANmodule_t *)    calloc(1, sizeof(CO_CANmodule_t));
+        CO_CANmodule_rxArray0               = (CO_CANrx_t *)        calloc(CO_RXCAN_NO_MSGS, sizeof(CO_CANrx_t));
+        CO_CANmodule_txArray0               = (CO_CANtx_t *)        calloc(CO_TXCAN_NO_MSGS, sizeof(CO_CANtx_t));
+        CO->SDO                             = (CO_SDO_t *)          calloc(1, sizeof(CO_SDO_t));
+        CO_SDO_ODExtensions                 = (CO_OD_extension_t*)  calloc(CO_OD_NoOfElements, sizeof(CO_OD_extension_t));
+        CO->em                              = (CO_EM_t *)           calloc(1, sizeof(CO_EM_t));
+        CO->emPr                            = (CO_EMpr_t *)         calloc(1, sizeof(CO_EMpr_t));
+        CO->NMT                             = (CO_NMT_t *)          calloc(1, sizeof(CO_NMT_t));
+        CO->SYNC                            = (CO_SYNC_t *)         calloc(1, sizeof(CO_SYNC_t));
         for(i=0; i<CO_NO_RPDO; i++){
-            CO->RPDO[i]                     = (CO_RPDO_t *)         malloc(sizeof(CO_RPDO_t));
+            CO->RPDO[i]                     = (CO_RPDO_t *)         calloc(1, sizeof(CO_RPDO_t));
         }
         for(i=0; i<CO_NO_TPDO; i++){
-            CO->TPDO[i]                     = (CO_TPDO_t *)         malloc(sizeof(CO_TPDO_t));
+            CO->TPDO[i]                     = (CO_TPDO_t *)         calloc(1, sizeof(CO_TPDO_t));
         }
-        CO->HBcons                          = (CO_HBconsumer_t *)   malloc(sizeof(CO_HBconsumer_t));
-        CO_HBcons_monitoredNodes            = (CO_HBconsNode_t *)   malloc(sizeof(CO_HBconsNode_t) * CO_NO_HB_CONS);
+        CO->HBcons                          = (CO_HBconsumer_t *)   calloc(1, sizeof(CO_HBconsumer_t));
+        CO_HBcons_monitoredNodes            = (CO_HBconsNode_t *)   calloc(CO_NO_HB_CONS, sizeof(CO_HBconsNode_t));
       #if CO_NO_SDO_CLIENT == 1
-        CO->SDOclient                       = (CO_SDOclient_t *)    malloc(sizeof(CO_SDOclient_t));
+        CO->SDOclient                       = (CO_SDOclient_t *)    calloc(1, sizeof(CO_SDOclient_t));
       #endif
     }
 
@@ -287,7 +287,7 @@ CO_ReturnError_t CO_init(
             CO_TXCAN_NO_MSGS,
             bitRate);
 
-    if(err){CO_delete(); return err;}
+    if(err){CO_delete(CANbaseAddress); return err;}
 
 
     err = CO_SDO_init(
@@ -305,7 +305,7 @@ CO_ReturnError_t CO_init(
             CO->CANmodule[0],
             CO_TXCAN_SDO_SRV);
 
-    if(err){CO_delete(); return err;}
+    if(err){CO_delete(CANbaseAddress); return err;}
 
 
     err = CO_EM_init(
@@ -321,7 +321,7 @@ CO_ReturnError_t CO_init(
             CO_TXCAN_EMERG,
             CO_CAN_ID_EMERGENCY + nodeId);
 
-    if(err){CO_delete(); return err;}
+    if(err){CO_delete(CANbaseAddress); return err;}
 
 
     err = CO_NMT_init(
@@ -336,7 +336,7 @@ CO_ReturnError_t CO_init(
             CO_TXCAN_HB,
             CO_CAN_ID_HEARTBEAT + nodeId);
 
-    if(err){CO_delete(); return err;}
+    if(err){CO_delete(CANbaseAddress); return err;}
 
 
 #if CO_NO_NMT_MASTER == 1
@@ -363,7 +363,7 @@ CO_ReturnError_t CO_init(
             CO->CANmodule[0],
             CO_TXCAN_SYNC);
 
-    if(err){CO_delete(); return err;}
+    if(err){CO_delete(CANbaseAddress); return err;}
 
 
     for(i=0; i<CO_NO_RPDO; i++){
@@ -385,7 +385,7 @@ CO_ReturnError_t CO_init(
                 CANdevRx,
                 CANdevRxIdx);
 
-        if(err){CO_delete(); return err;}
+        if(err){CO_delete(CANbaseAddress); return err;}
     }
 
 
@@ -405,7 +405,7 @@ CO_ReturnError_t CO_init(
                 CO->CANmodule[0],
                 CO_TXCAN_TPDO+i);
 
-        if(err){CO_delete(); return err;}
+        if(err){CO_delete(CANbaseAddress); return err;}
     }
 
 
@@ -419,7 +419,7 @@ CO_ReturnError_t CO_init(
             CO->CANmodule[0],
             CO_RXCAN_CONS_HB);
 
-    if(err){CO_delete(); return err;}
+    if(err){CO_delete(CANbaseAddress); return err;}
 
 
 #if CO_NO_SDO_CLIENT == 1
@@ -432,7 +432,7 @@ CO_ReturnError_t CO_init(
             CO->CANmodule[0],
             CO_TXCAN_SDO_CLI);
 
-    if(err){CO_delete(); return err;}
+    if(err){CO_delete(CANbaseAddress); return err;}
 #endif
 
 

@@ -62,7 +62,7 @@ int main (void){
 
 
         /* initialize CANopen */
-        err = CO_init(0/* CAN module address */);
+        err = CO_init(0/* CAN module address */, 10/* NodeID */, 125 /* bit rate */);
         if(err != CO_ERROR_NO){
             while(1);
             /* CO_errorReport(CO->em, CO_EM_MEMORY_ALLOCATION_ERROR, CO_EMC_SOFTWARE_INTERNAL, err); */
@@ -79,7 +79,7 @@ int main (void){
 
 
         /* start CAN */
-        CO_CANsetNormalMode(ADDR_CAN1);
+        CO_CANsetNormalMode(CO->CANmodule[0]);
         CO_CAN_OK = true;
 
         reset = CO_RESET_NOT;
@@ -151,7 +151,7 @@ static void tmrTask_thread(void){
 
 /* CAN interrupt function *****************************************************/
 void /* interrupt */ CO_CAN1InterruptHandler(void){
-    CO_CANinterrupt(CO->CANmodule);
+    CO_CANinterrupt(CO->CANmodule[0]);
 
 
     /* clear interrupt flag */

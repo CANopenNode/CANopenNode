@@ -27,11 +27,12 @@
 #include "CO_driver.h"
 #include "CO_Emergency.h"
 #include <string.h> /* for memcpy */
+#include <stdlib.h> /* for malloc, free */
+#include <sys/socket.h>
 
 
 /******************************************************************************/
 #ifndef CO_SINGLE_THREAD
-    pthread_mutex_t CO_CANsend_mtx = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t CO_EMCY_mtx = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t CO_OD_mtx = PTHREAD_MUTEX_INITIALIZER;
 #endif
@@ -39,13 +40,21 @@
 
 /******************************************************************************/
 void CO_CANsetConfigurationMode(int32_t fdSocket){
-    canEnableRx(CANbaseAddress, FALSE);
+    /* close CAN filters */
+    if(setsockopt(fdSocket, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0) != 0)
+        CO_errExit("CO_CANsetConfigurationMode failed");
 }
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(int32_t fdSocket){
-    canEnableRx(CANbaseAddress, TRUE);
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
+    /* set CAN filters */
+    if(CANmodule == NULL || setsockopt(CANmodule->fdSocket, SOL_CAN_RAW,
+            CAN_RAW_FILTER, &CANmodule->filter[0], CANmodule->filterSize) != 0)
+    {
+        CO_errExit("CO_CANsetNormalMode failed");
+    }
+    CANmodule->CANnormal = true;
 }
 
 
@@ -66,18 +75,32 @@ CO_ReturnError_t CO_CANmodule_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
+    /* allocate memory for filter array */
+    if(CANmodule->filter == NULL){
+        CANmodule->filter = (struct can_filter *) calloc(rxSize, sizeof(struct can_filter));
+    }
+    if(CANmodule->filter == NULL){
+        return CO_ERROR_OUT_OF_MEMORY;
+    }
+
     /* Configure object variables */
     CANmodule->fdSocket = fdSocket;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
+    CANmodule->useCANrxFilters = true;
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;
     CANmodule->error = 0;
     CANmodule->CANtxCount = 0U;
     CANmodule->errOld = 0U;
     CANmodule->em = NULL;
+    CANmodule->CANnormal = false;
+
+#ifdef CO_LOG_CAN_MESSAGES
+    CANmodule->useCANrxFilters = false;
+#endif
 
     for(i=0U; i<rxSize; i++){
         rxArray[i].ident = 0U;
@@ -88,31 +111,22 @@ CO_ReturnError_t CO_CANmodule_init(
     }
 
     /* initialize port */
-    CanError e = canInit(CANbaseAddress, CANbitRate, 0);
-    if(e == CAN_ERROR_ILLEGAL_BAUDRATE)
-        e = canInit(CANbaseAddress, 125, 0);
-    switch(e){
-        case CO_ERROR_NO: break;
-        case CAN_ERROR_OUT_OF_MEMORY: return CO_ERROR_OUT_OF_MEMORY;
-        default: return CO_ERROR_ILLEGAL_ARGUMENT;
-    }
+    /* Socket must be initialized and binded in application. CAN port must be
+     * started before application. */
 
-    /* Set acceptance filters to accept all messages with standard identifier, also accept rtr */
-    CanFilterSc2x3 filter;
-    filter.controllerType         = CAN_FILTER_CONTROLLER_TYPE_SC2X3;
-    filter.structVer              = 1;
-    filter.mode                   = CAN_FILTER_SC2X3_MODE_32_BIT;
-    filter.filters.f32[0].idMask  = canEncodeId(0x7FF, FALSE, TRUE);
-    filter.filters.f32[0].idValue = canEncodeId(0x7FF, FALSE, FALSE);
-    switch(canSetFilter(CANbaseAddress,  (CanFilter *)&filter)){
-        case CO_ERROR_NO: break;
-        default: return CO_ERROR_ILLEGAL_ARGUMENT;
+    /* Configure CAN module hardware filters */
+    if(CANmodule->useCANrxFilters){
+        /* Match filter, standard 11 bit CAN address only, no rtr */
+        for(i=0U; i<rxSize; i++){
+            CANmodule->filter[i].can_mask = CAN_SFF_MASK | CAN_EFF_FLAG | CAN_RTR_FLAG;
+        }
+        CANmodule->filterSize = sizeof(struct can_filter) * rxSize;
     }
-
-    /* purge buffers */
-    canEnableRx(CANbaseAddress, FALSE);
-    canPurgeRx(CANbaseAddress);
-    canPurgeTx(CANbaseAddress, FALSE);
+    else{
+        /* Use one filter, match any standard 11 bit CAN address, no rtr */
+        CANmodule->filter[0].can_mask = CAN_EFF_FLAG | CAN_RTR_FLAG;
+        CANmodule->filterSize = sizeof(struct can_filter);
+    }
 
     return CO_ERROR_NO;
 }
@@ -120,13 +134,13 @@ CO_ReturnError_t CO_CANmodule_init(
 
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
-    canDeinit(CANmodule->CANbaseAddress);
+    free(CANmodule->filter);
 }
 
 
 /******************************************************************************/
 uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg){
-    return (uint16_t) canDecodeId(rxMsg->ident);
+    return (uint16_t) rxMsg->ident;
 }
 
 
@@ -151,9 +165,25 @@ CO_ReturnError_t CO_CANrxBufferInit(
         buffer->pFunct = pFunct;
 
         /* Configure CAN identifier and CAN mask, bit aligned with CAN module. */
-        /* No hardware filtering is used. */
-        buffer->ident = canEncodeId(ident, FALSE, rtr);
-        buffer->mask = canEncodeId(mask, FALSE, FALSE);
+        buffer->ident = ident & CAN_SFF_MASK;
+        if(rtr){
+            buffer->ident |= CAN_RTR_FLAG;
+        }
+        buffer->mask = (mask & CAN_SFF_MASK) | CAN_EFF_FLAG | CAN_RTR_FLAG;
+
+        /* Set CAN hardware module filter and mask. */
+        if(CANmodule->useCANrxFilters){
+            CANmodule->filter[index].can_id = buffer->ident;
+            CANmodule->filter[index].can_mask = buffer->mask;
+            if(CANmodule->CANnormal){
+                if(setsockopt(CANmodule->fdSocket, SOL_CAN_RAW, CAN_RAW_FILTER,
+                        &CANmodule->filter[0], CANmodule->filterSize) != 0)
+                {
+                    ret = CO_ERROR_ILLEGAL_ARGUMENT;
+                }
+
+            }
+        }
     }
     else{
         ret = CO_ERROR_ILLEGAL_ARGUMENT;
@@ -179,7 +209,10 @@ CO_CANtx_t *CO_CANtxBufferInit(
         buffer = &CANmodule->txArray[index];
 
         /* CAN identifier, bit aligned with CAN module registers */
-        buffer->ident = canEncodeId(ident, FALSE, rtr);
+        buffer->ident = ident & CAN_SFF_MASK;
+        if(rtr){
+            buffer->ident |= CAN_RTR_FLAG;
+        }
 
         buffer->DLC = noOfBytes;
         buffer->bufferFull = false;
@@ -193,18 +226,17 @@ CO_CANtx_t *CO_CANtxBufferInit(
 /******************************************************************************/
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CO_ReturnError_t err = CO_ERROR_NO;
-    CanError canErr = CAN_ERROR_NO;
+    ssize_t n;
+    size_t count = sizeof(struct can_frame);
 
-    CO_LOCK_CAN_SEND();
-    canErr = canSend(CANmodule->fdSocket, (const CanMsg*) buffer, FALSE);
+    n = write(CANmodule->fdSocket, buffer, count);
 #ifdef CO_LOG_CAN_MESSAGES
     void CO_logMessage(const CanMsg *msg);
     CO_logMessage((const CanMsg*) buffer);
 #endif
-    CO_UNLOCK_CAN_SEND();
 
-    if(canErr != CAN_ERROR_NO){
-        CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_GENERIC_ERROR, CO_EMC_GENERIC, canErr);
+    if(n != count){
+        CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_TX_OVERFLOW, CO_EMC_CAN_OVERRUN, n);
         err = CO_ERROR_TX_OVERFLOW;
     }
 
@@ -214,12 +246,13 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
 
 /******************************************************************************/
 void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
+    /* Messages can not be cleared, because they are allready in kernel */
 }
 
 
 /******************************************************************************/
 void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
-#if function_canGetErrorCounters_works_without_loosing_messages
+#if 0
     unsigned rxErrors, txErrors;
     CO_EM_t* em = (CO_EM_t*)CANmodule->em;
     uint32_t err;
@@ -281,32 +314,33 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
 
 
 /******************************************************************************/
-void CO_CANreceive(CO_CANmodule_t *CANmodule){
-    /* pool the messages from receive buffer */
-    while(canPeek(CANmodule->CANbaseAddress, 0) == CAN_ERROR_NO){
-        CO_CANrxMsg_t rcvMsg;
-        uint16_t i;         /* index of received message */
-        CO_CANrx_t *buffer;/* receive message buffer from CO_CANmodule_t object. */
-        bool_t msgMatched = false;
-        canRecv(CANmodule->CANbaseAddress, (CanMsg*)&rcvMsg, 0);
+void CO_CANreceive(CO_CANmodule_t *CANmodule, const struct can_frame *msg){
+    CO_CANrxMsg_t *rcvMsg;      /* pointer to received message in CAN module */
+    uint32_t rcvMsgIdent;       /* identifier of the received message */
+    CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
+    int i;
+    bool_t msgMatched = false;
 
-        buffer = &CANmodule->rxArray[0];
-        for(i = CANmodule->rxSize; i > 0; i--){
-            if(((rcvMsg.ident ^ buffer->ident) & buffer->mask) == 0){
-                msgMatched = true;
-                break;
-            }
-            buffer++;
-        }
+    rcvMsg = (CO_CANrxMsg_t *) msg;
+    rcvMsgIdent = rcvMsg->ident;
 
-        /* Call specific function, which will process the message */
-        if(msgMatched && (buffer->pFunct != 0)){
-            buffer->pFunct(buffer->object, &rcvMsg);
+    /* Search rxArray form CANmodule for the matching CAN-ID. */
+    buffer = &CANmodule->rxArray[0];
+    for(i = CANmodule->rxSize; i > 0U; i--){
+        if(((rcvMsgIdent ^ buffer->ident) & buffer->mask) == 0U){
+            msgMatched = true;
+            break;
         }
+        buffer++;
+    }
+
+    /* Call specific function, which will process the message */
+    if(msgMatched && (buffer != NULL) && (buffer->pFunct != NULL)){
+        buffer->pFunct(buffer->object, rcvMsg);
+    }
 
 #ifdef CO_LOG_CAN_MESSAGES
-        void CO_logMessage(const CanMsg *msg);
-        CO_logMessage((CanMsg*)&rcvMsg);
+    void CO_logMessage(const CanMsg *msg);
+    CO_logMessage((CanMsg*)&rcvMsg);
 #endif
-    }
 }
