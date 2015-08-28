@@ -128,7 +128,7 @@ typedef struct{
 
 /* CAN module object. */
 typedef struct{
-    int32_t             CANbaseAddress; //CAN_RAW socket file descriptor
+    int32_t             fdSocket; //CAN_RAW socket file descriptor
 #ifdef CO_LOG_CAN_MESSAGES
     CO_CANtx_t          txRecord;
 #endif
@@ -154,19 +154,19 @@ void CO_errExit(char* msg);
 
 
 /* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(int32_t CANbaseAddress);
-void CO_CANsetNormalMode(int32_t CANbaseAddress);
+void CO_CANsetConfigurationMode(int32_t fdSocket);
+void CO_CANsetNormalMode(int32_t fdSocket);
 
 
 /* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        int32_t                 CANbaseAddress, //CAN_RAW socket file descriptor
+        int32_t                 fdSocket, //CAN_RAW socket file descriptor
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
         uint16_t                txSize,
-        uint16_t                CANbitRate);
+        uint16_t                bitRate); //not used
 
 
 /* Switch off CANmodule. */

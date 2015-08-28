@@ -124,10 +124,10 @@
 #endif
 
 
-/******************************************************************************/
+/* Helper function for NMT master *********************************************/
 #if CO_NO_NMT_MASTER == 1
     CO_CANtx_t *NMTM_txBuff = 0;
-    /* Helper function for using: */
+
     uint8_t CO_sendNMTcommand(CO_t *CO, uint8_t command, uint8_t nodeID){
         if(NMTM_txBuff == 0){
             /* error, CO_CANtxBufferInit() was not called for this buffer. */
@@ -140,62 +140,14 @@
 #endif
 
 
-/* CAN node ID - Object dictionary function ***********************************/
-static CO_SDO_abortCode_t CO_ODF_nodeId(CO_ODF_arg_t *ODF_arg){
-    uint8_t value;
-    CO_SDO_abortCode_t ret = CO_SDO_AB_NONE;
-
-    value = ODF_arg->data[0];
-
-    if(!ODF_arg->reading){
-        if(value < 1U){
-            ret = CO_SDO_AB_VALUE_LOW;
-        }
-        else if(value > 127U){
-            ret = CO_SDO_AB_VALUE_HIGH;
-        }
-        else{
-            ret = CO_SDO_AB_NONE;
-        }
-    }
-
-    return ret;
-}
-
-
-/* CAN bit rate - Object dictionary function **********************************/
-static CO_SDO_abortCode_t CO_ODF_bitRate(CO_ODF_arg_t *ODF_arg){
-    uint16_t value;
-    CO_SDO_abortCode_t ret = CO_SDO_AB_NONE;
-
-    value = CO_getUint16(ODF_arg->data);
-
-    if(!ODF_arg->reading){
-        switch(value){
-            case 10U:
-            case 20U:
-            case 50U:
-            case 125U:
-            case 250U:
-            case 500U:
-            case 800U:
-            case 1000U:
-                break;
-            default:
-                ret = CO_SDO_AB_INVALID_VALUE;
-        }
-    }
-
-    return ret;
-}
-
-
 /******************************************************************************/
-CO_ReturnError_t CO_init(int32_t CANbaseAddress){
+CO_ReturnError_t CO_init(
+        int32_t                 CANbaseAddress,
+        uint8_t                 nodeId,
+        uint16_t                bitRate)
+{
 
     int16_t i;
-    uint8_t nodeId;
-    uint16_t CANBitRate;
     CO_ReturnError_t err;
 #ifndef CO_USE_GLOBALS
     uint16_t errCnt;
@@ -311,9 +263,8 @@ CO_ReturnError_t CO_init(int32_t CANbaseAddress){
 
     CO_CANsetConfigurationMode(CANbaseAddress);
 
-    /* Read CANopen Node-ID and CAN bit-rate from object dictionary */
-    nodeId = OD_CANNodeID; if(nodeId<1 || nodeId>127) nodeId = 0x10;
-    CANBitRate = OD_CANBitRate;/* in kbps */
+    /* Verify CANopen Node-ID */
+    if(nodeId<1 || nodeId>127) nodeId = 0x10;
 
 
     err = CO_CANmodule_init(
@@ -334,7 +285,7 @@ CO_ReturnError_t CO_init(int32_t CANbaseAddress){
             CO_RXCAN_NO_MSGS,
             CO_CANmodule_txArray0,
             CO_TXCAN_NO_MSGS,
-            CANBitRate);
+            bitRate);
 
     if(err){CO_delete(); return err;}
 
@@ -484,10 +435,6 @@ CO_ReturnError_t CO_init(int32_t CANbaseAddress){
     if(err){CO_delete(); return err;}
 #endif
 
-
-    /* Configure Object dictionary entry at index 0x2101 and 0x2102 */
-    CO_OD_configure(CO->SDO, 0x2101, CO_ODF_nodeId, 0, 0, 0);
-    CO_OD_configure(CO->SDO, 0x2102, CO_ODF_bitRate, 0, 0, 0);
 
     return CO_ERROR_NO;
 }

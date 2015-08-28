@@ -38,13 +38,13 @@
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
+void CO_CANsetConfigurationMode(int32_t fdSocket){
     canEnableRx(CANbaseAddress, FALSE);
 }
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(int32_t CANbaseAddress){
+void CO_CANsetNormalMode(int32_t fdSocket){
     canEnableRx(CANbaseAddress, TRUE);
 }
 
@@ -52,7 +52,7 @@ void CO_CANsetNormalMode(int32_t CANbaseAddress){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        int32_t                 CANbaseAddress,
+        int32_t                 fdSocket,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -62,12 +62,12 @@ CO_ReturnError_t CO_CANmodule_init(
     uint16_t i;
 
     /* verify arguments */
-    if(CANmodule==NULL || CANbaseAddress<0 || rxArray==NULL || txArray==NULL){
+    if(CANmodule==NULL || fdSocket<0 || rxArray==NULL || txArray==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* Configure object variables */
-    CANmodule->CANbaseAddress = CANbaseAddress;
+    CANmodule->fdSocket = fdSocket;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
@@ -196,7 +196,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CanError canErr = CAN_ERROR_NO;
 
     CO_LOCK_CAN_SEND();
-    canErr = canSend(CANmodule->CANbaseAddress, (const CanMsg*) buffer, FALSE);
+    canErr = canSend(CANmodule->fdSocket, (const CanMsg*) buffer, FALSE);
 #ifdef CO_LOG_CAN_MESSAGES
     void CO_logMessage(const CanMsg *msg);
     CO_logMessage((const CanMsg*) buffer);
