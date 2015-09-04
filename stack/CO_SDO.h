@@ -739,6 +739,7 @@ CO_ReturnError_t CO_SDO_init(
  * NMT_PRE_OPERATIONAL or NMT_OPERATIONAL.
  * @param timeDifference_ms Time difference from previous function call in [milliseconds].
  * @param SDOtimeoutTime Timeout time for SDO communication in milliseconds.
+ * @param timerNext_ms Return value - info to OS - see CO_process().
  *
  * @return 0: SDO server is idle.
  * @return 1: SDO server is in transfer state.
@@ -748,7 +749,8 @@ int8_t CO_SDO_process(
         CO_SDO_t               *SDO,
         bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_ms,
-        uint16_t                SDOtimeoutTime);
+        uint16_t                SDOtimeoutTime,
+        uint16_t               *timerNext_ms);
 
 
 /**

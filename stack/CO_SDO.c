@@ -663,7 +663,8 @@ int8_t CO_SDO_process(
         CO_SDO_t               *SDO,
         bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_ms,
-        uint16_t                SDOtimeoutTime)
+        uint16_t                SDOtimeoutTime,
+        uint16_t               *timerNext_ms)
 {
     CO_SDO_state_t state = CO_SDO_ST_IDLE;
     bool_t timeoutSubblockDownolad = false;
@@ -1254,7 +1255,7 @@ int8_t CO_SDO_process(
                 /* new block size */
                 SDO->blksize = SDO->CANrxData[2];
 
-                /* If data type is domain, re-fill the data buffer if neccessary and indicated so. */
+                /* If data type is domain, re-fill the data buffer if necessary and indicated so. */
                 if((SDO->ODF_arg.ODdataStorage == 0) && (SDO->ODF_arg.dataLength < (SDO->blksize*7U)) && (!SDO->ODF_arg.lastSegment)){
                     /* move the beginning of the data buffer */
                     len = SDO->ODF_arg.dataLength; /* length of valid data in buffer */
@@ -1292,7 +1293,7 @@ int8_t CO_SDO_process(
                 SDO->CANrxNew = false;
             }
 
-            /* return, if all segments was allready transfered or on end of transfer */
+            /* return, if all segments was already transfered or on end of transfer */
             if((SDO->sequence == SDO->blksize) || (SDO->endOfTransfer)){
                 return 1;/* don't clear the SDO->CANrxNew flag, so return directly */
             }
@@ -1324,6 +1325,11 @@ int8_t CO_SDO_process(
 
             /* send response */
             CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+
+            /* Set timerNext_ms to 0 to inform OS to call this function again without delay. */
+            if(timerNext_ms != NULL){
+                *timerNext_ms = 0;
+            }
 
             /* don't clear the SDO->CANrxNew flag, so return directly */
             return 1;

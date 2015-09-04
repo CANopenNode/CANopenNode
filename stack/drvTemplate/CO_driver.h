@@ -144,7 +144,7 @@
  * objects. Objects are later processed. It does not need protection of
  * critical sections. There is one circumstance, where CANrx should be disabled:
  * After presence of SYNC message on CANopen bus, CANrx should be temporary
- * disabled untill all receive PDOs are processed. See also CO_SYNC.h file and
+ * disabled until all receive PDOs are processed. See also CO_SYNC.h file and
  * CO_SYNC_initCallback() function.
  * @{
  */

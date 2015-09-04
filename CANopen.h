@@ -162,16 +162,23 @@ void CO_delete(int32_t CANbaseAddress);
  * Process CANopen objects.
  *
  * Function must be called cyclically. It processes all "asynchronous" CANopen
- * objects. Function returns value from CO_NMT_process().
+ * objects.
  *
  * @param CO This object
  * @param timeDifference_ms Time difference from previous function call in [milliseconds].
+ * @param timerNext_ms Return value - info to OS - maximum delay after function
+ *        should be called next time in [milliseconds]. Value can be used for OS
+ *        sleep time. Initial value must be set to something, 50ms typically.
+ *        Output will be equal or lower to initial value. If there is new object
+ *        to process, delay should be suspended and this function should be
+ *        called immediately. Parameter is ignored if NULL.
  *
- * @return #CO_NMT_reset_cmd_t
+ * @return #CO_NMT_reset_cmd_t from CO_NMT_process().
  */
 CO_NMT_reset_cmd_t CO_process(
         CO_t                   *CO,
-        uint16_t                timeDifference_ms);
+        uint16_t                timeDifference_ms,
+        uint16_t               *timerNext_ms);
 
 
 /**

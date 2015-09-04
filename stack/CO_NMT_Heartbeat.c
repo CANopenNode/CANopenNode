@@ -173,14 +173,15 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         uint16_t                HBtime,
         uint32_t                NMTstartup,
         uint8_t                 errorRegister,
-        const uint8_t           errorBehavior[])
+        const uint8_t           errorBehavior[],
+        uint16_t               *timerNext_ms)
 {
     uint8_t CANpassive;
 
     NMT->HBproducerTimer += timeDifference_ms;
 
     /* Heartbeat producer message & Bootup message */
-    if((HBtime && NMT->HBproducerTimer >= HBtime) || NMT->operatingState == CO_NMT_INITIALIZING){
+    if((HBtime != 0 && NMT->HBproducerTimer >= HBtime) || NMT->operatingState == CO_NMT_INITIALIZING){
 
         NMT->HBproducerTimer = NMT->HBproducerTimer - HBtime;
 
@@ -192,6 +193,19 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 
             if((NMTstartup & 0x04) == 0) NMT->operatingState = CO_NMT_OPERATIONAL;
             else                         NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+        }
+    }
+
+
+    /* Calculate, when next Heartbeat needs to be send and lower timerNext_ms if necessary. */
+    if(HBtime != 0 && timerNext_ms != NULL){
+        if(NMT->HBproducerTimer < HBtime){
+            uint16_t diff = HBtime - NMT->HBproducerTimer;
+            if(*timerNext_ms > diff){
+                *timerNext_ms = diff;
+            }
+        }else{
+            *timerNext_ms = 0;
         }
     }
 

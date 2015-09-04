@@ -201,8 +201,9 @@ void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT);
  * @param NMTstartup _NMT startup behavior_ (object dictionary, index 0x1F80).
  * @param errorRegister _Error register_ (object dictionary, index 0x1001).
  * @param errorBehavior pointer to _Error behavior_ array (object dictionary, index 0x1029).
- * Object controls, if device should leave NMT operational state.
- * Length of array must be 6. If pointer is NULL, no calculation is made.
+ *        Object controls, if device should leave NMT operational state.
+ *        Length of array must be 6. If pointer is NULL, no calculation is made.
+ * @param timerNext_ms Return value - info to OS - see CO_process().
  *
  * @return #CO_NMT_reset_cmd_t
  */
@@ -212,7 +213,8 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         uint16_t                HBtime,
         uint32_t                NMTstartup,
         uint8_t                 errorRegister,
-        const uint8_t           errorBehavior[]);
+        const uint8_t           errorBehavior[],
+        uint16_t               *timerNext_ms);
 
 
 /** @} */

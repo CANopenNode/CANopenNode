@@ -478,19 +478,25 @@ void CO_delete(int32_t CANbaseAddress){
 /******************************************************************************/
 CO_NMT_reset_cmd_t CO_process(
         CO_t                   *CO,
-        uint16_t                timeDifference_ms)
+        uint16_t                timeDifference_ms,
+        uint16_t               *timerNext_ms)
 {
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
-    static uint8_t ms50 = 0;
+    static uint16_t ms50 = 0;
 
     if(CO->NMT->operatingState == CO_NMT_PRE_OPERATIONAL || CO->NMT->operatingState == CO_NMT_OPERATIONAL)
         NMTisPreOrOperational = true;
 
     ms50 += timeDifference_ms;
     if(ms50 >= 50){
-        ms50 = 0;
+        ms50 -= 50;
         CO_NMT_blinkingProcess50ms(CO->NMT);
+    }
+    if(timerNext_ms != NULL){
+        if(*timerNext_ms > 50){
+            *timerNext_ms = 50;
+        }
     }
 
 
@@ -498,7 +504,8 @@ CO_NMT_reset_cmd_t CO_process(
             CO->SDO,
             NMTisPreOrOperational,
             timeDifference_ms,
-            1000);
+            1000,
+            timerNext_ms);
 
 
     CO_EM_process(
@@ -514,14 +521,14 @@ CO_NMT_reset_cmd_t CO_process(
             OD_producerHeartbeatTime,
             OD_NMTStartup,
             OD_errorRegister,
-            OD_errorBehavior);
+            OD_errorBehavior,
+            timerNext_ms);
 
 
     CO_HBconsumer_process(
             CO->HBcons,
             NMTisPreOrOperational,
             timeDifference_ms);
-
 
     return reset;
 }
@@ -536,7 +543,7 @@ bool_t CO_process_SYNC_RPDO(
     bool_t syncWas = false;
 
     switch(CO_SYNC_process(CO->SYNC, timeDifference_us, OD_synchronousWindowLength)){
-        case 1:     //immediatelly after the SYNC message
+        case 1:     //immediately after the SYNC message
             syncWas = true;
             break;
         case 2:     //outside SYNC window
