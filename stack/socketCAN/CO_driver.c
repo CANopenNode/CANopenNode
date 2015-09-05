@@ -38,20 +38,78 @@
 #endif
 
 
+/** Set socketCAN filters *****************************************************/
+static CO_ReturnError_t setFilters(CO_CANmodule_t *CANmodule){
+    CO_ReturnError_t ret = CO_ERROR_NO;
+
+    if(CANmodule->useCANrxFilters){
+        int nFiltersIn, nFiltersOut;
+        struct can_filter *filtersOut;
+
+        nFiltersIn = CANmodule->rxSize;
+        nFiltersOut = 0;
+        filtersOut = (struct can_filter *) calloc(nFiltersIn, sizeof(struct can_filter));
+
+        if(filtersOut == NULL){
+            ret = CO_ERROR_OUT_OF_MEMORY;
+        }else{
+            int i;
+            int idZeroCnt = 0;
+
+            /* Copy filterIn to filtersOut. Accept only first filter with
+             * can_id=0, omit others. */
+            for(i=0; i<nFiltersIn; i++){
+                struct can_filter *fin;
+
+                fin = &CANmodule->filter[i];
+                if(fin->can_id == 0){
+                    idZeroCnt++;
+                }
+                if(fin->can_id != 0 || idZeroCnt == 1){
+                    struct can_filter *fout;
+
+                    fout = &filtersOut[nFiltersOut++];
+                    fout->can_id = fin->can_id;
+                    fout->can_mask = fin->can_mask;
+                }
+            }
+
+            if(setsockopt(CANmodule->fdSocket, SOL_CAN_RAW, CAN_RAW_FILTER,
+                          filtersOut, sizeof(struct can_filter) * nFiltersOut) != 0)
+            {
+                ret = CO_ERROR_ILLEGAL_ARGUMENT;
+            }
+
+            free(filtersOut);
+        }
+    }else{
+        /* Use one socketCAN filter, match any standard 11 bit CAN address, including rtr */
+        CANmodule->filter[0].can_id = 0;
+        CANmodule->filter[0].can_mask = CAN_EFF_FLAG;
+        if(setsockopt(CANmodule->fdSocket, SOL_CAN_RAW, CAN_RAW_FILTER,
+            &CANmodule->filter[0], sizeof(struct can_filter)) != 0)
+        {
+            ret = CO_ERROR_ILLEGAL_ARGUMENT;
+        }
+    }
+
+    return ret;
+}
+
+
 /******************************************************************************/
 void CO_CANsetConfigurationMode(int32_t fdSocket){
     /* close CAN filters */
-    if(setsockopt(fdSocket, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0) != 0)
+    if(setsockopt(fdSocket, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0) != 0){
         CO_errExit("CO_CANsetConfigurationMode failed");
+    }
 }
 
 
 /******************************************************************************/
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
     /* set CAN filters */
-    if(CANmodule == NULL || setsockopt(CANmodule->fdSocket, SOL_CAN_RAW,
-            CAN_RAW_FILTER, &CANmodule->filter[0], CANmodule->filterSize) != 0)
-    {
+    if(CANmodule == NULL || setFilters(CANmodule) != CO_ERROR_NO){
         CO_errExit("CO_CANsetNormalMode failed");
     }
     CANmodule->CANnormal = true;
@@ -118,14 +176,9 @@ CO_ReturnError_t CO_CANmodule_init(
     if(CANmodule->useCANrxFilters){
         /* Match filter, standard 11 bit CAN address only, no rtr */
         for(i=0U; i<rxSize; i++){
+            CANmodule->filter[i].can_id = 0;
             CANmodule->filter[i].can_mask = CAN_SFF_MASK | CAN_EFF_FLAG | CAN_RTR_FLAG;
         }
-        CANmodule->filterSize = sizeof(struct can_filter) * rxSize;
-    }
-    else{
-        /* Use one filter, match any standard 11 bit CAN address, no rtr */
-        CANmodule->filter[0].can_mask = CAN_EFF_FLAG | CAN_RTR_FLAG;
-        CANmodule->filterSize = sizeof(struct can_filter);
     }
 
     return CO_ERROR_NO;
@@ -135,6 +188,7 @@ CO_ReturnError_t CO_CANmodule_init(
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
     free(CANmodule->filter);
+    CANmodule->filter = NULL;
 }
 
 
@@ -156,7 +210,8 @@ CO_ReturnError_t CO_CANrxBufferInit(
 {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
-    if((CANmodule!=NULL) && (object!=NULL) && (pFunct!=NULL) && (index < CANmodule->rxSize)){
+    if((CANmodule!=NULL) && (object!=NULL) && (pFunct!=NULL) &&
+       (CANmodule->filter!=NULL) && (index < CANmodule->rxSize)){
         /* buffer, which will be configured */
         CO_CANrx_t *buffer = &CANmodule->rxArray[index];
 
@@ -176,12 +231,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
             CANmodule->filter[index].can_id = buffer->ident;
             CANmodule->filter[index].can_mask = buffer->mask;
             if(CANmodule->CANnormal){
-                if(setsockopt(CANmodule->fdSocket, SOL_CAN_RAW, CAN_RAW_FILTER,
-                        &CANmodule->filter[0], CANmodule->filterSize) != 0)
-                {
-                    ret = CO_ERROR_ILLEGAL_ARGUMENT;
-                }
-
+                ret = setFilters(CANmodule);
             }
         }
     }

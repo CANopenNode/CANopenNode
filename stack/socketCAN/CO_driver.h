@@ -142,7 +142,6 @@ typedef struct{
     CO_CANtx_t         *txArray;
     uint16_t            txSize;
     struct can_filter  *filter;     /* array of CAN filters of size rxSize */
-    socklen_t           filterSize; /* size of filter usage in bytes */
     volatile bool_t     CANnormal;  /* CAN in normal mode */
     volatile bool_t     useCANrxFilters;
     volatile bool_t     bufferInhibitFlag;
