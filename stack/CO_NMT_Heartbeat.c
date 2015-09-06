@@ -183,7 +183,9 @@ CO_NMT_reset_cmd_t CO_NMT_process(
     /* Heartbeat producer message & Bootup message */
     if((HBtime != 0 && NMT->HBproducerTimer >= HBtime) || NMT->operatingState == CO_NMT_INITIALIZING){
 
-        NMT->HBproducerTimer = NMT->HBproducerTimer - HBtime;
+        /* Start from the beginning. If OS is slow, time sliding may occur. However, heartbeat is
+         * not for synchronization, it is for health report. */
+        NMT->HBproducerTimer = 0;
 
         NMT->HB_TXbuff->data[0] = NMT->operatingState;
         CO_CANsend(NMT->HB_CANdev, NMT->HB_TXbuff);
@@ -288,7 +290,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
                 else if (errorBehavior[5] == 2) NMT->operatingState = CO_NMT_STOPPED;
             }
 
-            /* if operational state is lost, send HB immediatelly. */
+            /* if operational state is lost, send HB immediately. */
             if(NMT->operatingState != CO_NMT_OPERATIONAL)
                 NMT->HBproducerTimer = HBtime;
         }

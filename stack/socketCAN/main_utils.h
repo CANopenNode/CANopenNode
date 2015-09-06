@@ -28,10 +28,14 @@
 #define MAIN_UTILS_H
 
 
+#include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <time.h>
 #include <sys/timerfd.h>
+#include <sys/socket.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
 
 
 #define NSEC_PER_SEC        (1000000000)        /* The number of nanoseconds per second. */
@@ -40,7 +44,7 @@
 
 /* Utilities for 'Timer interval task'. ***************************************/
 /* It is used for short, realtime processing of CANopen SYNC and PDO objects,
- * triggered in constant intervals.*/
+ * triggered in constant, non-sliding intervals. */
 typedef struct{
     int                 fd;         /* file descriptor */
     struct itimerspec   tmrSpec;
@@ -72,6 +76,57 @@ int taskTmr_init(taskTmr_t *tt, long intervalns, uint16_t *maxTime);
  * @return 0 on success, -1 on error, info in errno.
  */
 int taskTmr_wait(taskTmr_t *tt, struct timespec *sync);
+
+
+/* Utilities for 'Mainline task'. *********************************************/
+/* It is used for delay in mainline */
+typedef struct{
+    int                 fd;         /* file descriptor */
+    struct itimerspec   tmrSpec;
+    volatile uint16_t  *tmr1ms;
+    uint16_t            tmr1msPrev;
+    uint16_t           *maxTime;
+}taskMain_t;
+
+
+/* Create Linux timerfd and configures tt object.
+ *
+ * @param tt This object.
+ * @param tmr1ms Variable, which is externally incremented each millisecond.
+ * @param maxTime Pointer to value, which will indicate longest interval in
+ *        milliseconds. If NULL, calculations won't be made.
+ *
+ * @return 0 on success, -1 on error, info in errno.
+ */
+int taskMain_init(taskMain_t *tt, volatile uint16_t *tmr1ms, uint16_t *maxTime);
+
+
+/* Block for defined delay.
+ *
+ * @param tt This object.
+ * @param timeDiff Return value - time difference from previous call in milliseconds.
+ *
+ * @return 0 on success, -1 on error, info in errno.
+ */
+int taskMain_wait(taskMain_t *tt, uint16_t *timeDiff);
+
+
+/* Set next delay.
+ *
+ * @param tt This object.
+ * @param delay Delay in milliseconds.
+ *
+ * @return 0 on success, -1 on error, info in errno.
+ */
+int taskMain_setDelay(taskMain_t *tt, uint16_t delay);
+
+
+/* Helpers ********************************************************************/
+/* Print all options of CAN socket using printf function.
+ *
+ * @param fdSocket File descriptor for CAN socket.
+ */
+void printSocketCanOptions(int fdSocket);
 
 
 #endif
