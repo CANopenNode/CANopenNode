@@ -133,7 +133,7 @@ typedef struct{
 
 /* CAN module object. */
 typedef struct{
-    int32_t             fdSocket; //CAN_RAW socket file descriptor
+    int32_t             CANbaseAddress;
 #ifdef CO_LOG_CAN_MESSAGES
     CO_CANtx_t          txRecord;
 #endif
@@ -141,6 +141,8 @@ typedef struct{
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
     uint16_t            txSize;
+    uint16_t            wasConfigured;/* Zero only on first run of CO_CANmodule_init */
+    int                 fd;         /* CAN_RAW socket file descriptor */
     struct can_filter  *filter;     /* array of CAN filters of size rxSize */
     volatile bool_t     CANnormal;  /* CAN in normal mode */
     volatile bool_t     useCANrxFilters;
@@ -169,12 +171,12 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 /* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        int32_t                 fdSocket, //CAN_RAW socket file descriptor
+        int32_t                 CANbaseAddress,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
         uint16_t                txSize,
-        uint16_t                CANbitRate); //not used
+        uint16_t                CANbitRate); /* not used */
 
 
 /* Switch off CANmodule. */
@@ -218,11 +220,11 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
 void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
 
 
-/* Functions receives CAN messages.
+/* Functions receives CAN messages. It is blocking.
  *
- * @param can_frame From socket read.
+ * @param CANmodule This object.
  */
-void CO_CANreceive(CO_CANmodule_t *CANmodule, const struct can_frame *msg);
+void CO_CANrxWait(CO_CANmodule_t *CANmodule);
 
 
 #endif
