@@ -130,6 +130,7 @@ CO_ReturnError_t CO_EM_init(
     em->bufReadPtr              = em->buf;
     em->bufFull                 = 0U;
     em->wrongErrorReport        = 0U;
+    em->pFunctSignal            = NULL;
     emPr->em                    = em;
     emPr->errorRegister         = errorRegister;
     emPr->preDefErr             = preDefErr;
@@ -158,6 +159,17 @@ CO_ReturnError_t CO_EM_init(
             0);                 /* synchronous message flag bit */
 
     return CO_ERROR_NO;
+}
+
+
+/******************************************************************************/
+void CO_EM_initCallback(
+        CO_EM_t                *em,
+        void                  (*pFunctSignal)(void))
+{
+    if(em != NULL){
+        em->pFunctSignal = pFunctSignal;
+    }
 }
 
 
@@ -264,7 +276,7 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
     }
     else{
         errorStatusBits = &em->errorStatusBits[index];
-        /* if error was allready reported, do nothing */
+        /* if error was already reported, do nothing */
         if((*errorStatusBits & bitmask) != 0){
             sendEmergency = false;
         }
@@ -298,6 +310,11 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
             if(em->bufWritePtr == em->bufEnd) em->bufWritePtr = em->buf;
             if(em->bufWritePtr == em->bufReadPtr) em->bufFull = 1;
             CO_UNLOCK_EMCY();
+
+            /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
+            if(em->pFunctSignal != NULL) {
+                em->pFunctSignal();
+            }
         }
     }
 }
@@ -352,6 +369,11 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
             if(em->bufWritePtr == em->bufEnd) em->bufWritePtr = em->buf;
             if(em->bufWritePtr == em->bufReadPtr) em->bufFull = 1;
             CO_UNLOCK_EMCY();
+
+            /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
+            if(em->pFunctSignal != NULL) {
+                em->pFunctSignal();
+            }
         }
     }
 }

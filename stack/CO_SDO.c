@@ -182,8 +182,8 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
         }
 
         /* Optional signal to RTOS, which can resume task, which handles SDO server. */
-        if(SDO->CANrxNew && SDO->pFunctSignal) {
-            SDO->pFunctSignal(SDO->functArg);
+        if(SDO->CANrxNew && SDO->pFunctSignal != NULL) {
+            SDO->pFunctSignal();
         }
     }
 }
@@ -262,7 +262,6 @@ CO_ReturnError_t CO_SDO_init(
     SDO->state = CO_SDO_ST_IDLE;
     SDO->CANrxNew = false;
     SDO->pFunctSignal = NULL;
-    SDO->functArg = 0;
 
 
     /* Configure Object dictionary entry at index 0x1200 */
@@ -291,6 +290,17 @@ CO_ReturnError_t CO_SDO_init(
             0);                     /* synchronous message flag bit */
 
     return CO_ERROR_NO;
+}
+
+
+/******************************************************************************/
+void CO_SDO_initCallback(
+        CO_SDO_t               *SDO,
+        void                  (*pFunctSignal)(void))
+{
+    if(SDO != NULL){
+        SDO->pFunctSignal = pFunctSignal;
+    }
 }
 
 

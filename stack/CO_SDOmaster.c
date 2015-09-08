@@ -160,8 +160,8 @@ static void CO_SDOclient_receive(void *object, const CO_CANrxMsg_t *msg){
         }
 
         /* Optional signal to RTOS, which can resume task, which handles SDO client. */
-        if(SDO_C->CANrxNew && SDO_C->pFunctSignal) {
-            SDO_C->pFunctSignal(SDO_C->functArg);
+        if(SDO_C->CANrxNew && SDO_C->pFunctSignal != NULL) {
+            SDO_C->pFunctSignal();
         }
     }
 }
@@ -193,8 +193,7 @@ CO_ReturnError_t CO_SDOclient_init(
     SDO_C->SDO = SDO;
     SDO_C->SDOClientPar = SDOClientPar;
 
-    SDO_C->pFunctSignal = 0;
-    SDO_C->functArg = 0;
+    SDO_C->pFunctSignal = NULL;
 
     SDO_C->CANdevRx = CANdevRx;
     SDO_C->CANdevRxIdx = CANdevRxIdx;
@@ -204,6 +203,17 @@ CO_ReturnError_t CO_SDOclient_init(
     CO_SDOclient_setup(SDO_C, 0, 0, 0);
 
     return CO_ERROR_NO;
+}
+
+
+/******************************************************************************/
+void CO_SDOclient_initCallback(
+        CO_SDOclient_t         *SDOclient,
+        void                  (*pFunctSignal)(void))
+{
+    if(SDOclient != NULL){
+        SDOclient->pFunctSignal = pFunctSignal;
+    }
 }
 
 

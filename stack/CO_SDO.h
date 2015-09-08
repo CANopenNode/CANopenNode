@@ -597,12 +597,8 @@ typedef struct{
     bool_t              endOfTransfer;
     /** Variable indicates, if new SDO message received from CAN bus */
     bool_t              CANrxNew;
-    /** Pointer to optional external function. If defined, it is called from high
-    priority interrupt after new CAN SDO response message is received. Function
-    may wake up external task, which processes SDO client functions */
-    void              (*pFunctSignal)(uint32_t arg);
-    /** Optional argument, which is passed to above function */
-    uint32_t            functArg;
+    /** From CO_SDO_initCallback() or NULL */
+    void              (*pFunctSignal)(void);
     /** From CO_SDO_init() */
     CO_CANmodule_t     *CANdevTx;
     /** CAN transmit buffer inside CANdev for CAN tx message */
@@ -727,6 +723,21 @@ CO_ReturnError_t CO_SDO_init(
         uint16_t                CANdevRxIdx,
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx);
+
+
+/**
+ * Initialize SDOrx callback function.
+ *
+ * Function initializes optional callback function, which is called after new
+ * message is received from the CAN bus. Function may wake up external task,
+ * which processes mainline CANopen functions.
+ *
+ * @param SDO This object.
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_SDO_initCallback(
+        CO_SDO_t               *SDO,
+        void                  (*pFunctSignal)(void));
 
 
 /**

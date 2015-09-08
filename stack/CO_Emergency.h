@@ -254,6 +254,7 @@ typedef struct{
     uint8_t            *bufReadPtr;     /**< Read pointer in the above buffer */
     uint8_t             bufFull;        /**< True if above buffer is full */
     uint8_t             wrongErrorReport;/**< Error in arguments to CO_errorReport() */
+    void              (*pFunctSignal)(void);/**< From CO_EM_initCallback() or NULL */
 }CO_EM_t;
 
 
@@ -363,6 +364,21 @@ CO_ReturnError_t CO_EM_init(
         CO_CANmodule_t         *CANdev,
         uint16_t                CANdevTxIdx,
         uint16_t                CANidTxEM);
+
+
+/**
+ * Initialize Emergency callback function.
+ *
+ * Function initializes optional callback function, which executes after
+ * error condition is changed. Function may wake up external task,
+ * which processes mainline CANopen functions.
+ *
+ * @param em This object.
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_EM_initCallback(
+        CO_EM_t               *em,
+        void                  (*pFunctSignal)(void));
 
 
 /**
