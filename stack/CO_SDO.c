@@ -810,7 +810,7 @@ int8_t CO_SDO_process(
                     len = 4U - ((SDO->CANrxData[0] >> 2U) & 0x03U);
                 }
                 else{
-                    len = 4U;
+                    len = SDO->ODF_arg.dataLength;
                 }
 
                 /* copy data to SDO buffer */
