@@ -3,7 +3,7 @@
  *
  * @file        CO_driver.h
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -35,6 +35,7 @@
 #include <plib.h>
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
+#include <stdbool.h>        /* for true and false */
 
 
 /* CAN module base address */

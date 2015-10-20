@@ -2,9 +2,8 @@
  * CANopen main program file for PIC32 microcontroller.
  *
  * @file        main_PIC32.c
- * @version     SVN: \$Id$
  * @author      Janez Paternoster
- * @copyright   2010 - 2013 Janez Paternoster
+ * @copyright   2010 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -130,6 +129,8 @@ int main (void){
         CO_ReturnError_t err;
         uint16_t timer1msPrevious;
         uint16_t TMR_TMR_PREV = 0;
+        uint8_t nodeId;
+        uint16_t CANBitRate;
 
         /* disable timer and CAN interrupts */
         CO_TMR_ISR_ENABLE = 0;
@@ -138,7 +139,12 @@ int main (void){
 
 
         /* initialize CANopen */
-        err = CO_init();
+    /* Read CANopen Node-ID and CAN bit-rate from object dictionary */
+        nodeId = OD_CANNodeID;
+        if(nodeId<1 || nodeId>127) nodeId = 0x10;
+        CANBitRate = OD_CANBitRate;/* in kbps */
+        
+        err = CO_init(ADDR_CAN1, nodeId, CANBitRate);
         if(err != CO_ERROR_NO){
             while(1) ClearWDT();
             /* CO_errorReport(CO->em, CO_EM_MEMORY_ALLOCATION_ERROR, CO_EMC_SOFTWARE_INTERNAL, err); */
@@ -226,7 +232,7 @@ int main (void){
 
 
             /* CANopen process */
-            reset = CO_process(CO, timer1msDiff);
+            reset = CO_process(CO, timer1msDiff, NULL);
 
             ClearWDT();
 
@@ -239,11 +245,11 @@ int main (void){
 
 
 /* program exit ***************************************************************/
-    CO_DISABLE_INTERRUPTS();
+//    CO_DISABLE_INTERRUPTS();
 
     /* delete objects from memory */
     programEnd();
-    CO_delete();
+    CO_delete(ADDR_CAN1);
 
     /* reset */
     SoftReset();
@@ -253,16 +259,27 @@ int main (void){
 /* timer interrupt function executes every millisecond ************************/
 #ifndef USE_EXTERNAL_TIMER_1MS_INTERRUPT
 void __ISR(_TIMER_2_VECTOR, ipl3SOFT) CO_TimerInterruptHandler(void){
+    bool_t syncWas;
 
     CO_TMR_ISR_FLAG = 0;
 
     CO_timer1ms++;
 
-    CO_process_RPDO(CO);
+//    if(CO->CANmodule[0]->CANnormal) {
+//        bool_t syncWas;
 
-    program1ms();
+        /* Process Sync and read inputs */
+        syncWas = CO_process_SYNC_RPDO(CO, 1000);
 
-    CO_process_TPDO(CO);
+        /* Re-enable CANrx, if it was disabled by SYNC callback */
+        // TODO this and outer loop
+        
+        /* Further I/O or nonblocking application code may go here. */
+        program1ms();
+
+        /* Write outputs */
+        CO_process_TPDO(CO, syncWas, 1000);
+//    }
 
     /* verify timer overflow */
     if(CO_TMR_ISR_FLAG == 1){
