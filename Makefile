@@ -1,16 +1,19 @@
 # Makefile for CANopenNode, basic compile with no CAN device.
 
 
-STACK_SRC =     stack
 STACKDRV_SRC =  stack/drvTemplate
+STACK_SRC =     stack
 CANOPEN_SRC =   .
 APPL_SRC =      example
 
 
-INCLUDE_DIRS =  $(CANOPEN_SRC)  \
-              -I$(STACK_SRC)    \
-              -I$(STACKDRV_SRC) \
-              -I$(APPL_SRC)
+LINK_TARGET  =  canopennode
+
+
+INCLUDE_DIRS = -I$(STACKDRV_SRC) \
+               -I$(STACK_SRC)    \
+               -I$(CANOPEN_SRC)  \
+               -I$(APPL_SRC)
 
 
 SOURCES =       $(STACKDRV_SRC)/CO_driver.c     \
@@ -28,21 +31,21 @@ SOURCES =       $(STACKDRV_SRC)/CO_driver.c     \
                 $(APPL_SRC)/main.c
 
 
-OBJS = ${SOURCES:%.c=%.o}
+OBJS = $(SOURCES:%.c=%.o)
 CC = gcc
-CFLAGS = -Wall -I$(INCLUDE_DIRS)
+CFLAGS = -Wall $(INCLUDE_DIRS)
+LDFLAGS =
 
 
 .PHONY: all clean
 
-all: canopennode
+all: clean $(LINK_TARGET)
 
 clean:
-	rm -f $(OBJS) canopennode
+	rm -f $(OBJS) $(LINK_TARGET)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $*.o $<
+	$(CC) $(CFLAGS) -c $< -o $@
 
-canopennode: $(OBJS)
-	$(CC) $(CFLAGS)  $(OBJS) -o $@
-
+$(LINK_TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) $^ -o $@
