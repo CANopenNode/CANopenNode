@@ -94,7 +94,8 @@ File structure
      case it is template for new implementations. It is also documented, other
      directories are not.
        - **`CO_driver.h/.c`** - Microcontroller specific objects for CAN module.
-       - **`eeprom.h/.c`** - Functions for storage of Object dictionary.
+       - **`eeprom.h/.c`** - Functions for storage of Object dictionary, optional.
+       - **`(helpers.h/.c)`** - Some optional files with specific helper functions.
    - **`socketCAN`** - Directory for Linux socketCAN interface.
    - **`PIC32`** - Directory for PIC32 devices from Microchip.
    - **`PIC24H_dsPIC33F`** - Directory for PIC24H and dsPIC33F devices from Microchip.

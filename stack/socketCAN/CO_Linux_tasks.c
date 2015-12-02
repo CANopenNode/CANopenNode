@@ -40,16 +40,16 @@ void CO_errExit(char* msg);
 
 
 /* Mainline task (taskMain) ***************************************************/
-static struct{
+static struct {
     int                 fdTmr;          /* file descriptor for taskTmr */
     int                 fdPipe[2];      /* file descriptors for pipe [0]=read, [1]=write */
     struct itimerspec   tmrSpec;
     uint16_t            tmr1msPrev;
     uint16_t           *maxTime;
-}taskMain;
+} taskMain;
 
 
-void taskMain_init(int fdEpoll, uint16_t *maxTime){
+void taskMain_init(int fdEpoll, uint16_t *maxTime) {
     struct epoll_event ev;
     int flags;
 
@@ -106,21 +106,21 @@ void taskMain_init(int fdEpoll, uint16_t *maxTime){
 }
 
 
-void taskMain_close(void){
+void taskMain_close(void) {
     close(taskMain.fdPipe[0]);
     close(taskMain.fdPipe[1]);
     close(taskMain.fdTmr);
 }
 
 
-bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms){
+bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms) {
     bool_t wasProcessed = true;
 
     /* Signal from pipe, consume all bytes. */
-    if(fd == taskMain.fdPipe[0]){
-        for(;;){
+    if(fd == taskMain.fdPipe[0]) {
+        for(;;) {
             char ch;
-            if(read(taskMain.fdPipe[0], &ch, 1) == -1){
+            if(read(taskMain.fdPipe[0], &ch, 1) == -1) {
                 if (errno == EAGAIN)
                     break;  /* No more bytes. */
                 else
@@ -130,17 +130,17 @@ bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms){
     }
 
     /* Timer expired. */
-    else if(fd == taskMain.fdTmr){
+    else if(fd == taskMain.fdTmr) {
         uint64_t tmrExp;
         if(read(taskMain.fdTmr, &tmrExp, sizeof(tmrExp)) != sizeof(uint64_t))
             CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x21200000L | errno);
     }
-    else{
+    else {
         wasProcessed = false;
     }
 
     /* Process mainline. */
-    if(wasProcessed){
+    if(wasProcessed) {
         uint16_t timer1msDiff;
         uint16_t timerNext = 50;
 
@@ -149,8 +149,8 @@ bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms){
         taskMain.tmr1msPrev = timer1ms;
 
         /* Calculate maximum interval in milliseconds (informative) */
-        if(taskMain.maxTime != NULL){
-            if(timer1msDiff > *taskMain.maxTime){
+        if(taskMain.maxTime != NULL) {
+            if(timer1msDiff > *taskMain.maxTime) {
                 *taskMain.maxTime = timer1msDiff;
             }
         }
@@ -171,14 +171,14 @@ bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms){
 }
 
 
-void taskMain_cbSignal(void){
+void taskMain_cbSignal(void) {
     if(write(taskMain.fdPipe[1], "x", 1) == -1)
         CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x23100000L | errno);
 }
 
 
 /* Realtime task (taskRT) *****************************************************/
-static struct{
+static struct {
     int                 fdRx0;          /* file descriptor for CANrx */
     int                 fdTmr;          /* file descriptor for taskTmr */
     struct itimerspec   tmrSpec;
@@ -188,10 +188,10 @@ static struct{
     uint16_t           *maxTime;
     int                 fdEpoll;
     bool_t              CANrx_locked;
-}taskRT;
+} taskRT;
 
 
-void CANrx_taskTmr_init(int fdEpoll, long intervalns, uint16_t *maxTime){
+void CANrx_taskTmr_init(int fdEpoll, long intervalns, uint16_t *maxTime) {
     struct epoll_event ev;
 
     /* get file descriptors */
@@ -234,21 +234,21 @@ void CANrx_taskTmr_init(int fdEpoll, long intervalns, uint16_t *maxTime){
 }
 
 
-void CANrx_taskTmr_close(void){
+void CANrx_taskTmr_close(void) {
     close(taskRT.fdTmr);
 }
 
 
-bool_t CANrx_taskTmr_process(int fd){
+bool_t CANrx_taskTmr_process(int fd) {
     bool_t wasProcessed = true;
 
     /* Get received CAN message. */
-    if(fd == taskRT.fdRx0){
+    if(fd == taskRT.fdRx0) {
         CO_CANrxWait(CO->CANmodule[0]);
     }
 
     /* Execute taskTmr */
-    else if(fd == taskRT.fdTmr){
+    else if(fd == taskRT.fdTmr) {
         uint64_t tmrExp;
 
         /* Wait for timer to expire */
@@ -256,17 +256,17 @@ bool_t CANrx_taskTmr_process(int fd){
             CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x22100000L | errno);
 
         /* Calculate maximum interval in microseconds (informative) */
-        if(taskRT.maxTime != NULL){
+        if(taskRT.maxTime != NULL) {
             struct timespec tmrMeasure;
             if(clock_gettime(CLOCK_MONOTONIC, &tmrMeasure) == -1)
                 CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x22200000L | errno);
-            if(tmrMeasure.tv_sec == taskRT.tmrVal->tv_sec){
+            if(tmrMeasure.tv_sec == taskRT.tmrVal->tv_sec) {
                 long dt = tmrMeasure.tv_nsec - taskRT.tmrVal->tv_nsec;
                 dt /= 1000;
                 dt += taskRT.intervalus;
-                if(dt > 0xFFFF){
+                if(dt > 0xFFFF) {
                     *taskRT.maxTime = 0xFFFF;
-                }else if(dt > *taskRT.maxTime){
+                }else if(dt > *taskRT.maxTime) {
                     *taskRT.maxTime = (uint16_t) dt;
                 }
             }
@@ -274,7 +274,7 @@ bool_t CANrx_taskTmr_process(int fd){
 
         /* Calculate next shot for the timer */
         taskRT.tmrVal->tv_nsec += taskRT.intervalns;
-        if(taskRT.tmrVal->tv_nsec >= NSEC_PER_SEC){
+        if(taskRT.tmrVal->tv_nsec >= NSEC_PER_SEC) {
             taskRT.tmrVal->tv_nsec -= NSEC_PER_SEC;
             taskRT.tmrVal->tv_sec++;
         }
@@ -292,7 +292,7 @@ bool_t CANrx_taskTmr_process(int fd){
             syncWas = CO_process_SYNC_RPDO(CO, taskRT.intervalus);
 
             /* Re-enable CANrx, if it was disabled by SYNC callback */
-            if(taskRT.CANrx_locked){
+            if(taskRT.CANrx_locked) {
                 struct epoll_event ev;
 
                 /* enable epool event */
@@ -314,7 +314,7 @@ bool_t CANrx_taskTmr_process(int fd){
         CO_UNLOCK_OD();
     }
 
-    else{
+    else {
         wasProcessed = false;
     }
 
@@ -322,8 +322,8 @@ bool_t CANrx_taskTmr_process(int fd){
 }
 
 
-void CANrx_lockCbSync(bool_t syncReceived){
-    if(syncReceived){
+void CANrx_lockCbSync(bool_t syncReceived) {
+    if(syncReceived) {
         struct epoll_event ev;
 
         /* disable epool event */

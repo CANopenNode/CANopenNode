@@ -46,12 +46,12 @@
  * Brief description of the object ends at this dot. Details follow
  * here.
  */
-typedef struct{
+typedef struct {
     int8_t              member1;        /**< Short description of the member 1 */
     uint16_t            member2;        /**< Note the '/**<' sequence after the member 2 */
     /** Long description of the variable stringMember. More description. */
     char_t              stringMember[5];
-}object1_t;
+} object1_t;
 
 
 /**
@@ -80,15 +80,15 @@ int32_t foo1(
      * comment.
      */
 
-    if(xy == yz){   /* Comment. '//' comments are not allowed by MISRA-C */
+    if(xy == yz) {   /* Comment. '//' comments are not allowed */
         ...
     }
-    else{
+    else {
         ...
     }
 
-    switch(zx){
-        case 1:{
+    switch(zx) {
+        case 1: {
             ...
         }
     }
