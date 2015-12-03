@@ -93,9 +93,9 @@ File structure
    - **`drvTemplate`** - Directory with microcontroller specific files. In this
      case it is template for new implementations. It is also documented, other
      directories are not.
-       - **`CO_driver.h/.c`** - Microcontroller specific objects for CAN module.
-       - **`eeprom.h/.c`** - Functions for storage of Object dictionary, optional.
-       - **`(helpers.h/.c)`** - Some optional files with specific helper functions.
+     - **`CO_driver.h/.c`** - Microcontroller specific objects for CAN module.
+     - **`eeprom.h/.c`** - Functions for storage of Object dictionary, optional.
+     - **`(helpers.h/.c)`** - Some optional files with specific helper functions.
    - **`socketCAN`** - Directory for Linux socketCAN interface.
    - **`PIC32`** - Directory for PIC32 devices from Microchip.
    - **`PIC24H_dsPIC33F`** - Directory for PIC24H and dsPIC33F devices from Microchip.
@@ -111,17 +111,17 @@ File structure
  - **`LICENSE`** - License.
  - **`README.md`** - This file.
  - **`example`** - Directory with basic example.
-   - **`main.c`** - Mainline and other threads - example template.
+   - **`main.c`** - Mainline and other threads - example template.
    - **`application.h/.c`** - Separate file with some functions, which are
      called from main.c. May be used for application specific code.
-   - **`CO_OD.h/.c`** - CANopen Object dictionary. Automatically generated file.
-   - **`IO.eds`** - Standard CANopen EDS file, which may be used from CANopen
+   - **`CO_OD.h/.c`** - CANopen Object dictionary. Automatically generated file.
+   - **`IO.eds`** - Standard CANopen EDS file, which may be used from CANopen
      configuration tool. Automatically generated file.
-   - **`_project.xml`** - XML file contains all data for CANopen Object dictionary.
+   - **`_project.xml`** - XML file contains all data for CANopen Object dictionary.
      It is used by *`Object dictionary editor`* application, which generates other
      files. *`Object dictionary editor`* is currently fully  functional, but old
      web application. See http://sourceforge.net/p/canopennode/code_complete/.
-   - **`_project.html`** - *`Object dictionary editor`* launcher.
+   - **`_project.html`** - *`Object dictionary editor`* launcher.
 
 Microcontroller support
 -----------------------
