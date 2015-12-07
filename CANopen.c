@@ -173,7 +173,7 @@ CO_ReturnError_t CO_init(
 #ifdef CO_USE_GLOBALS
     CO = &COO;
 
-    CO->CANmodule[0]                    = &COO_CANmodule[0];
+    CO->CANmodule[0]                    = &COO_CANmodule;
     CO_CANmodule_rxArray0               = &COO_CANmodule_rxArray0[0];
     CO_CANmodule_txArray0               = &COO_CANmodule_txArray0[0];
     CO->SDO                             = &COO_SDO;
