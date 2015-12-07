@@ -533,6 +533,9 @@ typedef struct{
     is not necessary to specify this variable. By download this variable contains
     total data size, if size is indicated in SDO download initiate phase */
     uint32_t            dataLengthTotal;
+    /** Used by domain data type. In case of multiple segments, this indicates the offset
+    into the buffer this segment starts at. */
+    uint32_t            offset;
 }CO_ODF_arg_t;
 
 
@@ -690,8 +693,8 @@ void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]);
  * Function must be called in the communication reset section.
  *
  * @param SDO This object will be initialized.
- * @param COB_IDClientToServer 0x600 + nodeId by default.
- * @param COB_IDServerToClient 0x580 + nodeId by default.
+ * @param COB_IDClientToServer COB ID for client to server for this SDO object.
+ * @param COB_IDServerToClient COB ID for server to client for this SDO object.
  * @param ObjDictIndex_SDOServerParameter Index in Object dictionary.
  * @param parentSDO Pointer to SDO object, which contains object dictionary and
  * its extension. For first (default) SDO object this argument must be NULL.
@@ -701,7 +704,7 @@ void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]);
  * @param ODSize Size of the above array.
  * @param ODExtensions Pointer to the externally defined array of the same size
  * as ODSize.
- * @param nodeId CANopen Node ID of this device. Value will be added to COB_IDs.
+ * @param nodeId CANopen Node ID of this device.
  * @param CANdevRx CAN device for SDO server reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param CANdevTx CAN device for SDO server transmission.
@@ -711,8 +714,8 @@ void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]);
  */
 CO_ReturnError_t CO_SDO_init(
         CO_SDO_t               *SDO,
-        uint16_t                COB_IDClientToServer,
-        uint16_t                COB_IDServerToClient,
+        uint32_t                COB_IDClientToServer,
+        uint32_t                COB_IDServerToClient,
         uint16_t                ObjDictIndex_SDOServerParameter,
         CO_SDO_t               *parentSDO,
         const CO_OD_entry_t     OD[],
