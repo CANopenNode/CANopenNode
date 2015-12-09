@@ -35,6 +35,7 @@
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for 'true', 'false' */
 #include <unistd.h>
+#include <endian.h>
 
 #ifndef CO_SINGLE_THREAD
 #include <pthread.h>
@@ -156,7 +157,11 @@ typedef struct{
 
 
 /* Endianes */
-#define CO_LITTLE_ENDIAN
+#if BYTE_ORDER == LITTLE_ENDIAN
+    #define CO_LITTLE_ENDIAN
+#else
+    #define CO_BIG_ENDIAN
+#endif
 
 
 /* Helper function, must be defined externally. */
