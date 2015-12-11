@@ -151,6 +151,10 @@ typedef struct{
     uint8_t             block_noData;
     /** Server CRC support in block transfer */
     uint8_t             crcEnabled;
+    /** Previous value of the COB_IDClientToServer */
+    uint32_t            COB_IDClientToServerPrev;
+    /** Previous value of the COB_IDServerToClient */
+    uint32_t            COB_IDServerToClientPrev;
 
 }CO_SDOclient_t;
 
@@ -281,8 +285,8 @@ CO_SDOclient_return_t CO_SDOclientDownload(
  * @param SDO_C This object.
  * @param index Index of object in object dictionary in remote node.
  * @param subIndex Subindex of object in object dictionary in remote node.
- * @param dataRx Pointer to data buffer data will be written. Buffer must be
- * valid until end of communication. Note that data are aligned
+ * @param dataRx Pointer to data buffer, into which received data will be written.
+ * Buffer must be valid until end of communication. Note that data are aligned
  * in little-endian format, because CANopen itself uses
  * little-endian. Take care, when using processors with big-endian.
  * @param dataRxSize Size of dataRx.

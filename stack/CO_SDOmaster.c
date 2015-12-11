@@ -200,6 +200,8 @@ CO_ReturnError_t CO_SDOclient_init(
     SDO_C->CANdevTx = CANdevTx;
     SDO_C->CANdevTxIdx = CANdevTxIdx;
 
+    SDO_C->COB_IDClientToServerPrev = 0;
+    SDO_C->COB_IDServerToClientPrev = 0;
     CO_SDOclient_setup(SDO_C, 0, 0, 0);
 
     return CO_ERROR_NO;
@@ -224,51 +226,66 @@ CO_SDOclient_return_t CO_SDOclient_setup(
         uint32_t                COB_IDServerToClient,
         uint8_t                 nodeIDOfTheSDOServer)
 {
+    uint32_t idCtoS, idStoC;
+    uint8_t idNode;
+
     /* verify parameters */
-    if((COB_IDClientToServer&0x7FFFF800L) || (COB_IDServerToClient&0x7FFFF800L) ||
-        nodeIDOfTheSDOServer > 127) return CO_SDOcli_wrongArguments;
+    if(SDO_C == NULL || (COB_IDClientToServer&0x7FFFF800L) != 0 ||
+            (COB_IDServerToClient&0x7FFFF800L) != 0 || nodeIDOfTheSDOServer > 127)
+    {
+        return CO_SDOcli_wrongArguments;
+    }
 
     /* Configure object variables */
     SDO_C->state = SDO_STATE_NOTDEFINED;
     SDO_C->CANrxNew = false;
 
     /* setup Object Dictionary variables */
-    if((COB_IDClientToServer & 0x80000000L) || (COB_IDServerToClient & 0x80000000L) || nodeIDOfTheSDOServer == 0){
+    if((COB_IDClientToServer & 0x80000000L) != 0 || (COB_IDServerToClient & 0x80000000L) != 0 || nodeIDOfTheSDOServer == 0){
         /* SDO is NOT used */
-        SDO_C->SDOClientPar->COB_IDClientToServer = 0x80000000L;
-        SDO_C->SDOClientPar->COB_IDServerToClient = 0x80000000L;
-        SDO_C->SDOClientPar->nodeIDOfTheSDOServer = 0;
+        idCtoS = 0x80000000L;
+        idStoC = 0x80000000L;
+        idNode = 0;
     }
     else{
         if(COB_IDClientToServer == 0 || COB_IDServerToClient == 0){
-            SDO_C->SDOClientPar->COB_IDClientToServer = 0x600 + nodeIDOfTheSDOServer;
-            SDO_C->SDOClientPar->COB_IDServerToClient = 0x580 + nodeIDOfTheSDOServer;
+            idCtoS = 0x600 + nodeIDOfTheSDOServer;
+            idStoC = 0x580 + nodeIDOfTheSDOServer;
         }
         else{
-            SDO_C->SDOClientPar->COB_IDClientToServer = COB_IDClientToServer;
-            SDO_C->SDOClientPar->COB_IDServerToClient = COB_IDServerToClient;
+            idCtoS = COB_IDClientToServer;
+            idStoC = COB_IDServerToClient;
         }
-        SDO_C->SDOClientPar->nodeIDOfTheSDOServer = nodeIDOfTheSDOServer;
+        idNode = nodeIDOfTheSDOServer;
     }
 
-    /* configure SDO client CAN reception */
-    CO_CANrxBufferInit(
-            SDO_C->CANdevRx,            /* CAN device */
-            SDO_C->CANdevRxIdx,         /* rx buffer index */
-            (uint16_t)SDO_C->SDOClientPar->COB_IDServerToClient,/* CAN identifier */
-            0x7FF,                      /* mask */
-            0,                          /* rtr */
-            (void*)SDO_C,               /* object passed to receive function */
-            CO_SDOclient_receive);      /* this function will process received message */
+    SDO_C->SDOClientPar->COB_IDClientToServer = idCtoS;
+    SDO_C->SDOClientPar->COB_IDServerToClient = idStoC;
+    SDO_C->SDOClientPar->nodeIDOfTheSDOServer = idNode;
 
-    /* configure SDO client CAN transmission */
-    SDO_C->CANtxBuff = CO_CANtxBufferInit(
-            SDO_C->CANdevTx,            /* CAN device */
-            SDO_C->CANdevTxIdx,         /* index of specific buffer inside CAN module */
-            (uint16_t)SDO_C->SDOClientPar->COB_IDClientToServer,/* CAN identifier */
-            0,                          /* rtr */
-            8,                          /* number of data bytes */
-            0);                         /* synchronous message flag bit */
+    /* configure SDO client CAN reception, if differs. */
+    if(SDO_C->COB_IDClientToServerPrev != idCtoS || SDO_C->COB_IDServerToClientPrev != idStoC) {
+        CO_CANrxBufferInit(
+                SDO_C->CANdevRx,            /* CAN device */
+                SDO_C->CANdevRxIdx,         /* rx buffer index */
+                (uint16_t)idStoC,           /* CAN identifier */
+                0x7FF,                      /* mask */
+                0,                          /* rtr */
+                (void*)SDO_C,               /* object passed to receive function */
+                CO_SDOclient_receive);      /* this function will process received message */
+
+        /* configure SDO client CAN transmission */
+        SDO_C->CANtxBuff = CO_CANtxBufferInit(
+                SDO_C->CANdevTx,            /* CAN device */
+                SDO_C->CANdevTxIdx,         /* index of specific buffer inside CAN module */
+                (uint16_t)idCtoS,           /* CAN identifier */
+                0,                          /* rtr */
+                8,                          /* number of data bytes */
+                0);                         /* synchronous message flag bit */
+
+        SDO_C->COB_IDClientToServerPrev = idCtoS;
+        SDO_C->COB_IDServerToClientPrev = idStoC;
+    }
 
     return CO_SDOcli_ok_communicationEnd;
 }
@@ -280,7 +297,7 @@ static void CO_SDOclient_abort(CO_SDOclient_t *SDO_C, uint32_t code){
     SDO_C->CANtxBuff->data[1] = SDO_C->index & 0xFF;
     SDO_C->CANtxBuff->data[2] = (SDO_C->index>>8) & 0xFF;
     SDO_C->CANtxBuff->data[3] = SDO_C->subIndex;
-    CO_memcpySwap4(&SDO_C->CANtxBuff->data[4], (uint8_t*)&code);
+    CO_memcpySwap4(&SDO_C->CANtxBuff->data[4], &code);
     CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
     SDO_C->state = SDO_STATE_NOTDEFINED;
     SDO_C->CANrxNew = false;
@@ -313,7 +330,9 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
         uint8_t                 blockEnable)
 {
     /* verify parameters */
-    if(dataTx == 0 || dataSize == 0) return CO_SDOcli_wrongArguments;
+    if(SDO_C == NULL || dataTx == 0 || dataSize == 0) {
+        return CO_SDOcli_wrongArguments;
+    }
 
     /* save parameters */
     SDO_C->buffer = dataTx;
@@ -366,7 +385,7 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
         /* segmented transfer */
         SDO_C->CANtxBuff->data[0] = 0x21;
         len = dataSize;
-        CO_memcpySwap4(&SDO_C->CANtxBuff->data[4], (uint8_t*)&len);
+        CO_memcpySwap4(&SDO_C->CANtxBuff->data[4], &len);
     }
 
     /* empty receive buffer, reset timeout timer and send message */
@@ -386,6 +405,11 @@ CO_SDOclient_return_t CO_SDOclientDownload(
         uint32_t               *pSDOabortCode)
 {
     CO_SDOclient_return_t ret = CO_SDOcli_waitingServerResponse;
+
+    /* verify parameters */
+    if(SDO_C == NULL) {
+        return CO_SDOcli_wrongArguments;
+    }
 
     /* clear abort code */
     *pSDOabortCode = CO_SDO_AB_NONE;
@@ -426,7 +450,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
         /* ABORT */
         if (SDO_C->CANrxData[0] == (SCS_ABORT<<5)){
             SDO_C->state = SDO_STATE_NOTDEFINED;
-            CO_memcpySwap4((uint8_t*)pSDOabortCode , &SDO_C->CANrxData[4]);
+            CO_memcpySwap4(pSDOabortCode , &SDO_C->CANrxData[4]);
             SDO_C->CANrxNew = false;
             return CO_SDOcli_endedWithServerAbort;
         }
@@ -713,7 +737,7 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
         uint8_t                 blockEnable)
 {
     /* verify parameters */
-    if(dataRx == 0 || dataRxSize < 4) {
+    if(SDO_C == NULL || dataRx == 0 || dataRxSize < 4) {
         return CO_SDOcli_wrongArguments;
     }
 
@@ -785,6 +809,11 @@ CO_SDOclient_return_t CO_SDOclientUpload(
     uint32_t tmp32;
     CO_SDOclient_return_t ret = CO_SDOcli_waitingServerResponse;
 
+    /* verify parameters */
+    if(SDO_C == NULL) {
+        return CO_SDOcli_wrongArguments;
+    }
+
     /* clear abort code */
     *pSDOabortCode = CO_SDO_AB_NONE;
 
@@ -837,7 +866,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
         if (SDO_C->CANrxData[0] == (SCS_ABORT<<5)){
             SDO_C->state = SDO_STATE_NOTDEFINED;
             SDO_C->CANrxNew = false;
-            CO_memcpySwap4((uint8_t*)pSDOabortCode , &SDO_C->CANrxData[4]);
+            CO_memcpySwap4(pSDOabortCode , &SDO_C->CANrxData[4]);
             return CO_SDOcli_endedWithServerAbort;
         }
         switch (SDO_C->state){
@@ -942,7 +971,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
                     /*  set length */
                     if(SDO_C->CANrxData[0]&0x02){
                         uint32_t len;
-                        CO_memcpySwap4((uint8_t*)&len, &SDO_C->CANrxData[4]);
+                        CO_memcpySwap4(&len, &SDO_C->CANrxData[4]);
                         SDO_C->dataSize = len;
                     }
                     else{
@@ -1030,7 +1059,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
                     SDO_C->state = SDO_STATE_BLOCKUPLOAD_BLOCK_END;
                     if (SDO_C->crcEnabled){
                         uint16_t tmp16;
-                        CO_memcpySwap2((uint8_t*)&tmp16, &SDO_C->CANrxData[1]);
+                        CO_memcpySwap2(&tmp16, &SDO_C->CANrxData[1]);
 
                         if (tmp16 != crc16_ccitt((unsigned char *)SDO_C->buffer, (unsigned int)SDO_C->dataSizeTransfered, 0)){
                             *pSDOabortCode = CO_SDO_AB_CRC;
@@ -1196,5 +1225,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
 
 /******************************************************************************/
 void CO_SDOclientClose(CO_SDOclient_t *SDO_C){
-    SDO_C->state = SDO_STATE_NOTDEFINED;
+    if(SDO_C != NULL) {
+        SDO_C->state = SDO_STATE_NOTDEFINED;
+    }
 }

@@ -297,10 +297,10 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
             uint8_t bufCopy[8];
 
             /* prepare data for emergency message */
-            CO_memcpySwap2(&bufCopy[0], (uint8_t*)&errorCode);
+            CO_memcpySwap2(&bufCopy[0], &errorCode);
             bufCopy[2] = 0; /* error register will be set later */
             bufCopy[3] = errorBit;
-            CO_memcpySwap4(&bufCopy[4], (uint8_t*)&infoCode);
+            CO_memcpySwap4(&bufCopy[4], &infoCode);
 
             /* copy data to the buffer, increment writePtr and verify buffer full */
             CO_LOCK_EMCY();
@@ -359,7 +359,7 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
             bufCopy[1] = 0;
             bufCopy[2] = 0; /* error register will be set later */
             bufCopy[3] = errorBit;
-            CO_memcpySwap4(&bufCopy[4], (uint8_t*)&infoCode);
+            CO_memcpySwap4(&bufCopy[4], &infoCode);
 
             /* copy data to the buffer, increment writePtr and verify buffer full */
             CO_LOCK_EMCY();

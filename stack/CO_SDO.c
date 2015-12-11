@@ -86,27 +86,71 @@ void CO_setUint32(uint8_t data[], const uint32_t value){
 }
 
 #ifdef CO_LITTLE_ENDIAN
-void CO_memcpySwap2(uint8_t dest[], const uint8_t src[]){
-    dest[0] = src[0];
-    dest[1] = src[1];
+void CO_memcpySwap2(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[0];
+    cdest[1] = csrc[1];
 }
-void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]){
-    dest[0] = src[0];
-    dest[1] = src[1];
-    dest[2] = src[2];
-    dest[3] = src[3];
+void CO_memcpySwap4(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[0];
+    cdest[1] = csrc[1];
+    cdest[2] = csrc[2];
+    cdest[3] = csrc[3];
+}
+void CO_memcpySwap8(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[0];
+    cdest[1] = csrc[1];
+    cdest[2] = csrc[2];
+    cdest[3] = csrc[3];
+    cdest[4] = csrc[4];
+    cdest[5] = csrc[5];
+    cdest[6] = csrc[6];
+    cdest[7] = csrc[7];
 }
 #endif
 #ifdef CO_BIG_ENDIAN
-void CO_memcpySwap2(uint8_t dest[], const uint8_t src[]){
-    dest[0] = src[1];
-    dest[1] = src[0];
+void CO_memcpySwap2(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[1];
+    cdest[1] = csrc[0];
 }
-void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]){
-    dest[0] = src[3];
-    dest[1] = src[2];
-    dest[2] = src[1];
-    dest[3] = src[0];
+void CO_memcpySwap4(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[3];
+    cdest[1] = csrc[2];
+    cdest[2] = csrc[1];
+    cdest[3] = csrc[0];
+}
+void CO_memcpySwap8(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[7];
+    cdest[1] = csrc[6];
+    cdest[2] = csrc[5];
+    cdest[3] = csrc[4];
+    cdest[4] = csrc[3];
+    cdest[5] = csrc[2];
+    cdest[6] = csrc[1];
+    cdest[7] = csrc[0];
 }
 #endif
 
@@ -661,7 +705,7 @@ static void CO_SDO_abort(CO_SDO_t *SDO, uint32_t code){
     SDO->CANtxBuff->data[1] = SDO->ODF_arg.index & 0xFF;
     SDO->CANtxBuff->data[2] = (SDO->ODF_arg.index>>8) & 0xFF;
     SDO->CANtxBuff->data[3] = SDO->ODF_arg.subIndex;
-    CO_memcpySwap4(&SDO->CANtxBuff->data[4], (uint8_t*)&code);
+    CO_memcpySwap4(&SDO->CANtxBuff->data[4], &code);
     SDO->state = CO_SDO_ST_IDLE;
     SDO->CANrxNew = false;
     CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
@@ -836,7 +880,7 @@ int8_t CO_SDO_process(
                 /* verify length if size is indicated */
                 if((SDO->CANrxData[0]&0x01) != 0){
                     uint32_t lenRx;
-                    CO_memcpySwap4((uint8_t*)&lenRx, &SDO->CANrxData[4]);
+                    CO_memcpySwap4(&lenRx, &SDO->CANrxData[4]);
                     SDO->ODF_arg.dataLengthTotal = lenRx;
 
                     /* verify length except for domain data type */
@@ -938,7 +982,7 @@ int8_t CO_SDO_process(
             /* verify length if size is indicated */
             if((SDO->CANrxData[0]&0x02) != 0U){
                 uint32_t lenRx;
-                CO_memcpySwap4((uint8_t*)&lenRx, &SDO->CANrxData[4]);
+                CO_memcpySwap4(&lenRx, &SDO->CANrxData[4]);
                 SDO->ODF_arg.dataLengthTotal = lenRx;
 
                 /* verify length except for domain data type */
@@ -1030,7 +1074,7 @@ int8_t CO_SDO_process(
                 uint16_t crc;
                 SDO->crc = crc16_ccitt(SDO->ODF_arg.data, SDO->bufferOffset, SDO->crc);
 
-                CO_memcpySwap2((uint8_t*)&crc, &SDO->CANrxData[1]);
+                CO_memcpySwap2(&crc, &SDO->CANrxData[1]);
 
                 if(SDO->crc != crc){
                     CO_SDO_abort(SDO, CO_SDO_AB_CRC);   /* CRC error (block mode only). */
@@ -1079,7 +1123,7 @@ int8_t CO_SDO_process(
                 /* indicate data size, if known */
                 if(SDO->ODF_arg.dataLengthTotal != 0U){
                     uint32_t len = SDO->ODF_arg.dataLengthTotal;
-                    CO_memcpySwap4(&SDO->CANtxBuff->data[4], (uint8_t*)&len);
+                    CO_memcpySwap4(&SDO->CANtxBuff->data[4], &len);
                     SDO->CANtxBuff->data[0] = 0x41U;
                 }
                 else{
@@ -1191,7 +1235,7 @@ int8_t CO_SDO_process(
             /* indicate data size, if known */
             if(SDO->ODF_arg.dataLengthTotal != 0U){
                 uint32_t len = SDO->ODF_arg.dataLengthTotal;
-                CO_memcpySwap4(&SDO->CANtxBuff->data[4], (uint8_t*)&len);
+                CO_memcpySwap4(&SDO->CANtxBuff->data[4], &len);
                 SDO->CANtxBuff->data[0] = 0xC6U;
             }
             else{
@@ -1246,7 +1290,7 @@ int8_t CO_SDO_process(
 
                     /* CRC */
                     if(SDO->crcEnabled)
-                        CO_memcpySwap2(&SDO->CANtxBuff->data[1], (uint8_t*)&SDO->crc);
+                        CO_memcpySwap2(&SDO->CANtxBuff->data[1], &SDO->crc);
 
                     SDO->state = CO_SDO_ST_UPLOAD_BL_END;
 

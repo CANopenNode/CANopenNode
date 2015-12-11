@@ -157,10 +157,12 @@ typedef struct{
 
 
 /* Endianes */
+#ifdef BYTE_ORDER
 #if BYTE_ORDER == LITTLE_ENDIAN
     #define CO_LITTLE_ENDIAN
 #else
     #define CO_BIG_ENDIAN
+#endif
 #endif
 
 
