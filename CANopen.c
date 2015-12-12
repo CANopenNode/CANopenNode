@@ -63,7 +63,7 @@
 
 
 /* Verify features from CO_OD *************************************************/
-    /* generate error, if features are not corectly configured for this project */
+    /* generate error, if features are not correctly configured for this project */
     #if        CO_NO_NMT_MASTER                           >  1     \
             || CO_NO_SYNC                                 != 1     \
             || CO_NO_EMERGENCY                            != 1     \
@@ -135,6 +135,30 @@
         }
         NMTM_txBuff->data[0] = command;
         NMTM_txBuff->data[1] = nodeID;
+
+        /* Apply NMT command also to this node, if set so. */
+        if(nodeID == 0 || nodeID == CO->NMT->nodeId){
+            switch(command){
+                case CO_NMT_ENTER_OPERATIONAL:
+                    if((*CO->NMT->emPr->errorRegister) == 0) {
+                        CO->NMT->operatingState = CO_NMT_OPERATIONAL;
+                    }
+                    break;
+                case CO_NMT_ENTER_STOPPED:
+                    CO->NMT->operatingState = CO_NMT_STOPPED;
+                    break;
+                case CO_NMT_ENTER_PRE_OPERATIONAL:
+                    CO->NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+                    break;
+                case CO_NMT_RESET_NODE:
+                    CO->NMT->resetCommand = CO_RESET_APP;
+                    break;
+                case CO_NMT_RESET_COMMUNICATION:
+                    CO->NMT->resetCommand = CO_RESET_COMM;
+                    break;
+            }
+        }
+
         return CO_CANsend(CO->CANmodule[0], NMTM_txBuff); /* 0 = success */
     }
 #endif
