@@ -234,7 +234,8 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
 
 
 /*
- * Function for accessing _SDO server parameter_ (index 0x1200+) from SDO server.
+ * Function for accessing _SDO server parameter_ for default SDO (index 0x1200)
+ * from SDO server.
  *
  * For more information see file CO_SDO.h.
  */
@@ -259,8 +260,8 @@ static CO_SDO_abortCode_t CO_ODF_1200(CO_ODF_arg_t *ODF_arg){
 /******************************************************************************/
 CO_ReturnError_t CO_SDO_init(
         CO_SDO_t               *SDO,
-        uint16_t                COB_IDClientToServer,
-        uint16_t                COB_IDServerToClient,
+        uint32_t                COB_IDClientToServer,
+        uint32_t                COB_IDServerToClient,
         uint16_t                ObjDictIndex_SDOServerParameter,
         CO_SDO_t               *parentSDO,
         const CO_OD_entry_t     OD[],
@@ -313,6 +314,11 @@ CO_ReturnError_t CO_SDO_init(
         CO_OD_configure(SDO, ObjDictIndex_SDOServerParameter, CO_ODF_1200, (void*)&SDO->nodeId, 0U, 0U);
     }
 
+    if((COB_IDClientToServer & 0x80000000) != 0 || (COB_IDServerToClient & 0x80000000) != 0 ){
+        // SDO is invalid
+        COB_IDClientToServer = 0;
+        COB_IDServerToClient = 0;
+    }
     /* configure SDO server CAN reception */
     CO_CANrxBufferInit(
             CANdevRx,               /* CAN device */
@@ -563,6 +569,8 @@ uint32_t CO_SDO_initTransfer(CO_SDO_t *SDO, uint16_t index, uint8_t subIndex){
     /* indicate total data length, if not domain */
     SDO->ODF_arg.dataLengthTotal = (SDO->ODF_arg.ODdataStorage) ? SDO->ODF_arg.dataLength : 0U;
 
+    SDO->ODF_arg.offset = 0U;
+
     /* verify length */
     if(SDO->ODF_arg.dataLength > CO_SDO_BUFFER_SIZE){
         return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
@@ -614,6 +622,7 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
             return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
         }
     }
+    SDO->ODF_arg.offset += SDO->ODF_arg.dataLength;
     SDO->ODF_arg.firstSegment = false;
 
     /* swap data if processor is not little endian (CANopen is) */
@@ -684,6 +693,7 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
             }
         }
     }
+    SDO->ODF_arg.offset += SDO->ODF_arg.dataLength;
     SDO->ODF_arg.firstSegment = false;
 
     /* copy data from SDO buffer to OD if not domain */

@@ -96,7 +96,7 @@ typedef enum{
  */
 typedef struct{
     CO_CANmodule_t     *CANmodule[1];   /**< CAN module objects */
-    CO_SDO_t           *SDO;            /**< SDO object */
+    CO_SDO_t           *SDO[CO_NO_SDO_SERVER]; /**< SDO object */
     CO_EM_t            *em;             /**< Emergency report object */
     CO_EMpr_t          *emPr;           /**< Emergency process object */
     CO_NMT_t           *NMT;            /**< NMT object */
