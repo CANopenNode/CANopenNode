@@ -624,8 +624,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         volatile uint16_t C_RXFUL1copy;
         volatile uint16_t C_RXFUL2copy;
         volatile uint16_t C_CTRL1old;
-        uint8_t bufferNumber;
-        uint16_t mask;
+        uint8_t i;
 
         CO_DISABLE_INTERRUPTS(); //TODO
         C_CTRL1old = CAN_REG(CANmodule->CANbaseAddress, C_CTRL1);
@@ -635,19 +634,26 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old;
         CO_ENABLE_INTERRUPTS();
 
-        mask = 0x02; //first buffer is tx, start loop at bufferNumber = 1, mask = 2
-        for(bufferNumber = 1; bufferNumber < CANmodule->CANmsgBuffSize; bufferNumber++)
+        /* We will service the buffers indicated by RXFUL copy, clear interrupt
+         * flag now and let interrupt hit again if more messages are received */
+        CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0xFFFD;
+        
+        for(i=1; i<CANmodule->CANmsgBuffSize; i++)
         {
-            if(((bufferNumber < 16) && (C_RXFUL1copy & mask)) ||
-               ((bufferNumber >= 16) && (C_RXFUL2copy & mask)))
+            /* FNRB tells us next buffer to read in FIFO */
+            uint8_t FNRB = (CAN_REG(CANmodule->CANbaseAddress, C_FIFO) & 0x3F);
+            uint8_t mask = 1 << FNRB;
+            if(((FNRB < 16) && (C_RXFUL1copy & mask)) ||
+               ((FNRB >= 16) && (C_RXFUL2copy & mask)))
             {
+                /* RXFUL is set for this buffer, service it */
                 EDS_PTR CO_CANrxMsg_t *rcvMsg;/* pointer to received message in CAN module */
                 uint16_t index;             /* index of received message */
                 uint16_t rcvMsgIdent;       /* identifier of the received message */
                 CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
                 bool_t msgMatched = false;
 
-                rcvMsg = &CANmodule->CANmsgBuff[bufferNumber];
+                rcvMsg = &CANmodule->CANmsgBuff[FNRB];
                 rcvMsgIdent = rcvMsg->ident;
                 if(CANmodule->useCANrxFilters){
                     /* CAN module filters are used. Message with known 11-bit identifier has */
@@ -688,18 +694,19 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
                 CO_DISABLE_INTERRUPTS(); //TODO
                 C_CTRL1old = CAN_REG(CANmodule->CANbaseAddress, C_CTRL1);
                 CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old & 0xFFFE;     /* WIN = 0 - use buffer registers */
-                if(bufferNumber < 16) CAN_REG(CANmodule->CANbaseAddress, C_RXFUL1) &= ~(1 << bufferNumber);
-                else         CAN_REG(CANmodule->CANbaseAddress, C_RXFUL2) &= ~(1 << (bufferNumber & 0xF));
+                if(FNRB < 16) CAN_REG(CANmodule->CANbaseAddress, C_RXFUL1) &= ~(mask);
+                else          CAN_REG(CANmodule->CANbaseAddress, C_RXFUL2) &= ~(mask & 0xF);
                 CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old;
                 CO_ENABLE_INTERRUPTS();
+            } else {
+                /* Next buffer is empty, nothing more to do here */
+                /* Note that there may still be messages in another buffer after
+                 * an overflow scenario, but if we want to use FNRB (and not
+                 * loop over all buffers) there's no other way to recover than
+                 * to wait for FBP to "catch up" with FNRB again */
+                break;
             }
-            mask <<= 1;
-            if(mask == 0)
-                mask = 1;
         }
-
-        /* Clear interrupt flag */
-        CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0xFFFD;
     }
 
     /* transmit interrupt (TX buffer is free) */
