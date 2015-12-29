@@ -3,7 +3,7 @@
  *
  * @file        CO_driver.h
  * @author      Janez Paternoster
- * @author      Péter Rózsahegyi
+ * @author      Peter Rozsahegyi
  * @copyright   2004 - 2013 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
@@ -33,9 +33,9 @@
 
 
 #if defined(__dsPIC33F__) || defined(__PIC24H__)
-#include <p33fxxxx.h>       /* processor header file */
+#include <p33Fxxxx.h>       /* processor header file */
 #elif defined(__dsPIC33E__) || defined(__PIC24E__)
-#include <p33exxxx.h>       /* processor header file */
+#include <p33Exxxx.h>       /* processor header file */
 #endif
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
