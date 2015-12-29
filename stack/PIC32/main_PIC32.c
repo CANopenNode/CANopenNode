@@ -137,13 +137,12 @@ int main (void){
         CO_CAN_ISR_ENABLE = 0;
         CO_CAN_ISR2_ENABLE = 0;
 
-
-        /* initialize CANopen */
-    /* Read CANopen Node-ID and CAN bit-rate from object dictionary */
+        /* Read CANopen Node-ID and CAN bit-rate from object dictionary */
         nodeId = OD_CANNodeID;
         if(nodeId<1 || nodeId>127) nodeId = 0x10;
         CANBitRate = OD_CANBitRate;/* in kbps */
         
+        /* initialize CANopen */
         err = CO_init(ADDR_CAN1, nodeId, CANBitRate);
         if(err != CO_ERROR_NO){
             while(1) ClearWDT();

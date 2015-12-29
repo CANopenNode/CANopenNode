@@ -39,6 +39,7 @@
 #endif
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
+#include <stdbool.h>        /* for 'true' and 'false' */
 
 #ifdef __HAS_EDS__
     #define EDS_PTR __eds__
@@ -70,6 +71,9 @@
 
     #define CO_LOCK_OD()            asm volatile ("disi #0x3FFF")
     #define CO_UNLOCK_OD()          asm volatile ("disi #0x0000")
+
+    #define CO_DISABLE_INTERRUPTS()  asm volatile ("disi #0x3FFF")
+    #define CO_ENABLE_INTERRUPTS()   asm volatile ("disi #0x0000")
 
 
 /* Data types */
