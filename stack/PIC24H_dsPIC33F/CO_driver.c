@@ -3,7 +3,9 @@
  *
  * @file        CO_driver.c
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @author      Peter Rozsahegyi (EDS)
+ * @author      Jens Nielsen (CAN receive)
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -147,7 +149,6 @@ CO_ReturnError_t CO_CANmodule_init(
     /* Configure object variables */
     CANmodule->CANbaseAddress = CANbaseAddress;
     CANmodule->CANmsgBuff = CANmsgBuff;
-    CANmodule->CANmsgBuffSize = CANmsgBuffSize;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
@@ -248,15 +249,31 @@ CO_ReturnError_t CO_CANmodule_init(
 
 
     /* Configure DMA controller */
-    /* set size of buffer in DMA RAM (FIFO Area Starts with Tx/Rx buffer TRB1 - FSA = 1) */
-    if     (CANmsgBuffSize >= 32) CAN_REG(CANbaseAddress, C_FCTRL) = 0xC001;
-    else if(CANmsgBuffSize >= 24) CAN_REG(CANbaseAddress, C_FCTRL) = 0xA001;
-    else if(CANmsgBuffSize >= 16) CAN_REG(CANbaseAddress, C_FCTRL) = 0x8001;
-    else if(CANmsgBuffSize >= 12) CAN_REG(CANbaseAddress, C_FCTRL) = 0x6001;
-    else if(CANmsgBuffSize >=  8) CAN_REG(CANbaseAddress, C_FCTRL) = 0x4001;
-    else if(CANmsgBuffSize >=  6) CAN_REG(CANbaseAddress, C_FCTRL) = 0x2001;
-    else if(CANmsgBuffSize >=  4) CAN_REG(CANbaseAddress, C_FCTRL) = 0x0001;
-    else return CO_ERROR_ILLEGAL_ARGUMENT;
+    /* Set size of buffer in DMA RAM (FIFO Area Starts with Tx/Rx buffer TRB1 (FSA = 1)) */
+    /* Use maximum 16 buffers, because we have 16-bit system. */
+    if (CANmsgBuffSize >= 16) {
+        CAN_REG(CANbaseAddress, C_FCTRL) = 0x8001;
+        CANmodule->CANmsgBuffSize = 16;
+    }
+    else if(CANmsgBuffSize >= 12) {
+        CAN_REG(CANbaseAddress, C_FCTRL) = 0x6001;
+        CANmodule->CANmsgBuffSize = 12;
+    }
+    else if(CANmsgBuffSize >=  8) {
+        CAN_REG(CANbaseAddress, C_FCTRL) = 0x4001;
+        CANmodule->CANmsgBuffSize = 8;
+    }
+    else if(CANmsgBuffSize >=  6) {
+        CAN_REG(CANbaseAddress, C_FCTRL) = 0x2001;
+        CANmodule->CANmsgBuffSize = 6;
+    }
+    else if(CANmsgBuffSize >=  4) {
+        CAN_REG(CANbaseAddress, C_FCTRL) = 0x0001;
+        CANmodule->CANmsgBuffSize = 4;
+    }
+    else {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 
     /* DMA chanel initialization for ECAN reception */
     DMA_REG(DMArxBaseAddress, DMA_CON) = 0x0020;
@@ -560,7 +577,7 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
 
 /******************************************************************************/
 void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
-    uint8_t err;
+    uint16_t err;
     CO_EM_t* em = (CO_EM_t*)CANmodule->em;
 
     err = CAN_REG(CANmodule->CANbaseAddress, C_INTF) >> 8;
@@ -617,72 +634,117 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
 
 
 /******************************************************************************/
-void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
-    uint16_t ICODE;
-    ICODE = CAN_REG(CANmodule->CANbaseAddress, C_VEC) & 0x1F;
+void CO_CANinterrupt(CO_CANmodule_t *CANmodule) {
 
-    /* receive interrupt (New CAN messagge is available in RX FIFO buffer) */
-    if(ICODE > 0){
-        EDS_PTR CO_CANrxMsg_t *rcvMsg;/* pointer to received message in CAN module */
-        uint16_t index;             /* index of received message */
-        uint16_t rcvMsgIdent;       /* identifier of the received message */
-        CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
-        bool_t msgMatched = false;
-        volatile uint16_t C_CTRL1old;
+    /* receive interrupt (New CAN message is available in RX FIFO buffer) */
+    if(CAN_REG(CANmodule->CANbaseAddress, C_INTF) & 0x02) {
+        uint16_t C_CTRL1old;
+        uint16_t C_RXFUL1copy;
+        uint16_t C_FIFOcopy;
+        uint8_t FNRB, FBP;
 
-        rcvMsg = &CANmodule->CANmsgBuff[ICODE];
-        rcvMsgIdent = rcvMsg->ident;
-        if(CANmodule->useCANrxFilters){
-            /* CAN module filters are used. Message with known 11-bit identifier has */
-            /* been received */
-            index = rcvMsg->FILHIT;
-            if(index < CANmodule->rxSize){
-                buffer = &CANmodule->rxArray[index];
-                /* verify also RTR */
-                if(((rcvMsgIdent ^ buffer->ident) & buffer->mask) == 0U){
-                    msgMatched = true;
-                }
-            }
-        }
-        else{
-            /* CAN module filters are not used, message with any standard 11-bit identifier */
-            /* has been received. Search rxArray form CANmodule for the same CAN-ID. */
-            buffer = &CANmodule->rxArray[0];
-            for(index = CANmodule->rxSize; index > 0U; index--){
-                if(((rcvMsgIdent ^ buffer->ident) & buffer->mask) == 0U){
-                    msgMatched = true;
-                    break;
-                }
-                buffer++;
-            }
-        }
-
-        /* Call specific function, which will process the message */
-        if(msgMatched && (buffer != NULL) && (buffer->pFunct != NULL)){
-#ifdef __HAS_EDS__
-            CO_CANrxMsg_t _rcvMsg = *rcvMsg;
-            buffer->pFunct(buffer->object, &_rcvMsg);
-#else
-            buffer->pFunct(buffer->object, rcvMsg);
-#endif
-        }
-
-        /* Clear RXFUL flag */
-        CO_DISABLE_INTERRUPTS(); //TODO
+        CO_DISABLE_INTERRUPTS();
         C_CTRL1old = CAN_REG(CANmodule->CANbaseAddress, C_CTRL1);
         CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old & 0xFFFE;     /* WIN = 0 - use buffer registers */
-        if(ICODE < 16) CAN_REG(CANmodule->CANbaseAddress, C_RXFUL1) ^= 1 << ICODE;
-        else           CAN_REG(CANmodule->CANbaseAddress, C_RXFUL2) ^= 1 << (ICODE & 0xF);
+        C_RXFUL1copy = CAN_REG(CANmodule->CANbaseAddress, C_RXFUL1);
         CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old;
+
+        /* We will service the buffers indicated by RXFUL copy, clear interrupt
+         * flag now and let interrupt hit again if more messages are received */
+        CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0xFFFD;
+        C_FIFOcopy = CAN_REG(CANmodule->CANbaseAddress, C_FIFO);
         CO_ENABLE_INTERRUPTS();
 
-        /* Clear interrupt flag */
-        CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0xFFFD;
+        /* FNRB tells us which buffer to read in FIFO */
+        FNRB = C_FIFOcopy & 0x3F;
+        /* FBP tells us the next FIFO entry that will be written */
+        FBP = C_FIFOcopy >> 8;
+
+        while(C_RXFUL1copy != 0) {
+            EDS_PTR CO_CANrxMsg_t *rcvMsg;/* pointer to received message in CAN module */
+            uint16_t index;             /* index of received message */
+            uint16_t rcvMsgIdent;       /* identifier of the received message */
+            CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
+            bool_t msgMatched = false;
+            uint16_t mask;
+
+            mask = 1 << FNRB;
+
+            if((C_RXFUL1copy & mask) == 0) {
+                /* This should not happen. However, if it does happen
+                 * (in case of debugging), get FNRB from loop. */
+                for(FNRB=1; FNRB<CANmodule->CANmsgBuffSize; FNRB++) {
+                    mask = 1 << FNRB;
+                    if((C_RXFUL1copy & mask)) {
+                        break;
+                    }
+                }
+            }
+
+            /* RXFUL is set for this buffer, service it */
+            rcvMsg = &CANmodule->CANmsgBuff[FNRB];
+            rcvMsgIdent = rcvMsg->ident;
+            if(CANmodule->useCANrxFilters) {
+                /* CAN module filters are used. Message with known 11-bit identifier has */
+                /* been received */
+                index = rcvMsg->FILHIT;
+                if(index < CANmodule->rxSize) {
+                    buffer = &CANmodule->rxArray[index];
+                    /* verify also RTR */
+                    if(((rcvMsgIdent ^ buffer->ident) & buffer->mask) == 0U) {
+                        msgMatched = true;
+                    }
+                }
+            }
+            else {
+                /* CAN module filters are not used, message with any standard 11-bit identifier */
+                /* has been received. Search rxArray form CANmodule for the same CAN-ID. */
+                buffer = &CANmodule->rxArray[0];
+                for(index = CANmodule->rxSize; index > 0U; index--) {
+                    if(((rcvMsgIdent ^ buffer->ident) & buffer->mask) == 0U) {
+                        msgMatched = true;
+                        break;
+                    }
+                    buffer++;
+                }
+            }
+
+            /* Call specific function, which will process the message */
+            if(msgMatched && (buffer != NULL) && (buffer->pFunct != NULL)) {
+        #ifdef __HAS_EDS__
+                CO_CANrxMsg_t _rcvMsg = *rcvMsg;
+                buffer->pFunct(buffer->object, &_rcvMsg);
+        #else
+                buffer->pFunct(buffer->object, rcvMsg);
+        #endif
+            }
+
+            /* Clear RXFUL flag */
+            CO_DISABLE_INTERRUPTS();
+            C_CTRL1old = CAN_REG(CANmodule->CANbaseAddress, C_CTRL1);
+            CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old & 0xFFFE;     /* WIN = 0 - use buffer registers */
+            CAN_REG(CANmodule->CANbaseAddress, C_RXFUL1) &= ~(mask);
+            CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old;
+            CO_ENABLE_INTERRUPTS();
+
+            /* Now update FNRB, it will point to a new buffer after RXFUL was cleared */
+            FNRB = (CAN_REG(CANmodule->CANbaseAddress, C_FIFO) & 0x3F);
+
+            /* Don't read past write buffer even if there are messages there, this is necessary
+             * to be able to recover from an overflow.
+             * This check must be after we've processed at least one message, since FNRB and FBP is
+             * equal also when buffer is full */
+            if (FNRB == FBP) {
+                break;
+            }
+
+            C_RXFUL1copy &= ~(mask);
+        }
     }
 
-
     /* transmit interrupt (TX buffer is free) */
-    else{
+    if(CAN_REG(CANmodule->CANbaseAddress, C_INTF) & 0x01) {
+
         /* Clear interrupt flag */
         CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0xFFFE;
         /* First CAN message (bootup) was sent successfully */

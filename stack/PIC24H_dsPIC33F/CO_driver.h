@@ -3,8 +3,9 @@
  *
  * @file        CO_driver.h
  * @author      Janez Paternoster
- * @author      Peter Rozsahegyi
- * @copyright   2004 - 2013 Janez Paternoster
+ * @author      Peter Rozsahegyi (EDS)
+ * @author      Jens Nielsen (CAN receive)
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <http://canopennode.sourceforge.net>.
@@ -353,7 +354,7 @@ typedef struct{
     volatile bool_t     bufferInhibitFlag;
     volatile bool_t     firstCANtxMessage;
     volatile uint16_t   CANtxCount;
-    uint32_t            errOld;
+    uint16_t            errOld;
     void               *em;
 }CO_CANmodule_t;
 
@@ -374,7 +375,7 @@ void CO_CANsetNormalMode(uint16_t CANbaseAddress);
  * @param DMAtxBaseAddress dsPIC33F specific: Base address for registers for
  * DMA transmission. See Peripheral addresses.
  * @param CANmsgBuff dsPIC33F specific: Pointer to CAN message buffer defined in DMA RAM.
- * @param CANmsgBuffSize dsPIC33F specific: Size of above buffer.
+ * @param CANmsgBuffSize dsPIC33F specific: Size of the above buffer (4..16).
  * @param CANmsgBuffDMAoffset dsPIC33F specific: DMA offset of the above buffer.
  */
 CO_ReturnError_t CO_CANmodule_init(
