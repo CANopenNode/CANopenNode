@@ -545,7 +545,9 @@ uint32_t CO_SDO_initTransfer(CO_SDO_t *SDO, uint16_t index, uint8_t subIndex){
     }
 
     /* verify existance of subIndex */
-    if(subIndex > SDO->OD[SDO->entryNo].maxSubIndex){
+    if(subIndex > SDO->OD[SDO->entryNo].maxSubIndex && 
+            SDO->OD[SDO->entryNo].pData != NULL)
+    {
         return CO_SDO_AB_SUB_UNKNOWN;     /* Sub-index does not exist. */
     }
 
