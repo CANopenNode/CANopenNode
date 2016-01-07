@@ -30,11 +30,18 @@
 #include "CO_Emergency.h"
 
 
-extern const CO_CANbitRateData_t  CO_CANbitRateData[8];
+/* Globals */
+    extern const CO_CANbitRateData_t  CO_CANbitRateData[8];
 
-/**
- * Macro and Constants - CAN module registers and DMA registers - offset.
- */
+#if CO_CAN1msgBuffSize > 0
+    __eds__ CO_CANrxMsg_t CO_CAN1msg[CO_CAN1msgBuffSize] __eds __dma __attribute__((aligned(128)));
+#endif
+#if CO_CAN2msgBuffSize > 0
+    __eds__ CO_CANrxMsg_t CO_CAN2msg[CO_CAN1msgBuffSize] __eds __dma __attribute__((aligned(128)));
+#endif
+
+
+/* Macro and Constants - CAN module registers and DMA registers - offset. */
     #define CAN_REG(base, offset) (*((volatile uint16_t *) (base + offset)))
 
     #define C_CTRL1      0x00
@@ -124,14 +131,6 @@ void CO_CANsetNormalMode(uint16_t CANbaseAddress){
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
         uint16_t                CANbaseAddress,
-        uint16_t                DMArxBaseAddress,
-        uint16_t                DMAtxBaseAddress,
-        EDS_PTR CO_CANrxMsg_t  *CANmsgBuff,
-        uint8_t                 CANmsgBuffSize,
-        uint16_t                CANmsgBuffDMAoffset,
-#if defined(__HAS_EDS__)
-        uint16_t                CANmsgBuffDMApage,
-#endif
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -141,8 +140,42 @@ CO_ReturnError_t CO_CANmodule_init(
     uint16_t i;
     volatile uint16_t *pRXF;
 
+    uint16_t DMArxBaseAddress;
+    uint16_t DMAtxBaseAddress;
+    __eds__ CO_CANrxMsg_t *CANmsgBuff;
+    uint8_t CANmsgBuffSize;
+    uint16_t CANmsgBuffDMAoffset;
+#if defined(__HAS_EDS__)
+    uint16_t CANmsgBuffDMApage;
+#endif
+
     /* verify arguments */
     if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    /* Get global addresses for CAN module 1 or 2. */
+    if(CANbaseAddress == ADDR_CAN1) {
+        DMArxBaseAddress = CO_CAN1_DMA0;
+        DMAtxBaseAddress = CO_CAN1_DMA1;
+        CANmsgBuff = &CO_CAN1msg[0];
+        CANmsgBuffSize = CO_CAN1msgBuffSize;
+        CANmsgBuffDMAoffset = __builtin_dmaoffset(&CO_CAN1msg[0]);
+    #if defined(__HAS_EDS__)
+        CANmsgBuffDMApage = __builtin_dmapage(&CO_CAN1msg[0]);
+    #endif
+    }
+    else if(CANbaseAddress == ADDR_CAN2) {
+        DMArxBaseAddress = CO_CAN2_DMA0;
+        DMAtxBaseAddress = CO_CAN2_DMA1;
+        CANmsgBuff = &CO_CAN2msg[0];
+        CANmsgBuffSize = CO_CAN2msgBuffSize;
+        CANmsgBuffDMAoffset = __builtin_dmaoffset(&CO_CAN2msg[0]);
+    #if defined(__HAS_EDS__)
+        CANmsgBuffDMApage = __builtin_dmapage(&CO_CAN2msg[0]);
+    #endif
+    }
+    else {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -187,7 +220,7 @@ CO_ReturnError_t CO_CANmodule_init(
         case 1000: i=7; break;
     }
 
-    if(CO_CANbitRateData[i].scale == 1)
+    if(CO_CANbitRateData[i].scale == 2)
         CAN_REG(CANbaseAddress, C_CTRL1) |= 0x0800;
 
     CAN_REG(CANbaseAddress, C_CFG1) = (CO_CANbitRateData[i].SJW - 1) << 6 |
@@ -471,9 +504,9 @@ CO_CANtx_t *CO_CANtxBufferInit(
  * @param dest Pointer to CAN module transmit buffer
  * @param src Pointer to source message
  */
-static void CO_CANsendToModule(uint16_t CANbaseAddress, EDS_PTR CO_CANrxMsg_t *dest, CO_CANtx_t *src){
+static void CO_CANsendToModule(uint16_t CANbaseAddress, __eds__ CO_CANrxMsg_t *dest, CO_CANtx_t *src){
     uint8_t DLC;
-    EDS_PTR uint8_t *CANdataBuffer;
+    __eds__ uint8_t *CANdataBuffer;
     uint8_t *pData;
     volatile uint16_t C_CTRL1old;
 
@@ -661,7 +694,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule) {
         FBP = C_FIFOcopy >> 8;
 
         while(C_RXFUL1copy != 0) {
-            EDS_PTR CO_CANrxMsg_t *rcvMsg;/* pointer to received message in CAN module */
+            __eds__ CO_CANrxMsg_t *rcvMsg;/* pointer to received message in CAN module */
             uint16_t index;             /* index of received message */
             uint16_t rcvMsgIdent;       /* identifier of the received message */
             CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */

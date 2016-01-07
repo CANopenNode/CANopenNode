@@ -45,17 +45,6 @@
     static CO_t COO;
     CO_t *CO = NULL;
 
-#if defined(__dsPIC33F__) || defined(__PIC24H__) \
-    || defined(__dsPIC33E__) || defined(__PIC24E__)
-    /* CAN message buffer for one TX and seven RX messages. */
-    #define CO_CANmsgBuffSize   8
-#ifdef __HAS_EDS__
-    __eds__ CO_CANrxMsg_t CO_CANmsg[CO_CANmsgBuffSize] __attribute__((eds,space(dma),aligned(128)));
-#else
-    CO_CANrxMsg_t CO_CANmsg[CO_CANmsgBuffSize] __attribute__((space(dma),aligned(128)));
-#endif
-#endif
-
     static CO_CANrx_t          *CO_CANmodule_rxArray0;
     static CO_CANtx_t          *CO_CANmodule_txArray0;
     static CO_OD_extension_t   *CO_SDO_ODExtensions;
@@ -299,17 +288,6 @@ CO_ReturnError_t CO_init(
     err = CO_CANmodule_init(
             CO->CANmodule[0],
             CANbaseAddress,
-#if defined(__dsPIC33F__) || defined(__PIC24H__) \
-    || defined(__dsPIC33E__) || defined(__PIC24E__)
-            ADDR_DMA0,
-            ADDR_DMA1,
-           &CO_CANmsg[0],
-            CO_CANmsgBuffSize,
-            __builtin_dmaoffset(&CO_CANmsg[0]),
-#if defined(__HAS_EDS__)
-            __builtin_dmapage(&CO_CANmsg[0]),
-#endif
-#endif
             CO_CANmodule_rxArray0,
             CO_RXCAN_NO_MSGS,
             CO_CANmodule_txArray0,

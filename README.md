@@ -98,7 +98,7 @@ File structure
      - **`(helpers.h/.c)`** - Some optional files with specific helper functions.
    - **`socketCAN`** - Directory for Linux socketCAN interface.
    - **`PIC32`** - Directory for PIC32 devices from Microchip.
-   - **`PIC24H_dsPIC33F`** - Directory for PIC24H and dsPIC33F devices from Microchip.
+   - **`PIC24_dsPIC33`** - Directory for PIC24 and dsPIC33 devices from Microchip.
    - **`dsPIC30F`** - Directory for dsPIC30F devices from Microchip.
    - **`eCos`** - Directory for all devices supported by eCos RTOS.
    - **`SAM3X`** - Directory for SAM3X ARM Cortex M3 devices with ASF library from Atmel.
