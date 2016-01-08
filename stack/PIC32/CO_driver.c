@@ -140,7 +140,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
 
     /* Configure FIFO */
-    CAN_REG(CANbaseAddress, C_FIFOBA) = KVA_TO_PA(CANmodule->CANmsgBuff);/* FIFO base address */
+    CAN_REG(CANbaseAddress, C_FIFOBA) = CO_KVA_TO_PA(CANmodule->CANmsgBuff);/* FIFO base address */
     CAN_REG(CANbaseAddress, C_FIFOCON) = 0x001F0000;     /* FIFO0: receive FIFO, 32 buffers */
     CAN_REG(CANbaseAddress, C_FIFOCON+0x40) = 0x00000080;/* FIFO1: transmit FIFO, 1 buffer */
 
@@ -343,7 +343,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     uint16_t addr = CANmodule->CANbaseAddress;
     volatile uint32_t* TX_FIFOcon = &CAN_REG(addr, C_FIFOCON+0x40);
     volatile uint32_t* TX_FIFOconSet = &CAN_REG(addr, C_FIFOCON+0x48);
-    uint32_t* TXmsgBuffer = PA_TO_KVA1(CAN_REG(addr, C_FIFOUA+0x40));
+    uint32_t* TXmsgBuffer = CO_PA_TO_KVA1(CAN_REG(addr, C_FIFOUA+0x40));
     uint32_t* message = (uint32_t*) buffer;
     uint32_t TX_FIFOconCopy;
 
@@ -494,7 +494,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
         bool_t msgMatched = false;
 
-        rcvMsg = (CO_CANrxMsg_t*) PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA));
+        rcvMsg = (CO_CANrxMsg_t*) CO_PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA));
         rcvMsgIdent = rcvMsg->ident;
         if(rcvMsg->RTR) rcvMsgIdent |= 0x0800;
         if(CANmodule->useCANrxFilters){
@@ -553,7 +553,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
 
                     /* Copy message to CAN buffer */
                     CANmodule->bufferInhibitFlag = buffer->syncFlag;
-                    uint32_t* TXmsgBuffer = PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA+0x40));
+                    uint32_t* TXmsgBuffer = CO_PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA+0x40));
                     uint32_t* message = (uint32_t*) buffer;
                     volatile uint32_t* TX_FIFOconSet = &CAN_REG(CANmodule->CANbaseAddress, C_FIFOCON+0x48);
                     *(TXmsgBuffer++) = *(message++);

@@ -165,6 +165,7 @@ CO_ReturnError_t CO_CANmodule_init(
         CANmsgBuffDMApage = __builtin_dmapage(&CO_CAN1msg[0]);
     #endif
     }
+#if CO_CAN2msgBuffSize > 0
     else if(CANbaseAddress == ADDR_CAN2) {
         DMArxBaseAddress = CO_CAN2_DMA0;
         DMAtxBaseAddress = CO_CAN2_DMA1;
@@ -175,6 +176,7 @@ CO_ReturnError_t CO_CANmodule_init(
         CANmsgBuffDMApage = __builtin_dmapage(&CO_CAN2msg[0]);
     #endif
     }
+#endif
     else {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }

@@ -32,7 +32,6 @@
 
 
 #include <p32xxxx.h>        /* processor header file */
-#include <plib.h>
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for true and false */
@@ -43,16 +42,25 @@
     #define ADDR_CAN2               (_CAN2_BASE_ADDRESS - _CAN1_BASE_ADDRESS)
 
 
+/* Translate a kernel virtual address in KSEG0 or KSEG1 to a real
+ * physical address and back. */
+    typedef unsigned long CO_paddr_t; /* a physical address */
+    typedef unsigned long CO_vaddr_t; /* a virtual address */
+    #define CO_KVA_TO_PA(v) 	((CO_paddr_t)(v) & 0x1fffffff)
+    #define CO_PA_TO_KVA0(pa)	((void *) ((pa) | 0x80000000))
+    #define CO_PA_TO_KVA1(pa)	((void *) ((pa) | 0xa0000000))
+
+
 /* Critical sections */
     extern unsigned int CO_interruptStatus;
-    #define CO_LOCK_CAN_SEND()      CO_interruptStatus = INTDisableInterrupts()
-    #define CO_UNLOCK_CAN_SEND()    INTRestoreInterrupts(CO_interruptStatus)
+    #define CO_LOCK_CAN_SEND()      CO_interruptStatus = __builtin_disable_interrupts()
+    #define CO_UNLOCK_CAN_SEND()    if(CO_interruptStatus & 0x00000001) {__builtin_enable_interrupts();}
 
-    #define CO_LOCK_EMCY()          CO_interruptStatus = INTDisableInterrupts()
-    #define CO_UNLOCK_EMCY()        INTRestoreInterrupts(CO_interruptStatus)
+    #define CO_LOCK_EMCY()          CO_interruptStatus = __builtin_disable_interrupts()
+    #define CO_UNLOCK_EMCY()        if(CO_interruptStatus & 0x00000001) {__builtin_enable_interrupts();}
 
-    #define CO_LOCK_OD()            CO_interruptStatus = INTDisableInterrupts()
-    #define CO_UNLOCK_OD()          INTRestoreInterrupts(CO_interruptStatus)
+    #define CO_LOCK_OD()            CO_interruptStatus = __builtin_disable_interrupts()
+    #define CO_UNLOCK_OD()          if(CO_interruptStatus & 0x00000001) {__builtin_enable_interrupts();}
 
 
 /* Data types */

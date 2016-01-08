@@ -33,6 +33,8 @@
 #ifdef USE_EEPROM
     #include "eeprom.h"            /* 25LC128 eeprom chip connected to SPI2A port. */
 #endif
+#include <xc.h>                 /* for interrupts */
+#include <sys/attribs.h>        /* for interrupts */
 
 
 /* Configuration bits */
@@ -59,7 +61,11 @@
 #pragma config CP = OFF              /* Code Protect Enable */
     #pragma config BWP = ON             /* Boot Flash Write Protect */
     #pragma config PWP = PWP256K        /* Program Flash Write Protect */
+#ifdef CO_ICS_PGx1
     #pragma config ICESEL = ICS_PGx1    /* ICE/ICD Comm Channel Select */
+#else
+    #pragma config ICESEL = ICS_PGx2    /* ICE/ICD Comm Channel Select (2 for Explorer16 board) */
+#endif
     #pragma config DEBUG = ON           /* Background Debugger Enable */
 
 
@@ -71,16 +77,17 @@
     #define CO_TMR_ISR_PRIORITY IPC2bits.T2IP    /* Interrupt Priority */
     #define CO_TMR_ISR_ENABLE   IEC0bits.T2IE    /* Interrupt Enable bit */
 
-    #define CO_CAN_ISR() void __ISR(_CAN_1_VECTOR, ipl5SOFT) CO_CAN1InterruptHandler(void)
+    #define CO_CAN_ISR() void __ISR(_CAN_1_VECTOR, IPL5SOFT) CO_CAN1InterruptHandler(void)
     #define CO_CAN_ISR_FLAG     IFS1bits.CAN1IF  /* Interrupt Flag bit */
     #define CO_CAN_ISR_PRIORITY IPC11bits.CAN1IP /* Interrupt Priority */
     #define CO_CAN_ISR_ENABLE   IEC1bits.CAN1IE  /* Interrupt Enable bit */
 
-    #define CO_CAN_ISR2() void __ISR(_CAN_2_VECTOR, ipl5SOFT) CO_CAN2InterruptHandler(void)
+    #define CO_CAN_ISR2() void __ISR(_CAN_2_VECTOR, IPL5SOFT) CO_CAN2InterruptHandler(void)
     #define CO_CAN_ISR2_FLAG     IFS1bits.CAN2IF  /* Interrupt Flag bit */
     #define CO_CAN_ISR2_PRIORITY IPC11bits.CAN2IP /* Interrupt Priority */
     #define CO_CAN_ISR2_ENABLE   IEC1bits.CAN2IE  /* Interrupt Enable bit */
 
+    #define CO_clearWDT() (WDTCONSET = _WDTCON_WDTCLR_MASK)
 
 /* Global variables and objects */
     volatile uint16_t CO_timer1ms = 0U; /* variable increments each millisecond */
@@ -92,12 +99,15 @@
 
 /* main ***********************************************************************/
 int main (void){
+    unsigned int temp_ui;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
 
-    /* Configure system for maximum performance and enable multi vector interrupts. */
-    SYSTEMConfig(CO_FSYS*1000, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE);
-    INTConfigureSystem(INT_SYSTEM_CONFIG_MULT_VECTOR);
-    INTEnableInterrupts();
+    /* Configure system for maximum performance. plib is necessary for that.*/
+    /* SYSTEMConfig(CO_FSYS*1000, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE); */
+
+    /* Enable system multi vectored interrupts */
+    INTCONbits.MVEC = 1;
+    __builtin_enable_interrupts();
 
     /* Disable JTAG and trace port */
     DDPCONbits.JTAGEN = 0;
@@ -105,9 +115,9 @@ int main (void){
 
 
     /* Verify, if OD structures have proper alignment of initial values */
-    if(CO_OD_RAM.FirstWord != CO_OD_RAM.LastWord) while(1) ClearWDT();
-    if(CO_OD_EEPROM.FirstWord != CO_OD_EEPROM.LastWord) while(1) ClearWDT();
-    if(CO_OD_ROM.FirstWord != CO_OD_ROM.LastWord) while(1) ClearWDT();
+    if(CO_OD_RAM.FirstWord != CO_OD_RAM.LastWord) while(1) CO_clearWDT();
+    if(CO_OD_EEPROM.FirstWord != CO_OD_EEPROM.LastWord) while(1) CO_clearWDT();
+    if(CO_OD_ROM.FirstWord != CO_OD_ROM.LastWord) while(1) CO_clearWDT();
 
 
     /* initialize EEPROM - part 1 */
@@ -141,11 +151,11 @@ int main (void){
         nodeId = OD_CANNodeID;
         if(nodeId<1 || nodeId>127) nodeId = 0x10;
         CANBitRate = OD_CANBitRate;/* in kbps */
-        
+
         /* initialize CANopen */
         err = CO_init(ADDR_CAN1, nodeId, CANBitRate);
         if(err != CO_ERROR_NO){
-            while(1) ClearWDT();
+            while(1) CO_clearWDT();
             /* CO_errorReport(CO->em, CO_EM_MEMORY_ALLOCATION_ERROR, CO_EMC_SOFTWARE_INTERNAL, err); */
         }
 
@@ -200,7 +210,7 @@ int main (void){
 /* loop for normal program execution ******************************************/
             uint16_t timer1msCopy, timer1msDiff;
 
-            ClearWDT();
+            CO_clearWDT();
 
 
             /* calculate cycle time for performance measurement */
@@ -227,13 +237,13 @@ int main (void){
             /* Application asynchronous program */
             programAsync(timer1msDiff);
 
-            ClearWDT();
+            CO_clearWDT();
 
 
             /* CANopen process */
             reset = CO_process(CO, timer1msDiff, NULL);
 
-            ClearWDT();
+            CO_clearWDT();
 
 
 #ifdef USE_EEPROM
@@ -251,13 +261,18 @@ int main (void){
     CO_delete(ADDR_CAN1);
 
     /* reset */
-    SoftReset();
+    SYSKEY = 0x00000000;
+    SYSKEY = 0xAA996655;
+    SYSKEY = 0x556699AA;
+    RSWRSTSET = 1;
+    temp_ui = RSWRST;
+    while(1);
 }
 
 
 /* timer interrupt function executes every millisecond ************************/
 #ifndef USE_EXTERNAL_TIMER_1MS_INTERRUPT
-void __ISR(_TIMER_2_VECTOR, ipl3SOFT) CO_TimerInterruptHandler(void){
+void __ISR(_TIMER_2_VECTOR, IPL3SOFT) CO_TimerInterruptHandler(void){
     bool_t syncWas;
 
     CO_TMR_ISR_FLAG = 0;
@@ -272,7 +287,7 @@ void __ISR(_TIMER_2_VECTOR, ipl3SOFT) CO_TimerInterruptHandler(void){
 
         /* Re-enable CANrx, if it was disabled by SYNC callback */
         // TODO this and outer loop
-        
+
         /* Further I/O or nonblocking application code may go here. */
         program1ms();
 

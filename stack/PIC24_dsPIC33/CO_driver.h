@@ -49,7 +49,7 @@
         #define CO_CAN1msgBuffSize   8
     #endif
     #ifndef CO_CAN2msgBuffSize
-        #define CO_CAN2msgBuffSize   8
+        #define CO_CAN2msgBuffSize   0  //CAN module 2 not used by default
     #endif
 
 
