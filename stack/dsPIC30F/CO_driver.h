@@ -31,9 +31,10 @@
 /* For documentation see file drvTemplate/CO_driver.h */
 
 
-#include <p30fxxxx.h>       /* processor header file */
+#include <p30Fxxxx.h>       /* processor header file */
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
+#include <stdbool.h>        /* for true and false */
 
 
 /* CAN module base address */
