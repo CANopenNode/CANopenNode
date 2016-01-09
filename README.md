@@ -65,7 +65,6 @@ a project, modify it and then send a pull request.
 
 Flowchart of a typical CANopenNode implementation
 -------------------------------------------------
-```
 ~~~
                             -----------------------
                            |     Program start     |
@@ -109,7 +108,6 @@ Flowchart of a typical CANopenNode implementation
              |   CANopen network.    |
               -----------------------
 ~~~
-```
 
 
 File structure
