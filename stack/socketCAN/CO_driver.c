@@ -138,6 +138,7 @@ CO_ReturnError_t CO_CANmodule_init(
         CANmodule->rxSize = rxSize;
         CANmodule->txArray = txArray;
         CANmodule->txSize = txSize;
+        CANmodule->CANnormal = false;
         CANmodule->useCANrxFilters = true;
         CANmodule->bufferInhibitFlag = false;
         CANmodule->firstCANtxMessage = true;
@@ -145,7 +146,6 @@ CO_ReturnError_t CO_CANmodule_init(
         CANmodule->CANtxCount = 0U;
         CANmodule->errOld = 0U;
         CANmodule->em = NULL;
-        CANmodule->CANnormal = false;
 
 #ifdef CO_LOG_CAN_MESSAGES
         CANmodule->useCANrxFilters = false;

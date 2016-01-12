@@ -116,6 +116,15 @@
 #endif
 
 
+/* helpers */
+void CANrx_lockCbSync(bool_t syncReceived) {
+    if(syncReceived) {
+        CO_CAN_ISR_ENABLE = 0;
+        CO_CAN_ISR2_ENABLE = 0;
+    }
+}
+
+
 /* main ***********************************************************************/
 int main (void){
     unsigned int temp_ui;
@@ -161,8 +170,8 @@ int main (void){
         uint8_t nodeId;
         uint16_t CANBitRate;
 
-        /* disable timer and CAN interrupts */
-        CO_TMR_ISR_ENABLE = 0;
+        /* disable CAN and CAN interrupts */
+        CO->CANmodule[0]->CANnormal = false;
         CO_CAN_ISR_ENABLE = 0;
         CO_CAN_ISR2_ENABLE = 0;
 
@@ -183,6 +192,10 @@ int main (void){
 #ifdef USE_EEPROM
         CO_EE_init_2(&CO_EEO, eeStatus, CO->SDO, CO->em);
 #endif
+
+
+        /* Configure callback functions */
+        CO_SYNC_initCallback(CO->SYNC, CANrx_lockCbSync);
 
 
         /* initialize variables */
@@ -215,12 +228,12 @@ int main (void){
 
 
         /* start CAN and enable interrupts */
-        CO_CANsetNormalMode(ADDR_CAN1);
+        CO_CANsetNormalMode(CO->CANmodule[0]);
         CO_TMR_ISR_ENABLE = 1;
         CO_CAN_ISR_ENABLE = 1;
 
 #if CO_NO_CAN_MODULES >= 2
-        CO_CANsetNormalMode(ADDR_CAN2);
+        CO_CANsetNormalMode(CO->CANmodule[1]);
         CO_CAN_ISR2_ENABLE = 1;
 #endif
 
@@ -292,33 +305,35 @@ int main (void){
 /* timer interrupt function executes every millisecond ************************/
 #ifndef USE_EXTERNAL_TIMER_1MS_INTERRUPT
 void __ISR(_TIMER_2_VECTOR, IPL3SOFT) CO_TimerInterruptHandler(void){
-    bool_t syncWas;
 
     CO_TMR_ISR_FLAG = 0;
 
     CO_timer1ms++;
 
-//    if(CO->CANmodule[0]->CANnormal) {
-//        bool_t syncWas;
+    if(CO->CANmodule[0]->CANnormal) {
+        bool_t syncWas;
 
         /* Process Sync and read inputs */
         syncWas = CO_process_SYNC_RPDO(CO, 1000);
 
         /* Re-enable CANrx, if it was disabled by SYNC callback */
-        // TODO this and outer loop
+        CO_CAN_ISR_ENABLE = 1;
+#if CO_NO_CAN_MODULES >= 2
+        CO_CAN_ISR2_ENABLE = 1;
+#endif
 
         /* Further I/O or nonblocking application code may go here. */
         program1ms();
 
         /* Write outputs */
         CO_process_TPDO(CO, syncWas, 1000);
-//    }
 
-    /* verify timer overflow */
-    if(CO_TMR_ISR_FLAG == 1){
-        CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0);
-        CO_TMR_ISR_FLAG = 0;
-    }
+        /* verify timer overflow */
+        if(CO_TMR_ISR_FLAG == 1){
+            CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0);
+            CO_TMR_ISR_FLAG = 0;
+        }
+   }
 
     /* calculate cycle time for performance measurement */
     uint16_t t = CO_TMR_TMR / (CO_PBCLK / 100);

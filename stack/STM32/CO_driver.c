@@ -86,6 +86,17 @@ void CanLedsSet(eCoLeds led)
 
 
 /******************************************************************************/
+void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
+}
+
+
+/******************************************************************************/
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
+    CANmodule->CANnormal = true;
+}
+
+
+/******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
         CAN_TypeDef            *CANbaseAddress,
@@ -111,6 +122,8 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
+    CANmodule->CANnormal = false;
+    CANmodule->useCANrxFilters = false;
     CANmodule->bufferInhibitFlag = 0;
     CANmodule->firstCANtxMessage = 1;
     CANmodule->CANtxCount = 0;

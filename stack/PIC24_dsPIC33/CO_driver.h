@@ -451,6 +451,7 @@ typedef struct{
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
     uint16_t            txSize;
+    volatile bool_t     CANnormal;
     volatile bool_t     useCANrxFilters;
     volatile bool_t     bufferInhibitFlag;
     volatile bool_t     firstCANtxMessage;
@@ -466,7 +467,7 @@ typedef struct{
 
 /* Request CAN configuration or normal mode */
 void CO_CANsetConfigurationMode(uint16_t CANbaseAddress);
-void CO_CANsetNormalMode(uint16_t CANbaseAddress);
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 
 /* Initialize CAN module object. */

@@ -298,6 +298,7 @@ CO_ReturnError_t CO_init(
 #endif
 
 
+    CO->CANmodule[0]->CANnormal = false;
     CO_CANsetConfigurationMode(CANbaseAddress);
 
     /* Verify CANopen Node-ID */

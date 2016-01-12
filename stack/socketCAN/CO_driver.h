@@ -145,7 +145,7 @@ typedef struct{
     uint16_t            wasConfigured;/* Zero only on first run of CO_CANmodule_init */
     int                 fd;         /* CAN_RAW socket file descriptor */
     struct can_filter  *filter;     /* array of CAN filters of size rxSize */
-    volatile bool_t     CANnormal;  /* CAN in normal mode */
+    volatile bool_t     CANnormal;
     volatile bool_t     useCANrxFilters;
     volatile bool_t     bufferInhibitFlag;
     volatile bool_t     firstCANtxMessage;

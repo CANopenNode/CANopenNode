@@ -52,11 +52,15 @@
 
 /******************************************************************************/
 void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
+    /* Put CAN module in configuration mode */
 }
 
 
 /******************************************************************************/
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
+    /* Put CAN module in normal mode */
+
+    CANmodule->CANnormal = true;
 }
 
 
@@ -83,6 +87,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
+    CANmodule->CANnormal = false;
     CANmodule->useCANrxFilters = (rxSize <= 32U) ? true : false;/* microcontroller dependent */
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;

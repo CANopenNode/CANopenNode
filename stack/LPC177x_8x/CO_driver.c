@@ -156,9 +156,11 @@ void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(uint16_t CANbaseAddress){
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
             
     Chip_CAN_SetAFMode(LPC_CANAF, CAN_AF_NORMAL_MODE);
+
+    CANmodule->CANnormal = true;
 }
 
 
@@ -186,6 +188,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
+    CANmodule->CANnormal = false;
 #if AF_LUT_USED    
     CANmodule->useCANrxFilters = (rxSize <= 32U) ? true : false;/* microcontroller dependent */
 #else

@@ -78,9 +78,11 @@ void CO_CANsetConfigurationMode(Can *CANbaseAddress)
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(Can *CANbaseAddress)
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule)
 {
-  CO_UNUSED(CANbaseAddress);
+  CO_UNUSED(CANmodule->CANbaseAddress);
+
+    CANmodule->CANnormal = true;
 }
 
 
@@ -108,6 +110,7 @@ CO_ReturnError_t CO_CANmodule_init(
   CANmodule->rxSize = rxSize;
   CANmodule->txArray = txArray;
   CANmodule->txSize = txSize;
+  CANmodule->CANnormal = false;
   CANmodule->useCANrxFilters = false;
   CANmodule->bufferInhibitFlag = false;
   CANmodule->firstCANtxMessage = true;

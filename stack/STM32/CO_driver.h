@@ -186,6 +186,8 @@ typedef struct{
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
     uint16_t            txSize;
+    volatile bool_t     CANnormal;
+    volatile bool_t     useCANrxFilters;
     volatile uint8_t    useCANrxFilters;
     volatile uint8_t    bufferInhibitFlag;
     volatile uint8_t    firstCANtxMessage;
@@ -212,7 +214,7 @@ void CanLedsSet(eCoLeds led);
 
 /* Request CAN configuration or normal mode */
 //void CO_CANsetConfigurationMode(CAN_TypeDef *CANbaseAddress);
-//void CO_CANsetNormalMode(CAN_TypeDef *CANbaseAddress);
+//void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 /* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(

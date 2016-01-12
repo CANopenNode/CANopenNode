@@ -54,7 +54,14 @@
 
 /* Global variables and objects */
     volatile uint16_t   CO_timer1ms = 0U;   /* variable increments each millisecond */
-    volatile bool_t     CO_CAN_OK = false;  /* CAN in normal mode indicator */
+
+
+/* helpers */
+void CANrx_lockCbSync(bool_t syncReceived) {
+    if(syncReceived) {
+        /* disable CAN receive, untill RPDOs are processed. */
+    }
+}
 
 
 /* main ***********************************************************************/
@@ -76,8 +83,8 @@ int main (void){
         CO_ReturnError_t err;
         uint16_t timer1msPrevious;
 
-        /* disable timer and CAN interrupts */
-        CO_CAN_OK = false;
+        /* disable CAN and CAN interrupts */
+        CO->CANmodule[0]->CANnormal = false;
 
 
         /* initialize CANopen */
@@ -88,7 +95,8 @@ int main (void){
         }
 
 
-        /* set callback functions for task control. */
+        /* Configure callback functions */
+        CO_SYNC_initCallback(CO->SYNC, CANrx_lockCbSync);
 
 
         /* Configure Timer interrupt function for execution every 1 millisecond */
@@ -99,7 +107,6 @@ int main (void){
 
         /* start CAN */
         CO_CANsetNormalMode(CO->CANmodule[0]);
-        CO_CAN_OK = true;
 
         reset = CO_RESET_NOT;
         timer1msPrevious = CO_timer1ms;
@@ -145,7 +152,7 @@ static void tmrTask_thread(void){
 
         INCREMENT_1MS(CO_timer1ms);
 
-        if(CO_CAN_OK) {
+        if(CO->CANmodule[0]->CANnormal) {
             bool_t syncWas;
 
             /* Process Sync and read inputs */
@@ -157,13 +164,12 @@ static void tmrTask_thread(void){
 
             /* Write outputs */
             CO_process_TPDO(CO, syncWas, TMR_TASK_INTERVAL);
+
+            /* verify timer overflow */
+            if(0) {
+                CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0U);
+            }
         }
-
-    }
-
-    /* verify timer overflow */
-    if(0){
-        CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0U);
     }
 }
 

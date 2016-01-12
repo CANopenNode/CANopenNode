@@ -66,12 +66,14 @@ void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(uint16_t CANbaseAddress){
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
     /* sets the module as running & exit debug mode */
     MCF_FlexCAN_CANMCR &= ~MCF_FlexCAN_CANMCR_STOP & ~MCF_FlexCAN_CANMCR_FRZ & ~MCF_FlexCAN_CANMCR_HALT;
 
     /* wait for entering in the mode */
     while(!(MCF_FlexCAN_CANMCR&&MCF_FlexCAN_CANMCR_NOTRDY)){};
+
+    CANmodule->CANnormal = true;
 }
 
 
@@ -100,6 +102,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
+    CANmodule->CANnormal = false;
     CANmodule->useCANrxFilters = false; //no filters or ((rxSize <= xx) ? true : false;)
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;

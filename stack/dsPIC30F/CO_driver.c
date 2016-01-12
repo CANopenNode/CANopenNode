@@ -116,15 +116,17 @@ void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(uint16_t CANbaseAddress){
-    uint16_t C_CTRLcopy = CAN_REG(CANbaseAddress, C_CTRL);
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
+    uint16_t C_CTRLcopy = CAN_REG(CANmodule->CANbaseAddress, C_CTRL);
 
     /* set REQOP = 0x0 */
     C_CTRLcopy &= 0xF8FF;
-    CAN_REG(CANbaseAddress, C_CTRL) = C_CTRLcopy;
+    CAN_REG(CANmodule->CANbaseAddress, C_CTRL) = C_CTRLcopy;
 
     /* while OPMODE != 0 */
-    while((CAN_REG(CANbaseAddress, C_CTRL) & 0x00E0) != 0x0000);
+    while((CAN_REG(CANmodule->CANbaseAddress, C_CTRL) & 0x00E0) != 0x0000);
+
+    CANmodule->CANnormal = true;
 }
 
 
@@ -151,6 +153,8 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
+    CANmodule->CANnormal = false;
+    CANmodule->useCANrxFilters = false;
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;
     CANmodule->CANtxCount = 0U;

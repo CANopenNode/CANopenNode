@@ -183,9 +183,11 @@ void CO_CANsetConfigurationMode(uint16_t CANbaseAddress)
 
 
 //=============================================================================
-void CO_CANsetNormalMode(uint16_t CANbaseAddress)
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule)
 {
-	setCAN_Mode(CYGNUM_CAN_MODE_START, CANbaseAddress);
+	setCAN_Mode(CYGNUM_CAN_MODE_START, CANmodule->CANbaseAddress);
+
+    CANmodule->CANnormal = true;
 }
 
 
@@ -528,6 +530,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
     CANmodule->curentSyncTimeIsInsideWindow = 0;
+    CANmodule->CANnormal = false;
     CANmodule->useCANrxFilters = 1;// we can make this configurable
     CANmodule->bufferInhibitFlag = 0;
     CANmodule->firstCANtxMessage = 1;

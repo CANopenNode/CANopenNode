@@ -261,6 +261,7 @@ typedef struct{
     uint16_t            rxSize;         /**< From CO_CANmodule_init() */
     CO_CANtx_t         *txArray;        /**< From CO_CANmodule_init() */
     uint16_t            txSize;         /**< From CO_CANmodule_init() */
+    volatile bool_t     CANnormal;      /**< CAN module is in normal mode */
     /** Value different than zero indicates, that CAN module hardware filters
       * are used for CAN reception. If there is not enough hardware filters,
       * they won't be used. In this case will be *all* received CAN messages
