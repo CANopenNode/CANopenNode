@@ -171,7 +171,6 @@ int main (void){
         uint16_t CANBitRate;
 
         /* disable CAN and CAN interrupts */
-        CO->CANmodule[0]->CANnormal = false;
         CO_CAN_ISR_ENABLE = 0;
         CO_CAN_ISR2_ENABLE = 0;
 
@@ -190,7 +189,7 @@ int main (void){
 
         /* initialize eeprom - part 2 */
 #ifdef USE_EEPROM
-        CO_EE_init_2(&CO_EEO, eeStatus, CO->SDO, CO->em);
+        CO_EE_init_2(&CO_EEO, eeStatus, CO->SDO[0], CO->em);
 #endif
 
 
