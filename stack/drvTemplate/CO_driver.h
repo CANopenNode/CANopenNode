@@ -245,6 +245,7 @@ typedef struct{
  */
 typedef struct{
     uint32_t            ident;          /**< CAN identifier as aligned in CAN module */
+    uint8_t             DLC ;           /**< Length of CAN message. (DLC may also be part of ident) */
     uint8_t             data[8];        /**< 8 data bytes */
     volatile bool_t     bufferFull;     /**< True if previous message is still in buffer */
     /** Synchronous PDO messages has this flag set. It prevents them to be sent outside the synchronous window */
