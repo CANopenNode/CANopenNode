@@ -70,6 +70,8 @@ static void EE_writeStatus(uint8_t data);
 static uint8_t EE_readStatus();
 #define EE_isWriteInProcess()   (EE_readStatus() & 0x01) /* True if write is in process. */
 
+static uint32_t tmpU32;
+
 
 /* Store parameters ***********************************************************/
 static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg){
@@ -186,7 +188,6 @@ CO_ReturnError_t CO_EE_init_1(
         uint8_t                *OD_ROMAddress,
         uint32_t                OD_ROMSize)
 {
-    uint32_t rdata;
 
     /* verify arguments */
     if(ee==NULL || OD_EEPROMAddress==NULL || OD_ROMAddress==NULL){
@@ -196,7 +197,7 @@ CO_ReturnError_t CO_EE_init_1(
     /* Configure SPI port for use with eeprom */
     SPICON = 0;           /* Stops and restes the SPI */
     SPISTAT = 0;
-    rdata = SPIBUF;       /* Clear the receive buffer */
+    tmpU32 = SPIBUF;      /* Clear the receive buffer */
     SPIBRG = 4;           /* Clock = FPB / ((4+1) * 2) */
     SPICON = 0x00018120;  /* MSSEN = 0 - Master mode slave select enable bit */
                                   /* ENHBUF(bit16) = 1 - Enhanced buffer enable bit */
@@ -320,10 +321,9 @@ static void EE_SPIwrite(uint8_t *tx, uint8_t *rx, uint8_t len){
 
     /* read bytes from SPI_RXB fifo buffer */
     for(i=0; i<len; i++){
-        uint32_t a;
         while(SPISTATbits.SPIRBE);    /* wait if buffer is empty */
         if(rx) rx[i] = SPIBUF;
-        else       a = SPIBUF;
+        else  tmpU32 = SPIBUF;
     }
 }
 

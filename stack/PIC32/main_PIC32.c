@@ -111,6 +111,7 @@
 /* Global variables and objects */
     volatile uint16_t CO_timer1ms = 0U; /* variable increments each millisecond */
     const CO_CANbitRateData_t   CO_CANbitRateData[8] = {CO_CANbitRateDataInitializers};
+    static uint32_t tmpU32;
 #ifdef USE_EEPROM
     CO_EE_t                     CO_EEO;         /* Eeprom object */
 #endif
@@ -127,7 +128,6 @@ void CANrx_lockCbSync(bool_t syncReceived) {
 
 /* main ***********************************************************************/
 int main (void){
-    unsigned int temp_ui;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
 
     /* Configure system for maximum performance. plib is necessary for that.*/
@@ -296,7 +296,7 @@ int main (void){
     SYSKEY = 0xAA996655;
     SYSKEY = 0x556699AA;
     RSWRSTSET = 1;
-    temp_ui = RSWRST;
+    tmpU32 = RSWRST;
     while(1);
 }
 

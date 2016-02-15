@@ -297,7 +297,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
             pRXM1 = &CAN_REG(addr, C_RXM+0x10);
             pRXM2 = &CAN_REG(addr, C_RXM+0x20);
             pRXM3 = &CAN_REG(addr, C_RXM+0x30);
-            if(RXM == 0xFFE80000){
+            if(RXM == *pRXM0){
                 selectMask = 0;
             }
             else if(RXM == *pRXM1 || *pRXM1 == 0xFFE80000){
