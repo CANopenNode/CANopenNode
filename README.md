@@ -205,10 +205,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program. If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see http://www.gnu.org/licenses/.
 
-Following clarification and special exception to the GNU General Public
-License is included to the distribution terms of CANopenNode:
+### GPL linking exception
+CANopenNode can be easely used also in commercial embedded projects.
+Following clarification and special
+[linking exception to the GNU General Public License](https://en.wikipedia.org/wiki/GPL_linking_exception)
+is included to the distribution terms of CANopenNode:
 
 Linking this library statically or dynamically with other modules is
 making a combined work based on this library. Thus, the terms and
