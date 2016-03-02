@@ -689,6 +689,7 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
     }
 }
 
+
 /******************************************************************************/
 void CO_CANinterrupt(CO_CANmodule_t *CANmodule) {
 
@@ -795,86 +796,6 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule) {
             }
 
             C_RXFUL1copy &= ~(mask);
-        }
-        /* FBP tells us the next FIFO entry that will be written */
-        FBP = CAN_REG(CANmodule->CANbaseAddress, C_FIFO) >> 8;
-
-        for(i=1; i<CANmodule->CANmsgBuffSize; i++)
-        {
-            uint8_t mask = 1 << FNRB;
-            if(((FNRB < 16) && (C_RXFUL1copy & mask)) ||
-               ((FNRB >= 16) && (C_RXFUL2copy & (mask & 0x0F))))
-            {
-                /* RXFUL is set for this buffer, service it */
-                EDS_PTR CO_CANrxMsg_t *rcvMsg;/* pointer to received message in CAN module */
-                uint16_t index;             /* index of received message */
-                uint16_t rcvMsgIdent;       /* identifier of the received message */
-                CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
-                bool_t msgMatched = false;
-
-                rcvMsg = &CANmodule->CANmsgBuff[FNRB];
-                rcvMsgIdent = rcvMsg->ident;
-                if(CANmodule->useCANrxFilters){
-                    /* CAN module filters are used. Message with known 11-bit identifier has */
-                    /* been received */
-                    index = rcvMsg->FILHIT;
-                    if(index < CANmodule->rxSize){
-                        buffer = &CANmodule->rxArray[index];
-                        /* verify also RTR */
-                        if(((rcvMsgIdent ^ buffer->ident) & buffer->mask) == 0U){
-                            msgMatched = true;
-                        }
-                    }
-                }
-                else{
-                    /* CAN module filters are not used, message with any standard 11-bit identifier */
-                    /* has been received. Search rxArray form CANmodule for the same CAN-ID. */
-                    buffer = &CANmodule->rxArray[0];
-                    for(index = CANmodule->rxSize; index > 0U; index--){
-                        if(((rcvMsgIdent ^ buffer->ident) & buffer->mask) == 0U){
-                            msgMatched = true;
-                            break;
-                        }
-                        buffer++;
-                    }
-                }
-
-                /* Call specific function, which will process the message */
-                if(msgMatched && (buffer != NULL) && (buffer->pFunct != NULL)){
-            #ifdef __HAS_EDS__
-                    CO_CANrxMsg_t _rcvMsg = *rcvMsg;
-                    buffer->pFunct(buffer->object, &_rcvMsg);
-            #else
-                    buffer->pFunct(buffer->object, rcvMsg);
-            #endif
-                }
-
-                /* Clear RXFUL flag */
-                CO_DISABLE_INTERRUPTS(); //TODO
-                C_CTRL1old = CAN_REG(CANmodule->CANbaseAddress, C_CTRL1);
-                CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old & 0xFFFE;     /* WIN = 0 - use buffer registers */
-                if(FNRB < 16) CAN_REG(CANmodule->CANbaseAddress, C_RXFUL1) &= ~(mask);
-                else          CAN_REG(CANmodule->CANbaseAddress, C_RXFUL2) &= ~(mask & 0x0F);
-                CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old;
-                CO_ENABLE_INTERRUPTS();
-            } else {
-                /* Next buffer is empty, nothing more to do here */
-                /* Note that there may still be messages in another buffer after
-                 * an overflow scenario, but if we want to use FNRB (and not
-                 * loop over all buffers) there's no other way to recover than
-                 * to wait for FBP to "catch up" with FNRB again */
-                break;
-            }
-
-            /* Now update FNRB, it will point to a new buffer after RXFUL was cleared */
-            FNRB = (CAN_REG(CANmodule->CANbaseAddress, C_FIFO) & 0x3F);
-
-            /* Don't read past write buffer even if there are messages there, this is necessary
-             * to be able to recover from an overflow.
-             * This check must be after we've processed at least one message, since FNRB and FBP is
-             * equal also when buffer is full */
-            if (FNRB == FBP)
-                break;
         }
     }
 
