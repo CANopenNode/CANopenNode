@@ -3,25 +3,45 @@
  *
  * @file        CO_driver.h
  * @author      Janez Paternoster
- * @author      Péter Rózsahegyi
- * @copyright   2004 - 2013 Janez Paternoster
+ * @author      Peter Rozsahegyi (EDS)
+ * @author      Jens Nielsen (CAN receive)
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <http://canopennode.sourceforge.net>.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2.1 of the License, or
- * (at your option) any later version.
+ * CANopenNode is free and open source software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Following clarification and special exception to the GNU General Public
+ * License is included to the distribution terms of CANopenNode:
+ *
+ * Linking this library statically or dynamically with other modules is
+ * making a combined work based on this library. Thus, the terms and
+ * conditions of the GNU General Public License cover the whole combination.
+ *
+ * As a special exception, the copyright holders of this library give
+ * you permission to link this library with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also meet,
+ * for each linked independent module, the terms and conditions of the
+ * license of that module. An independent module is a module which is
+ * not derived from or based on this library. If you modify this
+ * library, you may extend this exception to your version of the
+ * library, but you are not obliged to do so. If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 
 
@@ -33,25 +53,67 @@
 
 
 #if defined(__dsPIC33F__) || defined(__PIC24H__)
-#include <p33fxxxx.h>       /* processor header file */
+#include <p33Fxxxx.h>       /* processor header file */
 #elif defined(__dsPIC33E__) || defined(__PIC24E__)
-#include <p33exxxx.h>       /* processor header file */
+#include <p33Exxxx.h>       /* processor header file */
 #endif
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for 'true' and 'false' */
 
-#ifdef __HAS_EDS__
-    #define EDS_PTR __eds__
-#else
-    #define EDS_PTR
-#endif
+
+/* CAN message buffer sizes for CAN module 1 and 2. Valid values
+ * are 0, 4, 6, 8, 12, 16. Default is one TX and seven RX messages (FIFO). */
+    #ifndef CO_CAN1msgBuffSize
+        #define CO_CAN1msgBuffSize   8
+    #endif
+    #ifndef CO_CAN2msgBuffSize
+        #define CO_CAN2msgBuffSize   0  //CAN module 2 not used by default
+    #endif
 
 
-/* CAN module base address */
+/* Default DMA addresses for CAN modules. */
+    #ifndef CO_CAN1_DMA0
+        #define CO_CAN1_DMA0 ADDR_DMA0
+    #endif
+    #ifndef CO_CAN1_DMA1
+        #define CO_CAN1_DMA1 ADDR_DMA1
+    #endif
+    #ifndef CO_CAN2_DMA0
+        #define CO_CAN2_DMA0 ADDR_DMA2
+    #endif
+    #ifndef CO_CAN2_DMA1
+        #define CO_CAN2_DMA1 ADDR_DMA3
+    #endif
+
+
+/* Define DMA attribute on supported platforms */
+    #if defined(__dsPIC33F__) || defined(__PIC24H__) || defined(__DMA_BASE)
+        #define __dma  __attribute__((space(dma)))
+    #else
+        #define __dma
+        #if defined(__C30_VERSION__) && !defined(__XC16_VERSION__)
+            #define __builtin_dmaoffset(V)  (uint16_t)V
+        #endif
+    #endif
+
+/* Define EDS attribute on supported platforms */
+    #if defined(__HAS_EDS__)
+        #define __eds __attribute__((eds))
+        #if defined(__C30_VERSION__) && !defined(__XC16_VERSION__)
+            #define __builtin_dmapage(V)  (uint16_t)0
+        #endif
+    #else
+        #define __eds
+        #define __eds__
+    #endif
+
+
+/* CAN module base addresses */
     #define ADDR_CAN1               ((uint16_t)&C1CTRL1)
     #define ADDR_CAN2               ((uint16_t)&C2CTRL1)
 
+/* DMA addresses */
     #define ADDR_DMA0               ((uint16_t)&DMA0CON)
     #define ADDR_DMA1               ((uint16_t)&DMA1CON)
     #define ADDR_DMA2               ((uint16_t)&DMA2CON)
@@ -106,7 +168,7 @@
  *     - Optimal CAN bit timing on all Baud Rates: 8000, 12000, 16000, 24000.
  *     - Not so optimal CAN bit timing on all Baud Rates: 4000, 32000.
  *     - not all CANopen Baud Rates possible: 2000, 3000, 5000, 6000, 10000,
- *       20000, 40000.
+ *       20000, 40000, 48000, 56000, 64000, 70000.
  *
  * IMPORTANT: For FCY<=12000 there is unresolved bug; CANCKS configuration
  *               bit on ECAN does not work, so some baudrates are not possible.
@@ -260,6 +322,46 @@
         {1, 2,   TQ_x_20},   /*CAN=500kbps*/   \
         {1, 1,   TQ_x_25},   /*CAN=800kbps*/   \
         {1, 1,   TQ_x_20}    /*CAN=1000kbps*/
+    #elif CO_FSYS == 48000
+        #define CO_CANbitRateDataInitializers  \
+        {1, 63,  TQ_x_19},   /*Not possible*/  \
+        {1, 63,  TQ_x_19},   /*CAN=20kbps*/    \
+        {1, 30,  TQ_x_16},   /*CAN=50kbps*/    \
+        {1, 12,  TQ_x_16},   /*CAN=125kbps*/   \
+        {1, 6,   TQ_x_16},   /*CAN=250kbps*/   \
+        {1, 3,   TQ_x_16},   /*CAN=500kbps*/   \
+        {1, 2,   TQ_x_15},   /*CAN=800kbps*/   \
+        {1, 2,   TQ_x_12}    /*CAN=1000kbps*/
+    #elif CO_FSYS == 56000
+        #define CO_CANbitRateDataInitializers  \
+        {1, 61,  TQ_x_23},   /*Not possible*/  \
+        {1, 61,  TQ_x_23},   /*CAN=20kbps*/    \
+        {1, 35,  TQ_x_16},   /*CAN=50kbps*/    \
+        {1, 14,  TQ_x_16},   /*CAN=125kbps*/   \
+        {1, 7,   TQ_x_16},   /*CAN=250kbps*/   \
+        {1, 4,   TQ_x_14},   /*CAN=500kbps*/   \
+        {1, 5,   TQ_x_7 },   /*CAN=800kbps*/   \
+        {1, 2,   TQ_x_14}    /*CAN=1000kbps*/
+    #elif CO_FSYS == 64000
+        #define CO_CANbitRateDataInitializers  \
+        {1, 64,  TQ_x_25},   /*Not possible*/  \
+        {1, 64,  TQ_x_25},   /*CAN=20kbps*/    \
+        {1, 40,  TQ_x_16},   /*CAN=50kbps*/    \
+        {1, 16,  TQ_x_16},   /*CAN=125kbps*/   \
+        {1, 8,   TQ_x_16},   /*CAN=250kbps*/   \
+        {1, 4,   TQ_x_16},   /*CAN=500kbps*/   \
+        {1, 2,   TQ_x_20},   /*CAN=800kbps*/   \
+        {1, 2,   TQ_x_16}    /*CAN=1000kbps*/
+    #elif CO_FCY == 70000
+        #define CO_CANbitRateDataInitializers  \
+        {1, 64,  TQ_x_25},   /*Not possible*/  \
+        {1, 64,  TQ_x_25},   /*CAN=20kbps*/    \
+        {1, 35,  TQ_x_20},   /*CAN=50kbps*/    \
+        {1, 14,  TQ_x_20},   /*CAN=125kbps*/   \
+        {1, 7,   TQ_x_20},   /*CAN=250kbps*/   \
+        {1, 5,   TQ_x_14},   /*CAN=500kbps*/   \
+        {1, 3,   TQ_x_15},   /*Not working*/   \
+        {1, 2,   TQ_x_17}    /*Not working*/
     #else
         #error define_CO_FCY CO_FCY not supported
     #endif
@@ -269,7 +371,7 @@
 /* Structure contains timing coefficients for CAN module.
  *
  * CAN baud rate is calculated from following equations:
- * FCAN = FCY * Scale                  - Input frequency to CAN module (MAX 40MHz for dsPIC33F and PIC24H)
+ * FCAN = FCY * Scale                  - Input frequency to CAN module (MAX 40MHz for dsPIC33F/PIC24H and 70MHz for dsPIC33E/PIC24E)
  * TQ = 2 * BRP / FCAN                 - Time Quanta
  * BaudRate = 1 / (TQ * K)             - Can bus Baud Rate
  * K = SJW + PROP + PhSeg1 + PhSeg2    - Number of Time Quantas
@@ -343,17 +445,18 @@ typedef struct{
 /* CAN module object. */
 typedef struct{
     uint16_t            CANbaseAddress;
-    EDS_PTR CO_CANrxMsg_t *CANmsgBuff;  /* dsPIC33F specific: CAN message buffer for CAN module */
+    __eds__ CO_CANrxMsg_t *CANmsgBuff;  /* dsPIC33F specific: CAN message buffer for CAN module */
     uint8_t             CANmsgBuffSize; /* dsPIC33F specific: Size of the above buffer */
     CO_CANrx_t         *rxArray;
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
     uint16_t            txSize;
+    volatile bool_t     CANnormal;
     volatile bool_t     useCANrxFilters;
     volatile bool_t     bufferInhibitFlag;
     volatile bool_t     firstCANtxMessage;
     volatile uint16_t   CANtxCount;
-    uint32_t            errOld;
+    uint16_t            errOld;
     void               *em;
 }CO_CANmodule_t;
 
@@ -364,30 +467,13 @@ typedef struct{
 
 /* Request CAN configuration or normal mode */
 void CO_CANsetConfigurationMode(uint16_t CANbaseAddress);
-void CO_CANsetNormalMode(uint16_t CANbaseAddress);
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 
-/* Initialize CAN module object.
- *
- * @param DMArxBaseAddress dsPIC33F specific: Base address for registers for
- * DMA reception. See Peripheral addresses.
- * @param DMAtxBaseAddress dsPIC33F specific: Base address for registers for
- * DMA transmission. See Peripheral addresses.
- * @param CANmsgBuff dsPIC33F specific: Pointer to CAN message buffer defined in DMA RAM.
- * @param CANmsgBuffSize dsPIC33F specific: Size of above buffer.
- * @param CANmsgBuffDMAoffset dsPIC33F specific: DMA offset of the above buffer.
- */
+/* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
         uint16_t                CANbaseAddress,
-        uint16_t                DMArxBaseAddress,
-        uint16_t                DMAtxBaseAddress,
-        EDS_PTR CO_CANrxMsg_t  *CANmsgBuff,
-        uint8_t                 CANmsgBuffSize,
-        uint16_t                CANmsgBuffDMAoffset,
-#ifdef __HAS_EDS__
-        uint16_t                CANmsgBuffDMApage,
-#endif
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

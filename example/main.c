@@ -8,21 +8,40 @@
  * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <http://canopennode.sourceforge.net>.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2.1 of the License, or
- * (at your option) any later version.
+ * CANopenNode is free and open source software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Following clarification and special exception to the GNU General Public
+ * License is included to the distribution terms of CANopenNode:
+ *
+ * Linking this library statically or dynamically with other modules is
+ * making a combined work based on this library. Thus, the terms and
+ * conditions of the GNU General Public License cover the whole combination.
+ *
+ * As a special exception, the copyright holders of this library give
+ * you permission to link this library with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also meet,
+ * for each linked independent module, the terms and conditions of the
+ * license of that module. An independent module is a module which is
+ * not derived from or based on this library. If you modify this
+ * library, you may extend this exception to your version of the
+ * library, but you are not obliged to do so. If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 
 
@@ -35,7 +54,14 @@
 
 /* Global variables and objects */
     volatile uint16_t   CO_timer1ms = 0U;   /* variable increments each millisecond */
-    volatile bool_t     CO_CAN_OK = false;  /* CAN in normal mode indicator */
+
+
+/* helpers */
+void CANrx_lockCbSync(bool_t syncReceived) {
+    if(syncReceived) {
+        /* disable CAN receive, untill RPDOs are processed. */
+    }
+}
 
 
 /* main ***********************************************************************/
@@ -57,8 +83,8 @@ int main (void){
         CO_ReturnError_t err;
         uint16_t timer1msPrevious;
 
-        /* disable timer and CAN interrupts */
-        CO_CAN_OK = false;
+        /* disable CAN and CAN interrupts */
+        CO->CANmodule[0]->CANnormal = false;
 
 
         /* initialize CANopen */
@@ -69,7 +95,8 @@ int main (void){
         }
 
 
-        /* set callback functions for task control. */
+        /* Configure callback functions */
+        CO_SYNC_initCallback(CO->SYNC, CANrx_lockCbSync);
 
 
         /* Configure Timer interrupt function for execution every 1 millisecond */
@@ -80,7 +107,6 @@ int main (void){
 
         /* start CAN */
         CO_CANsetNormalMode(CO->CANmodule[0]);
-        CO_CAN_OK = true;
 
         reset = CO_RESET_NOT;
         timer1msPrevious = CO_timer1ms;
@@ -126,7 +152,7 @@ static void tmrTask_thread(void){
 
         INCREMENT_1MS(CO_timer1ms);
 
-        if(CO_CAN_OK) {
+        if(CO->CANmodule[0]->CANnormal) {
             bool_t syncWas;
 
             /* Process Sync and read inputs */
@@ -138,13 +164,12 @@ static void tmrTask_thread(void){
 
             /* Write outputs */
             CO_process_TPDO(CO, syncWas, TMR_TASK_INTERVAL);
+
+            /* verify timer overflow */
+            if(0) {
+                CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0U);
+            }
         }
-
-    }
-
-    /* verify timer overflow */
-    if(0){
-        CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0U);
     }
 }
 

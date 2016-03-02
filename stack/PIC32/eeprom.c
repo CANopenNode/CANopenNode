@@ -6,21 +6,40 @@
  * @copyright   2004 - 2013 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <http://canopennode.sourceforge.net>.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2.1 of the License, or
- * (at your option) any later version.
+ * CANopenNode is free and open source software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Following clarification and special exception to the GNU General Public
+ * License is included to the distribution terms of CANopenNode:
+ *
+ * Linking this library statically or dynamically with other modules is
+ * making a combined work based on this library. Thus, the terms and
+ * conditions of the GNU General Public License cover the whole combination.
+ *
+ * As a special exception, the copyright holders of this library give
+ * you permission to link this library with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also meet,
+ * for each linked independent module, the terms and conditions of the
+ * license of that module. An independent module is a module which is
+ * not derived from or based on this library. If you modify this
+ * library, you may extend this exception to your version of the
+ * library, but you are not obliged to do so. If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 
 
@@ -50,6 +69,8 @@ static uint8_t EE_verifyBlock(uint8_t *data, uint32_t addr, uint32_t len);
 static void EE_writeStatus(uint8_t data);
 static uint8_t EE_readStatus();
 #define EE_isWriteInProcess()   (EE_readStatus() & 0x01) /* True if write is in process. */
+
+static uint32_t tmpU32;
 
 
 /* Store parameters ***********************************************************/
@@ -167,7 +188,6 @@ CO_ReturnError_t CO_EE_init_1(
         uint8_t                *OD_ROMAddress,
         uint32_t                OD_ROMSize)
 {
-    uint32_t rdata;
 
     /* verify arguments */
     if(ee==NULL || OD_EEPROMAddress==NULL || OD_ROMAddress==NULL){
@@ -177,7 +197,7 @@ CO_ReturnError_t CO_EE_init_1(
     /* Configure SPI port for use with eeprom */
     SPICON = 0;           /* Stops and restes the SPI */
     SPISTAT = 0;
-    rdata = SPIBUF;       /* Clear the receive buffer */
+    tmpU32 = SPIBUF;      /* Clear the receive buffer */
     SPIBRG = 4;           /* Clock = FPB / ((4+1) * 2) */
     SPICON = 0x00018120;  /* MSSEN = 0 - Master mode slave select enable bit */
                                   /* ENHBUF(bit16) = 1 - Enhanced buffer enable bit */
@@ -301,10 +321,9 @@ static void EE_SPIwrite(uint8_t *tx, uint8_t *rx, uint8_t len){
 
     /* read bytes from SPI_RXB fifo buffer */
     for(i=0; i<len; i++){
-        uint32_t a;
         while(SPISTATbits.SPIRBE);    /* wait if buffer is empty */
         if(rx) rx[i] = SPIBUF;
-        else       a = SPIBUF;
+        else  tmpU32 = SPIBUF;
     }
 }
 

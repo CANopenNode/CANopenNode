@@ -6,21 +6,40 @@
  * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <http://canopennode.sourceforge.net>.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2.1 of the License, or
- * (at your option) any later version.
+ * CANopenNode is free and open source software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Following clarification and special exception to the GNU General Public
+ * License is included to the distribution terms of CANopenNode:
+ *
+ * Linking this library statically or dynamically with other modules is
+ * making a combined work based on this library. Thus, the terms and
+ * conditions of the GNU General Public License cover the whole combination.
+ *
+ * As a special exception, the copyright holders of this library give
+ * you permission to link this library with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also meet,
+ * for each linked independent module, the terms and conditions of the
+ * license of that module. An independent module is a module which is
+ * not derived from or based on this library. If you modify this
+ * library, you may extend this exception to your version of the
+ * library, but you are not obliged to do so. If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 
 
@@ -78,13 +97,15 @@ void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
 
 
 /******************************************************************************/
-void CO_CANsetNormalMode(uint16_t CANbaseAddress){
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 
     /* request normal mode */
-    CAN_REG(CANbaseAddress, C_CON+CLR) = 0x07000000;
+    CAN_REG(CANmodule->CANbaseAddress, C_CON+CLR) = 0x07000000;
 
     /* wait for normal mode */
-    while((CAN_REG(CANbaseAddress, C_CON) & 0x00E00000) != 0x00000000);
+    while((CAN_REG(CANmodule->CANbaseAddress, C_CON) & 0x00E00000) != 0x00000000);
+
+    CANmodule->CANnormal = true;
 }
 
 
@@ -112,6 +133,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
+    CANmodule->CANnormal = false;
     CANmodule->useCANrxFilters = (rxSize <= 32U) ? true : false;
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;
@@ -140,7 +162,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
 
     /* Configure FIFO */
-    CAN_REG(CANbaseAddress, C_FIFOBA) = KVA_TO_PA(CANmodule->CANmsgBuff);/* FIFO base address */
+    CAN_REG(CANbaseAddress, C_FIFOBA) = CO_KVA_TO_PA(CANmodule->CANmsgBuff);/* FIFO base address */
     CAN_REG(CANbaseAddress, C_FIFOCON) = 0x001F0000;     /* FIFO0: receive FIFO, 32 buffers */
     CAN_REG(CANbaseAddress, C_FIFOCON+0x40) = 0x00000080;/* FIFO1: transmit FIFO, 1 buffer */
 
@@ -275,7 +297,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
             pRXM1 = &CAN_REG(addr, C_RXM+0x10);
             pRXM2 = &CAN_REG(addr, C_RXM+0x20);
             pRXM3 = &CAN_REG(addr, C_RXM+0x30);
-            if(RXM == 0xFFE80000){
+            if(RXM == *pRXM0){
                 selectMask = 0;
             }
             else if(RXM == *pRXM1 || *pRXM1 == 0xFFE80000){
@@ -343,7 +365,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     uint16_t addr = CANmodule->CANbaseAddress;
     volatile uint32_t* TX_FIFOcon = &CAN_REG(addr, C_FIFOCON+0x40);
     volatile uint32_t* TX_FIFOconSet = &CAN_REG(addr, C_FIFOCON+0x48);
-    uint32_t* TXmsgBuffer = PA_TO_KVA1(CAN_REG(addr, C_FIFOUA+0x40));
+    uint32_t* TXmsgBuffer = CO_PA_TO_KVA1(CAN_REG(addr, C_FIFOUA+0x40));
     uint32_t* message = (uint32_t*) buffer;
     uint32_t TX_FIFOconCopy;
 
@@ -494,7 +516,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
         bool_t msgMatched = false;
 
-        rcvMsg = (CO_CANrxMsg_t*) PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA));
+        rcvMsg = (CO_CANrxMsg_t*) CO_PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA));
         rcvMsgIdent = rcvMsg->ident;
         if(rcvMsg->RTR) rcvMsgIdent |= 0x0800;
         if(CANmodule->useCANrxFilters){
@@ -553,7 +575,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
 
                     /* Copy message to CAN buffer */
                     CANmodule->bufferInhibitFlag = buffer->syncFlag;
-                    uint32_t* TXmsgBuffer = PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA+0x40));
+                    uint32_t* TXmsgBuffer = CO_PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA+0x40));
                     uint32_t* message = (uint32_t*) buffer;
                     volatile uint32_t* TX_FIFOconSet = &CAN_REG(CANmodule->CANbaseAddress, C_FIFOCON+0x48);
                     *(TXmsgBuffer++) = *(message++);

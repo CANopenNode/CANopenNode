@@ -7,21 +7,40 @@
  * @copyright   2004 - 2013 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <http://canopennode.sourceforge.net>.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2.1 of the License, or
- * (at your option) any later version.
+ * CANopenNode is free and open source software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Following clarification and special exception to the GNU General Public
+ * License is included to the distribution terms of CANopenNode:
+ *
+ * Linking this library statically or dynamically with other modules is
+ * making a combined work based on this library. Thus, the terms and
+ * conditions of the GNU General Public License cover the whole combination.
+ *
+ * As a special exception, the copyright holders of this library give
+ * you permission to link this library with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also meet,
+ * for each linked independent module, the terms and conditions of the
+ * license of that module. An independent module is a module which is
+ * not derived from or based on this library. If you modify this
+ * library, you may extend this exception to your version of the
+ * library, but you are not obliged to do so. If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 
 
@@ -86,27 +105,71 @@ void CO_setUint32(uint8_t data[], const uint32_t value){
 }
 
 #ifdef CO_LITTLE_ENDIAN
-void CO_memcpySwap2(uint8_t dest[], const uint8_t src[]){
-    dest[0] = src[0];
-    dest[1] = src[1];
+void CO_memcpySwap2(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[0];
+    cdest[1] = csrc[1];
 }
-void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]){
-    dest[0] = src[0];
-    dest[1] = src[1];
-    dest[2] = src[2];
-    dest[3] = src[3];
+void CO_memcpySwap4(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[0];
+    cdest[1] = csrc[1];
+    cdest[2] = csrc[2];
+    cdest[3] = csrc[3];
+}
+void CO_memcpySwap8(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[0];
+    cdest[1] = csrc[1];
+    cdest[2] = csrc[2];
+    cdest[3] = csrc[3];
+    cdest[4] = csrc[4];
+    cdest[5] = csrc[5];
+    cdest[6] = csrc[6];
+    cdest[7] = csrc[7];
 }
 #endif
 #ifdef CO_BIG_ENDIAN
-void CO_memcpySwap2(uint8_t dest[], const uint8_t src[]){
-    dest[0] = src[1];
-    dest[1] = src[0];
+void CO_memcpySwap2(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[1];
+    cdest[1] = csrc[0];
 }
-void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]){
-    dest[0] = src[3];
-    dest[1] = src[2];
-    dest[2] = src[1];
-    dest[3] = src[0];
+void CO_memcpySwap4(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[3];
+    cdest[1] = csrc[2];
+    cdest[2] = csrc[1];
+    cdest[3] = csrc[0];
+}
+void CO_memcpySwap8(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[7];
+    cdest[1] = csrc[6];
+    cdest[2] = csrc[5];
+    cdest[3] = csrc[4];
+    cdest[4] = csrc[3];
+    cdest[5] = csrc[2];
+    cdest[6] = csrc[1];
+    cdest[7] = csrc[0];
 }
 #endif
 
@@ -190,7 +253,8 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
 
 
 /*
- * Function for accessing _SDO server parameter_ (index 0x1200+) from SDO server.
+ * Function for accessing _SDO server parameter_ for default SDO (index 0x1200)
+ * from SDO server.
  *
  * For more information see file CO_SDO.h.
  */
@@ -215,8 +279,8 @@ static CO_SDO_abortCode_t CO_ODF_1200(CO_ODF_arg_t *ODF_arg){
 /******************************************************************************/
 CO_ReturnError_t CO_SDO_init(
         CO_SDO_t               *SDO,
-        uint16_t                COB_IDClientToServer,
-        uint16_t                COB_IDServerToClient,
+        uint32_t                COB_IDClientToServer,
+        uint32_t                COB_IDServerToClient,
         uint16_t                ObjDictIndex_SDOServerParameter,
         CO_SDO_t               *parentSDO,
         const CO_OD_entry_t     OD[],
@@ -269,6 +333,11 @@ CO_ReturnError_t CO_SDO_init(
         CO_OD_configure(SDO, ObjDictIndex_SDOServerParameter, CO_ODF_1200, (void*)&SDO->nodeId, 0U, 0U);
     }
 
+    if((COB_IDClientToServer & 0x80000000) != 0 || (COB_IDServerToClient & 0x80000000) != 0 ){
+        // SDO is invalid
+        COB_IDClientToServer = 0;
+        COB_IDServerToClient = 0;
+    }
     /* configure SDO server CAN reception */
     CO_CANrxBufferInit(
             CANdevRx,               /* CAN device */
@@ -495,7 +564,9 @@ uint32_t CO_SDO_initTransfer(CO_SDO_t *SDO, uint16_t index, uint8_t subIndex){
     }
 
     /* verify existance of subIndex */
-    if(subIndex > SDO->OD[SDO->entryNo].maxSubIndex){
+    if(subIndex > SDO->OD[SDO->entryNo].maxSubIndex && 
+            SDO->OD[SDO->entryNo].pData != NULL)
+    {
         return CO_SDO_AB_SUB_UNKNOWN;     /* Sub-index does not exist. */
     }
 
@@ -518,6 +589,8 @@ uint32_t CO_SDO_initTransfer(CO_SDO_t *SDO, uint16_t index, uint8_t subIndex){
 
     /* indicate total data length, if not domain */
     SDO->ODF_arg.dataLengthTotal = (SDO->ODF_arg.ODdataStorage) ? SDO->ODF_arg.dataLength : 0U;
+
+    SDO->ODF_arg.offset = 0U;
 
     /* verify length */
     if(SDO->ODF_arg.dataLength > CO_SDO_BUFFER_SIZE){
@@ -570,6 +643,7 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
             return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
         }
     }
+    SDO->ODF_arg.offset += SDO->ODF_arg.dataLength;
     SDO->ODF_arg.firstSegment = false;
 
     /* swap data if processor is not little endian (CANopen is) */
@@ -640,6 +714,7 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
             }
         }
     }
+    SDO->ODF_arg.offset += SDO->ODF_arg.dataLength;
     SDO->ODF_arg.firstSegment = false;
 
     /* copy data from SDO buffer to OD if not domain */
@@ -661,7 +736,7 @@ static void CO_SDO_abort(CO_SDO_t *SDO, uint32_t code){
     SDO->CANtxBuff->data[1] = SDO->ODF_arg.index & 0xFF;
     SDO->CANtxBuff->data[2] = (SDO->ODF_arg.index>>8) & 0xFF;
     SDO->CANtxBuff->data[3] = SDO->ODF_arg.subIndex;
-    CO_memcpySwap4(&SDO->CANtxBuff->data[4], (uint8_t*)&code);
+    CO_memcpySwap4(&SDO->CANtxBuff->data[4], &code);
     SDO->state = CO_SDO_ST_IDLE;
     SDO->CANrxNew = false;
     CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
@@ -836,7 +911,7 @@ int8_t CO_SDO_process(
                 /* verify length if size is indicated */
                 if((SDO->CANrxData[0]&0x01) != 0){
                     uint32_t lenRx;
-                    CO_memcpySwap4((uint8_t*)&lenRx, &SDO->CANrxData[4]);
+                    CO_memcpySwap4(&lenRx, &SDO->CANrxData[4]);
                     SDO->ODF_arg.dataLengthTotal = lenRx;
 
                     /* verify length except for domain data type */
@@ -938,7 +1013,7 @@ int8_t CO_SDO_process(
             /* verify length if size is indicated */
             if((SDO->CANrxData[0]&0x02) != 0U){
                 uint32_t lenRx;
-                CO_memcpySwap4((uint8_t*)&lenRx, &SDO->CANrxData[4]);
+                CO_memcpySwap4(&lenRx, &SDO->CANrxData[4]);
                 SDO->ODF_arg.dataLengthTotal = lenRx;
 
                 /* verify length except for domain data type */
@@ -1030,7 +1105,7 @@ int8_t CO_SDO_process(
                 uint16_t crc;
                 SDO->crc = crc16_ccitt(SDO->ODF_arg.data, SDO->bufferOffset, SDO->crc);
 
-                CO_memcpySwap2((uint8_t*)&crc, &SDO->CANrxData[1]);
+                CO_memcpySwap2(&crc, &SDO->CANrxData[1]);
 
                 if(SDO->crc != crc){
                     CO_SDO_abort(SDO, CO_SDO_AB_CRC);   /* CRC error (block mode only). */
@@ -1079,7 +1154,7 @@ int8_t CO_SDO_process(
                 /* indicate data size, if known */
                 if(SDO->ODF_arg.dataLengthTotal != 0U){
                     uint32_t len = SDO->ODF_arg.dataLengthTotal;
-                    CO_memcpySwap4(&SDO->CANtxBuff->data[4], (uint8_t*)&len);
+                    CO_memcpySwap4(&SDO->CANtxBuff->data[4], &len);
                     SDO->CANtxBuff->data[0] = 0x41U;
                 }
                 else{
@@ -1191,7 +1266,7 @@ int8_t CO_SDO_process(
             /* indicate data size, if known */
             if(SDO->ODF_arg.dataLengthTotal != 0U){
                 uint32_t len = SDO->ODF_arg.dataLengthTotal;
-                CO_memcpySwap4(&SDO->CANtxBuff->data[4], (uint8_t*)&len);
+                CO_memcpySwap4(&SDO->CANtxBuff->data[4], &len);
                 SDO->CANtxBuff->data[0] = 0xC6U;
             }
             else{
@@ -1246,7 +1321,7 @@ int8_t CO_SDO_process(
 
                     /* CRC */
                     if(SDO->crcEnabled)
-                        CO_memcpySwap2(&SDO->CANtxBuff->data[1], (uint8_t*)&SDO->crc);
+                        CO_memcpySwap2(&SDO->CANtxBuff->data[1], &SDO->crc);
 
                     SDO->state = CO_SDO_ST_UPLOAD_BL_END;
 

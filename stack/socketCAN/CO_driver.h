@@ -6,20 +6,20 @@
  * @copyright   2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <http://canopennode.sourceforge.net>.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2.1 of the License, or
- * (at your option) any later version.
+ * CANopenNode is free and open source software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -35,6 +35,7 @@
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for 'true', 'false' */
 #include <unistd.h>
+#include <endian.h>
 
 #ifndef CO_SINGLE_THREAD
 #include <pthread.h>
@@ -144,7 +145,7 @@ typedef struct{
     uint16_t            wasConfigured;/* Zero only on first run of CO_CANmodule_init */
     int                 fd;         /* CAN_RAW socket file descriptor */
     struct can_filter  *filter;     /* array of CAN filters of size rxSize */
-    volatile bool_t     CANnormal;  /* CAN in normal mode */
+    volatile bool_t     CANnormal;
     volatile bool_t     useCANrxFilters;
     volatile bool_t     bufferInhibitFlag;
     volatile bool_t     firstCANtxMessage;
@@ -156,7 +157,13 @@ typedef struct{
 
 
 /* Endianes */
-#define CO_LITTLE_ENDIAN
+#ifdef BYTE_ORDER
+#if BYTE_ORDER == LITTLE_ENDIAN
+    #define CO_LITTLE_ENDIAN
+#else
+    #define CO_BIG_ENDIAN
+#endif
+#endif
 
 
 /* Helper function, must be defined externally. */

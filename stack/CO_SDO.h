@@ -7,21 +7,40 @@
  * @copyright   2004 - 2013 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <http://canopennode.sourceforge.net>.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2.1 of the License, or
- * (at your option) any later version.
+ * CANopenNode is free and open source software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Following clarification and special exception to the GNU General Public
+ * License is included to the distribution terms of CANopenNode:
+ *
+ * Linking this library statically or dynamically with other modules is
+ * making a combined work based on this library. Thus, the terms and
+ * conditions of the GNU General Public License cover the whole combination.
+ *
+ * As a special exception, the copyright holders of this library give
+ * you permission to link this library with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also meet,
+ * for each linked independent module, the terms and conditions of the
+ * license of that module. An independent module is a module which is
+ * not derived from or based on this library. If you modify this
+ * library, you may extend this exception to your version of the
+ * library, but you are not obliged to do so. If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 
 
@@ -533,6 +552,9 @@ typedef struct{
     is not necessary to specify this variable. By download this variable contains
     total data size, if size is indicated in SDO download initiate phase */
     uint32_t            dataLengthTotal;
+    /** Used by domain data type. In case of multiple segments, this indicates the offset
+    into the buffer this segment starts at. */
+    uint32_t            offset;
 }CO_ODF_arg_t;
 
 
@@ -671,17 +693,27 @@ void CO_setUint32(uint8_t data[], const uint32_t value);
  * @param dest Destination location.
  * @param src Source location.
  */
-void CO_memcpySwap2(uint8_t dest[], const uint8_t src[]);
+void CO_memcpySwap2(void* dest, const void* src);
 
 
 /**
- * Copy 2 data bytes from source to destination. Swap bytes if
+ * Copy 4 data bytes from source to destination. Swap bytes if
  * microcontroller is big-endian.
  *
  * @param dest Destination location.
  * @param src Source location.
  */
-void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]);
+void CO_memcpySwap4(void* dest, const void* src);
+
+
+/**
+ * Copy 8 data bytes from source to destination. Swap bytes if
+ * microcontroller is big-endian.
+ *
+ * @param dest Destination location.
+ * @param src Source location.
+ */
+void CO_memcpySwap8(void* dest, const void* src);
 
 
 /**
@@ -690,8 +722,8 @@ void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]);
  * Function must be called in the communication reset section.
  *
  * @param SDO This object will be initialized.
- * @param COB_IDClientToServer 0x600 + nodeId by default.
- * @param COB_IDServerToClient 0x580 + nodeId by default.
+ * @param COB_IDClientToServer COB ID for client to server for this SDO object.
+ * @param COB_IDServerToClient COB ID for server to client for this SDO object.
  * @param ObjDictIndex_SDOServerParameter Index in Object dictionary.
  * @param parentSDO Pointer to SDO object, which contains object dictionary and
  * its extension. For first (default) SDO object this argument must be NULL.
@@ -701,7 +733,7 @@ void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]);
  * @param ODSize Size of the above array.
  * @param ODExtensions Pointer to the externally defined array of the same size
  * as ODSize.
- * @param nodeId CANopen Node ID of this device. Value will be added to COB_IDs.
+ * @param nodeId CANopen Node ID of this device.
  * @param CANdevRx CAN device for SDO server reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param CANdevTx CAN device for SDO server transmission.
@@ -711,8 +743,8 @@ void CO_memcpySwap4(uint8_t dest[], const uint8_t src[]);
  */
 CO_ReturnError_t CO_SDO_init(
         CO_SDO_t               *SDO,
-        uint16_t                COB_IDClientToServer,
-        uint16_t                COB_IDServerToClient,
+        uint32_t                COB_IDClientToServer,
+        uint32_t                COB_IDServerToClient,
         uint16_t                ObjDictIndex_SDOServerParameter,
         CO_SDO_t               *parentSDO,
         const CO_OD_entry_t     OD[],

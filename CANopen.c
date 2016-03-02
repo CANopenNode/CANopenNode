@@ -8,21 +8,40 @@
  * @copyright   2010 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <http://canopennode.sourceforge.net>.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 2.1 of the License, or
- * (at your option) any later version.
+ * CANopenNode is free and open source software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Following clarification and special exception to the GNU General Public
+ * License is included to the distribution terms of CANopenNode:
+ *
+ * Linking this library statically or dynamically with other modules is
+ * making a combined work based on this library. Thus, the terms and
+ * conditions of the GNU General Public License cover the whole combination.
+ *
+ * As a special exception, the copyright holders of this library give
+ * you permission to link this library with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also meet,
+ * for each linked independent module, the terms and conditions of the
+ * license of that module. An independent module is a module which is
+ * not derived from or based on this library. If you modify this
+ * library, you may extend this exception to your version of the
+ * library, but you are not obliged to do so. If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 
 
@@ -45,17 +64,6 @@
     static CO_t COO;
     CO_t *CO = NULL;
 
-#if defined(__dsPIC33F__) || defined(__PIC24H__) \
-    || defined(__dsPIC33E__) || defined(__PIC24E__)
-    /* CAN message buffer for one TX and seven RX messages. */
-    #define CO_CANmsgBuffSize   8
-#ifdef __HAS_EDS__
-    __eds__ CO_CANrxMsg_t CO_CANmsg[CO_CANmsgBuffSize] __attribute__((eds,space(dma),aligned(128)));
-#else
-    CO_CANrxMsg_t CO_CANmsg[CO_CANmsgBuffSize] __attribute__((space(dma),aligned(128)));
-#endif
-#endif
-
     static CO_CANrx_t          *CO_CANmodule_rxArray0;
     static CO_CANtx_t          *CO_CANmodule_txArray0;
     static CO_OD_extension_t   *CO_SDO_ODExtensions;
@@ -63,11 +71,11 @@
 
 
 /* Verify features from CO_OD *************************************************/
-    /* generate error, if features are not corectly configured for this project */
+    /* generate error, if features are not correctly configured for this project */
     #if        CO_NO_NMT_MASTER                           >  1     \
             || CO_NO_SYNC                                 != 1     \
             || CO_NO_EMERGENCY                            != 1     \
-            || CO_NO_SDO_SERVER                           != 1     \
+            || CO_NO_SDO_SERVER                           == 0     \
             || (CO_NO_SDO_CLIENT != 0 && CO_NO_SDO_CLIENT != 1)    \
             || (CO_NO_RPDO < 1 || CO_NO_RPDO > 0x200)              \
             || (CO_NO_TPDO < 1 || CO_NO_TPDO > 0x200)              \
@@ -108,7 +116,7 @@
     static CO_CANmodule_t       COO_CANmodule;
     static CO_CANrx_t           COO_CANmodule_rxArray0[CO_RXCAN_NO_MSGS];
     static CO_CANtx_t           COO_CANmodule_txArray0[CO_TXCAN_NO_MSGS];
-    static CO_SDO_t             COO_SDO;
+    static CO_SDO_t             COO_SDO[CO_NO_SDO_SERVER];
     static CO_OD_extension_t    COO_SDO_ODExtensions[CO_OD_NoOfElements];
     static CO_EM_t              COO_EM;
     static CO_EMpr_t            COO_EMpr;
@@ -135,6 +143,30 @@
         }
         NMTM_txBuff->data[0] = command;
         NMTM_txBuff->data[1] = nodeID;
+
+        /* Apply NMT command also to this node, if set so. */
+        if(nodeID == 0 || nodeID == CO->NMT->nodeId){
+            switch(command){
+                case CO_NMT_ENTER_OPERATIONAL:
+                    if((*CO->NMT->emPr->errorRegister) == 0) {
+                        CO->NMT->operatingState = CO_NMT_OPERATIONAL;
+                    }
+                    break;
+                case CO_NMT_ENTER_STOPPED:
+                    CO->NMT->operatingState = CO_NMT_STOPPED;
+                    break;
+                case CO_NMT_ENTER_PRE_OPERATIONAL:
+                    CO->NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+                    break;
+                case CO_NMT_RESET_NODE:
+                    CO->NMT->resetCommand = CO_RESET_APP;
+                    break;
+                case CO_NMT_RESET_COMMUNICATION:
+                    CO->NMT->resetCommand = CO_RESET_COMM;
+                    break;
+            }
+        }
+
         return CO_CANsend(CO->CANmodule[0], NMTM_txBuff); /* 0 = success */
     }
 #endif
@@ -176,7 +208,8 @@ CO_ReturnError_t CO_init(
     CO->CANmodule[0]                    = &COO_CANmodule;
     CO_CANmodule_rxArray0               = &COO_CANmodule_rxArray0[0];
     CO_CANmodule_txArray0               = &COO_CANmodule_txArray0[0];
-    CO->SDO                             = &COO_SDO;
+    for(i=0; i<CO_NO_SDO_SERVER; i++)
+        CO->SDO[i]                      = &COO_SDO[i];
     CO_SDO_ODExtensions                 = &COO_SDO_ODExtensions[0];
     CO->em                              = &COO_EM;
     CO->emPr                            = &COO_EMpr;
@@ -198,7 +231,9 @@ CO_ReturnError_t CO_init(
         CO->CANmodule[0]                    = (CO_CANmodule_t *)    calloc(1, sizeof(CO_CANmodule_t));
         CO_CANmodule_rxArray0               = (CO_CANrx_t *)        calloc(CO_RXCAN_NO_MSGS, sizeof(CO_CANrx_t));
         CO_CANmodule_txArray0               = (CO_CANtx_t *)        calloc(CO_TXCAN_NO_MSGS, sizeof(CO_CANtx_t));
-        CO->SDO                             = (CO_SDO_t *)          calloc(1, sizeof(CO_SDO_t));
+        for(i=0; i<CO_NO_SDO_SERVER; i++){
+            CO->SDO[i]                      = (CO_SDO_t *)          calloc(1, sizeof(CO_SDO_t));
+        }
         CO_SDO_ODExtensions                 = (CO_OD_extension_t*)  calloc(CO_OD_NoOfElements, sizeof(CO_OD_extension_t));
         CO->em                              = (CO_EM_t *)           calloc(1, sizeof(CO_EM_t));
         CO->emPr                            = (CO_EMpr_t *)         calloc(1, sizeof(CO_EMpr_t));
@@ -220,7 +255,7 @@ CO_ReturnError_t CO_init(
     CO_memoryUsed = sizeof(CO_CANmodule_t)
                   + sizeof(CO_CANrx_t) * CO_RXCAN_NO_MSGS
                   + sizeof(CO_CANtx_t) * CO_TXCAN_NO_MSGS
-                  + sizeof(CO_SDO_t)
+                  + sizeof(CO_SDO_t) * CO_NO_SDO_SERVER
                   + sizeof(CO_OD_extension_t) * CO_OD_NoOfElements
                   + sizeof(CO_EM_t)
                   + sizeof(CO_EMpr_t)
@@ -239,7 +274,9 @@ CO_ReturnError_t CO_init(
     if(CO->CANmodule[0]                 == NULL) errCnt++;
     if(CO_CANmodule_rxArray0            == NULL) errCnt++;
     if(CO_CANmodule_txArray0            == NULL) errCnt++;
-    if(CO->SDO                          == NULL) errCnt++;
+    for(i=0; i<CO_NO_SDO_SERVER; i++){
+        if(CO->SDO[i]                   == NULL) errCnt++;
+    }
     if(CO_SDO_ODExtensions              == NULL) errCnt++;
     if(CO->em                           == NULL) errCnt++;
     if(CO->emPr                         == NULL) errCnt++;
@@ -261,6 +298,7 @@ CO_ReturnError_t CO_init(
 #endif
 
 
+    CO->CANmodule[0]->CANnormal = false;
     CO_CANsetConfigurationMode(CANbaseAddress);
 
     /* Verify CANopen Node-ID */
@@ -270,17 +308,6 @@ CO_ReturnError_t CO_init(
     err = CO_CANmodule_init(
             CO->CANmodule[0],
             CANbaseAddress,
-#if defined(__dsPIC33F__) || defined(__PIC24H__) \
-    || defined(__dsPIC33E__) || defined(__PIC24E__)
-            ADDR_DMA0,
-            ADDR_DMA1,
-           &CO_CANmsg[0],
-            CO_CANmsgBuffSize,
-            __builtin_dmaoffset(&CO_CANmsg[0]),
-#if defined(__HAS_EDS__)
-            __builtin_dmapage(&CO_CANmsg[0]),
-#endif
-#endif
             CO_CANmodule_rxArray0,
             CO_RXCAN_NO_MSGS,
             CO_CANmodule_txArray0,
@@ -289,21 +316,34 @@ CO_ReturnError_t CO_init(
 
     if(err){CO_delete(CANbaseAddress); return err;}
 
+    for (i=0; i<CO_NO_SDO_SERVER; i++)
+    {
+        uint32_t COB_IDClientToServer;
+        uint32_t COB_IDServerToClient;
+        if(i==0){
+            /*Default SDO server must be located at first index*/
+            COB_IDClientToServer = CO_CAN_ID_RSDO + nodeId;
+            COB_IDServerToClient = CO_CAN_ID_TSDO + nodeId;
+        }else{
+            COB_IDClientToServer = OD_SDOServerParameter[i].COB_IDClientToServer;
+            COB_IDServerToClient = OD_SDOServerParameter[i].COB_IDServerToClient;
+        }
 
-    err = CO_SDO_init(
-            CO->SDO,
-            CO_CAN_ID_RSDO + nodeId,
-            CO_CAN_ID_TSDO + nodeId,
-            OD_H1200_SDO_SERVER_PARAM,
-            0,
-           &CO_OD[0],
-            CO_OD_NoOfElements,
-            CO_SDO_ODExtensions,
-            nodeId,
-            CO->CANmodule[0],
-            CO_RXCAN_SDO_SRV,
-            CO->CANmodule[0],
-            CO_TXCAN_SDO_SRV);
+        err = CO_SDO_init(
+                CO->SDO[i],
+                COB_IDClientToServer,
+                COB_IDServerToClient,
+                OD_H1200_SDO_SERVER_PARAM+i,
+                i==0 ? 0 : CO->SDO[0],
+               &CO_OD[0],
+                CO_OD_NoOfElements,
+                CO_SDO_ODExtensions,
+                nodeId,
+                CO->CANmodule[0],
+                CO_RXCAN_SDO_SRV+i,
+                CO->CANmodule[0],
+                CO_TXCAN_SDO_SRV+i);
+    }
 
     if(err){CO_delete(CANbaseAddress); return err;}
 
@@ -311,7 +351,7 @@ CO_ReturnError_t CO_init(
     err = CO_EM_init(
             CO->em,
             CO->emPr,
-            CO->SDO,
+            CO->SDO[0],
            &OD_errorStatusBits[0],
             ODL_errorStatusBits_stringLength,
            &OD_errorRegister,
@@ -353,7 +393,7 @@ CO_ReturnError_t CO_init(
     err = CO_SYNC_init(
             CO->SYNC,
             CO->em,
-            CO->SDO,
+            CO->SDO[0],
            &CO->NMT->operatingState,
             OD_COB_ID_SYNCMessage,
             OD_communicationCyclePeriod,
@@ -373,7 +413,7 @@ CO_ReturnError_t CO_init(
         err = CO_RPDO_init(
                 CO->RPDO[i],
                 CO->em,
-                CO->SDO,
+                CO->SDO[0],
                &CO->NMT->operatingState,
                 nodeId,
                 ((i<4) ? (CO_CAN_ID_RPDO_1+i*0x100) : 0),
@@ -393,7 +433,7 @@ CO_ReturnError_t CO_init(
         err = CO_TPDO_init(
                 CO->TPDO[i],
                 CO->em,
-                CO->SDO,
+                CO->SDO[0],
                &CO->NMT->operatingState,
                 nodeId,
                 ((i<4) ? (CO_CAN_ID_TPDO_1+i*0x100) : 0),
@@ -412,7 +452,7 @@ CO_ReturnError_t CO_init(
     err = CO_HBconsumer_init(
             CO->HBcons,
             CO->em,
-            CO->SDO,
+            CO->SDO[0],
            &OD_consumerHeartbeatTime[0],
             CO_HBcons_monitoredNodes,
             CO_NO_HB_CONS,
@@ -425,7 +465,7 @@ CO_ReturnError_t CO_init(
 #if CO_NO_SDO_CLIENT == 1
     err = CO_SDOclient_init(
             CO->SDOclient,
-            CO->SDO,
+            CO->SDO[0],
             (CO_SDOclientPar_t*) &OD_SDOClientParameter[0],
             CO->CANmodule[0],
             CO_RXCAN_SDO_CLI,
@@ -466,7 +506,9 @@ void CO_delete(int32_t CANbaseAddress){
     free(CO->emPr);
     free(CO->em);
     free(CO_SDO_ODExtensions);
-    free(CO->SDO);
+    for(i=0; i<CO_NO_SDO_SERVER; i++){
+        free(CO->SDO[i]);
+    }
     free(CO_CANmodule_txArray0);
     free(CO_CANmodule_rxArray0);
     free(CO->CANmodule[0]);
@@ -481,6 +523,7 @@ CO_NMT_reset_cmd_t CO_process(
         uint16_t                timeDifference_ms,
         uint16_t               *timerNext_ms)
 {
+    uint8_t i;
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     static uint16_t ms50 = 0;
@@ -500,13 +543,14 @@ CO_NMT_reset_cmd_t CO_process(
     }
 
 
-    CO_SDO_process(
-            CO->SDO,
-            NMTisPreOrOperational,
-            timeDifference_ms,
-            1000,
-            timerNext_ms);
-
+    for(i=0; i<CO_NO_SDO_SERVER; i++){
+        CO_SDO_process(
+                CO->SDO[i],
+                NMTisPreOrOperational,
+                timeDifference_ms,
+                1000,
+                timerNext_ms);
+    }
 
     CO_EM_process(
             CO->emPr,
