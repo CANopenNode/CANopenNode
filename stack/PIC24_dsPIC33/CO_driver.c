@@ -783,19 +783,10 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule) {
             CAN_REG(CANmodule->CANbaseAddress, C_RXFUL1) &= ~(mask);
             CAN_REG(CANmodule->CANbaseAddress, C_CTRL1) = C_CTRL1old;
             CO_ENABLE_INTERRUPTS();
+            C_RXFUL1copy &= ~(mask);
 
             /* Now update FNRB, it will point to a new buffer after RXFUL was cleared */
             FNRB = (CAN_REG(CANmodule->CANbaseAddress, C_FIFO) & 0x3F);
-
-            /* Don't read past write buffer even if there are messages there, this is necessary
-             * to be able to recover from an overflow.
-             * This check must be after we've processed at least one message, since FNRB and FBP is
-             * equal also when buffer is full */
-            if (FNRB == FBP) {
-                break;
-            }
-
-            C_RXFUL1copy &= ~(mask);
         }
     }
 
