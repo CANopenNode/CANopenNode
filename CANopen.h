@@ -83,6 +83,9 @@
 #if CO_NO_SDO_CLIENT == 1
     #include "CO_SDOmaster.h"
 #endif
+#if CO_NO_TRACE > 0
+    #include "CO_trace.h"
+#endif
 
 
 /**
@@ -127,6 +130,9 @@ typedef struct{
     CO_HBconsumer_t    *HBcons;         /**<  Heartbeat consumer object*/
 #if CO_NO_SDO_CLIENT == 1
     CO_SDOclient_t     *SDOclient;      /**< SDO client object */
+#endif
+#if CO_NO_TRACE > 0
+    CO_trace_t         *trace[CO_NO_TRACE]; /**< Trace object for monitoring variables */
 #endif
 }CO_t;
 

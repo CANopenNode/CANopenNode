@@ -311,6 +311,7 @@ void __ISR(_TIMER_2_VECTOR, IPL3SOFT) CO_TimerInterruptHandler(void){
 
     if(CO->CANmodule[0]->CANnormal) {
         bool_t syncWas;
+        int i;
 
         /* Process Sync and read inputs */
         syncWas = CO_process_SYNC_RPDO(CO, 1000);
@@ -322,6 +323,12 @@ void __ISR(_TIMER_2_VECTOR, IPL3SOFT) CO_TimerInterruptHandler(void){
 #endif
 
         /* Further I/O or nonblocking application code may go here. */
+#if CO_NO_TRACE > 0
+        OD_time.epochTimeOffsetMs++;
+        for(i=0; i<CO_NO_TRACE; i++) {
+            CO_trace_process(CO->trace[i], *CO_time.epochTimeOffsetMs);
+        }
+#endif
         program1ms();
 
         /* Write outputs */

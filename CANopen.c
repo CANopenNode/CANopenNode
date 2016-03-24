@@ -68,6 +68,15 @@
     static CO_CANtx_t          *CO_CANmodule_txArray0;
     static CO_OD_extension_t   *CO_SDO_ODExtensions;
     static CO_HBconsNode_t     *CO_HBcons_monitoredNodes;
+#if CO_NO_TRACE > 0
+    static uint32_t            *CO_traceTimeBuffers[CO_NO_TRACE];
+    static int32_t             *CO_traceValueBuffers[CO_NO_TRACE];
+  #ifdef CO_USE_GLOBALS
+  #ifndef CO_TRACE_BUFFER_SIZE_FIXED
+    #define CO_TRACE_BUFFER_SIZE_FIXED 100
+  #endif
+  #endif
+#endif
 
 
 /* Verify features from CO_OD *************************************************/
@@ -129,6 +138,11 @@
 #if CO_NO_SDO_CLIENT == 1
     static CO_SDOclient_t       COO_SDOclient;
 #endif
+#if CO_NO_TRACE > 0
+    static CO_trace_t           COO_trace[CO_NO_TRACE];
+    static uint32_t             COO_traceTimeBuffers[CO_NO_TRACE][CO_TRACE_BUFFER_SIZE_FIXED];
+    static int32_t              COO_traceValueBuffers[CO_NO_TRACE][CO_TRACE_BUFFER_SIZE_FIXED];
+#endif
 #endif
 
 
@@ -184,6 +198,9 @@ CO_ReturnError_t CO_init(
 #ifndef CO_USE_GLOBALS
     uint16_t errCnt;
 #endif
+#if CO_NO_TRACE > 0
+    uint32_t CO_traceBufferSize[CO_NO_TRACE];
+#endif
 
     /* Verify parameters from CO_OD */
     if(   sizeof(OD_TPDOCommunicationParameter_t) != sizeof(CO_TPDOCommPar_t)
@@ -224,7 +241,14 @@ CO_ReturnError_t CO_init(
   #if CO_NO_SDO_CLIENT == 1
     CO->SDOclient                       = &COO_SDOclient;
   #endif
-
+  #if CO_NO_TRACE > 0
+    for(i=0; i<CO_NO_TRACE; i++) {
+        CO->trace[i]                    = &COO_trace[i];
+        CO_traceTimeBuffers[i]          = &COO_traceTimeBuffers[i][0];
+        CO_traceValueBuffers[i]         = &COO_traceValueBuffers[i][0];
+        CO_traceBufferSize[i]           = CO_TRACE_BUFFER_SIZE_FIXED;
+    }
+  #endif
 #else
     if(CO == NULL){    /* Use malloc only once */
         CO = &COO;
@@ -250,6 +274,18 @@ CO_ReturnError_t CO_init(
       #if CO_NO_SDO_CLIENT == 1
         CO->SDOclient                       = (CO_SDOclient_t *)    calloc(1, sizeof(CO_SDOclient_t));
       #endif
+      #if CO_NO_TRACE > 0
+        for(i=0; i<CO_NO_TRACE; i++) {
+            CO->trace[i]                    = (CO_trace_t *)        calloc(1, sizeof(CO_trace_t));
+            CO_traceTimeBuffers[i]          = (uint32_t *)          calloc(OD_traceConfig[i].size, sizeof(uint32_t));
+            CO_traceValueBuffers[i]         = (int32_t *)           calloc(OD_traceConfig[i].size, sizeof(int32_t));
+            if(CO_traceTimeBuffers[i] != NULL && CO_traceValueBuffers[i] != NULL) {
+                CO_traceBufferSize[i] = OD_traceConfig[i].size;
+            } else {
+                CO_traceBufferSize[i] = 0;
+            }
+        }
+      #endif
     }
 
     CO_memoryUsed = sizeof(CO_CANmodule_t)
@@ -269,6 +305,12 @@ CO_ReturnError_t CO_init(
                   + sizeof(CO_SDOclient_t)
   #endif
                   + 0;
+  #if CO_NO_TRACE > 0
+    CO_memoryUsed += sizeof(CO_trace_t) * CO_NO_TRACE;
+    for(i=0; i<CO_NO_TRACE; i++) {
+        CO_memoryUsed += CO_traceBufferSize[i] * 8;
+    }
+  #endif
 
     errCnt = 0;
     if(CO->CANmodule[0]                 == NULL) errCnt++;
@@ -292,6 +334,11 @@ CO_ReturnError_t CO_init(
     if(CO_HBcons_monitoredNodes         == NULL) errCnt++;
   #if CO_NO_SDO_CLIENT == 1
     if(CO->SDOclient                    == NULL) errCnt++;
+  #endif
+  #if CO_NO_TRACE > 0
+    for(i=0; i<CO_NO_TRACE; i++) {
+        if(CO->trace[i]                 == NULL) errCnt++;
+    }
   #endif
 
     if(errCnt != 0) return CO_ERROR_OUT_OF_MEMORY;
@@ -476,6 +523,29 @@ CO_ReturnError_t CO_init(
 #endif
 
 
+#if CO_NO_TRACE > 0
+    for(i=0; i<CO_NO_TRACE; i++) {
+        CO_trace_init(
+            CO->trace[i],
+            CO->SDO[0],
+            OD_traceConfig[i].axisNo,
+            CO_traceTimeBuffers[i],
+            CO_traceValueBuffers[i],
+            CO_traceBufferSize[i],
+            &OD_traceConfig[i].map,
+            &OD_traceConfig[i].format,
+            &OD_traceConfig[i].trigger,
+            &OD_traceConfig[i].threshold,
+            &OD_trace[i].value,
+            &OD_trace[i].min,
+            &OD_trace[i].max,
+            &OD_trace[i].triggerTime,
+            OD_INDEX_TRACE_CONFIG + i,
+            OD_INDEX_TRACE + i);
+    }
+#endif
+
+
     return CO_ERROR_NO;
 }
 
@@ -490,6 +560,13 @@ void CO_delete(int32_t CANbaseAddress){
     CO_CANmodule_disable(CO->CANmodule[0]);
 
 #ifndef CO_USE_GLOBALS
+  #if CO_NO_TRACE > 0
+      for(i=0; i<CO_NO_TRACE; i++) {
+          free(CO->trace[i]);
+          free(CO_traceTimeBuffers[i]);
+          free(CO_traceValueBuffers[i]);
+      }
+  #endif
   #if CO_NO_SDO_CLIENT == 1
     free(CO->SDOclient);
   #endif

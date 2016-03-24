@@ -10,7 +10,7 @@
  *
  * @file        CO_OD.h
  * @author      Janez Paternoster
- * @copyright   2010 - 2015 Janez Paternoster
+ * @copyright   2010 - 2016 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -74,11 +74,11 @@
 
 /*******************************************************************************
    FILE INFO:
-      FileName:     IO
-      FileVersion:  3.0
-      CreationTime: 13:23:28
-      CreationDate: 2013-03-09
-      CreatedBy:    -
+      FileName:     IO Example
+      FileVersion:  -
+      CreationTime: 21:37:08
+      CreationDate: 2016-03-24
+      CreatedBy:    JP
 *******************************************************************************/
 
 
@@ -97,16 +97,17 @@
    #define CO_NO_SYNC                     1   //Associated objects: 1005, 1006, 1007, 2103, 2104
    #define CO_NO_EMERGENCY                1   //Associated objects: 1014, 1015
    #define CO_NO_SDO_SERVER               1   //Associated objects: 1200
-   #define CO_NO_SDO_CLIENT               0
+   #define CO_NO_SDO_CLIENT               0   
    #define CO_NO_RPDO                     4   //Associated objects: 1400, 1401, 1402, 1403, 1600, 1601, 1602, 1603
    #define CO_NO_TPDO                     4   //Associated objects: 1800, 1801, 1802, 1803, 1A00, 1A01, 1A02, 1A03
-   #define CO_NO_NMT_MASTER               0
+   #define CO_NO_NMT_MASTER               0   
+   #define CO_NO_TRACE                    2   //Associated objects: 2300, 2301, 2400, 2401
 
 
 /*******************************************************************************
    OBJECT DICTIONARY
 *******************************************************************************/
-   #define CO_OD_NoOfElements             54
+   #define CO_OD_NoOfElements             59
 
 
 /*******************************************************************************
@@ -175,6 +176,35 @@
                DOMAIN         domain;
                }              OD_testVar_t;
 
+/*2130      */ typedef struct{
+               UNSIGNED8      maxSubIndex;
+               VISIBLE_STRING string[30];
+               UNSIGNED64     epochTimeBaseMs;
+               UNSIGNED32     epochTimeOffsetMs;
+               }              OD_time_t;
+
+/*2300[2]   */ typedef struct{
+               UNSIGNED8      maxSubIndex;
+               UNSIGNED32     size;
+               UNSIGNED8      axisNo;
+               VISIBLE_STRING name[30];
+               VISIBLE_STRING color[20];
+               UNSIGNED32     map;
+               UNSIGNED8      format;
+               UNSIGNED8      trigger;
+               INTEGER32      threshold;
+               }              OD_traceConfig_t;
+
+/*2400[2]   */ typedef struct{
+               UNSIGNED8      maxSubIndex;
+               UNSIGNED32     size;
+               INTEGER32      value;
+               INTEGER32      min;
+               INTEGER32      max;
+               DOMAIN         plot;
+               UNSIGNED32     triggerTime;
+               }              OD_trace_t;
+
 
 /*******************************************************************************
    STRUCTURES FOR VARIABLES IN DIFFERENT MEMORY LOCATIONS
@@ -198,6 +228,8 @@ struct sCO_OD_RAM{
 /*2109      */ INTEGER16      voltage[1];
 /*2110      */ INTEGER32      variableInt32[16];
 /*2120      */ OD_testVar_t   testVar;
+/*2130      */ OD_time_t      time;
+/*2400[2]   */ OD_trace_t     trace[2];
 /*6000      */ UNSIGNED8      readInput8Bit[8];
 /*6200      */ UNSIGNED8      writeOutput8Bit[8];
 /*6401      */ INTEGER16      readAnalogueInput16Bit[12];
@@ -244,6 +276,7 @@ struct sCO_OD_ROM{
 /*2101      */ UNSIGNED8      CANNodeID;
 /*2102      */ UNSIGNED16     CANBitRate;
 /*2111      */ INTEGER32      variableROMInt32[16];
+/*2300[2]   */ OD_traceConfig_t traceConfig[2];
 
                UNSIGNED32     LastWord;
 };
@@ -404,6 +437,15 @@ extern struct sCO_OD_ROM CO_OD_ROM;
 /*2120, Data Type: OD_testVar_t */
       #define OD_testVar                                 CO_OD_RAM.testVar
 
+/*2130, Data Type: OD_time_t */
+      #define OD_time                                    CO_OD_RAM.time
+
+/*2300[2], Data Type: OD_traceConfig_t, Array[2] */
+      #define OD_traceConfig                             CO_OD_ROM.traceConfig
+
+/*2400[2], Data Type: OD_trace_t, Array[2] */
+      #define OD_trace                                   CO_OD_RAM.trace
+
 /*6000, Data Type: UNSIGNED8, Array[8] */
       #define OD_readInput8Bit                           CO_OD_RAM.readInput8Bit
       #define ODL_readInput8Bit_arrayLength              8
@@ -422,3 +464,4 @@ extern struct sCO_OD_ROM CO_OD_ROM;
 
 
 #endif
+
