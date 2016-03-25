@@ -76,7 +76,7 @@
    FILE INFO:
       FileName:     IO Example
       FileVersion:  -
-      CreationTime: 17:24:43
+      CreationTime: 18:04:29
       CreationDate: 2016-03-25
       CreatedBy:    JP
 *******************************************************************************/
@@ -101,13 +101,13 @@
    #define CO_NO_RPDO                     4   //Associated objects: 1400, 1401, 1402, 1403, 1600, 1601, 1602, 1603
    #define CO_NO_TPDO                     4   //Associated objects: 1800, 1801, 1802, 1803, 1A00, 1A01, 1A02, 1A03
    #define CO_NO_NMT_MASTER               0   
-   #define CO_NO_TRACE                    2   //Associated objects: 2301, 2302, 2400, 2401, 2402
+   #define CO_NO_TRACE                    0   
 
 
 /*******************************************************************************
    OBJECT DICTIONARY
 *******************************************************************************/
-   #define CO_OD_NoOfElements             60
+   #define CO_OD_NoOfElements             55
 
 
 /*******************************************************************************
@@ -183,28 +183,6 @@
                UNSIGNED32     epochTimeOffsetMs;
                }              OD_time_t;
 
-/*2301[2]   */ typedef struct{
-               UNSIGNED8      maxSubIndex;
-               UNSIGNED32     size;
-               UNSIGNED8      axisNo;
-               VISIBLE_STRING name[30];
-               VISIBLE_STRING color[20];
-               UNSIGNED32     map;
-               UNSIGNED8      format;
-               UNSIGNED8      trigger;
-               INTEGER32      threshold;
-               }              OD_traceConfig_t;
-
-/*2401[2]   */ typedef struct{
-               UNSIGNED8      maxSubIndex;
-               UNSIGNED32     size;
-               INTEGER32      value;
-               INTEGER32      min;
-               INTEGER32      max;
-               DOMAIN         plot;
-               UNSIGNED32     triggerTime;
-               }              OD_trace_t;
-
 
 /*******************************************************************************
    STRUCTURES FOR VARIABLES IN DIFFERENT MEMORY LOCATIONS
@@ -229,8 +207,6 @@ struct sCO_OD_RAM{
 /*2110      */ INTEGER32      variableInt32[16];
 /*2120      */ OD_testVar_t   testVar;
 /*2130      */ OD_time_t      time;
-/*2400      */ UNSIGNED8      traceEnable;
-/*2401[2]   */ OD_trace_t     trace[2];
 /*6000      */ UNSIGNED8      readInput8Bit[8];
 /*6200      */ UNSIGNED8      writeOutput8Bit[8];
 /*6401      */ INTEGER16      readAnalogueInput16Bit[12];
@@ -277,7 +253,6 @@ struct sCO_OD_ROM{
 /*2101      */ UNSIGNED8      CANNodeID;
 /*2102      */ UNSIGNED16     CANBitRate;
 /*2111      */ INTEGER32      variableROMInt32[16];
-/*2301[2]   */ OD_traceConfig_t traceConfig[2];
 
                UNSIGNED32     LastWord;
 };
@@ -440,15 +415,6 @@ extern struct sCO_OD_ROM CO_OD_ROM;
 
 /*2130, Data Type: OD_time_t */
       #define OD_time                                    CO_OD_RAM.time
-
-/*2301[2], Data Type: OD_traceConfig_t, Array[2] */
-      #define OD_traceConfig                             CO_OD_ROM.traceConfig
-
-/*2400, Data Type: UNSIGNED8 */
-      #define OD_traceEnable                             CO_OD_RAM.traceEnable
-
-/*2401[2], Data Type: OD_trace_t, Array[2] */
-      #define OD_trace                                   CO_OD_RAM.trace
 
 /*6000, Data Type: UNSIGNED8, Array[8] */
       #define OD_readInput8Bit                           CO_OD_RAM.readInput8Bit

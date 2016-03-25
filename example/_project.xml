@@ -56,7 +56,7 @@ Permissible value for TPDO is 0 to 16. For larger value Max Index must be change
       <label lang="en">NMT master</label>
       <description lang="en">NMT master can send CANopen NMT command, which can start, stop or reset nodes.</description>
     </feature>
-    <feature name="Trace" value="2">
+    <feature name="Trace" value="0">
       <label lang="en">Trace</label>
       <description lang="en">Trace is used for recording variables.</description>
       <associatedObject index="2301" indexMax="2320" indexStep="1"/>
@@ -780,7 +780,7 @@ Epoch time ms - Milliseconds since unix epoch (1.1.1970, 00:00:00, UTC). It is c
       <CANopenSubObject subIndex="02" name="Epoch time base ms" objectType="7" dataType="1B" accessType="rw" PDOmapping="no" defaultValue="0"/>
       <CANopenSubObject subIndex="03" name="Epoch time offset ms" objectType="7" dataType="07" accessType="rw" PDOmapping="optional" defaultValue="0"/>
     </CANopenObject>
-    <CANopenObject index="2301" name="Trace config" objectType="9" subNumber="9" memoryType="ROM">
+    <CANopenObject index="2301" name="Trace config" objectType="9" subNumber="9" memoryType="ROM" disabled="true">
       <label lang="en">Trace config</label>
       <description lang="en">Trace is used for recording variables.
 
@@ -811,7 +811,7 @@ Threshold - If integer value passes threshold (based on trigger setting), time i
       <CANopenSubObject subIndex="07" name="Trigger" objectType="7" dataType="05" accessType="rw" PDOmapping="no" defaultValue="0"/>
       <CANopenSubObject subIndex="08" name="Threshold" objectType="7" dataType="04" accessType="rw" PDOmapping="no" defaultValue="0"/>
     </CANopenObject>
-    <CANopenObject index="2302" name="Trace config" objectType="9" subNumber="9" memoryType="ROM">
+    <CANopenObject index="2302" name="Trace config" objectType="9" subNumber="9" memoryType="ROM" disabled="true">
       <CANopenSubObject subIndex="00" name="max sub-index" objectType="7" dataType="05" accessType="ro" PDOmapping="no" defaultValue="8"/>
       <CANopenSubObject subIndex="01" name="Size" objectType="7" dataType="07" accessType="rw" PDOmapping="no" defaultValue="0"/>
       <CANopenSubObject subIndex="02" name="Axis no" objectType="7" dataType="05" accessType="rw" PDOmapping="no" defaultValue="0"/>
@@ -822,11 +822,11 @@ Threshold - If integer value passes threshold (based on trigger setting), time i
       <CANopenSubObject subIndex="07" name="Trigger" objectType="7" dataType="05" accessType="rw" PDOmapping="no" defaultValue="0"/>
       <CANopenSubObject subIndex="08" name="Threshold" objectType="7" dataType="04" accessType="rw" PDOmapping="no" defaultValue="0"/>
     </CANopenObject>
-    <CANopenObject index="2400" name="Trace enable" objectType="7" memoryType="RAM" dataType="05" accessType="rw" PDOmapping="optional" defaultValue="0">
+    <CANopenObject index="2400" name="Trace enable" objectType="7" memoryType="RAM" dataType="05" accessType="rw" PDOmapping="optional" defaultValue="0" disabled="true">
       <label lang="en">Trace enable</label>
       <description lang="en">This object controls, how many trace objects (beginning from index 0x2401) are enabled. If zero, all traces are disabled.</description>
     </CANopenObject>
-    <CANopenObject index="2401" name="Trace" objectType="9" subNumber="7" memoryType="RAM">
+    <CANopenObject index="2401" name="Trace" objectType="9" subNumber="7" memoryType="RAM" disabled="true">
       <label lang="en">Trace</label>
       <description lang="en">Trace is used for recording variables.
 
@@ -849,7 +849,7 @@ Trigger time - If integer value passes 'TraceConfig-&gt;threshold', then time is
       <CANopenSubObject subIndex="05" name="Plot" objectType="7" dataType="0F" accessType="ro" PDOmapping="no" defaultValue="0"/>
       <CANopenSubObject subIndex="06" name="Trigger time" objectType="7" dataType="07" accessType="rw" PDOmapping="optional" defaultValue="0"/>
     </CANopenObject>
-    <CANopenObject index="2402" name="Trace" objectType="9" subNumber="7" memoryType="RAM">
+    <CANopenObject index="2402" name="Trace" objectType="9" subNumber="7" memoryType="RAM" disabled="true">
       <CANopenSubObject subIndex="00" name="max sub-index" objectType="7" dataType="05" accessType="ro" PDOmapping="no" defaultValue="6"/>
       <CANopenSubObject subIndex="01" name="Size" objectType="7" dataType="07" accessType="rw" PDOmapping="optional" defaultValue="0"/>
       <CANopenSubObject subIndex="02" name="Value" objectType="7" dataType="04" accessType="ro" PDOmapping="TPDO" defaultValue="0"/>
@@ -916,7 +916,7 @@ Trigger time - If integer value passes 'TraceConfig-&gt;threshold', then time is
     </CANopenObject>
   </CANopenObjectList>
   <other>
-    <file fileName="IO Example" fileCreator="JP" fileCreationDate="2016-03-25" fileCreationTime="17:24:43" fileVersion="-"/>
+    <file fileName="IO Example" fileCreator="JP" fileCreationDate="2016-03-25" fileCreationTime="18:04:29" fileVersion="-"/>
     <DeviceIdentity>
       <vendorName>CANopenNode</vendorName>
       <productName>CANopenNode</productName>
