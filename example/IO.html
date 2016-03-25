@@ -98,11 +98,11 @@
               </tr>
               <tr>
                 <th>Creation Time</th>
-                <td>21:37:08</td>
+                <td>17:24:43</td>
               </tr>
               <tr>
                 <th>Creation Date</th>
-                <td>2016-03-24</td>
+                <td>2016-03-25</td>
               </tr>
               <tr>
                 <th>Created By</th>
@@ -119,7 +119,7 @@
             <table>
               <tr>
                 <th>Vendor name</th>
-                <td>Paternoster</td>
+                <td>CANopenNode</td>
               </tr>
               <tr>
                 <th>Product Name</th>
@@ -133,12 +133,6 @@
                     <div>CANopenNode is an open source software stack used for serial communication of multiple devices over the CAN/CANopen Network.</div>
                     <a href="http://canopennode.sourceforge.net" target="infoWindow">More...</a>
                   </div>
-                </td>
-              </tr>
-              <tr>
-                <th>Version</th>
-                <td>
-                  <div>Version Type=FW, version=3.00</div>
                 </td>
               </tr>
             </table>
@@ -345,14 +339,20 @@
                 </tr>
                 <tr>
                   <td>Trace config</td>
-                  <td>2300</td>
-                  <td>231F</td>
+                  <td>2301</td>
+                  <td>2320</td>
                   <td>1</td>
                 </tr>
                 <tr>
-                  <td>Trace</td>
+                  <td>Trace enable</td>
                   <td>2400</td>
-                  <td>241F</td>
+                  <td/>
+                  <td/>
+                </tr>
+                <tr>
+                  <td>Trace</td>
+                  <td>2401</td>
+                  <td>2420</td>
                   <td>1</td>
                 </tr>
               </table>
@@ -1505,47 +1505,6 @@
           </ul>
         </li>
         <li class="expandable">
-          <a docref="IO Example_2300">2300 - Trace config</a>
-          <ul>
-            <li>
-              00 - max sub-index:
-              <input addr="2300000001" format="U08" pf="ro" value="8"/>
-            </li>
-            <li>
-              01 - Size:
-              <input addr="2300010004" format="U32" pf="rw" value="100"/>
-            </li>
-            <li>
-              02 - Axis no:
-              <input addr="2300020001" format="U08" pf="rw" value="1"/>
-            </li>
-            <li>
-              03 - Name:
-              <input addr="23000300" format="S" pf="rw" value="name                          "/>
-            </li>
-            <li>
-              04 - Color:
-              <input addr="23000400" format="S" pf="rw" value="red                 "/>
-            </li>
-            <li>
-              05 - Map:
-              <input addr="2300050004" format="X32" pf="rw" value="0x60000108"/>
-            </li>
-            <li>
-              06 - Format:
-              <input addr="2300060001" format="U08" pf="rw" value="1"/>
-            </li>
-            <li>
-              07 - Trigger:
-              <input addr="2300070001" format="U08" pf="rw" value="0"/>
-            </li>
-            <li>
-              08 - Threshold:
-              <input addr="2300080004" format="I32" pf="rw" value="0"/>
-            </li>
-          </ul>
-        </li>
-        <li class="expandable">
           <a docref="IO Example_2301">2301 - Trace config</a>
           <ul>
             <li>
@@ -1554,15 +1513,15 @@
             </li>
             <li>
               01 - Size:
-              <input addr="2301010004" format="U32" pf="rw" value="0"/>
+              <input addr="2301010004" format="U32" pf="rw" value="100"/>
             </li>
             <li>
               02 - Axis no:
-              <input addr="2301020001" format="U08" pf="rw" value="0"/>
+              <input addr="2301020001" format="U08" pf="rw" value="1"/>
             </li>
             <li>
               03 - Name:
-              <input addr="23010300" format="S" pf="rw" value="name                          "/>
+              <input addr="23010300" format="S" pf="rw" value="Trace1                        "/>
             </li>
             <li>
               04 - Color:
@@ -1570,11 +1529,11 @@
             </li>
             <li>
               05 - Map:
-              <input addr="2301050004" format="X32" pf="rw" value="0x00000000"/>
+              <input addr="2301050004" format="X32" pf="rw" value="0x60000108"/>
             </li>
             <li>
               06 - Format:
-              <input addr="2301060001" format="U08" pf="rw" value="0"/>
+              <input addr="2301060001" format="U08" pf="rw" value="1"/>
             </li>
             <li>
               07 - Trigger:
@@ -1587,37 +1546,50 @@
           </ul>
         </li>
         <li class="expandable">
-          <a docref="IO Example_2400">2400 - Trace</a>
+          <a docref="IO Example_2302">2302 - Trace config</a>
           <ul>
             <li>
               00 - max sub-index:
-              <input addr="2400000001" format="U08" pf="rro" value="6"/>
+              <input addr="2302000001" format="U08" pf="ro" value="8"/>
             </li>
             <li>
               01 - Size:
-              <input addr="2400010004" format="U32" pf="rrw" value="0"/>
+              <input addr="2302010004" format="U32" pf="rw" value="0"/>
             </li>
             <li>
-              02 - Value:
-              <input addr="2400020004" format="I32" pf="rro" value="0"/>
+              02 - Axis no:
+              <input addr="2302020001" format="U08" pf="rw" value="0"/>
             </li>
             <li>
-              03 - Min:
-              <input addr="2400030004" format="I32" pf="rrw" value="0"/>
+              03 - Name:
+              <input addr="23020300" format="S" pf="rw" value="Trace2                        "/>
             </li>
             <li>
-              04 - Max:
-              <input addr="2400040004" format="I32" pf="rrw" value="0"/>
+              04 - Color:
+              <input addr="23020400" format="S" pf="rw" value="green               "/>
             </li>
             <li>
-              05 - Plot:
-              <input addr="2400050000" format="Dxx" pf="rro" value="0"/>
+              05 - Map:
+              <input addr="2302050004" format="X32" pf="rw" value="0x00000000"/>
             </li>
             <li>
-              06 - Trigger time:
-              <input addr="2400060004" format="U32" pf="rrw" value="0"/>
+              06 - Format:
+              <input addr="2302060001" format="U08" pf="rw" value="0"/>
+            </li>
+            <li>
+              07 - Trigger:
+              <input addr="2302070001" format="U08" pf="rw" value="0"/>
+            </li>
+            <li>
+              08 - Threshold:
+              <input addr="2302080004" format="I32" pf="rw" value="0"/>
             </li>
           </ul>
+        </li>
+        <li>
+          <a docref="IO Example_2400">2400</a>
+          - Trace enable:
+          <input addr="2400000001" format="U08" pf="rrw" value="0"/>
         </li>
         <li class="expandable">
           <a docref="IO Example_2401">2401 - Trace</a>
@@ -1652,6 +1624,39 @@
             </li>
           </ul>
         </li>
+        <li class="expandable">
+          <a docref="IO Example_2402">2402 - Trace</a>
+          <ul>
+            <li>
+              00 - max sub-index:
+              <input addr="2402000001" format="U08" pf="rro" value="6"/>
+            </li>
+            <li>
+              01 - Size:
+              <input addr="2402010004" format="U32" pf="rrw" value="0"/>
+            </li>
+            <li>
+              02 - Value:
+              <input addr="2402020004" format="I32" pf="rro" value="0"/>
+            </li>
+            <li>
+              03 - Min:
+              <input addr="2402030004" format="I32" pf="rrw" value="0"/>
+            </li>
+            <li>
+              04 - Max:
+              <input addr="2402040004" format="I32" pf="rrw" value="0"/>
+            </li>
+            <li>
+              05 - Plot:
+              <input addr="2402050000" format="Dxx" pf="rro" value="0"/>
+            </li>
+            <li>
+              06 - Trigger time:
+              <input addr="2402060004" format="U32" pf="rrw" value="0"/>
+            </li>
+          </ul>
+        </li>
       </ul>
     </li>
     <li class="expandable">
@@ -1672,35 +1677,35 @@
             </li>
             <li>
               01 - Input:
-              <input addr="6000010001" format="U08" pf="rro" value="0"/>
+              <input addr="6000010001" format="X08" pf="rro" value="0x00"/>
             </li>
             <li>
               02 - Input:
-              <input addr="6000020001" format="U08" pf="rro" value="0"/>
+              <input addr="6000020001" format="X08" pf="rro" value="0x00"/>
             </li>
             <li>
               03 - Input:
-              <input addr="6000030001" format="U08" pf="rro" value="0"/>
+              <input addr="6000030001" format="X08" pf="rro" value="0x00"/>
             </li>
             <li>
               04 - Input:
-              <input addr="6000040001" format="U08" pf="rro" value="0"/>
+              <input addr="6000040001" format="X08" pf="rro" value="0x00"/>
             </li>
             <li>
               05 - Input:
-              <input addr="6000050001" format="U08" pf="rro" value="0"/>
+              <input addr="6000050001" format="X08" pf="rro" value="0x00"/>
             </li>
             <li>
               06 - Input:
-              <input addr="6000060001" format="U08" pf="rro" value="0"/>
+              <input addr="6000060001" format="X08" pf="rro" value="0x00"/>
             </li>
             <li>
               07 - Input:
-              <input addr="6000070001" format="U08" pf="rro" value="0"/>
+              <input addr="6000070001" format="X08" pf="rro" value="0x00"/>
             </li>
             <li>
               08 - Input:
-              <input addr="6000080001" format="U08" pf="rro" value="0"/>
+              <input addr="6000080001" format="X08" pf="rro" value="0x00"/>
             </li>
           </ul>
         </li>
@@ -1713,35 +1718,35 @@
             </li>
             <li>
               01 - Output:
-              <input addr="6200010001" format="U08" pf="rrw" value="0"/>
+              <input addr="6200010001" format="X08" pf="rrw" value="0x00"/>
             </li>
             <li>
               02 - Output:
-              <input addr="6200020001" format="U08" pf="rrw" value="0"/>
+              <input addr="6200020001" format="X08" pf="rrw" value="0x00"/>
             </li>
             <li>
               03 - Output:
-              <input addr="6200030001" format="U08" pf="rrw" value="0"/>
+              <input addr="6200030001" format="X08" pf="rrw" value="0x00"/>
             </li>
             <li>
               04 - Output:
-              <input addr="6200040001" format="U08" pf="rrw" value="0"/>
+              <input addr="6200040001" format="X08" pf="rrw" value="0x00"/>
             </li>
             <li>
               05 - Output:
-              <input addr="6200050001" format="U08" pf="rrw" value="0"/>
+              <input addr="6200050001" format="X08" pf="rrw" value="0x00"/>
             </li>
             <li>
               06 - Output:
-              <input addr="6200060001" format="U08" pf="rrw" value="0"/>
+              <input addr="6200060001" format="X08" pf="rrw" value="0x00"/>
             </li>
             <li>
               07 - Output:
-              <input addr="6200070001" format="U08" pf="rrw" value="0"/>
+              <input addr="6200070001" format="X08" pf="rrw" value="0x00"/>
             </li>
             <li>
               08 - Output:
-              <input addr="6200080001" format="U08" pf="rrw" value="0"/>
+              <input addr="6200080001" format="X08" pf="rrw" value="0x00"/>
             </li>
           </ul>
         </li>
@@ -5707,8 +5712,8 @@
         </div>
       </div>
     </li>
-    <li id="IO Example_2300">
-      <h3>2300 - Trace config</h3>
+    <li id="IO Example_2301">
+      <h3>2301 - Trace config</h3>
       <table>
         <tr>
           <th>Object Type</th>
@@ -5770,7 +5775,7 @@
           <td>rw</td>
           <td>no</td>
           <td>no</td>
-          <td>name</td>
+          <td>Trace1</td>
           <td/>
         </tr>
         <tr>
@@ -5858,8 +5863,8 @@
         </div>
       </div>
     </li>
-    <li id="IO Example_2301">
-      <h3>2301 - Trace config</h3>
+    <li id="IO Example_2302">
+      <h3>2302 - Trace config</h3>
       <table>
         <tr>
           <th>Object Type</th>
@@ -5921,7 +5926,7 @@
           <td>rw</td>
           <td>no</td>
           <td>no</td>
-          <td>name</td>
+          <td>Trace2</td>
           <td/>
         </tr>
         <tr>
@@ -5931,7 +5936,7 @@
           <td>rw</td>
           <td>no</td>
           <td>no</td>
-          <td>red</td>
+          <td>green</td>
           <td/>
         </tr>
         <tr>
@@ -5977,7 +5982,36 @@
       </table>
     </li>
     <li id="IO Example_2400">
-      <h3>2400 - Trace</h3>
+      <h3>2400 - Trace enable</h3>
+      <table>
+        <tr>
+          <th>Object Type</th>
+          <th>Memory Type</th>
+          <th>Data Type</th>
+          <th>Access Type</th>
+          <th>PDO Mapping</th>
+          <th>TPDO detects COS</th>
+          <th>Default value</th>
+          <th>Actual value</th>
+        </tr>
+        <tr>
+          <td>Var</td>
+          <td>RAM</td>
+          <td>UNSIGNED8</td>
+          <td>rw</td>
+          <td>optional</td>
+          <td>no</td>
+          <td>0</td>
+          <td/>
+        </tr>
+      </table>
+      <div class="description lang_en">
+        <h4>en: Trace enable</h4>
+        <div>This object controls, how many trace objects (beginning from index 0x2401) are enabled. If zero, all traces are disabled.</div>
+      </div>
+    </li>
+    <li id="IO Example_2401">
+      <h3>2401 - Trace</h3>
       <table>
         <tr>
           <th>Object Type</th>
@@ -6098,8 +6132,8 @@
         </div>
       </div>
     </li>
-    <li id="IO Example_2401">
-      <h3>2401 - Trace</h3>
+    <li id="IO Example_2402">
+      <h3>2402 - Trace</h3>
       <table>
         <tr>
           <th>Object Type</th>
@@ -6235,49 +6269,49 @@
         <tr>
           <td>01</td>
           <td>Input</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>02</td>
           <td>Input</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>03</td>
           <td>Input</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>04</td>
           <td>Input</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>05</td>
           <td>Input</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>06</td>
           <td>Input</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>07</td>
           <td>Input</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>08</td>
           <td>Input</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
       </table>
@@ -6325,49 +6359,49 @@
         <tr>
           <td>01</td>
           <td>Output</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>02</td>
           <td>Output</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>03</td>
           <td>Output</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>04</td>
           <td>Output</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>05</td>
           <td>Output</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>06</td>
           <td>Output</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>07</td>
           <td>Output</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
         <tr>
           <td>08</td>
           <td>Output</td>
-          <td>0</td>
+          <td>0x00</td>
           <td/>
         </tr>
       </table>

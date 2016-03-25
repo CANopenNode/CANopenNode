@@ -325,7 +325,7 @@ void __ISR(_TIMER_2_VECTOR, IPL3SOFT) CO_TimerInterruptHandler(void){
         /* Further I/O or nonblocking application code may go here. */
 #if CO_NO_TRACE > 0
         OD_time.epochTimeOffsetMs++;
-        for(i=0; i<CO_NO_TRACE; i++) {
+        for(i=0; i<OD_traceEnable && i<CO_NO_TRACE; i++) {
             CO_trace_process(CO->trace[i], OD_time.epochTimeOffsetMs);
         }
 #endif

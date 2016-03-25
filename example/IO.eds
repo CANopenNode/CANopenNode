@@ -10,13 +10,13 @@ FileVersion=-
 FileRevision=0
 EDSVersion=4.0
 Description=Open Source CANopen implementation
-CreationTime=21:37:08
-CreationDate=2016-03-24
+CreationTime=17:24:43
+CreationDate=2016-03-25
 CreatedBy=JP
 
 
 [DeviceInfo]
-VendorName=Paternoster
+VendorName=CANopenNode
 VendorNumber=0
 ProductName=CANopenNode
 ProductNumber=0
@@ -109,7 +109,7 @@ SupportedObjects=38
 
 
 [ManufacturerObjects]
-SupportedObjects=18
+SupportedObjects=19
 1=0x2100
 2=0x2101
 3=0x2102
@@ -124,10 +124,11 @@ SupportedObjects=18
 12=0x2112
 13=0x2120
 14=0x2130
-15=0x2300
-16=0x2301
+15=0x2301
+16=0x2302
 17=0x2400
 18=0x2401
+19=0x2402
 
 [1000]
 ParameterName=Device type
@@ -2172,83 +2173,6 @@ AccessType=rww
 PDOMapping=1
 DefaultValue=0
 
-[2300]
-ParameterName=Trace config
-ObjectType=9
-SubNumber=9
-
-[2300sub0]
-ParameterName=max sub-index
-ObjectType=7
-DataType=0x0005
-AccessType=ro
-PDOMapping=0
-DefaultValue=8
-
-[2300sub1]
-ParameterName=Size
-ObjectType=7
-DataType=0x0007
-AccessType=rw
-PDOMapping=0
-DefaultValue=100
-
-[2300sub2]
-ParameterName=Axis no
-ObjectType=7
-DataType=0x0005
-AccessType=rw
-PDOMapping=0
-DefaultValue=1
-
-[2300sub3]
-ParameterName=Name
-ObjectType=7
-DataType=0x0009
-AccessType=rw
-PDOMapping=0
-DefaultValue=name                          
-
-[2300sub4]
-ParameterName=Color
-ObjectType=7
-DataType=0x0009
-AccessType=rw
-PDOMapping=0
-DefaultValue=red                 
-
-[2300sub5]
-ParameterName=Map
-ObjectType=7
-DataType=0x0007
-AccessType=rw
-PDOMapping=0
-DefaultValue=0x60000108
-
-[2300sub6]
-ParameterName=Format
-ObjectType=7
-DataType=0x0005
-AccessType=rw
-PDOMapping=0
-DefaultValue=1
-
-[2300sub7]
-ParameterName=Trigger
-ObjectType=7
-DataType=0x0005
-AccessType=rw
-PDOMapping=0
-DefaultValue=0
-
-[2300sub8]
-ParameterName=Threshold
-ObjectType=7
-DataType=0x0004
-AccessType=rw
-PDOMapping=0
-DefaultValue=0
-
 [2301]
 ParameterName=Trace config
 ObjectType=9
@@ -2268,7 +2192,7 @@ ObjectType=7
 DataType=0x0007
 AccessType=rw
 PDOMapping=0
-DefaultValue=0
+DefaultValue=100
 
 [2301sub2]
 ParameterName=Axis no
@@ -2276,7 +2200,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rw
 PDOMapping=0
-DefaultValue=0
+DefaultValue=1
 
 [2301sub3]
 ParameterName=Name
@@ -2284,7 +2208,7 @@ ObjectType=7
 DataType=0x0009
 AccessType=rw
 PDOMapping=0
-DefaultValue=name                          
+DefaultValue=Trace1                        
 
 [2301sub4]
 ParameterName=Color
@@ -2300,7 +2224,7 @@ ObjectType=7
 DataType=0x0007
 AccessType=rw
 PDOMapping=0
-DefaultValue=0x00000000
+DefaultValue=0x60000108
 
 [2301sub6]
 ParameterName=Format
@@ -2308,7 +2232,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rw
 PDOMapping=0
-DefaultValue=0
+DefaultValue=1
 
 [2301sub7]
 ParameterName=Trigger
@@ -2326,63 +2250,87 @@ AccessType=rw
 PDOMapping=0
 DefaultValue=0
 
-[2400]
-ParameterName=Trace
+[2302]
+ParameterName=Trace config
 ObjectType=9
-SubNumber=7
+SubNumber=9
 
-[2400sub0]
+[2302sub0]
 ParameterName=max sub-index
 ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=0
-DefaultValue=6
+DefaultValue=8
 
-[2400sub1]
+[2302sub1]
 ParameterName=Size
 ObjectType=7
 DataType=0x0007
-AccessType=rww
-PDOMapping=1
-DefaultValue=0
-
-[2400sub2]
-ParameterName=Value
-ObjectType=7
-DataType=0x0004
-AccessType=ro
-PDOMapping=1
-DefaultValue=0
-
-[2400sub3]
-ParameterName=Min
-ObjectType=7
-DataType=0x0004
-AccessType=rww
-PDOMapping=1
-DefaultValue=0
-
-[2400sub4]
-ParameterName=Max
-ObjectType=7
-DataType=0x0004
-AccessType=rww
-PDOMapping=1
-DefaultValue=0
-
-[2400sub5]
-ParameterName=Plot
-ObjectType=7
-DataType=0x000F
-AccessType=ro
+AccessType=rw
 PDOMapping=0
 DefaultValue=0
 
-[2400sub6]
-ParameterName=Trigger time
+[2302sub2]
+ParameterName=Axis no
+ObjectType=7
+DataType=0x0005
+AccessType=rw
+PDOMapping=0
+DefaultValue=0
+
+[2302sub3]
+ParameterName=Name
+ObjectType=7
+DataType=0x0009
+AccessType=rw
+PDOMapping=0
+DefaultValue=Trace2                        
+
+[2302sub4]
+ParameterName=Color
+ObjectType=7
+DataType=0x0009
+AccessType=rw
+PDOMapping=0
+DefaultValue=green               
+
+[2302sub5]
+ParameterName=Map
 ObjectType=7
 DataType=0x0007
+AccessType=rw
+PDOMapping=0
+DefaultValue=0x00000000
+
+[2302sub6]
+ParameterName=Format
+ObjectType=7
+DataType=0x0005
+AccessType=rw
+PDOMapping=0
+DefaultValue=0
+
+[2302sub7]
+ParameterName=Trigger
+ObjectType=7
+DataType=0x0005
+AccessType=rw
+PDOMapping=0
+DefaultValue=0
+
+[2302sub8]
+ParameterName=Threshold
+ObjectType=7
+DataType=0x0004
+AccessType=rw
+PDOMapping=0
+DefaultValue=0
+
+[2400]
+ParameterName=Trace enable
+ObjectType=7
+DataType=0x0005
 AccessType=rww
 PDOMapping=1
 DefaultValue=0
@@ -2448,6 +2396,67 @@ AccessType=rww
 PDOMapping=1
 DefaultValue=0
 
+[2402]
+ParameterName=Trace
+ObjectType=9
+SubNumber=7
+
+[2402sub0]
+ParameterName=max sub-index
+ObjectType=7
+DataType=0x0005
+AccessType=ro
+PDOMapping=0
+DefaultValue=6
+
+[2402sub1]
+ParameterName=Size
+ObjectType=7
+DataType=0x0007
+AccessType=rww
+PDOMapping=1
+DefaultValue=0
+
+[2402sub2]
+ParameterName=Value
+ObjectType=7
+DataType=0x0004
+AccessType=ro
+PDOMapping=1
+DefaultValue=0
+
+[2402sub3]
+ParameterName=Min
+ObjectType=7
+DataType=0x0004
+AccessType=rww
+PDOMapping=1
+DefaultValue=0
+
+[2402sub4]
+ParameterName=Max
+ObjectType=7
+DataType=0x0004
+AccessType=rww
+PDOMapping=1
+DefaultValue=0
+
+[2402sub5]
+ParameterName=Plot
+ObjectType=7
+DataType=0x000F
+AccessType=ro
+PDOMapping=0
+DefaultValue=0
+
+[2402sub6]
+ParameterName=Trigger time
+ObjectType=7
+DataType=0x0007
+AccessType=rww
+PDOMapping=1
+DefaultValue=0
+
 [6000]
 ParameterName=Read input 8 bit
 ObjectType=8
@@ -2467,7 +2476,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6000sub2]
 ParameterName=Input
@@ -2475,7 +2484,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6000sub3]
 ParameterName=Input
@@ -2483,7 +2492,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6000sub4]
 ParameterName=Input
@@ -2491,7 +2500,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6000sub5]
 ParameterName=Input
@@ -2499,7 +2508,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6000sub6]
 ParameterName=Input
@@ -2507,7 +2516,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6000sub7]
 ParameterName=Input
@@ -2515,7 +2524,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6000sub8]
 ParameterName=Input
@@ -2523,7 +2532,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=ro
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6200]
 ParameterName=Write output 8 bit
@@ -2544,7 +2553,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rww
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6200sub2]
 ParameterName=Output
@@ -2552,7 +2561,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rww
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6200sub3]
 ParameterName=Output
@@ -2560,7 +2569,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rww
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6200sub4]
 ParameterName=Output
@@ -2568,7 +2577,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rww
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6200sub5]
 ParameterName=Output
@@ -2576,7 +2585,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rww
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6200sub6]
 ParameterName=Output
@@ -2584,7 +2593,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rww
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6200sub7]
 ParameterName=Output
@@ -2592,7 +2601,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rww
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6200sub8]
 ParameterName=Output
@@ -2600,7 +2609,7 @@ ObjectType=7
 DataType=0x0005
 AccessType=rww
 PDOMapping=1
-DefaultValue=0
+DefaultValue=0x00
 
 [6401]
 ParameterName=Read analogue input 16 bit
