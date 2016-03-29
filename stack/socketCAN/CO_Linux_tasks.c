@@ -37,6 +37,7 @@
 
 /* External helper function ***************************************************/
 void CO_errExit(char* msg);
+void CO_error(const uint32_t info);
 
 
 /* Mainline task (taskMain) ***************************************************/
@@ -124,7 +125,7 @@ bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms) {
                 if (errno == EAGAIN)
                     break;  /* No more bytes. */
                 else
-                    CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x21100000L | errno);
+                    CO_error(0x21100000L + errno);
             }
         }
     }
@@ -133,7 +134,7 @@ bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms) {
     else if(fd == taskMain.fdTmr) {
         uint64_t tmrExp;
         if(read(taskMain.fdTmr, &tmrExp, sizeof(tmrExp)) != sizeof(uint64_t))
-            CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x21200000L | errno);
+            CO_error(0x21200000L + errno);
     }
     else {
         wasProcessed = false;
@@ -163,7 +164,7 @@ bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms) {
         /* Set delay for next sleep. */
         taskMain.tmrSpec.it_value.tv_nsec = (long)(++timerNext) * NSEC_PER_MSEC;
         if(timerfd_settime(taskMain.fdTmr, 0, &taskMain.tmrSpec, NULL) == -1)
-            CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x21500000L | errno);
+            CO_error(0x21500000L + errno);
 
     }
 
@@ -173,7 +174,7 @@ bool_t taskMain_process(int fd, CO_NMT_reset_cmd_t *reset, uint16_t timer1ms) {
 
 void taskMain_cbSignal(void) {
     if(write(taskMain.fdPipe[1], "x", 1) == -1)
-        CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x23100000L | errno);
+        CO_error(0x23100000L + errno);
 }
 
 
@@ -253,13 +254,13 @@ bool_t CANrx_taskTmr_process(int fd) {
 
         /* Wait for timer to expire */
         if(read(taskRT.fdTmr, &tmrExp, sizeof(tmrExp)) != sizeof(uint64_t))
-            CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x22100000L | errno);
+            CO_error(0x22100000L + errno);
 
         /* Calculate maximum interval in microseconds (informative) */
         if(taskRT.maxTime != NULL) {
             struct timespec tmrMeasure;
             if(clock_gettime(CLOCK_MONOTONIC, &tmrMeasure) == -1)
-                CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x22200000L | errno);
+                CO_error(0x22200000L + errno);
             if(tmrMeasure.tv_sec == taskRT.tmrVal->tv_sec) {
                 long dt = tmrMeasure.tv_nsec - taskRT.tmrVal->tv_nsec;
                 dt /= 1000;
@@ -279,7 +280,7 @@ bool_t CANrx_taskTmr_process(int fd) {
             taskRT.tmrVal->tv_sec++;
         }
         if(timerfd_settime(taskRT.fdTmr, TFD_TIMER_ABSTIME, &taskRT.tmrSpec, NULL) == -1)
-            CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x22300000L | errno);
+            CO_error(0x22300000L + errno);
 
 
         /* Lock PDOs and OD */
@@ -299,7 +300,7 @@ bool_t CANrx_taskTmr_process(int fd) {
                 ev.events = EPOLLIN;
                 ev.data.fd = taskRT.fdRx0;
                 if(epoll_ctl(taskRT.fdEpoll, EPOLL_CTL_MOD, taskRT.fdRx0, &ev) == -1)
-                    CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x22500000L | errno);
+                    CO_error(0x22500000L + errno);
 
                 taskRT.CANrx_locked = false;
             }
@@ -330,7 +331,7 @@ void CANrx_lockCbSync(bool_t syncReceived) {
         ev.events = 0;
         ev.data.fd = taskRT.fdRx0;
         if(epoll_ctl(taskRT.fdEpoll, EPOLL_CTL_MOD, taskRT.fdRx0, &ev) == -1)
-            CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, 0x24100000L | errno);
+            CO_error(0x24100000L + errno);
 
         taskRT.CANrx_locked = true;
     }

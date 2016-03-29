@@ -163,7 +163,7 @@ Microcontroller support
 |                     | Status (date) | OD storage | Example |
 |---------------------|:-------------:|:----------:|---------|
 | drvTemplate         | OK            | template   | [here](https://github.com/CANopenNode/CANopenNode) |
-| Linux socketCAN     | stable (2015) | Yes        | [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) |
+| Linux socketCAN     | beta   (2016) | Yes        | [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) |
 | Microchip PIC32     | stable (2015) | Yes        | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
 | Microchip PIC24, 33 | stable (2015) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
 | Microchip dsPIC30F  | beta   (2013) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
