@@ -2360,7 +2360,7 @@ DefaultValue=0
 ParameterName=Value
 ObjectType=7
 DataType=0x0004
-AccessType=ro
+AccessType=rww
 PDOMapping=1
 DefaultValue=0
 
@@ -2421,7 +2421,7 @@ DefaultValue=0
 ParameterName=Value
 ObjectType=7
 DataType=0x0004
-AccessType=ro
+AccessType=rww
 PDOMapping=1
 DefaultValue=0
 

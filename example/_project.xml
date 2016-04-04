@@ -794,7 +794,7 @@ Name - name of the trace as a string (informative).
 
 Color - color of the trace as a string (informative).
 
-Map - Map to variable in object dictionary. Trace must be disabled, if mapping is written (Axis no set to 0).
+Map - Map to variable in object dictionary, similar as PDO map(two bytes of index, one byte of subindex and 1 byte of bitlength. It's value will be copied to trace.value in case index and subindex are correct. If map index and subindex is zero, RPDO may be mapped to trace.value, for example. Valid values of map.bitlength is 08, 10 or 20 or 00, which indicates 8-bit, 16bit, 32-bit or default-size variable. Trace must be disabled, if mapping is written (Axis no set to 0). 
 
 Format - If first bit is zero, then value is used as signed integer otherwise as unsigned integer. If format is 0 or 1, text points are generated for time and value: "123;321\n140;345\n..." If format is 2 or 3, binary data is generated: 4-byte timestamp and 4-byte value. If format is 4 or 5, SVG path is generated: "M123,321H140V345...".
 
@@ -834,7 +834,7 @@ See also Trace config.
 
 Size - Number of current records in buffer.
 
-Value - Latest value.
+Value - Latest value. If traceConfig.map (index and subindex) is valid, then mapped variable will be copied here.
 
 Min, Max - Minimum and maximum value.
 
@@ -843,7 +843,7 @@ Plot - SVG path generated from the values from circular buffer. For time axis is
 Trigger time - If integer value passes 'TraceConfig-&gt;threshold', then time is recorded into this variable.</description>
       <CANopenSubObject subIndex="00" name="max sub-index" objectType="7" dataType="05" accessType="ro" PDOmapping="no" defaultValue="6"/>
       <CANopenSubObject subIndex="01" name="Size" objectType="7" dataType="07" accessType="rw" PDOmapping="optional" defaultValue="0"/>
-      <CANopenSubObject subIndex="02" name="Value" objectType="7" dataType="04" accessType="ro" PDOmapping="TPDO" defaultValue="0"/>
+      <CANopenSubObject subIndex="02" name="Value" objectType="7" dataType="04" accessType="rw" PDOmapping="optional" defaultValue="0"/>
       <CANopenSubObject subIndex="03" name="Min" objectType="7" dataType="04" accessType="rw" PDOmapping="optional" defaultValue="0"/>
       <CANopenSubObject subIndex="04" name="Max" objectType="7" dataType="04" accessType="rw" PDOmapping="optional" defaultValue="0"/>
       <CANopenSubObject subIndex="05" name="Plot" objectType="7" dataType="0F" accessType="ro" PDOmapping="no" defaultValue="0"/>
@@ -852,7 +852,7 @@ Trigger time - If integer value passes 'TraceConfig-&gt;threshold', then time is
     <CANopenObject index="2402" name="Trace" objectType="9" subNumber="7" memoryType="RAM" disabled="true">
       <CANopenSubObject subIndex="00" name="max sub-index" objectType="7" dataType="05" accessType="ro" PDOmapping="no" defaultValue="6"/>
       <CANopenSubObject subIndex="01" name="Size" objectType="7" dataType="07" accessType="rw" PDOmapping="optional" defaultValue="0"/>
-      <CANopenSubObject subIndex="02" name="Value" objectType="7" dataType="04" accessType="ro" PDOmapping="TPDO" defaultValue="0"/>
+      <CANopenSubObject subIndex="02" name="Value" objectType="7" dataType="04" accessType="rw" PDOmapping="optional" defaultValue="0"/>
       <CANopenSubObject subIndex="03" name="Min" objectType="7" dataType="04" accessType="rw" PDOmapping="optional" defaultValue="0"/>
       <CANopenSubObject subIndex="04" name="Max" objectType="7" dataType="04" accessType="rw" PDOmapping="optional" defaultValue="0"/>
       <CANopenSubObject subIndex="05" name="Plot" objectType="7" dataType="0F" accessType="ro" PDOmapping="no" defaultValue="0"/>

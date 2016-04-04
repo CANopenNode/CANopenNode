@@ -110,52 +110,79 @@ static const CO_trace_dataType_t dataTypes[] = {
 
 /* Find variable in Object Dictionary *****************************************/
 static void findVariable(CO_trace_t *trace) {
+    bool_t err = false;
     uint16_t index;
     uint8_t subIndex;
-    uint16_t entryNo;
-    uint16_t len;
+    uint8_t dataLen;
+    void *OdDataPtr = NULL;
+    int dtIndex = 0;
 
-    trace->dt = NULL;
-    trace->OD_variable = NULL;
-
-    /* get variable from mapping */
+    /* parse mapping */
     index = (uint16_t) ((*trace->map) >> 16);
     subIndex = (uint8_t) ((*trace->map) >> 8);
+    dataLen = (uint8_t) (*trace->map);
+    if((dataLen & 0x07) != 0) { /* data length must be byte aligned */
+        err = true;
+    }
+    dataLen >>= 3;   /* in bytes now */
+    if(dataLen == 0) {
+        dataLen = 4;
+    }
 
-    /* find object in Object Dictionary */
-    entryNo = CO_OD_find(trace->SDO, index);
+    /* find mapped variable, if map available */
+    if(!err && (index != 0 || subIndex != 0)) {
+        uint16_t entryNo = CO_OD_find(trace->SDO, index);
 
-    /* Does object exist in OD? */
-    if(index >= 0x1000 && entryNo != 0xFFFF && subIndex <= trace->SDO->OD[entryNo].maxSubIndex) {
-        trace->OD_variable = CO_OD_getDataPointer(trace->SDO, entryNo, subIndex);
+        if(index >= 0x1000 && entryNo != 0xFFFF && subIndex <= trace->SDO->OD[entryNo].maxSubIndex) {
+            OdDataPtr = CO_OD_getDataPointer(trace->SDO, entryNo, subIndex);
+        }
 
-        if(trace->OD_variable != NULL) {
-            int dtIndex = 0;
+        if(OdDataPtr != NULL) {
+            uint16_t len = CO_OD_getLength(trace->SDO, entryNo, subIndex);
 
-            len = CO_OD_getLength(trace->SDO, entryNo, subIndex);
-
-            /* Get function pointers for correct data type */
-            /* first sequence: data length */
-            switch(len) {
-                case 1: dtIndex = 0; break;
-                case 2: dtIndex = 1; break;
-                case 4: dtIndex = 2; break;
-                default: trace->OD_variable = NULL; break;
-            }
-            /* second sequence: signed or unsigned */
-            if(((*trace->format) & 1) == 1) {
-                dtIndex += 3;
-            }
-            /* third sequence: Output type */
-            dtIndex += ((*trace->format) >> 1) * 6;
-
-            if(dtIndex < sizeof(dataTypes) / sizeof(CO_trace_dataType_t)) {
-                trace->dt = &dataTypes[dtIndex];
-            }
-            else {
-                trace->OD_variable = NULL;
+            if(len < dataLen) {
+                dataLen = len;
             }
         }
+        else {
+            err = true;
+        }
+    }
+
+    /* Get function pointers for correct data type */
+    if(!err) {
+        /* first sequence: data length */
+        switch(dataLen) {
+            case 1: dtIndex = 0; break;
+            case 2: dtIndex = 1; break;
+            case 4: dtIndex = 2; break;
+            default: err = true; break;
+        }
+        /* second sequence: signed or unsigned */
+        if(((*trace->format) & 1) == 1) {
+            dtIndex += 3;
+        }
+        /* third sequence: Output type */
+        dtIndex += ((*trace->format) >> 1) * 6;
+
+        if(dtIndex > (sizeof(dataTypes) / sizeof(CO_trace_dataType_t))) {
+            err = true;
+        }
+    }
+
+    /* set output variables */
+    if(!err) {
+        if(OdDataPtr != NULL) {
+            trace->OD_variable = OdDataPtr;
+        }
+        else {
+            trace->OD_variable = trace->value;
+        }
+        trace->dt = &dataTypes[dtIndex];
+    }
+    else  {
+        trace->OD_variable = NULL;
+        trace->dt = NULL;
     }
 }
 
@@ -198,10 +225,11 @@ static CO_SDO_abortCode_t CO_ODF_traceConfig(CO_ODF_arg_t *ODF_arg) {
                     findVariable(trace);
 
                     if(trace->OD_variable != NULL) {
-                        *trace->lastValue = 0;
+                        *trace->value = 0;
                         *trace->minValue = 0;
                         *trace->maxValue = 0;
                         *trace->triggerTime = 0;
+                        trace->valuePrev = 0;
                         trace->readPtr = 0;
                         trace->writePtr = 0;
                         trace->enabled = true;
@@ -364,7 +392,7 @@ static CO_SDO_abortCode_t CO_ODF_trace(CO_ODF_arg_t *ODF_arg) {
 
                     /* print last point */
                     if(!readPtrOverflowed && ODF_arg->lastSegment) {
-                        v = *trace->lastValue;
+                        v = trace->valuePrev;
                         t = trace->lastTimeStamp;
                         len = trace->dt->printPointEnd(s, freeLen, t, v);
                         s += len;
@@ -394,7 +422,7 @@ void CO_trace_init(
         uint8_t                *format,
         uint8_t                *trigger,
         int32_t                *threshold,
-        int32_t                *lastValue,
+        int32_t                *value,
         int32_t                *minValue,
         int32_t                *maxValue,
         uint32_t               *triggerTime,
@@ -413,14 +441,15 @@ void CO_trace_init(
     trace->format = format;
     trace->trigger = trigger;
     trace->threshold = threshold;
-    trace->lastValue = lastValue;
+    trace->value = value;
     trace->minValue = minValue;
     trace->maxValue = maxValue;
     trace->triggerTime = triggerTime;
-    *trace->lastValue = 0;
+    *trace->value = 0;
     *trace->minValue = 0;
     *trace->maxValue = 0;
     *trace->triggerTime = 0;
+    trace->valuePrev = 0;
 
     /* set trace->OD_variable and trace->dt, based on 'map' and 'format' */
     findVariable(trace);
@@ -441,20 +470,23 @@ void CO_trace_init(
 /******************************************************************************/
 void CO_trace_process(CO_trace_t *trace, uint32_t timestamp) {
     if(trace->enabled) {
-        int32_t val;
 
-        val = trace->dt->pGetValue(trace->OD_variable);
-        if(*trace->lastValue != val) {
+        int32_t val = trace->dt->pGetValue(trace->OD_variable);
+
+        if(val != trace->valuePrev) {
             /* Verify, if value passed threshold */
-            if((*trace->trigger & 1) != 0 && *trace->lastValue < *trace->threshold && val >= *trace->threshold) {
+            if((*trace->trigger & 1) != 0 && trace->valuePrev < *trace->threshold && val >= *trace->threshold) {
                 *trace->triggerTime = timestamp;
             }
-            if((*trace->trigger & 2) != 0 && *trace->lastValue < *trace->threshold && val >= *trace->threshold) {
+            if((*trace->trigger & 2) != 0 && trace->valuePrev < *trace->threshold && val >= *trace->threshold) {
                 *trace->triggerTime = timestamp;
             }
 
             /* Write value and verify min/max */
-            *trace->lastValue = val;
+            if(trace->value != trace->OD_variable) {
+                *trace->value = val;
+            }
+            trace->valuePrev = val;
             if(*trace->minValue > val) {
                 *trace->minValue = val;
             }

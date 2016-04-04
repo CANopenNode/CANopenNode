@@ -113,9 +113,10 @@ typedef struct {
     uint32_t            lastTimeStamp;  /**< Last time stamp. If zero, then last point contains last timestamp. */
     void               *OD_variable;    /**< Pointer to variable, which is monitored */
     const CO_trace_dataType_t *dt;      /**< Data type specific function pointers. **/
+    int32_t             valuePrev;      /**< Previous value of value. */
     uint32_t           *map;            /**< From CO_trace_init(). */
     uint8_t            *format;         /**< From CO_trace_init(). */
-    int32_t            *lastValue;      /**< From CO_trace_init(). */
+    int32_t            *value;          /**< From CO_trace_init(). */
     int32_t            *minValue;       /**< From CO_trace_init(). */
     int32_t            *maxValue;       /**< From CO_trace_init(). */
     uint32_t           *triggerTime;    /**< From CO_trace_init(). */
@@ -139,7 +140,7 @@ typedef struct {
  * @param Format Format of the plot. If first bit is 1, above variable is unsigned. For more info see Object Dictionary.
  * @param trigger If different than zero, trigger time is recorded, when variable goes through threshold.
  * @param threshold Used with trigger.
- * @param lastValue Pointer to variable, which will show last value of the variable.
+ * @param value Pointer to variable, which will show last value of the variable.
  * @param minValue Pointer to variable, which will show minimum value of the variable.
  * @param maxValue Pointer to variable, which will show maximum value of the variable.
  * @param triggerTime Pointer to variable, which will show last trigger time of the variable.
@@ -159,7 +160,7 @@ void CO_trace_init(
         uint8_t                *format,
         uint8_t                *trigger,
         int32_t                *threshold,
-        int32_t                *lastValue,
+        int32_t                *value,
         int32_t                *minValue,
         int32_t                *maxValue,
         uint32_t               *triggerTime,
