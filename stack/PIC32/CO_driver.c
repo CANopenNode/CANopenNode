@@ -69,13 +69,25 @@ unsigned int CO_interruptStatus = 0;
     #define C_RXOVF      0x060                         /* Receive FIFO Overflow Status Register */
     #define C_TMR        0x070                         /* CAN Timer Register */
     #define C_RXM        0x080 /*  + (0..3 x 0x10)      //Acceptance Filter Mask Register */
-    #define C_FLTCON     0x0C0 /*  + (0..7 x 0x10)      //Filter Control Register */
-    #define C_RXF        0x140 /*  + (0..31 x 0x10)     //Acceptance Filter Register */
+    #define C_FLTCON     0x0C0 /*  + (0..7(3) x 0x10)   //Filter Control Register */
+    #define C_RXF        0x140 /*  + (0..31(15) x 0x10) //Acceptance Filter Register */
     #define C_FIFOBA     0x340                         /* Message Buffer Base Address Register */
-    #define C_FIFOCON    0x350 /*  + (0..31 x 0x40)     //FIFO Control Register */
-    #define C_FIFOINT    0x360 /*  + (0..31 x 0x40)     //FIFO Interrupt Register */
-    #define C_FIFOUA     0x370 /*  + (0..31 x 0x40)     //FIFO User Address Register */
-    #define C_FIFOCI     0x380 /*  + (0..31 x 0x40)     //Module Message Index Register */
+    #define C_FIFOCON    0x350 /*  + (0..31(15) x 0x40) //FIFO Control Register */
+    #define C_FIFOINT    0x360 /*  + (0..31(15) x 0x40) //FIFO Interrupt Register */
+    #define C_FIFOUA     0x370 /*  + (0..31(15) x 0x40) //FIFO User Address Register */
+    #define C_FIFOCI     0x380 /*  + (0..31(15) x 0x40) //Module Message Index Register */
+
+
+/* Number of hardware filters */
+/* device PIC32MX530 (and below) has only 16 registers for CAN reception (not 32). */
+#ifdef __PIC32MX
+#if __PIC32_FEATURE_SET__ < 534
+    #define NO_CAN_RXF  16
+#endif
+#endif
+#ifndef NO_CAN_RXF
+    #define NO_CAN_RXF  32
+#endif
 
 
 /******************************************************************************/
@@ -134,7 +146,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
     CANmodule->CANnormal = false;
-    CANmodule->useCANrxFilters = (rxSize <= 32U) ? true : false;
+    CANmodule->useCANrxFilters = (rxSize <= NO_CAN_RXF) ? true : false;
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;
     CANmodule->CANtxCount = 0U;
@@ -163,7 +175,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
     /* Configure FIFO */
     CAN_REG(CANbaseAddress, C_FIFOBA) = CO_KVA_TO_PA(CANmodule->CANmsgBuff);/* FIFO base address */
-    CAN_REG(CANbaseAddress, C_FIFOCON) = 0x001F0000;     /* FIFO0: receive FIFO, 32 buffers */
+    CAN_REG(CANbaseAddress, C_FIFOCON) = (NO_CAN_RXF==32) ? 0x001F0000 : 0x000F0000;     /* FIFO0: receive FIFO, 32(16) buffers */
     CAN_REG(CANbaseAddress, C_FIFOCON+0x40) = 0x00000080;/* FIFO1: transmit FIFO, 1 buffer */
 
 
@@ -190,7 +202,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
     /* CAN module hardware filters */
     /* clear all filter control registers (disable filters, mask 0 and FIFO 0 selected for all filters) */
-    for(i=0; i<8; i++)
+    for(i=0; i<(NO_CAN_RXF/4); i++)
         CAN_REG(CANbaseAddress, C_FLTCON+i*0x10) = 0x00000000;
     if(CANmodule->useCANrxFilters){
         /* CAN module filters are used, they will be configured with */
