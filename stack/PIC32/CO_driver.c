@@ -81,7 +81,7 @@ unsigned int CO_interruptStatus = 0;
 /* Number of hardware filters */
 /* device PIC32MX530 (and below) has only 16 registers for CAN reception (not 32). */
 #ifdef __PIC32MX
-#if __PIC32_FEATURE_SET__ < 534
+#if (__PIC32_FEATURE_SET__ == 530) || (__PIC32_FEATURE_SET__ == 550) || (__PIC32_FEATURE_SET__ == 570)
     #define NO_CAN_RXF  16
 #endif
 #endif
