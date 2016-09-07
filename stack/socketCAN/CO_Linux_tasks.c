@@ -187,8 +187,6 @@ static struct {
     long                intervalns;
     long                intervalus;
     uint16_t           *maxTime;
-    int                 fdEpoll;
-    bool_t              CANrx_locked;
 } taskRT;
 
 
@@ -228,10 +226,6 @@ void CANrx_taskTmr_init(int fdEpoll, long intervalns, uint16_t *maxTime) {
     taskRT.intervalns = intervalns;
     taskRT.intervalus = intervalns / 1000;
     taskRT.maxTime = maxTime;
-
-    /* used for CANrx_lockCbSync() */
-    taskRT.fdEpoll = fdEpoll;
-    taskRT.CANrx_locked = false;
 }
 
 
@@ -292,19 +286,6 @@ bool_t CANrx_taskTmr_process(int fd) {
             /* Process Sync and read inputs */
             syncWas = CO_process_SYNC_RPDO(CO, taskRT.intervalus);
 
-            /* Re-enable CANrx, if it was disabled by SYNC callback */
-            if(taskRT.CANrx_locked) {
-                struct epoll_event ev;
-
-                /* enable epool event */
-                ev.events = EPOLLIN;
-                ev.data.fd = taskRT.fdRx0;
-                if(epoll_ctl(taskRT.fdEpoll, EPOLL_CTL_MOD, taskRT.fdRx0, &ev) == -1)
-                    CO_error(0x22500000L + errno);
-
-                taskRT.CANrx_locked = false;
-            }
-
             /* Further I/O or nonblocking application code may go here. */
 
             /* Write outputs */
@@ -320,19 +301,4 @@ bool_t CANrx_taskTmr_process(int fd) {
     }
 
     return wasProcessed;
-}
-
-
-void CANrx_lockCbSync(bool_t syncReceived) {
-    if(syncReceived) {
-        struct epoll_event ev;
-
-        /* disable epool event */
-        ev.events = 0;
-        ev.data.fd = taskRT.fdRx0;
-        if(epoll_ctl(taskRT.fdEpoll, EPOLL_CTL_MOD, taskRT.fdRx0, &ev) == -1)
-            CO_error(0x24100000L + errno);
-
-        taskRT.CANrx_locked = true;
-    }
 }

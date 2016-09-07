@@ -117,15 +117,6 @@
 #endif
 
 
-/* helpers */
-void CANrx_lockCbSync(bool_t syncReceived) {
-    if(syncReceived) {
-        CO_CAN_ISR_ENABLE = 0;
-        CO_CAN_ISR2_ENABLE = 0;
-    }
-}
-
-
 /* main ***********************************************************************/
 int main (void){
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
@@ -191,10 +182,6 @@ int main (void){
 #ifdef USE_EEPROM
         CO_EE_init_2(&CO_EEO, eeStatus, CO->SDO[0], CO->em);
 #endif
-
-
-        /* Configure callback functions */
-        CO_SYNC_initCallback(CO->SYNC, CANrx_lockCbSync);
 
 
         /* initialize variables */
@@ -315,12 +302,6 @@ void __ISR(_TIMER_2_VECTOR, IPL3SOFT) CO_TimerInterruptHandler(void){
 
         /* Process Sync and read inputs */
         syncWas = CO_process_SYNC_RPDO(CO, 1000);
-
-        /* Re-enable CANrx, if it was disabled by SYNC callback */
-        CO_CAN_ISR_ENABLE = 1;
-#if CO_NO_CAN_MODULES >= 2
-        CO_CAN_ISR2_ENABLE = 1;
-#endif
 
         /* Further I/O or nonblocking application code may go here. */
 #if CO_NO_TRACE > 0

@@ -56,14 +56,6 @@
     volatile uint16_t   CO_timer1ms = 0U;   /* variable increments each millisecond */
 
 
-/* helpers */
-void CANrx_lockCbSync(bool_t syncReceived) {
-    if(syncReceived) {
-        /* disable CAN receive, untill RPDOs are processed. */
-    }
-}
-
-
 /* main ***********************************************************************/
 int main (void){
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
@@ -84,7 +76,6 @@ int main (void){
         uint16_t timer1msPrevious;
 
         /* disable CAN and CAN interrupts */
-        CO->CANmodule[0]->CANnormal = false;
 
 
         /* initialize CANopen */
@@ -93,10 +84,6 @@ int main (void){
             while(1);
             /* CO_errorReport(CO->em, CO_EM_MEMORY_ALLOCATION_ERROR, CO_EMC_SOFTWARE_INTERNAL, err); */
         }
-
-
-        /* Configure callback functions */
-        CO_SYNC_initCallback(CO->SYNC, CANrx_lockCbSync);
 
 
         /* Configure Timer interrupt function for execution every 1 millisecond */
@@ -157,8 +144,6 @@ static void tmrTask_thread(void){
 
             /* Process Sync and read inputs */
             syncWas = CO_process_SYNC_RPDO(CO, TMR_TASK_INTERVAL);
-
-            /* Reenable CANrx, if it was disabled by SYNC callback */
 
             /* Further I/O or nonblocking application code may go here. */
 

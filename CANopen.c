@@ -461,6 +461,7 @@ CO_ReturnError_t CO_init(
                 CO->RPDO[i],
                 CO->em,
                 CO->SDO[0],
+                CO->SYNC,
                &CO->NMT->operatingState,
                 nodeId,
                 ((i<4) ? (CO_CAN_ID_RPDO_1+i*0x100) : 0),

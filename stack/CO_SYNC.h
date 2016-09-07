@@ -69,16 +69,12 @@
  * one data byte: _counter_ incremented by 1 with every SYNC transmission.
  *
  * ####SYNC in CANopenNode
- * If callback is configured by CO_SYNC_initCallback(), then it is called from
- * CO_SYNC_receive thread, after SYNC message is received. Or, if node is SYNC
- * producer, function is called just before SYNC message is transmitted.
- * Usage of callback is microcontroller specific. It may, for example, temporary
- * disable CAN message reception. Reception is then reenabled after all RPDOs
- * are processed. This is necessary because reception of PDOs must be disabled
- * after sync message, before old RPDOs are processed completelly.
- *
- * Besides callback, information about SYNC message is returned also from
- * CO_SYNC_process() function.
+ * According to CANopen, synchronous RPDOs must be processed after reception of
+ * the next sync messsage. For that reason, there is a double receive buffer
+ * for each synchronous RPDO. At the moment, when SYNC is received or
+ * transmitted, internal variable CANrxToggle toggles. That variable is then
+ * used by synchronous RPDO to determine, which of the two buffers is used for
+ * RPDO reception and which for RPDO processing.
  */
 
 
@@ -108,6 +104,8 @@ typedef struct{
     bool_t              curentSyncTimeIsInsideWindow;
     /** Variable indicates, if new SYNC message received from CAN bus */
     bool_t              CANrxNew;
+    /** Variable toggles, if new SYNC message received from CAN bus */
+    bool_t              CANrxToggle;
     /** Counter of the SYNC message if counterOverflowValue is different than zero */
     uint8_t             counter;
     /** Timer for the SYNC message in [microseconds].
@@ -115,7 +113,6 @@ typedef struct{
     uint32_t            timer;
     /** Set to nonzero value, if SYNC with wrong data length is received from CAN */
     uint16_t            receiveError;
-    void              (*cbSync)(bool_t syncReceived);/**< From CO_SYNC_initCallback() or NULL */
     CO_CANmodule_t     *CANdevRx;       /**< From CO_SYNC_init() */
     uint16_t            CANdevRxIdx;    /**< From CO_SYNC_init() */
     CO_CANmodule_t     *CANdevTx;       /**< From CO_SYNC_init() */
@@ -155,22 +152,6 @@ CO_ReturnError_t CO_SYNC_init(
         uint16_t                CANdevRxIdx,
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx);
-
-
-/**
- * Initialize SYNC callback function.
- *
- * Function initializes optional callback function, which executes after the SYNC.
- *
- * @param SYNC This object.
- * @param cbSync Callback function, which will be called just after the
- * presence of CANopen SYNC message on the bus. If SYNC was received,
- * syncReceived will be true, if SYNC will be transmitted, syncReceived
- * will be false.
- */
-void CO_SYNC_initCallback(
-        CO_SYNC_t              *SYNC,
-        void                  (*cbSync)(bool_t syncReceived));
 
 
 /**

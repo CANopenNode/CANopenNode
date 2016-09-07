@@ -50,7 +50,6 @@
 #include "CO_NMT_Heartbeat.h"
 #include "CO_SYNC.h"
 
-
 /*
  * Read received message from CAN module.
  *
@@ -83,8 +82,8 @@ static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
                 SYNC->receiveError = (uint16_t)msg->DLC | 0x0200U;
             }
         }
-        if(SYNC->CANrxNew && (SYNC->cbSync != NULL)){
-            SYNC->cbSync(true); //callback
+        if(SYNC->CANrxNew) {
+            SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
         }
     }
 }
@@ -271,13 +270,13 @@ CO_ReturnError_t CO_SYNC_init(
     SYNC->curentSyncTimeIsInsideWindow = true;
 
     SYNC->CANrxNew = false;
+    SYNC->CANrxToggle = false;
     SYNC->timer = 0;
     SYNC->counter = 0;
     SYNC->receiveError = 0U;
 
     SYNC->em = em;
     SYNC->operatingState = operatingState;
-    SYNC->cbSync = NULL;
 
     SYNC->CANdevRx = CANdevRx;
     SYNC->CANdevRxIdx = CANdevRxIdx;
@@ -313,17 +312,6 @@ CO_ReturnError_t CO_SYNC_init(
 
 
 /******************************************************************************/
-void CO_SYNC_initCallback(
-        CO_SYNC_t              *SYNC,
-        void                  (*cbSync)(bool_t syncReceived))
-{
-    if(SYNC != NULL){
-        SYNC->cbSync = cbSync;
-    }
-}
-
-
-/******************************************************************************/
 uint8_t CO_SYNC_process(
         CO_SYNC_t              *SYNC,
         uint32_t                timeDifference_us,
@@ -341,6 +329,7 @@ uint8_t CO_SYNC_process(
         if(SYNC->CANrxNew){
             SYNC->timer = 0;
             ret = 1;
+            SYNC->CANrxNew = false;
         }
 
         /* SYNC producer */
@@ -349,9 +338,7 @@ uint8_t CO_SYNC_process(
                 if(++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
                 SYNC->timer = 0;
                 ret = 1;
-                if(SYNC->cbSync != NULL){
-                    SYNC->cbSync(false); //callback
-                }
+                SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
                 SYNC->CANtxBuff->data[0] = SYNC->counter;
                 CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
             }
@@ -377,14 +364,15 @@ uint8_t CO_SYNC_process(
         if(SYNC->periodTime && SYNC->timer > SYNC->periodTimeoutTime && *SYNC->operatingState == CO_NMT_OPERATIONAL)
             CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
     }
+    else {
+        SYNC->CANrxNew = false;
+    }
 
     /* verify error from receive function */
     if(SYNC->receiveError != 0U){
         CO_errorReport(SYNC->em, CO_EM_SYNC_LENGTH, CO_EMC_SYNC_DATA_LENGTH, (uint32_t)SYNC->receiveError);
         SYNC->receiveError = 0U;
     }
-
-    SYNC->CANrxNew = false;
 
     return ret;
 }

@@ -69,7 +69,8 @@
  *  - Map granularity of one byte.
  *  - After RPDO is received from CAN bus, its data are copied to buffer.
  *    Function CO_RPDO_process() (called by application) copies data to
- *    mapped objects in Object Dictionary.
+ *    mapped objects in Object Dictionary. Synchronous RPDOs are processed AFTER
+ *    reception of the next SYNC message.
  *  - Function CO_TPDO_process() (called by application) sends TPDO if
  *    necessary. There are possible different transmission types, including
  *    automatic detection of Change of State of specific variable.
@@ -181,6 +182,7 @@ typedef struct{
 typedef struct{
     CO_EM_t            *em;             /**< From CO_RPDO_init() */
     CO_SDO_t           *SDO;            /**< From CO_RPDO_init() */
+    CO_SYNC_t          *SYNC;           /**< From CO_RPDO_init() */
     const CO_RPDOCommPar_t *RPDOCommPar;/**< From CO_RPDO_init() */
     const CO_RPDOMapPar_t  *RPDOMapPar; /**< From CO_RPDO_init() */
     uint8_t            *operatingState; /**< From CO_RPDO_init() */
@@ -196,9 +198,9 @@ typedef struct{
     /** Pointers to 8 data objects, where PDO will be copied */
     uint8_t            *mapPointer[8];
     /** Variable indicates, if new PDO message received from CAN bus. */
-    volatile bool_t     CANrxNew;
+    volatile bool_t     CANrxNew[2];
     /** 8 data bytes of the received message. */
-    uint8_t             CANrxData[8];
+    uint8_t             CANrxData[2][8];
     CO_CANmodule_t     *CANdevRx;       /**< From CO_RPDO_init() */
     uint16_t            CANdevRxIdx;    /**< From CO_RPDO_init() */
 }CO_RPDO_t;
@@ -273,6 +275,7 @@ CO_ReturnError_t CO_RPDO_init(
         CO_RPDO_t              *RPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
+        CO_SYNC_t              *SYNC,
         uint8_t                *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
