@@ -47,6 +47,9 @@
 #ifndef CO_TRACE_H
 #define CO_TRACE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "CO_driver.h"
 #include "CO_SDO.h"
@@ -180,6 +183,9 @@ void CO_trace_init(
  */
 void CO_trace_process(CO_trace_t *trace, uint32_t timestamp);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

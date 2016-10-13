@@ -49,6 +49,9 @@
 #ifndef CO_DRIVER_H
 #define CO_DRIVER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Include processor header file */
 #include <stddef.h>         /* for 'NULL' */
@@ -460,6 +463,9 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
  */
 void CO_CANinterrupt(CO_CANmodule_t *CANmodule);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

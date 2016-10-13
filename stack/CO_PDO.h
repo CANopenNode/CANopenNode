@@ -47,6 +47,9 @@
 #ifndef CO_PDO_H
 #define CO_PDO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_PDO PDO
@@ -395,6 +398,9 @@ void CO_TPDO_process(
         bool_t                  syncWas,
         uint32_t                timeDifference_us);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

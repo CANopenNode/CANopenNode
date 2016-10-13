@@ -47,6 +47,9 @@
 #ifndef CO_SDO_H
 #define CO_SDO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_SDO SDO server
@@ -930,6 +933,9 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize);
  */
 uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif
