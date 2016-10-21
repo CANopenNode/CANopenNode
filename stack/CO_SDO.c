@@ -495,8 +495,15 @@ uint16_t CO_OD_getAttribute(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
     else if(object->attribute != 0U){/* Object type is Array */
         uint16_t attr = object->attribute;
         if(subIndex == 0U){
+            /* It should not be able to write to the 
+            zero subindex on any array except
+            Pre-Defined Error Field - 0x1003 */
+            if (object->index != 0x1003)
+            {
+                attr &= ~CO_ODA_WRITEABLE;
+            }
+            attr &= ~CO_ODA_RPDO_MAPABLE;
             /* First subIndex is readonly */
-            attr &= ~(CO_ODA_WRITEABLE | CO_ODA_RPDO_MAPABLE);
             attr |= CO_ODA_READABLE;
         }
         return attr;
