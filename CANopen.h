@@ -129,7 +129,7 @@ typedef struct{
     CO_TPDO_t          *TPDO[CO_NO_TPDO];/**< TPDO objects */
     CO_HBconsumer_t    *HBcons;         /**<  Heartbeat consumer object*/
 #if CO_NO_SDO_CLIENT != 0
-    CO_SDOclient_t     *SDOclient[CO_NO_SDO_CLIENT];      /**< SDO client object */
+    CO_SDOclient_t     *SDOclient;      /**< SDO client object */
 #endif
 #if CO_NO_TRACE > 0
     CO_trace_t         *trace[CO_NO_TRACE]; /**< Trace object for monitoring variables */
