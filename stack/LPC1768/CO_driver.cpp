@@ -48,10 +48,12 @@
 #include "LPC17xx.h"
 #include "CAN.h"
 
+extern "C" {
 #include "CO_driver.h"
 #include "CO_Emergency.h"
 
 #include "CO_CAN.h"
+}
 
 CAN CANport0(MBED_CAN_RX, MBED_CAN_TX);
 CAN *CANport = NULL;
