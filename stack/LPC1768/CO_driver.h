@@ -1,12 +1,10 @@
-/**
- * CAN module object for generic microcontroller.
- *
- * This file is a template for other microcontrollers.
+/*
+ * CAN module object for LPC1768 microcontroller using Mbed SDK.
  *
  * @file        CO_driver.h
  * @ingroup     CO_driver
- * @author      Janez Paternoster
- * @copyright   2004 - 2015 Janez Paternoster
+ * @author      Benoit Rapidel
+ * @copyright   2016 Benoit Rapidel
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
