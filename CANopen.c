@@ -349,7 +349,11 @@ CO_ReturnError_t CO_init(
     CO_CANsetConfigurationMode(CANbaseAddress);
 
     /* Verify CANopen Node-ID */
-    if(nodeId<1 || nodeId>127) nodeId = 0x10;
+    if(nodeId<1 || nodeId>127)
+    {
+        CO_delete(CANbaseAddress);
+        return CO_ERROR_PARAMETERS;
+    }
 
 
     err = CO_CANmodule_init(
