@@ -564,7 +564,7 @@ uint32_t CO_SDO_initTransfer(CO_SDO_t *SDO, uint16_t index, uint8_t subIndex){
     }
 
     /* verify existance of subIndex */
-    if(subIndex > SDO->OD[SDO->entryNo].maxSubIndex && 
+    if(subIndex > SDO->OD[SDO->entryNo].maxSubIndex &&
             SDO->OD[SDO->entryNo].pData != NULL)
     {
         return CO_SDO_AB_SUB_UNKNOWN;     /* Sub-index does not exist. */
@@ -670,9 +670,16 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
 uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
     uint8_t *SDObuffer = SDO->ODF_arg.data;
     uint8_t *ODdata = (uint8_t*)SDO->ODF_arg.ODdataStorage;
+    bool_t exception_1003 = false;
+
+    /* Special exception: Object 1003,00 should be writable,
+     * but only by Object dictionary function. */
+    if(SDO->ODF_arg.index == 0x1003 && SDO->ODF_arg.subIndex == 0) {
+        exception_1003 = true;
+    }
 
     /* is object writeable? */
-    if((SDO->ODF_arg.attribute & CO_ODA_WRITEABLE) == 0){
+    if((SDO->ODF_arg.attribute & CO_ODA_WRITEABLE) == 0 && exception_1003 == false){
         return CO_SDO_AB_READONLY;     /* attempt to write a read-only object */
     }
 
@@ -718,7 +725,7 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
     SDO->ODF_arg.firstSegment = false;
 
     /* copy data from SDO buffer to OD if not domain */
-    if(ODdata != NULL){
+    if(ODdata != NULL && exception_1003 == false){
         CO_LOCK_OD();
         while(length--){
             *(ODdata++) = *(SDObuffer++);
