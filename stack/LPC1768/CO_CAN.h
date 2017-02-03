@@ -2,7 +2,6 @@
  * CAN module object for LPC1768 microcontroller using Mbed SDK.
  *
  * @file        CO_CAN.h
- * @ingroup     CO_driver
  * @author      Benoit Rapidel
  * @copyright   2016 Benoit Rapidel
  *
