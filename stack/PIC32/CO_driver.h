@@ -53,7 +53,7 @@
 #include <p32xxxx.h>        /* processor header file */
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
-#include <stdbool.h>        /* for true and false */
+#include <stdbool.h>        /* for 'true', 'false' */
 
 
 /* CAN module base address */

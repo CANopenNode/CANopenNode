@@ -160,18 +160,19 @@ File structure
 Microcontroller support
 -----------------------
 
-|                     | Status (date) | OD storage | Example |
-|---------------------|:-------------:|:----------:|---------|
-| drvTemplate         | OK            | template   | [here](https://github.com/CANopenNode/CANopenNode) |
-| Linux socketCAN     | beta   (2016) | Yes        | [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) |
-| Microchip PIC32     | stable (2015) | Yes        | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| Microchip PIC24, 33 | stable (2015) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| Microchip dsPIC30F  | beta   (2013) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| RTOS eCos           | stable (2013) | Yes        | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| Atmel SAM3X         | ?             | Yes        | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| ST STM32            | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| NXP LPC177x_8x      | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| Freescale MCF5282   | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
+|                               | Status (date) | OD storage | Example |
+|-------------------------------|:-------------:|:----------:|---------|
+| drvTemplate                   | OK            | template   | [here](https://github.com/CANopenNode/CANopenNode) |
+| socketCAN (Linux)             | beta   (2016) | Yes        | [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) |
+| Microchip PIC32 (MPLABX)      | stable (2015) | Yes        | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
+| Microchip PIC24, 33 (MPLABX)  | stable (2015) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
+| Microchip dsPIC30F (MPLABX)   | beta   (2013) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
+| LPC1768 (MBED)                | beta   (2016) | no         | [exmachina](https://github.com/exmachina-dev/CANopenMbed) |
+| RTOS eCos                     | stable (2013) | Yes        | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
+| Atmel SAM3X                   | ?             | Yes        | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
+| ST STM32                      | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
+| NXP LPC177x_8x                | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
+| Freescale MCF5282             | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
 
 
 ### Other known implementations with source code
@@ -180,6 +181,19 @@ Microcontroller support
  - Discontinued implementations from earlier versions of CANopenNode
    - Microchip PIC18F
    - BECK IPC Embedded Web-Controller SC243
+
+
+### Note for contributors
+ - Implementations for some other microcontrollers may go into CANopenNode.
+ - Each implementation should have a basic example, which should run on
+   implemented microcontroller.
+ - Use drvTemplate for template. Another template may be PIC32 microcontroller,
+   code for it is most maintained.
+ - Remove documentation comments from CO_driver.h (from drvTemplate). Make
+   only basic comments, same as in PIC32.
+ - Keep styling in CO_driver.(ch) unchanged, so files are easy comparable.
+ - In case of some (minor) changes in CANopenNode interface, change will
+   be updated for all microcontrollers.
 
 
 History of the project
