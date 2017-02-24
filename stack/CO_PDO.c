@@ -905,8 +905,11 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
 /******************************************************************************/
 void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 
-    if(RPDO->valid && (*RPDO->operatingState == CO_NMT_OPERATIONAL) &&
-      ((RPDO->synchronous && syncWas) || !RPDO->synchronous))
+    if(!RPDO->valid || !(*RPDO->operatingState == CO_NMT_OPERATIONAL))
+    {
+        RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+    }
+    else if(!RPDO->synchronous || syncWas)
     {
         uint8_t bufNo = 0;
 
@@ -959,10 +962,6 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
             }
 #endif
         }
-    }
-
-    else{
-        RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
     }
 }
 
