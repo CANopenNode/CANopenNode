@@ -1,3 +1,4 @@
+// This example depends on Teensyduino.  If you are compiling for native ARM, use it as a reference but skip the Arduino stuff (Serial, etc) and set up your own ISR.
 
 // Includes 
 #include "kinetis.h"
