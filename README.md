@@ -173,7 +173,7 @@ Microcontroller support
 | ST STM32                      | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
 | NXP LPC177x_8x                | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
 | Freescale MCF5282             | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| Kinets K20 (ARM)              | beta (2017)   | no         | Teensyduino example given |
+| Kinetis K20 (ARM)              | beta (2017)   | no         | Teensyduino example given |
 
 
 ### Other known implementations with source code
