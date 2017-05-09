@@ -66,6 +66,7 @@ static void CO_NMT_receive(void *object, const CO_CANrxMsg_t *msg){
 
     if((msg->DLC == 2) && ((nodeId == 0) || (nodeId == NMT->nodeId))){
         uint8_t command = msg->data[0];
+        uint8_t currentOperatingState = NMT->operatingState;
 
         switch(command){
             case CO_NMT_ENTER_OPERATIONAL:
@@ -85,6 +86,10 @@ static void CO_NMT_receive(void *object, const CO_CANrxMsg_t *msg){
             case CO_NMT_RESET_COMMUNICATION:
                 NMT->resetCommand = CO_RESET_COMM;
                 break;
+        }
+
+        if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
+            NMT->pFunctNMT(NMT->operatingState);
         }
     }
 }
@@ -151,6 +156,20 @@ CO_ReturnError_t CO_NMT_init(
 
 
 /******************************************************************************/
+void CO_NMT_initCallback(
+        CO_NMT_t               *NMT,
+        void                  (*pFunctNMT)(CO_NMT_internalState_t state))
+{
+    if(NMT != NULL){
+        NMT->pFunctNMT = pFunctNMT;
+        if(NMT->pFunctNMT != NULL){
+            NMT->pFunctNMT(NMT->operatingState);
+        }
+    }
+}
+
+
+/******************************************************************************/
 void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
 
     if(++NMT->LEDflickering >= 1) NMT->LEDflickering = -1;
@@ -196,6 +215,8 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         uint16_t               *timerNext_ms)
 {
     uint8_t CANpassive;
+
+    uint8_t currentOperatingState = NMT->operatingState;
 
     NMT->HBproducerTimer += timeDifference_ms;
 
@@ -316,6 +337,21 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         }
     }
 
+    if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
+        NMT->pFunctNMT(NMT->operatingState);
+    }
 
     return NMT->resetCommand;
 }
+
+
+/******************************************************************************/
+CO_NMT_internalState_t CO_NMT_getInternalState(
+        CO_NMT_t               *NMT)
+{
+    if(NMT != NULL){
+        return NMT->operatingState;
+    }
+    return CO_NMT_INITIALIZING;
+}
+
