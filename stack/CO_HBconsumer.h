@@ -47,6 +47,9 @@
 #ifndef CO_HB_CONS_H
 #define CO_HB_CONS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_HBconsumer Heartbeat consumer
@@ -140,6 +143,9 @@ void CO_HBconsumer_process(
         bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_ms);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

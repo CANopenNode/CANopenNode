@@ -47,6 +47,9 @@
 #ifndef CO_NMT_HEARTBEAT_H
 #define CO_NMT_HEARTBEAT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_NMT_Heartbeat NMT and Heartbeat
@@ -254,6 +257,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         const uint8_t           errorBehavior[],
         uint16_t               *timerNext_ms);
 
+
 /**
  * Query current NMT state
  *
@@ -264,6 +268,10 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 CO_NMT_internalState_t CO_NMT_getInternalState(
         CO_NMT_t               *NMT);
 
+
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

@@ -47,6 +47,9 @@
 #ifndef CO_SDO_H
 #define CO_SDO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_SDO SDO server
@@ -256,17 +259,42 @@ typedef enum{
  *
  *
  * Function CO_SDO_init() initializes object CO_SDO_t, which includes SDO
- * server and Object dictionary. Interface to Object dictionary is provided by
- * following functions: CO_OD_find() finds OD entry by index, CO_OD_getLength()
- * returns length of variable, CO_OD_getAttribute returns attribute and
- * CO_OD_getDataPointer() returns pointer to data. These functions are used by
- * SDO server and by PDO configuration.
+ * server and Object dictionary. 
  *
  * Application doesn't need to know anything about the Object dictionary. It can
  * use variables specified in CO_OD.h file directly. If it needs more control
  * over the CANopen communication with the variables, it can configure additional
  * functionality with function CO_OD_configure(). Additional functionality
  * include: @ref CO_SDO_OD_function and #CO_SDO_OD_flags_t.
+ * 
+ * Interface to Object dictionary is provided by following functions: CO_OD_find() 
+ * finds OD entry by index, CO_OD_getLength() returns length of variable, 
+ * CO_OD_getAttribute returns attribute and CO_OD_getDataPointer() returns pointer 
+ * to data. These functions are used by SDO server and by PDO configuration. They 
+ * can also be used to access the OD by index like this.
+ * 
+ * \code{.c}
+ * index = CO_OD_find(CO->SDO[0], OD_H1001_ERR_REG);
+ * if (index == 0xffff) {
+ *     return;
+ * }
+ * length = CO_OD_getLength(CO->SDO[0], index, 1);
+ * if (length != sizeof(new_data)) {
+ *    return;
+ * }
+ *
+ * p = CO_OD_getDataPointer(CO->SDO[0], index, 1);
+ * if (p == NULL) {
+ *     return;
+ * }
+ * CO_LOCK_OD();
+ * *p = new_data;
+ * CO_UNLOCK_OD();
+ * \endcode
+ * 
+ * Be aware that accessing the OD directly using CO_OD.h files is more CPU 
+ * efficient as CO_OD_find() has to do a search everytime it is called.
+ * 
  */
 
 
@@ -930,6 +958,9 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize);
  */
 uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

@@ -43,6 +43,7 @@
  * to do so, delete this exception statement from your version.
  */
 
+#ifndef CO_USE_OWN_CRC16
 
 #include "crc16-ccitt.h"
 
@@ -114,3 +115,5 @@ unsigned short crc16_ccitt(
     }
     return crc;
 }
+
+#endif /* CO_USE_OWN_CRC16 */

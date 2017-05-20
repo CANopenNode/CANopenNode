@@ -54,6 +54,9 @@
 #ifndef CANopen_H
 #define CANopen_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_CANopen CANopen stack
@@ -239,6 +242,9 @@ void CO_process_TPDO(
         bool_t                  syncWas,
         uint32_t                timeDifference_us);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

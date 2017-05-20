@@ -47,6 +47,9 @@
 #ifndef CO_EMERGENCY_H
 #define CO_EMERGENCY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_Emergency Emergency
@@ -420,6 +423,10 @@ void CO_EM_process(
 
 
 #endif
+
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif
