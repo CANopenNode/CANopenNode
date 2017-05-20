@@ -72,6 +72,9 @@
  *
  * @return Calculated CRC.
  */
+#ifdef CO_USE_OWN_CRC16
+extern
+#endif
 unsigned short crc16_ccitt(
         const unsigned char     block[],
         unsigned int            blockLength,
