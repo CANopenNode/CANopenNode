@@ -130,6 +130,7 @@ CO_ReturnError_t CO_NMT_init(
     NMT->resetCommand           = 0;
     NMT->HBproducerTimer        = 0xFFFF;
     NMT->emPr                   = emPr;
+    NMT->pFunctNMT              = NULL;
 
     /* configure NMT CAN reception */
     CO_CANrxBufferInit(
