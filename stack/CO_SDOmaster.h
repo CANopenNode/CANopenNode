@@ -48,6 +48,9 @@
 #ifndef CO_SDO_CLIENT_H
 #define CO_SDO_CLIENT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_SDOmaster SDO client
@@ -356,6 +359,9 @@ CO_SDOclient_return_t CO_SDOclientUpload(
  */
 void CO_SDOclientClose(CO_SDOclient_t *SDO_C);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

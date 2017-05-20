@@ -49,6 +49,9 @@
 #ifndef EEPROM_H
 #define EEPROM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_eeprom Nonvolatile storage
@@ -117,6 +120,9 @@ void CO_EE_init_2(
  */
 void CO_EE_process(CO_EE_t *ee);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif
