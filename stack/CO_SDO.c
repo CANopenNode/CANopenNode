@@ -493,8 +493,16 @@ uint16_t CO_OD_getAttribute(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
         return object->attribute;
     }
     else if(object->attribute != 0U){/* Object type is Array */
+        bool_t exception_1003 = false;
         uint16_t attr = object->attribute;
-        if(subIndex == 0U){
+
+        /* Special exception: Object 1003,00 should be writable */
+        if(object->index == 0x1003 && subIndex == 0) {
+            exception_1003 = true;
+            attr |= CO_ODA_WRITEABLE;
+        }
+
+        if(subIndex == 0U  && exception_1003 == false){
             /* First subIndex is readonly */
             attr &= ~(CO_ODA_WRITEABLE | CO_ODA_RPDO_MAPABLE);
             attr |= CO_ODA_READABLE;
@@ -672,14 +680,8 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
     uint8_t *ODdata = (uint8_t*)SDO->ODF_arg.ODdataStorage;
     bool_t exception_1003 = false;
 
-    /* Special exception: Object 1003,00 should be writable,
-     * but only by Object dictionary function. */
-    if(SDO->ODF_arg.index == 0x1003 && SDO->ODF_arg.subIndex == 0) {
-        exception_1003 = true;
-    }
-
     /* is object writeable? */
-    if((SDO->ODF_arg.attribute & CO_ODA_WRITEABLE) == 0 && exception_1003 == false){
+    if((SDO->ODF_arg.attribute & CO_ODA_WRITEABLE) == 0){
         return CO_SDO_AB_READONLY;     /* attempt to write a read-only object */
     }
 
@@ -723,6 +725,11 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
     }
     SDO->ODF_arg.offset += SDO->ODF_arg.dataLength;
     SDO->ODF_arg.firstSegment = false;
+
+    /* Special exception: 1003,00 is writable from network, but not in OD  */
+    if(SDO->ODF_arg.index == 0x1003 && SDO->ODF_arg.subIndex == 0) {
+        exception_1003 = true;
+    }
 
     /* copy data from SDO buffer to OD if not domain */
     if(ODdata != NULL && exception_1003 == false){
