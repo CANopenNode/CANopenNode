@@ -1258,14 +1258,15 @@ int8_t CO_SDO_process(
             /* Number of segments per block */
             SDO->blksize = SDO->CANrxData[4];
 
-            /* verify client subcommand and blksize */
-            if(((SDO->CANrxData[0]&0x03U) != 0x00U) || (SDO->blksize < 1U) || (SDO->blksize > 127U)){
+            /* verify client subcommand */
+            if((SDO->CANrxData[0]&0x03U) != 0x00U){
                 CO_SDO_abort(SDO, CO_SDO_AB_CMD);/* Client command specifier not valid or unknown. */
                 return -1;
             }
 
-            /* verify if SDO data buffer is large enough */
-            if(((SDO->blksize*7U) > SDO->ODF_arg.dataLength) && (!SDO->ODF_arg.lastSegment)){
+            /* verify blksize and if SDO data buffer is large enough */
+            if((SDO->blksize < 1U) || (SDO->blksize > 127U) ||
+               (((SDO->blksize*7U) > SDO->ODF_arg.dataLength) && (!SDO->ODF_arg.lastSegment))){
                 CO_SDO_abort(SDO, CO_SDO_AB_BLOCK_SIZE); /* Invalid block size (block mode only). */
                 return -1;
             }
