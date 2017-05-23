@@ -1317,7 +1317,7 @@ int8_t CO_SDO_process(
 
                 /* verify if response is too early */
                 if(ackseq > SDO->sequence){
-                    CO_SDO_abort(SDO, CO_SDO_AB_BLOCK_SIZE); /* Invalid block size (block mode only). */
+                    CO_SDO_abort(SDO, CO_SDO_AB_SEQ_NUM); /* Invalid sequence */
                     return -1;
                 }
 
