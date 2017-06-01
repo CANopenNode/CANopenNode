@@ -88,7 +88,8 @@
             || CO_NO_SYNC                                 != 1     \
             || CO_NO_EMERGENCY                            != 1     \
             || CO_NO_SDO_SERVER                           == 0     \
-            || (CO_NO_SDO_CLIENT != 0 && CO_NO_SDO_CLIENT != 1)    \
+            || CO_NO_SDO_CLIENT                           == 0     \
+            || CO_NO_SDO_CLIENT                           > 128    \
             || (CO_NO_RPDO < 1 || CO_NO_RPDO > 0x200)              \
             || (CO_NO_TPDO < 1 || CO_NO_TPDO > 0x200)              \
             || ODL_consumerHeartbeatTime_arrayLength      == 0     \
@@ -138,7 +139,7 @@
     static CO_TPDO_t            COO_TPDO[CO_NO_TPDO];
     static CO_HBconsumer_t      COO_HBcons;
     static CO_HBconsNode_t      COO_HBcons_monitoredNodes[CO_NO_HB_CONS];
-#if CO_NO_SDO_CLIENT == 1
+#if CO_NO_SDO_CLIENT != 0
     static CO_SDOclient_t       COO_SDOclient;
 #endif
 #if CO_NO_TRACE > 0
@@ -214,7 +215,7 @@ CO_ReturnError_t CO_init(
         return CO_ERROR_PARAMETERS;
     }
 
-    #if CO_NO_SDO_CLIENT == 1
+    #if CO_NO_SDO_CLIENT != 0
     if(sizeof(OD_SDOClientParameter_t) != sizeof(CO_SDOclientPar_t)){
         return CO_ERROR_PARAMETERS;
     }
@@ -241,7 +242,7 @@ CO_ReturnError_t CO_init(
         CO->TPDO[i]                     = &COO_TPDO[i];
     CO->HBcons                          = &COO_HBcons;
     CO_HBcons_monitoredNodes            = &COO_HBcons_monitoredNodes[0];
-  #if CO_NO_SDO_CLIENT == 1
+  #if CO_NO_SDO_CLIENT != 0
     CO->SDOclient                       = &COO_SDOclient;
   #endif
   #if CO_NO_TRACE > 0
@@ -274,7 +275,7 @@ CO_ReturnError_t CO_init(
         }
         CO->HBcons                          = (CO_HBconsumer_t *)   calloc(1, sizeof(CO_HBconsumer_t));
         CO_HBcons_monitoredNodes            = (CO_HBconsNode_t *)   calloc(CO_NO_HB_CONS, sizeof(CO_HBconsNode_t));
-      #if CO_NO_SDO_CLIENT == 1
+      #if CO_NO_SDO_CLIENT != 0
         CO->SDOclient                       = (CO_SDOclient_t *)    calloc(1, sizeof(CO_SDOclient_t));
       #endif
       #if CO_NO_TRACE > 0
@@ -304,7 +305,7 @@ CO_ReturnError_t CO_init(
                   + sizeof(CO_TPDO_t) * CO_NO_TPDO
                   + sizeof(CO_HBconsumer_t)
                   + sizeof(CO_HBconsNode_t) * CO_NO_HB_CONS
-  #if CO_NO_SDO_CLIENT == 1
+  #if CO_NO_SDO_CLIENT != 0
                   + sizeof(CO_SDOclient_t)
   #endif
                   + 0;
@@ -335,7 +336,7 @@ CO_ReturnError_t CO_init(
     }
     if(CO->HBcons                       == NULL) errCnt++;
     if(CO_HBcons_monitoredNodes         == NULL) errCnt++;
-  #if CO_NO_SDO_CLIENT == 1
+  #if CO_NO_SDO_CLIENT != 0
     if(CO->SDOclient                    == NULL) errCnt++;
   #endif
   #if CO_NO_TRACE > 0
@@ -517,7 +518,7 @@ CO_ReturnError_t CO_init(
     if(err){CO_delete(CANbaseAddress); return err;}
 
 
-#if CO_NO_SDO_CLIENT == 1
+#if CO_NO_SDO_CLIENT != 0
     err = CO_SDOclient_init(
             CO->SDOclient,
             CO->SDO[0],
@@ -575,7 +576,7 @@ void CO_delete(int32_t CANbaseAddress){
           free(CO_traceValueBuffers[i]);
       }
   #endif
-  #if CO_NO_SDO_CLIENT == 1
+  #if CO_NO_SDO_CLIENT != 0
     free(CO->SDOclient);
   #endif
     free(CO_HBcons_monitoredNodes);
