@@ -871,6 +871,7 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
             uint16_t index = (uint16_t)(map>>16);
             uint8_t subIndex = (uint8_t)(map>>8);
             uint16_t entryNo = CO_OD_find(pSDO, index);
+            if ( entryNo == 0xFFFF ) continue;
             CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
             if( ext->pODFunc == NULL) continue;
             CO_ODF_arg_t ODF_arg;
@@ -945,6 +946,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
                     uint16_t index = (uint16_t)(map>>16);
                     uint8_t subIndex = (uint8_t)(map>>8);
                     uint16_t entryNo = CO_OD_find(pSDO, index);
+                    if ( entryNo == 0xFFFF ) continue;
                     CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
                     if( ext->pODFunc == NULL) continue;
                     CO_ODF_arg_t ODF_arg;
