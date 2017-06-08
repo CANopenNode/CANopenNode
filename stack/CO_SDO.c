@@ -72,6 +72,13 @@ void CO_memcpy(uint8_t dest[], const uint8_t src[], const uint16_t size){
     }
 }
 
+void CO_memset(uint8_t dest[], uint8_t c, const uint16_t size){
+    uint16_t i;
+    for(i = 0; i < size; i++){
+        dest[i] = c;
+    }
+}
+
 uint16_t CO_getUint16(const uint8_t data[]){
     CO_bytes_t b;
     b.u8[0] = data[0];

@@ -92,7 +92,10 @@
             || (CO_NO_RPDO < 1 || CO_NO_RPDO > 0x200)              \
             || (CO_NO_TPDO < 1 || CO_NO_TPDO > 0x200)              \
             || ODL_consumerHeartbeatTime_arrayLength      == 0     \
-            || ODL_errorStatusBits_stringLength           < 10
+            || ODL_errorStatusBits_stringLength           < 10     \
+            || CO_NO_LSS_SERVER                           >  1     \
+            || CO_NO_LSS_CLIENT                           >  1     \
+            || (CO_NO_LSS_SERVER > 0 && CO_NO_LSS_CLIENT > 0)
         #error Features from CO_OD.h file are not corectly configured for this project!
     #endif
 
@@ -110,8 +113,10 @@
     #define CO_RXCAN_SDO_SRV  (CO_RXCAN_RPDO+CO_NO_RPDO)              /*  start index for SDO server message (request) */
     #define CO_RXCAN_SDO_CLI  (CO_RXCAN_SDO_SRV+CO_NO_SDO_SERVER)     /*  start index for SDO client message (response) */
     #define CO_RXCAN_CONS_HB  (CO_RXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  start index for Heartbeat Consumer messages */
+    #define CO_RXCAN_LSS_SRV  (CO_RXCAN_CONS_HB+CO_NO_LSS_SERVER)     /*  index for LSS server message (request) */
+    #define CO_RXCAN_LSS_CLI  (CO_RXCAN_LSS_SRV+CO_NO_LSS_CLIENT)     /*  index for LSS client message (response) */
     /* total number of received CAN messages */
-    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS)
+    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS+CO_NO_LSS_SERVER+CO_NO_LSS_CLIENT)
 
     #define CO_TXCAN_NMT       0                                      /*  index for NMT master message */
     #define CO_TXCAN_SYNC      CO_TXCAN_NMT+CO_NO_NMT_MASTER          /*  index for SYNC message */
@@ -120,8 +125,10 @@
     #define CO_TXCAN_SDO_SRV  (CO_TXCAN_TPDO+CO_NO_TPDO)              /*  start index for SDO server message (response) */
     #define CO_TXCAN_SDO_CLI  (CO_TXCAN_SDO_SRV+CO_NO_SDO_SERVER)     /*  start index for SDO client message (request) */
     #define CO_TXCAN_HB       (CO_TXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  index for Heartbeat message */
+    #define CO_TXCAN_LSS_SRV  (CO_TXCAN_HB+CO_NO_LSS_SERVER)          /*  index index for LSS server message (response) */
+    #define CO_TXCAN_LSS_CLI  (CO_TXCAN_LSS_SRV+CO_NO_LSS_CLIENT)     /*  index index for LSS client message (request) */
     /* total number of transmitted CAN messages */
-    #define CO_TXCAN_NO_MSGS (CO_NO_NMT_MASTER+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+1)
+    #define CO_TXCAN_NO_MSGS (CO_NO_NMT_MASTER+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+1+CO_NO_LSS_SERVER+CO_NO_LSS_CLIENT)
 
 
 #ifdef CO_USE_GLOBALS
@@ -138,6 +145,12 @@
     static CO_TPDO_t            COO_TPDO[CO_NO_TPDO];
     static CO_HBconsumer_t      COO_HBcons;
     static CO_HBconsNode_t      COO_HBcons_monitoredNodes[CO_NO_HB_CONS];
+#if CO_NO_LSS_SERVER == 1
+    static CO_LSSslave_t        CO0_LSSslave;
+#endif
+#if CO_NO_LSS_CLIENT == 1
+    static CO_LSSmaster_t       CO0_LSSmaster;
+#endif
 #if CO_NO_SDO_CLIENT == 1
     static CO_SDOclient_t       COO_SDOclient;
 #endif
@@ -189,15 +202,11 @@
 #endif
 
 
-/******************************************************************************/
-CO_ReturnError_t CO_init(
-        int32_t                 CANbaseAddress,
-        uint8_t                 nodeId,
-        uint16_t                bitRate)
-{
 
+/******************************************************************************/
+CO_ReturnError_t CO_new(void)
+{
     int16_t i;
-    CO_ReturnError_t err;
 #ifndef CO_USE_GLOBALS
     uint16_t errCnt;
 #endif
@@ -241,6 +250,12 @@ CO_ReturnError_t CO_init(
         CO->TPDO[i]                     = &COO_TPDO[i];
     CO->HBcons                          = &COO_HBcons;
     CO_HBcons_monitoredNodes            = &COO_HBcons_monitoredNodes[0];
+  #if CO_NO_LSS_SERVER == 1
+    CO->LSSslave                        = &CO0_LSSslave;
+  #endif
+  #if CO_NO_LSS_CLIENT == 1
+    CO->CO_LSSmaster                    = &CO0_LSSmaster;
+  #endif
   #if CO_NO_SDO_CLIENT == 1
     CO->SDOclient                       = &COO_SDOclient;
   #endif
@@ -274,6 +289,12 @@ CO_ReturnError_t CO_init(
         }
         CO->HBcons                          = (CO_HBconsumer_t *)   calloc(1, sizeof(CO_HBconsumer_t));
         CO_HBcons_monitoredNodes            = (CO_HBconsNode_t *)   calloc(CO_NO_HB_CONS, sizeof(CO_HBconsNode_t));
+      #if CO_NO_LSS_SERVER == 1
+        CO->LSSslave                        = (CO_LSSslave_t *)     calloc(1, sizeof(CO_LSSslave_t));
+      #endif
+      #if CO_NO_LSS_CLIENT == 1
+        CO->LSSmaster                       = (CO_LSSmaster_t *)    calloc(1, sizeof(CO_LSSmaster_t));
+      #endif
       #if CO_NO_SDO_CLIENT == 1
         CO->SDOclient                       = (CO_SDOclient_t *)    calloc(1, sizeof(CO_SDOclient_t));
       #endif
@@ -304,6 +325,12 @@ CO_ReturnError_t CO_init(
                   + sizeof(CO_TPDO_t) * CO_NO_TPDO
                   + sizeof(CO_HBconsumer_t)
                   + sizeof(CO_HBconsNode_t) * CO_NO_HB_CONS
+  #if CO_NO_LSS_SERVER == 1
+                  + sizeof(CO_LSSslave_t)
+  #endif
+  #if CO_NO_LSS_CLIENT == 1
+                  + sizeof(CO_LSSmaster_t)
+  #endif
   #if CO_NO_SDO_CLIENT == 1
                   + sizeof(CO_SDOclient_t)
   #endif
@@ -335,6 +362,12 @@ CO_ReturnError_t CO_init(
     }
     if(CO->HBcons                       == NULL) errCnt++;
     if(CO_HBcons_monitoredNodes         == NULL) errCnt++;
+  #if CO_NO_LSS_SERVER == 1
+    if(CO->LSSslave                     == NULL) errCnt++;
+  #endif
+  #if CO_NO_LSS_CLIENT == 1
+    if(CO->LSSmaster                    == NULL) errCnt++;
+  #endif
   #if CO_NO_SDO_CLIENT == 1
     if(CO->SDOclient                    == NULL) errCnt++;
   #endif
@@ -346,18 +379,19 @@ CO_ReturnError_t CO_init(
 
     if(errCnt != 0) return CO_ERROR_OUT_OF_MEMORY;
 #endif
+    return CO_ERROR_NO;
+}
 
+
+/******************************************************************************/
+CO_ReturnError_t CO_CANinit(
+        int32_t                 CANbaseAddress,
+        uint16_t                bitRate)
+{
+    CO_ReturnError_t err;
 
     CO->CANmodule[0]->CANnormal = false;
     CO_CANsetConfigurationMode(CANbaseAddress);
-
-    /* Verify CANopen Node-ID */
-    if(nodeId<1 || nodeId>127)
-    {
-        CO_delete(CANbaseAddress);
-        return CO_ERROR_PARAMETERS;
-    }
-
 
     err = CO_CANmodule_init(
             CO->CANmodule[0],
@@ -368,7 +402,51 @@ CO_ReturnError_t CO_init(
             CO_TXCAN_NO_MSGS,
             bitRate);
 
-    if(err){CO_delete(CANbaseAddress); return err;}
+    return err;
+}
+
+
+/******************************************************************************/
+#if CO_NO_LSS_SERVER == 1
+CO_ReturnError_t CO_LSSinit(
+        uint8_t                 nodeId,
+        uint16_t                bitRate)
+{
+    CO_LSS_address_t lssAddress;
+    CO_ReturnError_t err;
+
+    lssAddress.productCode = OD_identity.productCode;
+    lssAddress.revisionNumber = OD_identity.revisionNumber;
+    lssAddress.serialNumber = OD_identity.serialNumber;
+    lssAddress.vendorID = OD_identity.vendorID;
+    err = CO_LSSslave_init(
+            CO->LSSslave,
+            lssAddress,
+            bitRate,
+            nodeId,
+            CO->CANmodule[0],
+            CO_RXCAN_LSS_SRV,
+            CO_CAN_ID_LSS_SRV,
+            CO->CANmodule[0],
+            CO_TXCAN_LSS_CLI,
+            CO_CAN_ID_LSS_CLI);
+
+    return err;
+}
+#endif /* CO_NO_LSS_SERVER == 1 */
+
+
+/******************************************************************************/
+CO_ReturnError_t CO_CANopenInit(
+        uint8_t                 nodeId)
+{
+    int16_t i;
+    CO_ReturnError_t err;
+
+    /* Verify CANopen Node-ID */
+    if(nodeId<1 || nodeId>127) {
+        return CO_ERROR_PARAMETERS;
+    }
 
     for (i=0; i<CO_NO_SDO_SERVER; i++)
     {
@@ -399,7 +477,7 @@ CO_ReturnError_t CO_init(
                 CO_TXCAN_SDO_SRV+i);
     }
 
-    if(err){CO_delete(CANbaseAddress); return err;}
+    if(err){return err;}
 
 
     err = CO_EM_init(
@@ -415,7 +493,7 @@ CO_ReturnError_t CO_init(
             CO_TXCAN_EMERG,
             CO_CAN_ID_EMERGENCY + nodeId);
 
-    if(err){CO_delete(CANbaseAddress); return err;}
+    if(err){return err;}
 
 
     err = CO_NMT_init(
@@ -430,7 +508,7 @@ CO_ReturnError_t CO_init(
             CO_TXCAN_HB,
             CO_CAN_ID_HEARTBEAT + nodeId);
 
-    if(err){CO_delete(CANbaseAddress); return err;}
+    if(err){return err;}
 
 
 #if CO_NO_NMT_MASTER == 1
@@ -457,7 +535,7 @@ CO_ReturnError_t CO_init(
             CO->CANmodule[0],
             CO_TXCAN_SYNC);
 
-    if(err){CO_delete(CANbaseAddress); return err;}
+    if(err){return err;}
 
 
     for(i=0; i<CO_NO_RPDO; i++){
@@ -480,7 +558,7 @@ CO_ReturnError_t CO_init(
                 CANdevRx,
                 CANdevRxIdx);
 
-        if(err){CO_delete(CANbaseAddress); return err;}
+        if(err){return err;}
     }
 
 
@@ -500,7 +578,7 @@ CO_ReturnError_t CO_init(
                 CO->CANmodule[0],
                 CO_TXCAN_TPDO+i);
 
-        if(err){CO_delete(CANbaseAddress); return err;}
+        if(err){return err;}
     }
 
 
@@ -514,7 +592,7 @@ CO_ReturnError_t CO_init(
             CO->CANmodule[0],
             CO_RXCAN_CONS_HB);
 
-    if(err){CO_delete(CANbaseAddress); return err;}
+    if(err){return err;}
 
 
 #if CO_NO_SDO_CLIENT == 1
@@ -527,7 +605,7 @@ CO_ReturnError_t CO_init(
             CO->CANmodule[0],
             CO_TXCAN_SDO_CLI);
 
-    if(err){CO_delete(CANbaseAddress); return err;}
+    if(err){return err;}
 #endif
 
 
@@ -553,6 +631,34 @@ CO_ReturnError_t CO_init(
     }
 #endif
 
+    return CO_ERROR_NO;
+}
+
+
+/******************************************************************************/
+CO_ReturnError_t CO_init(
+        int32_t                 CANbaseAddress,
+        uint8_t                 nodeId,
+        uint16_t                bitRate)
+{
+    CO_ReturnError_t err;
+
+    err = CO_new();
+    if (err) {
+        return err;
+    }
+
+    err = CO_CANinit(CANbaseAddress, bitRate);
+    if (err) {
+        CO_delete(CANbaseAddress);
+        return err;
+    }
+
+    err = CO_CANopenInit(nodeId);
+    if (err) {
+        CO_delete(CANbaseAddress);
+        return err;
+    }
 
     return CO_ERROR_NO;
 }
@@ -577,6 +683,12 @@ void CO_delete(int32_t CANbaseAddress){
   #endif
   #if CO_NO_SDO_CLIENT == 1
     free(CO->SDOclient);
+  #endif
+  #if CO_NO_LSS_SERVER == 1
+    free(CO->LSSslave);
+  #endif
+  #if CO_NO_LSS_CLIENT == 1
+    free(CO->LSSmaster);
   #endif
     free(CO_HBcons_monitoredNodes);
     free(CO->HBcons);
