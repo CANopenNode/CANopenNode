@@ -756,7 +756,7 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
         uint8_t                 blockEnable)
 {
     /* verify parameters */
-    if(SDO_C == NULL || dataRx == 0 || dataRxSize < 4) {
+    if(SDO_C == NULL || dataRx == 0 ) {// DW || dataRxSize < 4) {
         return CO_SDOcli_wrongArguments;
     }
 

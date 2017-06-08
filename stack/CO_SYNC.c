@@ -50,6 +50,7 @@
 #include "CO_NMT_Heartbeat.h"
 #include "CO_SYNC.h"
 
+#define RTR                                     1
 /*
  * Read received message from CAN module.
  *
@@ -137,7 +138,7 @@ static CO_SDO_abortCode_t CO_ODF_1005(CO_ODF_arg_t *ODF_arg){
                         SYNC->CANdevTx,         /* CAN device */
                         SYNC->CANdevTxIdx,      /* index of specific buffer inside CAN module */
                         SYNC->COB_ID,           /* CAN identifier */
-                        0,                      /* rtr */
+                        RTR,                      /* rtr */
                         len,                    /* number of data bytes */
                         0);                     /* synchronous message flag bit */
                 SYNC->isProducer = true;
@@ -151,7 +152,7 @@ static CO_SDO_abortCode_t CO_ODF_1005(CO_ODF_arg_t *ODF_arg){
                     SYNC->CANdevRxIdx,      /* rx buffer index */
                     SYNC->COB_ID,           /* CAN identifier */
                     0x7FF,                  /* mask */
-                    0,                      /* rtr */
+                    RTR,                      /* rtr */
                     (void*)SYNC,            /* object passed to receive function */
                     CO_SYNC_receive);       /* this function will process received message */
         }
@@ -223,7 +224,7 @@ static CO_SDO_abortCode_t CO_ODF_1019(CO_ODF_arg_t *ODF_arg){
                     SYNC->CANdevTx,         /* CAN device */
                     SYNC->CANdevTxIdx,      /* index of specific buffer inside CAN module */
                     SYNC->COB_ID,           /* CAN identifier */
-                    0,                      /* rtr */
+                    RTR,                      /* rtr */
                     len,                    /* number of data bytes */
                     0);                     /* synchronous message flag bit */
         }
@@ -292,7 +293,7 @@ CO_ReturnError_t CO_SYNC_init(
             CANdevRxIdx,            /* rx buffer index */
             SYNC->COB_ID,           /* CAN identifier */
             0x7FF,                  /* mask */
-            0,                      /* rtr */
+            RTR,                      /* rtr */
             (void*)SYNC,            /* object passed to receive function */
             CO_SYNC_receive);       /* this function will process received message */
 
@@ -303,7 +304,7 @@ CO_ReturnError_t CO_SYNC_init(
             CANdevTx,               /* CAN device */
             CANdevTxIdx,            /* index of specific buffer inside CAN module */
             SYNC->COB_ID,           /* CAN identifier */
-            0,                      /* rtr */
+            RTR,                      /* rtr */
             len,                    /* number of data bytes */
             0);                     /* synchronous message flag bit */
 

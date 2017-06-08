@@ -63,6 +63,8 @@
 /**
  * Return values of SDO client functions.
  */
+
+
 typedef enum{
     /** Transmit buffer is full. Waiting */
     CO_SDOcli_transmittBufferFull       = 4,
