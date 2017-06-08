@@ -47,6 +47,9 @@
 #ifndef CO_EMERGENCY_H
 #define CO_EMERGENCY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_Emergency Emergency
@@ -194,7 +197,8 @@ typedef enum{
  * CO_isError() functions.
  *
  * Stack uses first 6 bytes of the _Error Status Bits_ variable. Device profile
- * or application may define own macros for Error status bits. Note that
+ * or application may define own macros for Error status bits using
+ * @ref CO_EM_MANUFACTURER_START and @ref CO_EM_MANUFACTURER_END values. Note that
  * _Error Status Bits_ must be large enough (up to 32 bytes).
  */
 #define CO_EM_NO_ERROR                  0x00U /**< 0x00, Error Reset or No Error */
@@ -248,6 +252,9 @@ typedef enum{
 #define CO_EM_INCONSISTENT_OBJECT_DICT  0x2DU /**< 0x2D, generic, critical, Object dictionary does not match the software */
 #define CO_EM_CALCULATION_OF_PARAMETERS 0x2EU /**< 0x2E, generic, critical, Error in calculation of device parameters */
 #define CO_EM_NON_VOLATILE_MEMORY       0x2FU /**< 0x2F, generic, critical, Error with access to non volatile device memory */
+
+#define CO_EM_MANUFACTURER_START        0x30U /**< 0x30, manufacturer, info, This can be used by macros to calculate error codes */
+#define CO_EM_MANUFACTURER_END          0xFFU /**< 0xFF, manufacturer, info, This can be used by macros to check error codes */
 /** @} */
 
 
@@ -420,6 +427,10 @@ void CO_EM_process(
 
 
 #endif
+
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

@@ -47,6 +47,9 @@
 #ifndef CO_NMT_HEARTBEAT_H
 #define CO_NMT_HEARTBEAT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_NMT_Heartbeat NMT and Heartbeat
@@ -146,7 +149,7 @@ typedef enum{
  * @ref CO_NMT_statusLEDdiodes. Object is initialized by CO_NMT_init().
  */
 typedef struct{
-    uint8_t             operatingState; /**< See @ref CO_NMT_statusLEDdiodes */
+    uint8_t             operatingState; /**< See @ref CO_NMT_internalState_t */
     int8_t              LEDflickering;  /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDblinking;    /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDsingleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
@@ -162,6 +165,7 @@ typedef struct{
     uint16_t            firstHBTime;    /**< From CO_NMT_init() */
     CO_EMpr_t          *emPr;           /**< From CO_NMT_init() */
     CO_CANmodule_t     *HB_CANdev;      /**< From CO_NMT_init() */
+    void              (*pFunctNMT)(CO_NMT_internalState_t state); /**< From CO_NMT_initCallback() or NULL */
     CO_CANtx_t         *HB_TXbuff;      /**< CAN transmit buffer */
 }CO_NMT_t;
 
@@ -197,6 +201,24 @@ CO_ReturnError_t CO_NMT_init(
         CO_CANmodule_t         *HB_CANdev,
         uint16_t                HB_txIdx,
         uint16_t                CANidTxHB);
+
+/**
+ * Initialize NMT callback function.
+ *
+ * Function initializes optional callback function, which is called after
+ * NMT State change has occured. Function may wake up external task which
+ * handles NMT events.
+ * The first call is made immediately to give the consumer the current NMT state.
+ *
+ * @remark Be aware that the callback function is run inside the CAN receive
+ * function context. Depending on the driver, this might be inside an interrupt!
+ *
+ * @param NMT This object.
+ * @param pFunctNMT Pointer to the callback function. Not called if NULL.
+ */
+void CO_NMT_initCallback(
+        CO_NMT_t               *NMT,
+        void                  (*pFunctNMT)(CO_NMT_internalState_t state));
 
 
 /**
@@ -235,6 +257,21 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         const uint8_t           errorBehavior[],
         uint16_t               *timerNext_ms);
 
+
+/**
+ * Query current NMT state
+ *
+ * @param NMT This object.
+ *
+ * @return #CO_NMT_internalState_t
+ */
+CO_NMT_internalState_t CO_NMT_getInternalState(
+        CO_NMT_t               *NMT);
+
+
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

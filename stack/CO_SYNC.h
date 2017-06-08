@@ -47,6 +47,9 @@
 #ifndef CO_SYNC_H
 #define CO_SYNC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_SYNC SYNC
@@ -173,6 +176,9 @@ uint8_t CO_SYNC_process(
         uint32_t                timeDifference_us,
         uint32_t                ObjDict_synchronousWindowLength);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

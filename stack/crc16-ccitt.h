@@ -48,6 +48,9 @@
 #ifndef CRC16_CCITT_H
 #define CRC16_CCITT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_crc16_ccitt CRC 16 CCITT
@@ -72,11 +75,17 @@
  *
  * @return Calculated CRC.
  */
+#ifdef CO_USE_OWN_CRC16
+extern
+#endif
 unsigned short crc16_ccitt(
         const unsigned char     block[],
         unsigned int            blockLength,
         unsigned short          crc);
 
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
 
 /** @} */
 #endif
