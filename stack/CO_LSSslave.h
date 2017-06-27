@@ -93,7 +93,7 @@ extern "C" {
  * included. For stable code, proper error handling has to be added to the user
  * code.
  *
- * This example is not intended for bare metal targets. If you intend to do can
+ * This example is not intended for bare metal targets. If you intend to do CAN
  * message receiving inside interrupt, be aware that the callback functions
  * will be called inside the interrupt handler context!
  *
@@ -403,7 +403,6 @@ void CO_LSSslave_initCfgStoreCallback(
  * "PREDEFINED" variable.
  *
  */
-
 
 #endif /* CO_NO_LSS_SERVER == 1 */
 

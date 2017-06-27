@@ -46,6 +46,8 @@
 #include "CANopen.h"
 #include "CO_LSSslave.h"
 
+#if CO_NO_LSS_SERVER == 1
+
 /*
  * Helper function - Handle service "switch state global"
  */
@@ -416,10 +418,10 @@ void CO_LSSslave_initCfgStoreCallback(
         void                   *object,
         bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate))
 {
-  if(LSSslave != NULL){
-      LSSslave->functLSScfgStore = object;
-      LSSslave->pFunctLSScfgStore = pFunctLSScfgStore;
-  }
+    if(LSSslave != NULL){
+        LSSslave->functLSScfgStore = object;
+        LSSslave->pFunctLSScfgStore = pFunctLSScfgStore;
+    }
 }
 
 
@@ -436,3 +438,5 @@ void CO_LSSslave_process(
     *pendingNodeId = LSSslave->pendingNodeID;
 }
 
+
+#endif

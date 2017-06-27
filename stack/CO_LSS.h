@@ -129,15 +129,17 @@ typedef enum {
  */
 typedef enum {
     CO_LSS_CFG_NODE_ID_OK = 0x00U,          /**< Protocol successfully completed */
-    CO_LSS_CFG_NODE_ID_OUT_OF_RANGE = 0x01U /**< NID out of range */
+    CO_LSS_CFG_NODE_ID_OUT_OF_RANGE = 0x01U,/**< NID out of range */
+    CO_LSS_CFG_NODE_ID_MANUFACTURER = 0xFFU /**< Manufacturer specific error. No further support */
 } CO_LSS_cfgNodeId_t;
 
 /**
  * Error codes for Configure bit timing parameters protocol
  */
 typedef enum {
-    CO_LSS_CFG_BIT_TIMING_OK = 0x00U,          /**< Protocol successfully completed */    //!< CO_LSS_CFG_BIT_TIMING_OK
-    CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE = 0x01U /**< Bit timing / Bit rate not supported *///!< CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE
+    CO_LSS_CFG_BIT_TIMING_OK = 0x00U,          /**< Protocol successfully completed */
+    CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE = 0x01U,/**< Bit timing / Bit rate not supported */
+    CO_LSS_CFG_BIT_TIMING_MANUFACTURER = 0xFFU /**< Manufacturer specific error. No further support */
 } CO_LSS_cfgBitTiming_t;
 
 /**
@@ -146,7 +148,8 @@ typedef enum {
 typedef enum {
     CO_LSS_CFG_STORE_OK = 0x00U,            /**< Protocol successfully completed */
     CO_LSS_CFG_STORE_NOT_SUPPORTED = 0x01U, /**< Store configuration not supported */
-    CO_LSS_CFG_STORE_FAILED = 0x02U         /**< Storage media access error */
+    CO_LSS_CFG_STORE_FAILED = 0x02U,        /**< Storage media access error */
+    CO_LSS_CFG_STORE_MANUFACTURER = 0xFFU   /**< Manufacturer specific error. No further support */
 } CO_LSS_cfgStore_t;
 
 /**

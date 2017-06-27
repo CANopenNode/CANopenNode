@@ -92,7 +92,9 @@ extern "C" {
 #if CO_NO_LSS_SERVER == 1
     #include "CO_LSSslave.h"
 #endif
-
+#if CO_NO_LSS_CLIENT == 1
+    #include "CO_LSSmaster.h"
+#endif
 
 /**
  * Default CANopen identifiers.
