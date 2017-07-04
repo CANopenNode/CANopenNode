@@ -210,9 +210,11 @@ static CO_SDO_abortCode_t CO_ODF_1019(CO_ODF_arg_t *ODF_arg){
     if(!ODF_arg->reading){
         uint8_t len = 0U;
 
-        if((SYNC->periodTime) ||
-           (value == 1) || (value > 240 && value <= 255)){
+        if(SYNC->periodTime){
             ret = CO_SDO_AB_DATA_DEV_STATE;
+        }
+        else if((value == 1) || (value > 240 && value <= 255)){
+            ret = CO_SDO_AB_INVALID_VALUE;
         }
         else{
             SYNC->counterOverflowValue = value;
