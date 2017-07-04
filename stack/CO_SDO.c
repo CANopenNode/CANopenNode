@@ -187,6 +187,11 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
 
     SDO = (CO_SDO_t*)object;   /* this is the correct pointer type of the first argument */
 
+    /* WARNING: When doing a SDO block upload and immediately after that
+     * starting another SDO request, this request is dropped. Especially if
+     * processing function has slow response.
+     * See: https://github.com/CANopenNode/CANopenNode/issues/39 */
+
     /* verify message length and message overflow (previous message was not processed yet) */
     if((msg->DLC == 8U) && (!SDO->CANrxNew)){
         if(SDO->state != CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK) {
