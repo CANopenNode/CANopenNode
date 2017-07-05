@@ -275,15 +275,67 @@ static void CO_LSSslave_serviceIdent(
     CO_LSS_cs_t service,
     const CO_CANrxMsg_t *msg)
 {
-//    uint32_t idNumber = CO_getUint32(&msg->data[1]);
-//    uint8_t bitCheck = msg->data[5];
-//    uint8_t lssSub = msg->data[6];
-//    uint8_t lssNext = msg->data[7];
-//
-//    if(LSSslave->lssState == CO_LSS_STATE_WAITING) {
-//        //todo do fastscan
-//    }
+    uint32_t idNumber;
+    uint8_t bitCheck;
+    uint8_t lssSub;
+    uint8_t lssNext;
+    bool_t ack;
+
+    if (LSSslave->lssState != CO_LSS_STATE_WAITING) {
+        /* fastscan is only allowed in waiting state */
+        return;
+    }
+    if (service != CO_LSS_IDENT_FASTSCAN) {
+        /* we only support "fastscan" identification */
+        return;
+    }
+    if (LSSslave->pendingNodeID!=CO_LSS_NODE_ID_ASSIGNMENT ||
+        LSSslave->activeNodeID!=CO_LSS_NODE_ID_ASSIGNMENT) {
+        /* fastscan is only active on unconfigured nodes */
+        return;
+    }
+
+    idNumber = CO_getUint32(&msg->data[1]);
+    bitCheck = msg->data[5];
+    lssSub = msg->data[6];
+    lssNext = msg->data[7];
+
+    if (!CO_LSS_FASTSCAN_BITCHECK_VALID(bitCheck) ||
+        !CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(lssSub) ||
+        !CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(lssNext)) {
+        /* Invalid request */
+        return;
+    }
+
+    ack = false;
+    if (bitCheck == CO_LSS_FASTSCAN_CONFIRM) {
+        /* Confirm, Reset */
+        ack = true;
+        LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;
+        CO_memset((uint8_t*)&LSSslave->lssFastscan, 0,
+            sizeof(LSSslave->lssFastscan));
+    }
+    else if (LSSslave->fastscanPos == lssSub) {
+        uint32_t mask = 0xFFFFFFFF << bitCheck;
+
+        if ((LSSslave->lssAddress.addr[lssSub] & mask) == (idNumber & mask)) {
+            /* all requested bits match */
+            ack = true;
+            LSSslave->fastscanPos = lssNext;
+
+            if (bitCheck==0 && lssNext<lssSub) {
+                /* complete match, enter configuration state */
+                LSSslave->lssState = CO_LSS_STATE_CONFIGURATION;
+            }
+        }
+    }
+    if (ack == true) {
+        LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
+        CO_memset(&LSSslave->TXbuff->data[1], 0, 7);
+        CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
+    }
 }
+
 
 /*
  * Read received message from CAN module.
@@ -351,6 +403,9 @@ CO_ReturnError_t CO_LSSslave_init(
     CO_memcpy((uint8_t*)&LSSslave->lssAddress, (uint8_t*)&lssAddress, sizeof(LSSslave->lssAddress));
     LSSslave->lssState = CO_LSS_STATE_WAITING;
     CO_memset((uint8_t*)&LSSslave->lssSelect, 0, sizeof(LSSslave->lssSelect));
+
+    CO_memset((uint8_t*)&LSSslave->lssFastscan, 0, sizeof(LSSslave->lssFastscan));
+    LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;
 
     LSSslave->pendingBitRate = pendingBitRate;
     LSSslave->pendingNodeID = pendingNodeID;

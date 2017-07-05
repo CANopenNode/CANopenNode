@@ -73,8 +73,17 @@ typedef enum {
   CO_LSSmaster_COMMAND_INQUIRE_REV,
   CO_LSSmaster_COMMAND_INQUIRE_SERIAL,
   CO_LSSmaster_COMMAND_INQUIRE_NODE_ID,
-  CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN
+  CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN,
 } CO_LSSmaster_command_t;
+
+/*
+ * LSS master fastscan state machine
+ */
+typedef enum {
+  CO_LSSmaster_FS_STATE_CHECK,
+  CO_LSSmaster_FS_STATE_SCAN,
+  CO_LSSmaster_FS_STATE_VERIFY
+} CO_LSSmaster_fs_t;
 
 /*
  * macros for receive -> processing function message transfer
@@ -228,10 +237,6 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectInitiate(
 {
   CO_LSSmaster_return_t ret;
 
-  if (LSSmaster == NULL){
-      return CO_LSSmaster_ILLEGAL_ARGUMENT;
-  }
-
   if (lssAddress != NULL) {
       /* switch state select specific using LSS address */
       LSSmaster->state = CO_LSSmaster_STATE_CFG_SLECTIVE;
@@ -280,10 +285,6 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectWait(
 {
     CO_LSSmaster_return_t ret;
 
-    if (LSSmaster == NULL){
-        return CO_LSSmaster_ILLEGAL_ARGUMENT;
-    }
-
     if (IS_CANrxNew()) {
         uint8_t cs = LSSmaster->CANrxData[0];
         CLEAR_CANrxNew();
@@ -326,7 +327,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
         ret = CO_LSSmaster_switchStateSelectWait(LSSmaster, timeDifference_ms);
     }
 
-    if (ret != CO_LSSmaster_WAIT_SLAVE) {
+    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -395,10 +396,6 @@ static CO_LSSmaster_return_t CO_LSSmaster_configureCheckWait(
 {
     CO_LSSmaster_return_t ret;
 
-    if (LSSmaster == NULL){
-        return CO_LSSmaster_ILLEGAL_ARGUMENT;
-    }
-
     if (IS_CANrxNew()) {
         uint8_t cs = LSSmaster->CANrxData[0];
         uint8_t errorCode = LSSmaster->CANrxData[1];
@@ -423,7 +420,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_configureCheckWait(
         ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
     }
 
-    if (ret != CO_LSSmaster_WAIT_SLAVE) {
+    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -480,7 +477,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
                 CO_LSS_CFG_BIT_TIMING);
     }
 
-    if (ret != CO_LSSmaster_WAIT_SLAVE) {
+    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -518,11 +515,11 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
     /* Wait for confirmation */
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_CFG_NODE_ID) {
 
-      ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_ms,
-              CO_LSS_CFG_NODE_ID);
+        ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_ms,
+                CO_LSS_CFG_NODE_ID);
     }
 
-    if (ret != CO_LSSmaster_WAIT_SLAVE) {
+    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -558,11 +555,11 @@ CO_LSSmaster_return_t CO_LSSmaster_configureStore(
     /* Wait for confirmation */
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_CFG_STORE) {
 
-      ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_ms,
-              CO_LSS_CFG_STORE);
+        ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_ms,
+                CO_LSS_CFG_STORE);
     }
 
-    if (ret != CO_LSSmaster_WAIT_SLAVE) {
+    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -606,10 +603,6 @@ static CO_LSSmaster_return_t CO_LSSmaster_inquireInitiate(
         CO_LSSmaster_t         *LSSmaster,
         uint8_t                 cs)
 {
-    if (LSSmaster == NULL){
-        return CO_LSSmaster_ILLEGAL_ARGUMENT;
-    }
-
     CLEAR_CANrxNew();
     LSSmaster->TXbuff->data[0] = cs;
     CO_memset(&LSSmaster->TXbuff->data[1], 0, 7);
@@ -628,10 +621,6 @@ static CO_LSSmaster_return_t CO_LSSmaster_inquireCheckWait(
         uint32_t               *value)
 {
     CO_LSSmaster_return_t ret;
-
-    if (LSSmaster == NULL){
-        return CO_LSSmaster_ILLEGAL_ARGUMENT;
-    }
 
     if (IS_CANrxNew()) {
         uint8_t cs = LSSmaster->CANrxData[0];
@@ -730,7 +719,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
         }
     }
 
-    if (ret != CO_LSSmaster_WAIT_SLAVE) {
+    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -775,19 +764,365 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireNodeId(
   return ret;
 }
 
+/*
+ * Helper function - send request
+ */
+static void CO_LSSmaster_FsSendMsg(
+        CO_LSSmaster_t         *LSSmaster,
+        uint32_t                idNumber,
+        uint8_t                 bitCheck,
+        uint8_t                 lssSub,
+        uint8_t                 lssNext)
+{
+    LSSmaster->timeoutTimer = 0;
+
+    CLEAR_CANrxNew();
+    LSSmaster->TXbuff->data[0] = CO_LSS_IDENT_FASTSCAN;
+    CO_setUint32(&LSSmaster->TXbuff->data[1], idNumber);
+    LSSmaster->TXbuff->data[5] = bitCheck;
+    LSSmaster->TXbuff->data[6] = lssSub;
+    LSSmaster->TXbuff->data[7] = lssNext;
+
+    CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
+}
+
+/*
+ * Helper function - wait for confirmation
+ */
+static CO_LSSmaster_return_t CO_LSSmaster_FsCheckWait(
+        CO_LSSmaster_t         *LSSmaster,
+        uint16_t                timeDifference_ms)
+{
+    CO_LSSmaster_return_t ret;
+
+    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+    if (ret == CO_LSSmaster_TIMEOUT) {
+        ret = CO_LSSmaster_SCAN_NOACK;
+
+        if (IS_CANrxNew()) {
+            uint8_t cs = LSSmaster->CANrxData[0];
+            CLEAR_CANrxNew();
+
+            if (cs == CO_LSS_IDENT_SLAVE) {
+                /* At least one node is waiting for fastscan */
+                ret = CO_LSSmaster_SCAN_FINISHED;
+            }
+        }
+    }
+
+    return ret;
+}
+
+/*
+ * Helper function - initiate scan for 32 bit part of LSS address
+ */
+static CO_LSSmaster_return_t CO_LSSmaster_FsScanInitiate(
+        CO_LSSmaster_t                  *LSSmaster,
+        uint16_t                         timeDifference_ms,
+        CO_LSSmaster_scantype_t          scan,
+        CO_LSS_fastscan_lss_sub_next     lssSub)
+{
+    LSSmaster->fsLssSub = lssSub;
+    LSSmaster->fsIdNumber = 0;
+
+    switch (scan) {
+        case CO_LSSmaster_FS_SCAN:
+            break;
+        case CO_LSSmaster_FS_MATCH:
+            /* No scanning requested */
+            return CO_LSSmaster_SCAN_FINISHED;
+        default:
+            return CO_LSSmaster_SCAN_FAILED;
+    }
+
+    LSSmaster->fsBitChecked = CO_LSS_FASTSCAN_BIT31;
+
+    /* trigger scan procedure by sending first message */
+    CO_LSSmaster_FsSendMsg(LSSmaster, LSSmaster->fsIdNumber,
+        LSSmaster->fsBitChecked, LSSmaster->fsLssSub, LSSmaster->fsLssSub);
+
+    return CO_LSSmaster_WAIT_SLAVE;
+}
+
+/*
+ * Helper function - scan for 32 bits of LSS address, one by one
+ */
+static CO_LSSmaster_return_t CO_LSSmaster_FsScanWait(
+        CO_LSSmaster_t                  *LSSmaster,
+        uint16_t                         timeDifference_ms,
+        CO_LSSmaster_scantype_t          scan)
+{
+    CO_LSSmaster_return_t ret;
+
+    switch (scan) {
+        case CO_LSSmaster_FS_SCAN:
+            break;
+        case CO_LSSmaster_FS_MATCH:
+            /* No scanning requested */
+            return CO_LSSmaster_SCAN_FINISHED;
+        default:
+            return CO_LSSmaster_SCAN_FAILED;
+    }
+
+    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+    if (ret == CO_LSSmaster_TIMEOUT) {
+
+        ret = CO_LSSmaster_WAIT_SLAVE;
+
+        if (IS_CANrxNew()) {
+            uint8_t cs = LSSmaster->CANrxData[0];
+            CLEAR_CANrxNew();
+
+            if (cs != CO_LSS_IDENT_SLAVE) {
+                /* wrong response received. Can not continue */
+                return CO_LSSmaster_SCAN_FAILED;
+            }
+        }
+        else {
+            /* no response received, assumption is wrong */
+            LSSmaster->fsIdNumber |= 1UL << LSSmaster->fsBitChecked;
+        }
+
+        if (LSSmaster->fsBitChecked == CO_LSS_FASTSCAN_BIT0) {
+            /* Scanning cycle is finished, we now have 32 bit address data */
+            ret = CO_LSSmaster_SCAN_FINISHED;
+        }
+        else {
+            LSSmaster->fsBitChecked --;
+
+            CO_LSSmaster_FsSendMsg(LSSmaster,
+                LSSmaster->fsIdNumber, LSSmaster->fsBitChecked,
+                LSSmaster->fsLssSub, LSSmaster->fsLssSub);
+        }
+    }
+
+    return ret;
+}
+
+/*
+ * Helper function - initiate check for 32 bit part of LSS address
+ */
+static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyInitiate(
+        CO_LSSmaster_t                  *LSSmaster,
+        uint16_t                         timeDifference_ms,
+        CO_LSSmaster_scantype_t          scan,
+        uint32_t                         idNumberCheck,
+        CO_LSS_fastscan_lss_sub_next     lssNext)
+{
+    switch (scan) {
+        case CO_LSSmaster_FS_SCAN:
+            /* ID obtained by scan */
+            break;
+        case CO_LSSmaster_FS_MATCH:
+            /* ID given by user */
+            LSSmaster->fsIdNumber = idNumberCheck;
+            break;
+        default:
+            return CO_LSSmaster_SCAN_FAILED;
+    }
+
+    LSSmaster->fsBitChecked = CO_LSS_FASTSCAN_BIT0;
+
+    /* send request */
+    CO_LSSmaster_FsSendMsg(LSSmaster, LSSmaster->fsIdNumber,
+        LSSmaster->fsBitChecked, LSSmaster->fsLssSub, lssNext);
+
+    return CO_LSSmaster_WAIT_SLAVE;
+}
+
+/*
+ * Helper function - verify 32 bit LSS address, request node(s) to switch
+ * their state machine to the next state
+ */
+static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyWait(
+        CO_LSSmaster_t                  *LSSmaster,
+        uint16_t                         timeDifference_ms,
+        CO_LSSmaster_scantype_t          scan,
+        uint32_t                        *idNumberRet)
+{
+    CO_LSSmaster_return_t ret;
+
+    if (scan == CO_LSSmaster_FS_SKIP) {
+        return CO_LSSmaster_SCAN_FAILED;
+    }
+
+    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+    if (ret == CO_LSSmaster_TIMEOUT) {
+
+        *idNumberRet = 0;
+        ret = CO_LSSmaster_SCAN_NOACK;
+
+        if (IS_CANrxNew()) {
+            uint8_t cs = LSSmaster->CANrxData[0];
+            CLEAR_CANrxNew();
+
+            if (cs == CO_LSS_IDENT_SLAVE) {
+                *idNumberRet = LSSmaster->fsIdNumber;
+                ret = CO_LSSmaster_SCAN_FINISHED;
+            } else {
+                ret = CO_LSSmaster_SCAN_FAILED;
+            }
+        }
+    }
+
+    return ret;
+}
+
+/*
+ * Helper function - check which 32 bit to scan for next, if any
+ */
+static CO_LSS_fastscan_lss_sub_next CO_LSSmaster_FsSearchNext(
+        CO_LSSmaster_t                  *LSSmaster,
+        const CO_LSSmaster_fastscan_t   *fastscan)
+{
+    int i;
+
+    /* we search for the next LSS address part to scan for, beginning with the
+     * one after the current one. If there is none remaining, scanning is
+     * finished */
+    for (i = LSSmaster->fsLssSub + 1; i <= CO_LSS_FASTSCAN_SERIAL; i++) {
+        if (fastscan->scan[i] != CO_LSSmaster_FS_SKIP) {
+            return (CO_LSS_fastscan_lss_sub_next)i;
+        }
+    }
+    /* node selection is triggered by switching node state machine back
+     * to initial state */
+    return CO_LSS_FASTSCAN_VENDOR_ID;
+}
 
 /******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
-        CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
-        CO_LSS_address_t       *lssAddressScanStart,
-        CO_LSS_address_t       *lssAddressScanMatch,
-        CO_LSS_address_t       *lssAddressFound)
+        CO_LSSmaster_t          *LSSmaster,
+        uint16_t                 timeDifference_ms,
+        CO_LSSmaster_fastscan_t *fastscan)
 {
-    if (LSSmaster == NULL){
+    uint8_t i;
+    uint8_t count;
+    CO_LSSmaster_return_t ret;
+    CO_LSS_fastscan_lss_sub_next next;
+
+    /* parameter validation */
+    if (LSSmaster==NULL || fastscan==NULL){
         return CO_LSSmaster_ILLEGAL_ARGUMENT;
     }
+    if (fastscan->scan[0] == CO_LSSmaster_FS_SKIP) {
+        /* vendor ID scan cannot be skipped */
+        return CO_LSSmaster_ILLEGAL_ARGUMENT;
+    }
+    count = 0;
+    for (i = 0; i < (sizeof(fastscan->scan) / sizeof(fastscan->scan[0])); i++) {
+        if (fastscan->scan[i] == CO_LSSmaster_FS_SKIP) {
+            count ++;
+        }
+        if (count > 2) {
+            /* Node selection needs the Vendor ID and at least one other value */
+            return CO_LSSmaster_ILLEGAL_ARGUMENT;
+        }
+    }
 
+    /* state machine validation */
+    if (LSSmaster->state!=CO_LSSmaster_STATE_WAITING ||
+        (LSSmaster->command!=CO_LSSmaster_COMMAND_WAITING &&
+         LSSmaster->command!=CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN)) {
+        /* state machine not ready, other command is already processed */
+        return CO_LSSmaster_INVALID_STATE;
+    }
+
+    /* evaluate LSS state machine */
+    switch (LSSmaster->command) {
+        case CO_LSSmaster_COMMAND_WAITING:
+            /* start fastscan */
+            LSSmaster->command = CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN;
+
+            /* check if any nodes are waiting, if yes fastscan is reset */
+            LSSmaster->fsState = CO_LSSmaster_FS_STATE_CHECK;
+            CO_LSSmaster_FsSendMsg(LSSmaster, 0, CO_LSS_FASTSCAN_CONFIRM, 0, 0);
+
+            return CO_LSSmaster_WAIT_SLAVE;
+        default:
+            /* continue with evaluating fastscan state machine */
+            break;
+    }
+
+    /* evaluate fastscan state machine. The state machine is evaluated as following
+     * - check for non-configured nodes
+     * - scan for vendor ID
+     * - verify vendor ID, switch node state
+     * - scan for product code
+     * - verify product code, switch node state
+     * - scan for revision number
+     * - verify revision number, switch node state
+     * - scan for serial number
+     * - verify serial number, switch node to LSS configuration mode
+     * Certain steps can be skipped as mentioned in the function description.
+     * If one step is not ack'ed by a node, the scanning process is terminated
+     * and the correspondign error is returned. */
+    switch (LSSmaster->fsState) {
+        case CO_LSSmaster_FS_STATE_CHECK:
+            ret = CO_LSSmaster_FsCheckWait(LSSmaster, timeDifference_ms);
+            if (ret == CO_LSSmaster_SCAN_FINISHED) {
+                CO_memset((uint8_t*)&fastscan->found, 0, sizeof(fastscan->found));
+
+                /* start scanning procedure by triggering vendor ID scan */
+                CO_LSSmaster_FsScanInitiate(LSSmaster, timeDifference_ms,
+                      fastscan->scan[CO_LSS_FASTSCAN_VENDOR_ID],
+                      CO_LSS_FASTSCAN_VENDOR_ID);
+                ret = CO_LSSmaster_WAIT_SLAVE;
+
+                LSSmaster->fsState = CO_LSSmaster_FS_STATE_SCAN;
+            }
+            break;
+        case CO_LSSmaster_FS_STATE_SCAN:
+            ret = CO_LSSmaster_FsScanWait(LSSmaster, timeDifference_ms,
+                      fastscan->scan[LSSmaster->fsLssSub]);
+            if (ret == CO_LSSmaster_SCAN_FINISHED) {
+                /* scanning finished, initiate verifcation. The verification
+                 * message also contains the node state machine "switch to
+                 * next state" request */
+                next = CO_LSSmaster_FsSearchNext(LSSmaster, fastscan);
+                ret = CO_LSSmaster_FsVerifyInitiate(LSSmaster, timeDifference_ms,
+                          fastscan->scan[LSSmaster->fsLssSub],
+                          fastscan->match.addr[LSSmaster->fsLssSub], next);
+
+                LSSmaster->fsState = CO_LSSmaster_FS_STATE_VERIFY;
+            }
+            break;
+        case CO_LSSmaster_FS_STATE_VERIFY:
+            ret = CO_LSSmaster_FsVerifyWait(LSSmaster, timeDifference_ms,
+                      fastscan->scan[LSSmaster->fsLssSub],
+                      &fastscan->found.addr[LSSmaster->fsLssSub]);
+            if (ret == CO_LSSmaster_SCAN_FINISHED) {
+                /* verification successful:
+                 * - assumed node id is correct
+                 * - node state machine has switched to the requested state,
+                 *   mirror that in the local copy */
+                next = CO_LSSmaster_FsSearchNext(LSSmaster, fastscan);
+                if (next == CO_LSS_FASTSCAN_VENDOR_ID) {
+                    /* fastscan finished, one node is now in LSS configuration
+                     * mode */
+                    LSSmaster->state = CO_LSSmaster_STATE_CFG_SLECTIVE;
+                }
+                else {
+                    /* initiate scan for next part of LSS address */
+                    ret = CO_LSSmaster_FsScanInitiate(LSSmaster,
+                              timeDifference_ms, fastscan->scan[next], next);
+                    if (ret == CO_LSSmaster_SCAN_FINISHED) {
+                        /* Scanning is not requested. Initiate verification
+                         * step in next function call */
+                        ret = CO_LSSmaster_WAIT_SLAVE;
+                    }
+
+                    LSSmaster->fsState = CO_LSSmaster_FS_STATE_SCAN;
+                }
+            }
+            break;
+    }
+
+    if (ret != CO_LSSmaster_WAIT_SLAVE) {
+        /* finished */
+        LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
+    }
+    return ret;
 }
 
 

@@ -254,7 +254,10 @@ extern "C" {
 typedef struct{
     CO_LSS_address_t        lssAddress;       /**< From #CO_LSSslave_init */
     CO_LSS_state_t          lssState;         /**< #CO_LSS_state_t */
-    CO_LSS_address_t        lssSelect;        /**< Received LSS Address */
+    CO_LSS_address_t        lssSelect;        /**< Received LSS Address by select */
+
+    CO_LSS_address_t        lssFastscan;      /**< Received LSS Address by fastscan */
+    uint8_t                 fastscanPos;      /**< Current state of fastscan */
 
     uint16_t                pendingBitRate;   /**< Bit rate value that is temporarily configured in volatile memory */
     uint8_t                 pendingNodeID;    /**< Node ID that is temporarily configured in volatile memory */

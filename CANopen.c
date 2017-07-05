@@ -522,7 +522,7 @@ CO_ReturnError_t CO_CANopenInit(
 #if CO_NO_LSS_CLIENT == 1
     err = CO_LSSmaster_init(
             CO->LSSmaster,
-            1000,             /* ms, this timeout should cover every LSS device */
+            CO_LSSmaster_DEFAULT_TIMEOUT,
             CO->CANmodule[0],
             CO_RXCAN_LSS,
             CO_CAN_ID_LSS_CLI,

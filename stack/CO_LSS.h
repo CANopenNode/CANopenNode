@@ -79,6 +79,9 @@ extern "C" {
  * Be aware that changing the bit rate is a critical step for the network. A
  * failure will render the network unusable!
  *
+ * Using this implementation, only master or slave can be included in one
+ * node at a time.
+ *
  * For CAN identifiers see #CO_Default_CAN_ID_t
  */
 
@@ -94,24 +97,23 @@ extern "C" {
  * As identifying method only "LSS fastscan" is supported.
  */
 typedef enum {
-    CO_LSS_SWITCH_STATE_GLOBAL          = 0x04U, /**< Switch state global protocol */
-    CO_LSS_SWITCH_STATE_SEL_VENDOR      = 0x40U, /**< Switch state selective protocol - Vendor ID */
-    CO_LSS_SWITCH_STATE_SEL_PRODUCT     = 0x41U, /**< Switch state selective protocol - Product code */
-    CO_LSS_SWITCH_STATE_SEL_REV         = 0x42U, /**< Switch state selective protocol - Revision number */
-    CO_LSS_SWITCH_STATE_SEL_SERIAL      = 0x43U, /**< Switch state selective protocol - Serial number */
-    CO_LSS_SWITCH_STATE_SEL             = 0x44U, /**< Switch state selective protocol - Slave response */
-    CO_LSS_CFG_NODE_ID                  = 0x11U, /**< Configure node ID protocol */
-    CO_LSS_CFG_BIT_TIMING               = 0x13U, /**< Configure bit timing parameter protocol */
-    CO_LSS_CFG_ACTIVATE_BIT_TIMING      = 0x15U, /**< Activate bit timing parameter protocol */
-    CO_LSS_CFG_STORE                    = 0x17U, /**< Store configuration protocol */
-    CO_LSS_IDENT_NON_CONFIG_REMOTE_SLAVE= 0x4CU, /**< Identify non configured slave - request */
-    CO_LSS_IDENT_NON_CONFIG_SLAVE       = 0x50U, /**< Identify non configured slave - response */
-    CO_LSS_IDENT_FASTSCAN               = 0x51U, /**< LSS Fastscan protocol */
-    CO_LSS_INQUIRE_VENDOR               = 0x5AU, /**< Inquire identity vendor-ID protocol */
-    CO_LSS_INQUIRE_PRODUCT              = 0x5BU, /**< Inquire identity product-code protocol */
-    CO_LSS_INQUIRE_REV                  = 0x5CU, /**< Inquire identity revision-number protocol */
-    CO_LSS_INQUIRE_SERIAL               = 0x5DU, /**< Inquire identity serial-number protocol */
-    CO_LSS_INQUIRE_NODE_ID              = 0x5EU, /**< Inquire node-ID protocol */
+    CO_LSS_SWITCH_STATE_GLOBAL      = 0x04U, /**< Switch state global protocol */
+    CO_LSS_SWITCH_STATE_SEL_VENDOR  = 0x40U, /**< Switch state selective protocol - Vendor ID */
+    CO_LSS_SWITCH_STATE_SEL_PRODUCT = 0x41U, /**< Switch state selective protocol - Product code */
+    CO_LSS_SWITCH_STATE_SEL_REV     = 0x42U, /**< Switch state selective protocol - Revision number */
+    CO_LSS_SWITCH_STATE_SEL_SERIAL  = 0x43U, /**< Switch state selective protocol - Serial number */
+    CO_LSS_SWITCH_STATE_SEL         = 0x44U, /**< Switch state selective protocol - Slave response */
+    CO_LSS_CFG_NODE_ID              = 0x11U, /**< Configure node ID protocol */
+    CO_LSS_CFG_BIT_TIMING           = 0x13U, /**< Configure bit timing parameter protocol */
+    CO_LSS_CFG_ACTIVATE_BIT_TIMING  = 0x15U, /**< Activate bit timing parameter protocol */
+    CO_LSS_CFG_STORE                = 0x17U, /**< Store configuration protocol */
+    CO_LSS_IDENT_SLAVE              = 0x4FU, /**< LSS Fastscan response */
+    CO_LSS_IDENT_FASTSCAN           = 0x51U, /**< LSS Fastscan protocol */
+    CO_LSS_INQUIRE_VENDOR           = 0x5AU, /**< Inquire identity vendor-ID protocol */
+    CO_LSS_INQUIRE_PRODUCT          = 0x5BU, /**< Inquire identity product-code protocol */
+    CO_LSS_INQUIRE_REV              = 0x5CU, /**< Inquire identity revision-number protocol */
+    CO_LSS_INQUIRE_SERIAL           = 0x5DU, /**< Inquire identity serial-number protocol */
+    CO_LSS_INQUIRE_NODE_ID          = 0x5EU, /**< Inquire node-ID protocol */
 } CO_LSS_cs_t;
 
 /**
@@ -121,14 +123,14 @@ typedef enum {
 #define CO_LSS_CS_SERVICE_IS_SWITCH_STATE_SELECTIVE(cs) (cs >= CO_LSS_SWITCH_STATE_SEL_VENDOR && cs <= CO_LSS_SWITCH_STATE_SEL)
 #define CO_LSS_CS_SERVICE_IS_CONFIG(cs) (cs >= CO_LSS_CFG_NODE_ID && cs <= CO_LSS_CFG_STORE)
 #define CO_LSS_CS_SERVICE_IS_INQUIRE(cs) (cs >= CO_LSS_INQUIRE_VENDOR && cs <= CO_LSS_INQUIRE_NODE_ID)
-#define CO_LSS_CS_SERVICE_IS_IDENT(cs) (cs >= CO_LSS_IDENT_NON_CONFIG_REMOTE_SLAVE && cs <= CO_LSS_IDENT_FASTSCAN)
+#define CO_LSS_CS_SERVICE_IS_IDENT(cs) (cs==CO_LSS_IDENT_SLAVE || cs==CO_LSS_IDENT_FASTSCAN)
 /**@}*/
 
 /**
  * Error codes for Configure node ID protocol
  */
 typedef enum {
-    CO_LSS_CFG_NODE_ID_OK = 0x00U,          /**< Protocol successfully completed */
+    CO_LSS_CFG_NODE_ID_OK           = 0x00U,/**< Protocol successfully completed */
     CO_LSS_CFG_NODE_ID_OUT_OF_RANGE = 0x01U,/**< NID out of range */
     CO_LSS_CFG_NODE_ID_MANUFACTURER = 0xFFU /**< Manufacturer specific error. No further support */
 } CO_LSS_cfgNodeId_t;
@@ -137,7 +139,7 @@ typedef enum {
  * Error codes for Configure bit timing parameters protocol
  */
 typedef enum {
-    CO_LSS_CFG_BIT_TIMING_OK = 0x00U,          /**< Protocol successfully completed */
+    CO_LSS_CFG_BIT_TIMING_OK           = 0x00U,/**< Protocol successfully completed */
     CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE = 0x01U,/**< Bit timing / Bit rate not supported */
     CO_LSS_CFG_BIT_TIMING_MANUFACTURER = 0xFFU /**< Manufacturer specific error. No further support */
 } CO_LSS_cfgBitTiming_t;
@@ -146,21 +148,48 @@ typedef enum {
  * Error codes for Store configuration protocol
  */
 typedef enum {
-    CO_LSS_CFG_STORE_OK = 0x00U,            /**< Protocol successfully completed */
+    CO_LSS_CFG_STORE_OK            = 0x00U, /**< Protocol successfully completed */
     CO_LSS_CFG_STORE_NOT_SUPPORTED = 0x01U, /**< Store configuration not supported */
-    CO_LSS_CFG_STORE_FAILED = 0x02U,        /**< Storage media access error */
-    CO_LSS_CFG_STORE_MANUFACTURER = 0xFFU   /**< Manufacturer specific error. No further support */
+    CO_LSS_CFG_STORE_FAILED        = 0x02U, /**< Storage media access error */
+    CO_LSS_CFG_STORE_MANUFACTURER  = 0xFFU  /**< Manufacturer specific error. No further support */
 } CO_LSS_cfgStore_t;
+
+/**
+ * Fastscan BitCheck. BIT0 means all bits are checked for equality by slave.
+ */
+typedef enum {
+    CO_LSS_FASTSCAN_BIT0    = 0x00U, /**< Least significant bit of IDnumbners bit area to be checked */
+    /* ... */
+    CO_LSS_FASTSCAN_BIT31   = 0x1FU, /**< dito */
+    CO_LSS_FASTSCAN_CONFIRM = 0x80U  /**< All LSS slaves waiting for scan respond and previous scan is reset */
+} CO_LSS_fastscan_bitcheck;
+
+#define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) ((bit>=CO_LSS_FASTSCAN_BIT0 && bit<=CO_LSS_FASTSCAN_BIT31) || bit==CO_LSS_FASTSCAN_CONFIRM)
+
+/**
+ * Fastscan LSSsub, LSSnext
+ */
+typedef enum {
+    CO_LSS_FASTSCAN_VENDOR_ID = 0, /**< Vendor ID */
+    CO_LSS_FASTSCAN_PRODUCT   = 1, /**< Product code */
+    CO_LSS_FASTSCAN_REV       = 2, /**< Revision number */
+    CO_LSS_FASTSCAN_SERIAL    = 3  /**< Serial number */
+} CO_LSS_fastscan_lss_sub_next;
+
+#define CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(index) (index>=CO_LSS_FASTSCAN_VENDOR_ID && index<=CO_LSS_FASTSCAN_SERIAL)
 
 /**
  * The LSS address is a 128 bit number, uniquely identifying each node. It
  * consists of the values in object 0x1018.
  */
-typedef struct {
-    uint32_t vendorID;
-    uint32_t productCode;
-    uint32_t revisionNumber;
-    uint32_t serialNumber;
+typedef union {
+    uint32_t addr[4];
+    struct {
+        uint32_t vendorID;
+        uint32_t productCode;
+        uint32_t revisionNumber;
+        uint32_t serialNumber;
+    };
 } CO_LSS_address_t;
 
 /**
@@ -218,7 +247,7 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
 /**
  * Invalid node ID triggers node ID assignment
  */
-#define CO_LSS_NODE_ID_ASSIGNMENT 0xFFU 
+#define CO_LSS_NODE_ID_ASSIGNMENT 0xFFU
 
 /**
  * Macro to check if node id is valid
