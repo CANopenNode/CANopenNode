@@ -878,7 +878,8 @@ uint16_t CO_OD_getLength(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex);
  * Get attribute of the given object with specific subIndex. See #CO_SDO_OD_attributes_t.
  *
  * If Object Type is array and subIndex is zero, function always returns
- * 'read-only' attribute.
+ * 'read-only' attribute. An exception to this rule is ID1003 (Error field).
+ * However, this is supposed to be only written by network.
  *
  * @param SDO This object.
  * @param entryNo Sequence number of OD entry as returned from CO_OD_find().

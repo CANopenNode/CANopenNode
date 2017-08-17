@@ -617,14 +617,14 @@ static CO_SDO_abortCode_t CO_ODF_RPDOmap(CO_ODF_arg_t *ODF_arg){
     if(*RPDO->operatingState == CO_NMT_OPERATIONAL && (RPDO->restrictionFlags & 0x02))
         return CO_SDO_AB_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
     if(RPDO->valid)
-        return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
+        return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
 
     /* numberOfMappedObjects */
     if(ODF_arg->subIndex == 0){
         uint8_t *value = (uint8_t*) ODF_arg->data;
 
         if(*value > 8)
-            return CO_SDO_AB_VALUE_HIGH;  /* Value of parameter written too high. */
+            return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds PDO length. */
 
         /* configure mapping */
         return CO_RPDOconfigMap(RPDO, *value);
@@ -639,7 +639,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOmap(CO_ODF_arg_t *ODF_arg){
         uint8_t MBvar;
 
         if(RPDO->dataLength)
-            return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
+            return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
 
         /* verify if mapping is correct */
         return CO_PDOfindMap(
@@ -683,14 +683,14 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
     if(*TPDO->operatingState == CO_NMT_OPERATIONAL && (TPDO->restrictionFlags & 0x02))
         return CO_SDO_AB_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
     if(TPDO->valid)
-        return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
+        return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
 
     /* numberOfMappedObjects */
     if(ODF_arg->subIndex == 0){
         uint8_t *value = (uint8_t*) ODF_arg->data;
 
         if(*value > 8)
-            return CO_SDO_AB_VALUE_HIGH;  /* Value of parameter written too high. */
+            return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds PDO length. */
 
         /* configure mapping */
         return CO_TPDOconfigMap(TPDO, *value);
@@ -705,7 +705,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
         uint8_t MBvar;
 
         if(TPDO->dataLength)
-            return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
+            return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
 
         /* verify if mapping is correct */
         return CO_PDOfindMap(
@@ -871,6 +871,7 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
             uint16_t index = (uint16_t)(map>>16);
             uint8_t subIndex = (uint8_t)(map>>8);
             uint16_t entryNo = CO_OD_find(pSDO, index);
+            if ( entryNo == 0xFFFF ) continue;
             CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
             if( ext->pODFunc == NULL) continue;
             CO_ODF_arg_t ODF_arg;
@@ -945,6 +946,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
                     uint16_t index = (uint16_t)(map>>16);
                     uint8_t subIndex = (uint8_t)(map>>8);
                     uint16_t entryNo = CO_OD_find(pSDO, index);
+                    if ( entryNo == 0xFFFF ) continue;
                     CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
                     if( ext->pODFunc == NULL) continue;
                     CO_ODF_arg_t ODF_arg;

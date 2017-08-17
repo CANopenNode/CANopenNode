@@ -58,10 +58,10 @@ static int32_t getValueU32(void *OD_variable) { return           *((int32_t*)  O
 
 /* Different functions for printing points for different data types. */
 static uint32_t printPointCsv(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "%u;%d\n", timeStamp,             value);
+    return snprintf(s, size, "%lu;%ld\n", timeStamp,             value);
 }
 static uint32_t printPointCsvUnsigned(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "%u;%u\n", timeStamp, (uint32_t)  value);
+    return snprintf(s, size, "%lu;%lu\n", timeStamp, (uint32_t)  value);
 }
 static uint32_t printPointBinary(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
     if(size < 8) return 0;
@@ -70,16 +70,16 @@ static uint32_t printPointBinary(char *s, uint32_t size, uint32_t timeStamp, int
     return 8;
 }
 static uint32_t printPointSvgStart(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "M%u,%d", timeStamp,             value);
+    return snprintf(s, size, "M%lu,%ld", timeStamp,             value);
 }
 static uint32_t printPointSvgStartUnsigned(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "M%u,%u", timeStamp, (uint32_t)  value);
+    return snprintf(s, size, "M%lu,%lu", timeStamp, (uint32_t)  value);
 }
 static uint32_t printPointSvg(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "H%uV%d", timeStamp,             value);
+    return snprintf(s, size, "H%luV%ld", timeStamp,             value);
 }
 static uint32_t printPointSvgUnsigned(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "H%uV%u", timeStamp, (uint32_t)  value);
+    return snprintf(s, size, "H%luV%lu", timeStamp, (uint32_t)  value);
 }
 
 
