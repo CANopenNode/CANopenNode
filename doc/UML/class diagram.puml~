@@ -1,0 +1,20 @@
+@startuml
+
+!include classes.puml
+
+hide members
+
+cActiveClass <|-- cActiveClass_CO_CAN_NMTdepended
+cActiveClass_CO_CAN_NMTdepended <|-- cCO_EMCYSend_TaskWrapper
+cActiveClass_CO_CAN_NMTdepended <|-- cCO_HBConsumer_TaskWrapper
+cActiveClass <|-- cCO_HBProducer_TaskWrapper
+cActiveClass <|-- cCO_led_TaskWrapper
+cActiveClass <|-- cCO_NMT_EMCY_TaskWrapper
+cActiveClass_CO_CAN_NMTdepended <|-- cCO_RPDO_TaskWrapper
+cActiveClass <|-- cCO_RX_TaskWrapper
+cActiveClass_CO_CAN_NMTdepended <|-- cCO_SDO_TaskWrapper
+cActiveClass <|-- cCO_TPDO_TaskWrapper
+cActiveClass <|-- cUserInterface
+cActiveClass <|-- cCO_Driver_TaskWrapper
+
+@enduml

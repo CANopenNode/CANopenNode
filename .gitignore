@@ -1,8 +1,6 @@
 canopennode
 *.o
 
-doc/
-
 #eclipse
 .cproject
 .project

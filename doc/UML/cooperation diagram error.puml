@@ -1,0 +1,44 @@
+@startuml
+
+left to right direction
+
+!include classes.puml
+
+hide members
+hide cActiveClass
+hide cActiveClass_CO_CAN_NMTdepended
+skinparam classArrowColor black
+'------------------------------------------------------------------------------
+cCO_Driver --> cCO_NMT_EMCY : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_HBConsumer --> cCO_NMT_EMCY : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_SDO --> cCO_NMT_EMCY : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_RPDO --> cCO_NMT_EMCY : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_HBProducer --> cCO_NMT_EMCY : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_EMCYSend --> cCO_NMT_EMCY : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_TPDO --> cCO_NMT_EMCY : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cUser --> cCO_NMT_EMCY : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+@enduml

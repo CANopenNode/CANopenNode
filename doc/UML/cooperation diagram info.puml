@@ -1,0 +1,95 @@
+@startuml
+
+left to right direction
+
+!include classes.puml
+
+hide members
+hide cActiveClass
+hide cActiveClass_CO_CAN_NMTdepended
+skinparam classArrowColor black
+'------------------------------------------------------------------------------
+
+cCO_Driver --> cCO_RX : SignalCANRXFromISR >
+note on link #white: CAN message
+'------------------------------------------------------------------------------
+
+cCO_RX --> cCO_SDO : bSignalCANReceived >
+note on link #white: SDO message
+
+cCO_RX --> cCO_RPDO : bSignalCANReceived >
+note on link #white: RPDO message
+
+cCO_RX --> cCO_NMT_EMCY : bSignalCANReceived >
+note on link #white: NMT message
+
+cCO_RX --> cCO_HBConsumer : bSignalCANReceived >
+note on link #white: HB message
+'------------------------------------------------------------------------------
+
+cCO_SDO --> cCO_Driver : CO_CANSend >
+note on link #white: CAN message
+
+cCO_SDO <--> CO_OD
+
+cCO_SDO --> cUser : SignalDOChanged >
+note on link #white: DO changed
+'------------------------------------------------------------------------------
+
+cCO_RPDO --> CO_OD
+
+cCO_RPDO --> cUser : SignalDOChanged >
+note on link #white: DO changed
+'------------------------------------------------------------------------------
+
+cCO_NMT_EMCY --> cCO_SDO : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY --> cCO_RPDO : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY --> cCO_HBConsumer : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY --> cCO_led : SignalCOStateChanged >
+note on link #white: LED command
+
+cCO_NMT_EMCY --> cCO_HBProducer : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY --> cCO_EMCYSend : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY --> cCO_EMCYSend : bSignalCANReceived >
+note on link #white: EMCY message
+
+cCO_NMT_EMCY <--> CO_OD
+
+cCO_NMT_EMCY --> cUser : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY --> cCO_TPDO : bSignalCOStateChanged >
+note on link #white: NMT state
+'------------------------------------------------------------------------------
+
+cCO_HBProducer --> cCO_Driver : CO_CANSend >
+note on link #white: CAN message
+'------------------------------------------------------------------------------
+
+cCO_EMCYSend --> cCO_Driver : CO_CANSend >
+note on link #white: CAN message
+'------------------------------------------------------------------------------
+
+CO_OD --> cCO_TPDO
+'------------------------------------------------------------------------------
+
+cCO_TPDO --> cCO_Driver : CO_CANSend >
+note on link #white: CAN message
+'------------------------------------------------------------------------------
+
+cUser <--> CO_OD
+
+cUser --> cCO_Driver : CANReset >
+note on link #red: reset CAN
+
+@enduml

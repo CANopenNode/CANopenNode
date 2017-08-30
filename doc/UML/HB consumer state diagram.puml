@@ -1,0 +1,22 @@
+@startuml
+
+[*] --> Init : NMTStateSelf = INITIALIZING
+Init --> Wait_for_first_HB : ENTER_PRE_OPERATIONAL/\nNMTStateSelf = PRE_OPERATIONAL
+Init --> Init : ENTER_STOPPED or RESET_NODE/ \n Обновить nNMTStateSelf
+'------------------------------------------------------------------------------
+
+Wait_for_first_HB : enter/ monitoredNode.m_dNMTstate = 0
+Wait_for_first_HB : enter/ monitoredNode.m_bmonStarted = false
+Wait_for_first_HB --> Init : ENTER_STOPPED or RESET_NODE/ \n Обновить nNMTStateSelf
+Wait_for_first_HB --> Active : Пришло сообщение от другого модуля\n с NMTState != 0
+'------------------------------------------------------------------------------
+
+Active : enter/ monitoredNode.m_dNMTstate = received_state
+Active : enter/ monitoredNode.m_bmonStarted = true
+Active : enter/ monitoredNode.m_dPrevHBTime обновить
+Active --> Wait_for_first_HB : Превышено время ожидания HB-сообщения/ \n послать сигнал ошибки HB
+Active --> Wait_for_first_HB : Пришло сообщение от другого \n модуля с NMTState == 0 (boot-up) /\n послать сигнал ошибки \n REMOTE_RESET
+Active --> Active : Пришло сообщение от другого \n модуля с NMTState != 0 / \n обновить monitoredNode.m_dNMTstate \n и monitoredNode.m_dPrevHBTime
+Active --> Init : ENTER_STOPPED or RESET_NODE/ \n Обновить nNMTStateSelf
+
+@enduml

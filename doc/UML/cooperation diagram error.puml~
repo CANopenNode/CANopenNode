@@ -1,0 +1,40 @@
+@startuml
+
+left to right direction
+
+!include classes.puml
+
+hide members
+hide cActiveClass
+hide cActiveClass_CO_CAN_NMTdepended
+skinparam classArrowColor black
+'------------------------------------------------------------------------------
+cCO_Driver_TaskWrapper --> cCO_NMT_EMCY_TaskWrapper : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_HBConsumer_TaskWrapper --> cCO_NMT_EMCY_TaskWrapper : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_SDO_TaskWrapper --> cCO_NMT_EMCY_TaskWrapper : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_RPDO_TaskWrapper --> cCO_NMT_EMCY_TaskWrapper : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_HBProducer_TaskWrapper --> cCO_NMT_EMCY_TaskWrapper : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_EMCYSend_TaskWrapper --> cCO_NMT_EMCY_TaskWrapper : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+cCO_TPDO_TaskWrapper --> cCO_NMT_EMCY_TaskWrapper : SignalError.. >
+note on link #red: error
+'------------------------------------------------------------------------------
+
+@enduml

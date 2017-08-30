@@ -1,0 +1,22 @@
+@startuml
+
+!include classes.puml
+
+hide members
+
+cActiveClass <|-- cActiveClass_CO_CAN_NMTdepended
+cActiveClass_CO_CAN_NMTdepended <|-- cCO_EMCYSend
+cActiveClass_CO_CAN_NMTdepended <|-- cCO_HBConsumer
+cActiveClass <|-- cCO_HBProducer
+cActiveClass <|-- cCO_led
+cActiveClass <|-- cCO_NMT_EMCY
+cActiveClass_CO_CAN_NMTdepended <|-- cCO_RPDO
+cActiveClass <|-- cCO_RX
+cActiveClass_CO_CAN_NMTdepended <|-- cCO_SDO
+cActiveClass <|-- cCO_TPDO
+cActiveClass <|-- cUserInterface
+cActiveClass <|-- cCO_Driver
+
+cUserInterface <|-- cUser
+
+@enduml

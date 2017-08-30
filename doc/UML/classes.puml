@@ -1,0 +1,128 @@
+@startuml
+
+package "embedded-os"	{
+abstract class cActiveClass {
++ uint8_t nAddHandle(TaskHandle_t xHandle)
++ void vInit(void)
++ void vSuspend(void)
++ void vResume(void)
+# TaskHandle_t m_aTaskHandles[MAX_TASKS]
+# uint8_t m_nTaskNum
+}
+}
+
+abstract class cActiveClass_CO_CAN_NMTdepended {
++ bool bSignalCANReceived(const CO_CanMsg_t* pCO_CanMsg)
++ bool bSignalCOStateChanged(const CO_NMT_internalState_t nNewState)
+# void vInitPartial(void);
+# SemaphoreHandle_t xBinarySemaphore
+# QueueHandle_t xQueueHandle_CANReceive
+# QueueHandle_t xQueueHandle_NMTStateChange
+}
+
+class cCO_EMCYSend  {
++ friend void vCO_EMCYSend_Task(void* pvParameters)
++ void vInit(void)
++ bool bSignalCOStateChanged(const CO_NMT_internalState_t nNewState)
+}
+
+class cCO_HBConsumer {
++ friend void vCO_HBConsumer_Task(void* pvParameters)
++ void vInit(void)
+}
+
+class cCO_HBProducer {
++ friend void vCO_HBProducer_Task(void* pvParameters)
++ void vInit(void);
++ bool bSignalCOStateChanged(const CO_NMT_internalState_t nNewState);
+- QueueHandle_t QueueHandle_NMTStateChange
+}
+
+class cCO_led  {
++ friend void vCO_led_Task(void* pvParameters)
++ void vInit(void);
++ bool SignalCOStateChanged(const CO_ledCommand_t nNewState);
+- QueueHandle_t m_xQueueHandle_StateChange
+}
+
+class cCO_NMT_EMCY  {
++ friend void vCO_NMT_EMCY_Task(void* pvParameters)
++ void vInit(void)
++ bool bSignalCANReceived(const CO_CanMsg_t* pCO_CanMsg)
++ bool SignalErrorOccured(const uint8_t nErrorBit, const uint16_t nErrorCode, const uint32_t nInfoCode)
++ bool SignalErrorOccuredFromISR(const uint8_t nErrorBit, const uint16_t nErrorCode, const uint32_t nInfoCode)
++ bool SignalErrorReleased(const uint8_t nErrorBit, const uint32_t nInfoCode)
++ bool SignalErrorReleasedFromISR(const uint8_t nErrorBit, const uint32_t nInfoCode)
+- SemaphoreHandle_t xBinarySemaphore
+- QueueHandle_t xQueueHandle_CANReceive
+- QueueHandle_t xQueueHandle_Errors
+}
+
+class cCO_OD_Interface  {
++ void vCO_OD_Init(CO_OD_entry_t const * const  pCO_OD)
++ uint16_t CO_OD_Find(uint16_t index)
++ uint16_t CO_OD_GetLength(uint16_t entryNo, uint8_t subIndex)
++ uint16_t CO_OD_GetAttribute(uint16_t entryNo, uint8_t subIndex)
++ void* CO_OD_GetDataPointer(uint16_t entryNo, uint8_t subIndex)
++ uint8_t CO_OD_GetMaxSubindex(uint16_t entryNo)
+- CO_OD_entry_t*  pCO_OD
+}
+
+class cCO_RPDO  {
++ friend void vCO_RPDO_Task(void* pvParameters)
++ void vInit(void)
+}
+
+class cCO_RX {
++ friend void vCO_RX_Task(void* pvParameters)
++ void vInit(void)
++ bool SignalCANRXFromISR(CO_CanMsg_t* pCO_CanMsg)
+- QueueHandle_t xQueueHandle_CANReceive
+}
+
+class cCO_SDO {
++ friend void vCO_SDO_Task(void* pvParameters)
++ void vInit(void)
+}
+
+class cCO_TPDO {
++ friend void vCO_TPDO_Task(void* pvParameters)
++ void vInit(void)
++ bool bSignalDOChanged(const uint32_t nDO)
++ bool bSignalCOStateChanged(const CO_NMT_internalState_t nNewState)
+- SemaphoreHandle_t xBinarySemaphore
+- QueueHandle_t xQueueHandle_DOChange
+- QueueHandle_t xQueueHandle_NMTStateChange
+}
+
+package "embedded-libs-common" {
+class cCO_Driver {
++ friend void vCO_Driver_Task(void* pvParameters)
++ friend void CO_CANinterrupt_Tx(void)
++ void vInit(void)
++ bool CO_CANSend(const CO_CanMsg_t* pCO_CanMsg)
++ void CANReset(void);
+- SemaphoreHandle_t   xBinarySemaphore_Common
+- SemaphoreHandle_t   xBinarySemaphore_CANReset
+- QueueHandle_t       xQueueHandle_CANSend
+}
+}
+
+class cUserInterface  {
++ void SignalDOChanged(void)
++ bool SignalStateOrCommand(const CO_NMT_command_t nNewState)
+- SemaphoreHandle_t xBinarySemaphore
+- QueueHandle_t QueueHandle_StateOrCommand
+}
+
+package "user"	{
+class cUser
+}
+
+class CO_OD	{
+CO_OD_entry_t CO_OD[CO_OD_NoOfElements]
+}
+
+class CO_OD #blue
+
+@enduml

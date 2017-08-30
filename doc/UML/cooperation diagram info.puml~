@@ -1,0 +1,93 @@
+@startuml
+
+!include classes.puml
+
+hide members
+hide cActiveClass
+hide cActiveClass_CO_CAN_NMTdepended
+skinparam classArrowColor black
+'------------------------------------------------------------------------------
+
+cCO_Driver_TaskWrapper --> cCO_RX_TaskWrapper : SignalCANRXFromISR >
+note on link #white: CAN message
+'------------------------------------------------------------------------------
+
+cCO_RX_TaskWrapper --> cCO_SDO_TaskWrapper : bSignalCANReceived >
+note on link #white: SDO message
+
+cCO_RX_TaskWrapper --> cCO_RPDO_TaskWrapper : bSignalCANReceived >
+note on link #white: RPDO message
+
+cCO_RX_TaskWrapper --> cCO_NMT_EMCY_TaskWrapper : bSignalCANReceived >
+note on link #white: NMT message
+
+cCO_RX_TaskWrapper --> cCO_HBConsumer_TaskWrapper : bSignalCANReceived >
+note on link #white: HB message
+'------------------------------------------------------------------------------
+
+cCO_SDO_TaskWrapper --> cCO_Driver_TaskWrapper : CO_CANSend >
+note on link #white: CAN message
+
+cCO_SDO_TaskWrapper <--> CO_OD
+
+cCO_SDO_TaskWrapper --> cUser : SignalDOChanged >
+note on link #white: DO changed
+'------------------------------------------------------------------------------
+
+cCO_RPDO_TaskWrapper --> CO_OD
+
+cCO_RPDO_TaskWrapper --> cUser : SignalDOChanged >
+note on link #white: DO changed
+'------------------------------------------------------------------------------
+
+cCO_NMT_EMCY_TaskWrapper --> cCO_SDO_TaskWrapper : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY_TaskWrapper --> cCO_RPDO_TaskWrapper : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY_TaskWrapper --> cCO_HBConsumer_TaskWrapper : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY_TaskWrapper --> cCO_led_TaskWrapper : SignalCOStateChanged >
+note on link #white: LED command
+
+cCO_NMT_EMCY_TaskWrapper --> cCO_HBProducer_TaskWrapper : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY_TaskWrapper --> cCO_EMCYSend_TaskWrapper : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY_TaskWrapper --> cCO_EMCYSend_TaskWrapper : bSignalCANReceived >
+note on link #white: EMCY message
+
+cCO_NMT_EMCY_TaskWrapper <--> CO_OD
+
+cCO_NMT_EMCY_TaskWrapper --> cUser : bSignalCOStateChanged >
+note on link #white: NMT state
+
+cCO_NMT_EMCY_TaskWrapper --> cCO_TPDO_TaskWrapper : bSignalCOStateChanged >
+note on link #white: NMT state
+'------------------------------------------------------------------------------
+
+cCO_HBProducer_TaskWrapper --> cCO_Driver_TaskWrapper : CO_CANSend >
+note on link #white: CAN message
+'------------------------------------------------------------------------------
+
+cCO_EMCYSend_TaskWrapper --> cCO_Driver_TaskWrapper : CO_CANSend >
+note on link #white: CAN message
+'------------------------------------------------------------------------------
+
+CO_OD --> cCO_TPDO_TaskWrapper
+'------------------------------------------------------------------------------
+
+cCO_TPDO_TaskWrapper --> cCO_Driver_TaskWrapper : CO_CANSend >
+note on link #white: CAN message
+'------------------------------------------------------------------------------
+
+cUser <--> CO_OD
+
+cUser --> cCO_Driver_TaskWrapper : CANReset >
+note on link #red: reset CAN
+
+@enduml
