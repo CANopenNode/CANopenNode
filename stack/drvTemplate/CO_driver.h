@@ -190,7 +190,7 @@ extern "C" {
  * example uses GCC builtin memory barrier __sync_synchronize(). A comprehensive
  * list can be found here: https://gist.github.com/leo-yuriev/ba186a6bf5cf3a27bae7
  * \code{.c}
-    #define CANrxMemoryBarrier() {__sync_synchronize()}
+    #define CANrxMemoryBarrier() {__sync_synchronize();}
  * \endcode
  * @{
  */

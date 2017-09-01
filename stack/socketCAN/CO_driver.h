@@ -75,7 +75,7 @@
     #define CO_LOCK_OD()            {if(pthread_mutex_lock(&CO_OD_mtx) != 0) CO_errExit("Mutex lock CO_OD_mtx failed");}
     #define CO_UNLOCK_OD()          {if(pthread_mutex_unlock(&CO_OD_mtx) != 0) CO_errExit("Mutex unlock CO_OD_mtx failed");}
 
-    #define CANrxMemoryBarrier()    {__sync_synchronize()}
+    #define CANrxMemoryBarrier()    {__sync_synchronize();}
 #endif
 
 /* Syncronisation functions */
