@@ -138,7 +138,7 @@ typedef struct{
     uint8_t          fsBitChecked;     /**< Current scan bit position */
     uint32_t         fsIdNumber;       /**< Current scan result */
 
-    volatile bool_t  CANrxNew;         /**< Flag indicates, if new LSS message is received from CAN bus. It needs to be cleared when received message is completely processed. */
+    volatile void   *CANrxNew;         /**< Indication if new LSS message is received from CAN bus. It needs to be cleared when received message is completely processed. */
     uint8_t          CANrxData[8];     /**< 8 data bytes of the received message */
 
     void           (*pFunctSignal)(void *object); /**< From CO_LSSmaster_initCallback() or NULL */

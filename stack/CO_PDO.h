@@ -201,7 +201,7 @@ typedef struct{
     /** Pointers to 8 data objects, where PDO will be copied */
     uint8_t            *mapPointer[8];
     /** Variable indicates, if new PDO message received from CAN bus. */
-    volatile bool_t     CANrxNew[2];
+    volatile void      *CANrxNew[2];
     /** 8 data bytes of the received message. */
     uint8_t             CANrxData[2][8];
     CO_CANmodule_t     *CANdevRx;       /**< From CO_RPDO_init() */

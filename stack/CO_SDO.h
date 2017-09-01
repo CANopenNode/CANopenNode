@@ -646,7 +646,7 @@ typedef struct{
     /** Indication end of block transfer */
     bool_t              endOfTransfer;
     /** Variable indicates, if new SDO message received from CAN bus */
-    bool_t              CANrxNew;
+    volatile void      *CANrxNew;
     /** From CO_SDO_initCallback() or NULL */
     void              (*pFunctSignal)(void);
     /** From CO_SDO_init() */
