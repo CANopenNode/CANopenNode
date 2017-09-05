@@ -79,9 +79,9 @@
 #endif
 
 /* Syncronisation functions */
-static inline int IS_CANrxNew(volatile void *rxNew) {return (int)rxNew;};
-static inline void SET_CANrxNew(volatile void *rxNew) { CANrxMemoryBarrier(); rxNew = (void*)1L; }
-static inline void CLEAR_CANrxNew(volatile void *rxNew) { CANrxMemoryBarrier(); rxNew = (void*)0L; }
+#define IS_CANrxNew(rxNew) ((int)rxNew)
+#define SET_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)1L;}
+#define CLEAR_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)0L;}
 
 
 /* Data types */
