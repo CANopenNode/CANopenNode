@@ -253,7 +253,7 @@ CO_ReturnError_t CO_new(void)
     CO->LSSslave                        = &CO0_LSSslave;
   #endif
   #if CO_NO_LSS_CLIENT == 1
-    CO->CO_LSSmaster                    = &CO0_LSSmaster;
+    CO->LSSmaster                       = &CO0_LSSmaster;
   #endif
   #if CO_NO_SDO_CLIENT == 1
     CO->SDOclient                       = &COO_SDOclient;
