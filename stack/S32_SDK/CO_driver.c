@@ -1,8 +1,6 @@
 /*
  * CAN module object for generic microcontroller.
  *
- * This file is a template for other microcontrollers.
- *
  * @file        CO_driver.c
  * @ingroup     CO_driver
  * @author      Janez Paternoster
@@ -169,13 +167,6 @@ CO_ReturnError_t CO_CANmodule_init(
         txArray[i].bufferFull = false;
     }
 
-
-    /* Configure CAN module registers */
-    /* Configure CAN timing */
-    /* Configure CAN module hardware filters */
-    /* These configurations of CAN module are already done using FLEXCAN_DRV_Init() */
-
-    /* Configure CAN interrupt registers */
     /* Install CallBack function for FlexCAN interrupts */
     FLEXCAN_DRV_InstallEventCallback(CANmodule->INST_CANCOM, &CO_CANinterrupt, CANmodule);
 
