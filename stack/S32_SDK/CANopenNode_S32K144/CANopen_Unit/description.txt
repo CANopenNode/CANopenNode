@@ -1,0 +1,5 @@
+CANopenNode Unit node fro S32K144
+
+This application simulates the air conditioning unit using the two buttons as user temperature control and displays the range of the temperature received from sensor using LEDs.
+
+See doxygen for more information.

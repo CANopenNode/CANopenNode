@@ -1,0 +1,90 @@
+/*!
+    @page CANopen_Unit_s32k144_group CANopen Unit
+
+    ## Application description ##
+    _____
+    This application simulates the air conditioning unit using the two buttons as user temperature control and displays the range of the temperature received from sensor using LEDs. \n
+        - Button 1 (\b SW3) decreases the temperature by 2 degrees each push;
+        - Button 2 (\b SW2) increases the temperature by 2 degrees each push;
+        - RED LED is on when the temperature received from the sensor is above 50 degrees;
+        - ORANGE LED is on when the temperature received from the sensor is between 31 and 49 degrees;
+        - GREEN LED is on when the temperature received from the sensor is between 21 and 30 degrees;
+        - CYAN LED is on when the temperature received from the sensor is between 1 and 20 degrees;
+        - BLUE LED is on when the temperature received from the sensor is under 0 degrees.
+
+    The application initializes the clock, GPIO pins and moves on to initializing the CANopenNode protocol:
+        - Firstly the FlexCAN user configuration is sent to the CANopen driver;
+        - Then CANopenNode objects are intiliazed and the drivers takes care of setting up the mailboxes for the FlexCAN;
+        - LPIT is set up and started to run the timer thread of the CANopenNode protocol.
+        - Then the main enters a loop until the connection is reset or the device needs to shut down.
+        - This loop is where all other code that needs to execute on the CPU goes or in the timer thread if the code needs to be executed in real time.
+
+    The node configuration is done using the Object Dictionary(OD) wich is specific for each node on the network:
+        - The node ID is set in the main routine to 0x01.
+        - Two variables are created in the OD for storing the sensor temperature and unit state.
+        - At index 0x3000 is stored the variable \b Sensor_Temperature as int16 which can be mapped by an TPDO.
+        - At index 0x3100 is stored the variable \b Unit_State as int8 which can be mapped by an RPDO.
+        - Heartbeat feature is deactivated. But the monitoring of heartbeat messages from network nod with ID 0x01 is set to be done once every 7,5 seconds (1,2*message send time). This setting is done in index 0x1016 sub index 0x01 by setting bits 0-15 with the consumer time in ms and bits 16-23 with the node id monitored.
+        - The first TPDO(TPDO_0) at index 0x1800(Communication object) and 0x1A00(Mapping object) is set to send one variable stored at 0x3100 with lenght 8bits every time its value gets changed.
+        - The second RPDO(RPDO_1) at index 0x1401(Communication object) and 0x1601(Mapping object) is set to receive asynchronously one variable with lenght 16bits from the network node with ID 0x06 (the messageID is 0x286) and store it at 0x3000.
+
+    ## Prerequisites ##
+    _____
+    To run the example you will need to have the following items:
+    - 1 S32K144 boards
+    - 1 Power Adapter 12V
+    - 3 Dupont female to female cable
+    - 1 Personal Computer
+    - 1 Jlink Lite Debugger (optional, users can use Open SDA)
+
+    ## Boards supported ##
+    _____
+    The following boards are supported by this application:
+    - S32K144EVB-Q100
+
+    ## Hardware Wiring ##
+    _____
+    The following connections must be done to for this example application to work:
+
+    PIN FUNCTION            |   S32K144EVB-Q100
+    ------------------------|-------------------------------------
+    CAN HIGH (\b *)         |   J13.1 - J13.1 on the second board
+    CAN LOW (\b *)          |   J13.2 - J13.2 on the second board
+    BUTTON 1 (\b PTC13)     |   SW3 - wired on the board
+    BUTTON 2 (\b PTC12)     |   SW2 - wired on the board
+    RED_LED (\b PTD15)      |   RGB_RED   - wired on the board
+    GREEN_LED (\b PTD16)    |   RGB_GREEN - wired on the board
+    BLUE_LED (\b PTD0)      |   RGB_BLUE  - wired on the board
+    GND (\b GND)            |   J13.4 - J13.4 on the second board
+    
+    <b>(*) Those lines must be modulated using a transceiver, if it is not specified the boards already include the CAN transceiver</b>
+
+    @note For the CAN transceiver to work the board must be powered using a 12V power adapter and the jumper J107 must be in position 1-2
+
+    ## How to run ##
+    _____
+
+    #### 1. Importing the projects into the workspace ####
+    After opening S32 Design Studio, go to \b File -> \b New \b S32DS \b Project \b From... and select \b CANopen_Unit_s32k144. Then click on \b Finish. \n
+    The project should now be copied into you current workspace.
+    If a message is displayed about the project being created for another SDK click \b Continue \b loading. A second message box about SDK reference  not being correct should appear. Please click \b Yes and in the opened windows click \b Browse and go to the SDK instalation directory.
+    #### 2. Generating the Processor Expert configuration ####
+    First go to \b Project \b Explorer View in S32 DS and select the project(\b CANopen_Unit_s32k144). Then go to \b Project and click on \b Generate \b Processor \b Expert \b Code \n
+    Wait for the code generation to be completed before continuing to the next step.
+    #### 3. Building the project ####
+    Before building select CANopen_Sensor_s32k144 project and go to \b Project -> \b Properties. Under \b Resources -> \b Linked \b Resources please make sure that the path variable CANopenNode_PATH points to \b CANopenNode git repository and the \b S32_SDK_PATH point to the SDK instalation folder.
+    Select the \b FLASH (Debug_FLASH) configuration to be built by left clicking on the downward arrow corresponding to the \b build button(@image hammer.png).\n
+    Wait for the build action to be completed before continuing to the next step.
+    #### 4. Running the project ####
+    Go to \b Run and select \b Debug \b Configurations. There will be four debug configurations for this project: 
+     Configuration Name | Description
+     -------------------|------------
+     \b CANopen_Unit_s32k144_Debug_FLASH_Jlink | Debug the FLASH configuration using Segger Jlink debuggers
+     \b CANopen_Unit_s32k144_Debug_FLASH_PEMicro | Debug the FLASH configuration using PEMicro debuggers
+
+    \n Select either \b Debug_FLASH \b Jlink or \b Debug_FLASH \b PEMicro debug configuration and click on \b Launch. Now the perspective will change to the \b Debug \b Perspective. \n
+    Use the controls to control the program flow.
+
+    @note For more detailed information related to S32 Design Studio usage please consult the available documentation.
+
+*/
