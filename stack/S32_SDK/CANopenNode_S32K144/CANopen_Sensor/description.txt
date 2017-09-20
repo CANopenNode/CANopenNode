@@ -1,4 +1,4 @@
-CANopenNode Sensor node fro S32K144
+CANopenNode Sensor node for S32K144
 
 This application simulates the remote sensor using the two buttons as temperature control and displays the state of unit using LEDs.
 

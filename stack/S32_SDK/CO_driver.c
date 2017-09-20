@@ -1,4 +1,4 @@
-/*
+/**
  * CAN module object for generic microcontroller.
  *
  * @file        CO_driver.c
@@ -46,19 +46,19 @@
 
 #include "CO_driver.h"
 #include "CO_Emergency.h"
-/* #include "flexcan_driver.h" */
 
 CO_FlexCAN_config_t CAN_config;
 
-/******************************************************************************/
-/*
- * Configure mailbox for receiving and start listening for data
+/*FUNCTION**********************************************************************
  *
- * This function is used only by the driver layer
+ * Function Name : FlexCAN_RxMailbox_Config
+ * Description   : Configures mailbox for receiving the maximum amount of data
+ *              Starts the receiving process for the mailbox.
  *
  * @param   instance           A FlexCAN instance number
  * @param   data               The FlexCAN receive message structure
- */
+ *
+ *END**************************************************************************/
 static void FlexCAN_RxMailbox_Config(uint8_t instance, flexcan_msgbuff_t *data)
 {
     flexcan_data_info_t dataInfo =
@@ -78,7 +78,13 @@ static void FlexCAN_RxMailbox_Config(uint8_t instance, flexcan_msgbuff_t *data)
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_FLEXCAN_Init
+ * Description   : FlexCAN configuration parameters are received for use by the
+ *              CANopenNode later in the initialization of the FlexCAN module.
+ *
+ *END**************************************************************************/
 CO_ReturnError_t CO_FLEXCAN_Init(
         uint8_t                         instance,
         flexcan_state_t                *state,
@@ -100,7 +106,12 @@ CO_ReturnError_t CO_FLEXCAN_Init(
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANsetConfigurationMode
+ * Description   : Initialize the FlexCAN module with the user's configuration.
+ *
+ *END**************************************************************************/
 void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
     /* Put CAN module in configuration mode */
     (void)CANbaseAddress;/* suppress unused variable warning */
@@ -113,15 +124,28 @@ void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANsetNormalMode
+ * Description   : Set CANopenNode module in normal(operational) mode.
+ *
+ *END**************************************************************************/
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
     /* Put CAN module in normal mode */
-
     CANmodule->CANnormal = true;
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANmodule_init
+ * Description   : Initialize CAN module object.
+ *              Install the Rx and Tx interrupt handler.
+ *              Disable the hardware message ID filtering, filtering is done in
+ *              the interrupt handler.
+ *              Start receiving messages.
+ *
+ *END**************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
         int32_t                 CANbaseAddress,
@@ -133,7 +157,7 @@ CO_ReturnError_t CO_CANmodule_init(
 {
     uint16_t i;
     (void)CANbitRate;/*suppress unused warning as bit rate is configured in FlexCAN component*/
-    
+
     /* verify arguments */
     if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -183,7 +207,12 @@ CO_ReturnError_t CO_CANmodule_init(
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANmodule_disable
+ * Description   : Shutdown FlexCAN module and CANopenNode module.
+ *
+ *END**************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
     /* turn off the module */
     FLEXCAN_DRV_Deinit(CANmodule->INST_CANCOM);
@@ -191,13 +220,24 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANrxMsg_readIdent
+ * Description   : Read CAN identifier from received message
+ *
+ *END**************************************************************************/
 uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg){
     return (uint16_t) rxMsg->messageId;
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANrxBufferInit
+ * Description   : Function configures specific CAN receive buffer. It sets CAN
+ *              identifier and connects buffer with specific object.
+ *
+ *END**************************************************************************/
 CO_ReturnError_t CO_CANrxBufferInit(
         CO_CANmodule_t         *CANmodule,
         uint16_t                index,
@@ -233,7 +273,13 @@ CO_ReturnError_t CO_CANrxBufferInit(
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANtxBufferInit
+ * Description   : Configure specific CAN transmit buffer, and the FlexCAN
+ *              transmit configuration.
+ *
+ *END**************************************************************************/
 CO_CANtx_t *CO_CANtxBufferInit(
         CO_CANmodule_t         *CANmodule,
         uint16_t                index,
@@ -248,7 +294,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
         /* get specific buffer */
         buffer = &CANmodule->txArray[index];
 
-        /* 
+        /*
          * CAN identifier aligned with CAN module transmit buffer.
          * Microcontroller specific.
          */
@@ -267,7 +313,12 @@ CO_CANtx_t *CO_CANtxBufferInit(
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANsend
+ * Description   : Configures a mailbox for transmitting, and sends the data.
+ *
+ *END**************************************************************************/
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CO_ReturnError_t err = CO_ERROR_NO;
 
@@ -303,7 +354,12 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANclearPendingSyncPDOs
+ * Description   : Clear all synchronous TPDOs from CAN module transmit buffers.
+ *
+ *END**************************************************************************/
 void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
     uint32_t tpdoDeleted = 0U;
 
@@ -342,7 +398,12 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANverifyErrors
+ * Description   : Verify all errors of FlexCAN module.
+ *
+ *END**************************************************************************/
 void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
     uint16_t rxErrors, txErrors, overflow;
     CO_EM_t* em = (CO_EM_t*)CANmodule->em;
@@ -401,7 +462,12 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
 }
 
 
-/******************************************************************************/
+/*FUNCTION**********************************************************************
+ *
+ * Function Name : CO_CANinterrupt
+ * Description   : Receives and transmits CAN messages.
+ *
+ *END**************************************************************************/
 void CO_CANinterrupt(uint8_t                        instance,
                      flexcan_event_type_t           eventType,
                      flexcan_state_t               *flexcanState)
@@ -435,7 +501,7 @@ void CO_CANinterrupt(uint8_t                        instance,
         rcvMsg->ident = CO_CANrxMsg_readIdent(rcvMsg);
         rcvMsgIdent = CO_CANrxMsg_readIdent(rcvMsg);
 
-        /* 
+        /*
          * CAN module filters are not used, message with any standard 11-bit identifier
          * has been received. Search rxArray from CANmodule for the same CAN-ID.
          */
@@ -495,3 +561,6 @@ void CO_CANinterrupt(uint8_t                        instance,
         /* some other interrupt reason */
     }
 }
+/*******************************************************************************
+ * EOF
+ ******************************************************************************/

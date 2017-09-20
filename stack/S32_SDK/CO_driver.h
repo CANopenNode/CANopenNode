@@ -51,13 +51,16 @@
 extern "C" {
 #endif
 
-/* Include processor header file */
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for 'true', 'false' */
-
+/* Include processor header file */
 #include "flexcan_driver.h"
 #include "interrupt_manager.h"
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
 
 /**
  * @name Critical sections
@@ -119,8 +122,8 @@ typedef enum{
     CO_ERROR_RX_PDO_LENGTH      = -8,   /**< Wrong receive PDO length */
     CO_ERROR_TX_OVERFLOW        = -9,   /**< Previous message is still waiting, buffer full */
     CO_ERROR_TX_PDO_WINDOW      = -10,  /**< Synchronous TPDO is outside window */
-    CO_ERROR_TX_UNCONFIGURED    = -11,  /**< Transmit buffer was not confugured properly */
-    CO_ERROR_PARAMETERS         = -12,  /**< Error in function function parameters */
+    CO_ERROR_TX_UNCONFIGURED    = -11,  /**< Transmit buffer was not configured properly */
+    CO_ERROR_PARAMETERS         = -12,  /**< Error in function parameters */
     CO_ERROR_DATA_CORRUPT       = -13,  /**< Stored data are corrupt */
     CO_ERROR_CRC                = -14   /**< CRC does not match */
 }CO_ReturnError_t;
@@ -129,10 +132,10 @@ typedef enum{
  * FlexCAN configuration structure
  */
 typedef struct{
-    uint8_t                        CAN_instance;
-    flexcan_state_t               *CAN_state;
-    const flexcan_user_config_t   *CAN_user_config;
-    uint16_t                       nodeID;
+    uint8_t                        CAN_instance;    /**< FlexCAN instance number */
+    flexcan_state_t               *CAN_state;       /**< FlexCAN state structure */
+    const flexcan_user_config_t   *CAN_user_config; /**< FlexCAN configuration structure */
+    uint16_t                       nodeID;          /**< Node ID of CAN network device */
 }CO_FlexCAN_config_t;
 
 /**
@@ -144,8 +147,7 @@ typedef struct{
     uint32_t            ident;
     uint8_t             DLC;           /**< Length of CAN message */
     uint8_t            *data;          /**< 8 data bytes */
-
-/*****************************************SPECIFIC MEMBERS****************************************************/
+    /* FlexCAN specific members */
     uint16_t            messageId;     /**< ID of the message received */
 }CO_CANrxMsg_t;
 
@@ -171,8 +173,7 @@ typedef struct{
     volatile bool_t     bufferFull;     /**< True if previous message is still in buffer */
     /** Synchronous PDO messages has this flag set. It prevents them to be sent outside the synchronous window */
     volatile bool_t     syncFlag;
-
-/*****************************************SPECIFIC MEMBERS****************************************************/
+    /* FlexCAN specific members */
     flexcan_data_info_t dataInfo;      /**< FlexCAN structure with mailbox TX configuration for this message */
 }CO_CANtx_t;
 
@@ -192,7 +193,7 @@ typedef struct{
       * they won't be used. In this case will be *all* received CAN messages
       * processed by software. */
     volatile bool_t     useCANrxFilters;
-    /** If flag is true, then message in transmitt buffer is synchronous PDO
+    /** If flag is true, then message in transmit buffer is synchronous PDO
       * message, which will be aborted, if CO_clearPendingSyncPDOs() function
       * will be called by application. This may be necessary if Synchronous
       * window time was expired. */
@@ -203,18 +204,17 @@ typedef struct{
     volatile uint16_t   CANtxCount;
     uint32_t            errOld;         /**< Previous state of CAN errors */
     void               *em;             /**< Emergency object */
-
-/*****************************************SPECIFIC MEMBERS****************************************************/
-    uint8_t                        INST_CANCOM;
-    flexcan_state_t               *canCom_State;
-    const flexcan_user_config_t   *canCom_InitConfig;
-    uint16_t                       nodeID;
-    flexcan_msgbuff_t              rxBuffer;           /* buffer for data received over FlexCAN */
+    /* FlexCAN specific members */
+    uint8_t                        INST_CANCOM;         /**< FlexCAN instance number */
+    flexcan_state_t               *canCom_State;        /**< FlexCAN state structure */
+    const flexcan_user_config_t   *canCom_InitConfig;   /**< FlexCAN configuration structure */
+    uint16_t                       nodeID;              /**< Node ID of CAN network device */
+    flexcan_msgbuff_t              rxBuffer;            /**< buffer for data received over FlexCAN */
 }CO_CANmodule_t;
 
 
 /**
- * Endianes.
+ * Endianness.
  *
  * Depending on processor or compiler architecture, one of the two macros must
  * be defined: CO_LITTLE_ENDIAN or CO_BIG_ENDIAN. CANopen itself is little endian.
@@ -248,7 +248,7 @@ CO_ReturnError_t CO_FLEXCAN_Init(
 
 
 /**
- * Request CAN configuration (stopped) mode and *wait* untill it is set.
+ * Request CAN configuration (stopped) mode and *wait* until it is set.
  *
  * @param CANbaseAddress CAN module base address.
  */
@@ -256,7 +256,7 @@ void CO_CANsetConfigurationMode(int32_t CANbaseAddress);
 
 
 /**
- * Request CAN normal (opearational) mode and *wait* untill it is set.
+ * Request CAN normal (operational) mode and *wait* until it is set.
  *
  * @param CANmodule This object.
  */
@@ -352,7 +352,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
  * @param rtr If true, 'Remote Transmit Request' messages will be transmitted.
  * @param noOfBytes Length of CAN message in bytes (0 to 8 bytes).
  * @param syncFlag This flag bit is used for synchronous TPDO messages. If it is set,
- * message will not be sent, if curent time is outside synchronous window.
+ * message will not be sent, if current time is outside synchronous window.
  *
  * @return Pointer to CAN transmit message buffer. 8 bytes data array inside
  * buffer should be written, before CO_CANsend() function is called.
@@ -425,3 +425,6 @@ void CO_CANinterrupt(/*CO_CANmodule_t *CANmodule*/
 
 /** @} */
 #endif
+/*******************************************************************************
+ * EOF
+ ******************************************************************************/

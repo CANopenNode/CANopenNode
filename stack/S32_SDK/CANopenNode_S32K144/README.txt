@@ -8,7 +8,7 @@ It is split into two projects:
  - CANopen_Sensor_s32k144
  - CANopen_Unit_s32k144
 
-See Documentation.pdf for more details, or the doxygen files in both projects
-
 The projects are made using S32DS for ARM
-If using S32DS please copy the S32_SDK\CANopenNode_S32K144 folder into {S32DS install directory}\S32DS\Examples\
+If using S32DS please copy the S32_SDK\CANopenNode_S32K144 folder into {S32DS install directory}\S32DS\Examples\ and then follow the instructions in the Documentation.pdf, How to run section.
+
+For more details regarding this example please see Documentation.pdf, or the doxygen files in both projects.
