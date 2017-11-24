@@ -333,6 +333,28 @@ void CO_LSSslave_process(
         uint8_t                *pendingNodeId);
 
 /**
+ * Process LSS LED
+ *
+ * Returns the status of the LSS LED (if LSS is involved)
+ * with the following meaning:
+ *
+ * UNCONFIGURED (activeNodeId is unconfigured) --> single flash
+ * SELECTED                                    --> double flash
+ *
+ * If none of above conditions apply, returns false.
+ *
+ * @param LSSslave This object.
+ * @param timeDifference_ms The amount of time elapsed since the last call
+ * @param LEDon [out] LED state
+ *
+ * @return true if LSS is involved (unconfigured node or selected node)
+ */
+bool_t CO_LSSslave_LEDprocess(
+        CO_LSSslave_t          *LSSslave,
+        uint16_t                timeDifference_ms,
+        bool_t *LEDon);
+
+/**
  * Initialize verify bit rate callback
  *
  * Function initializes callback function, which is called when "config bit

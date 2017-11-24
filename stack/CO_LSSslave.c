@@ -496,4 +496,42 @@ void CO_LSSslave_process(
 }
 
 
+/******************************************************************************/
+bool_t CO_LSSslave_LEDprocess(
+        CO_LSSslave_t          *LSSslave,
+        uint16_t                timeDifference_ms,
+        bool_t *LEDon)
+{
+    static uint16_t ms50 = 0;
+    static int8_t flash1, flash2;
+
+    if (LSSslave == NULL || LEDon == NULL)
+        return false;
+    ms50 += timeDifference_ms;
+    if(ms50 >= 50) {
+        ms50 -= 50;
+        /* 4 cycles on, 50 cycles off */
+        if(++flash1 >= 4) flash1 = -50;
+
+        /* 4 cycles on, 4 cycles off, 4 cycles on, 50 cycles off */
+        switch(++flash2){
+            case    4:  flash2 = -104; break;
+            case -100:  flash2 =  100; break;
+            case  104:  flash2 =  -50; break;
+        }
+    }
+    if (LSSslave->lssState == CO_LSS_STATE_CONFIGURATION)
+    {
+        *LEDon = (flash2 >= 0);
+        return true;
+    }
+    else if (LSSslave->activeNodeID == CO_LSS_NODE_ID_ASSIGNMENT)
+    {
+        *LEDon = (flash1 >= 0);
+        return true;
+    }
+    return false;
+}
+
+
 #endif
