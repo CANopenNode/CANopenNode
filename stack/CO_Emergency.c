@@ -59,15 +59,19 @@
  */
 static void CO_EM_receive(void *object, const CO_CANrxMsg_t *msg){
     CO_EM_t *em;
-    uint8_t errorBit;
+    uint16_t errorCode;
     uint32_t infoCode;
 
     em = (CO_EM_t*)object;
 
     if(em->pFunctSignal!=NULL){
-        errorBit = msg->data[3];
+        CO_memcpySwap2(&errorCode, &msg->data[0]);
         CO_memcpySwap4(&infoCode, &msg->data[4]);
-        em->pFunctSignal(errorBit, infoCode);
+        em->pFunctSignal(msg->ident,
+                         errorCode,
+                         msg->data[2],
+                         msg->data[3],
+                         infoCode);
     }
 }
 
@@ -218,7 +222,11 @@ CO_ReturnError_t CO_EM_init(
 /******************************************************************************/
 void CO_EM_initCallback(
         CO_EM_t                *em,
-        void                  (*pFunctSignal)(const uint8_t errorBit, const uint32_t infoCode))
+        void                  (*pFunctSignal)(const uint32_t ident,
+                                              const uint16_t errorCode,
+                                              const uint8_t errorRegister,
+                                              const uint8_t errorBit,
+                                              const uint32_t infoCode))
 {
     if(em != NULL){
         em->pFunctSignal = pFunctSignal;
@@ -366,7 +374,7 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
 
             /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
             if(em->pFunctSignal != NULL) {
-                em->pFunctSignal(errorBit, infoCode);
+                em->pFunctSignal(0, errorCode, 0, errorBit, infoCode);
             }
         }
     }
@@ -425,7 +433,7 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
 
             /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
             if(em->pFunctSignal != NULL) {
-                em->pFunctSignal(errorBit, infoCode);
+                em->pFunctSignal(0, 0, 0, errorBit, infoCode);
             }
         }
     }

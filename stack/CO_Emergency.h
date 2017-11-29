@@ -283,7 +283,11 @@ typedef struct{
     uint8_t             wrongErrorReport;   /**< Error in arguments to CO_errorReport() */
 
     /** From CO_EM_initCallback() or NULL */
-    void              (*pFunctSignal)(const uint8_t errorBit, const uint32_t infoCode);
+    void              (*pFunctSignal)(const uint32_t ident,
+                                      const uint16_t errorCode,
+                                      const uint8_t errorRegister,
+                                      const uint8_t errorBit,
+                                      const uint32_t infoCode);
 }CO_EM_t;
 
 
@@ -410,9 +414,12 @@ CO_ReturnError_t CO_EM_init(
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
 void CO_EM_initCallback(
-        CO_EM_t               *em,
-        void                  (*pFunctSignal)(const uint8_t errorBit, const uint32_t infoCode));
-
+        CO_EM_t                *em,
+        void                  (*pFunctSignal)(const uint32_t ident,
+                                              const uint16_t errorCode,
+                                              const uint8_t errorRegister,
+                                              const uint8_t errorBit,
+                                              const uint32_t infoCode));
 
 /**
  * Process Error control and Emergency object.
