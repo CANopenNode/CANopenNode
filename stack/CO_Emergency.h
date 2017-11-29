@@ -271,16 +271,19 @@ typedef enum{
  * CO_EMpr_t object.
  */
 typedef struct{
-    uint8_t            *errorStatusBits;/**< From CO_EM_init() */
-    uint8_t             errorStatusBitsSize;/**< From CO_EM_init() */
+    uint8_t            *errorStatusBits;        /**< From CO_EM_init() */
+    uint8_t             errorStatusBitsSize;    /**< From CO_EM_init() */
+
     /** Internal buffer for storing unsent emergency messages.*/
     uint8_t             buf[CO_EM_INTERNAL_BUFFER_SIZE * 8];
-    uint8_t            *bufEnd;         /**< End+1 address of the above buffer */
-    uint8_t            *bufWritePtr;    /**< Write pointer in the above buffer */
-    uint8_t            *bufReadPtr;     /**< Read pointer in the above buffer */
-    uint8_t             bufFull;        /**< True if above buffer is full */
-    uint8_t             wrongErrorReport;/**< Error in arguments to CO_errorReport() */
-    void              (*pFunctSignal)(void);/**< From CO_EM_initCallback() or NULL */
+    uint8_t            *bufEnd;             /**< End+1 address of the above buffer */
+    uint8_t            *bufWritePtr;        /**< Write pointer in the above buffer */
+    uint8_t            *bufReadPtr;         /**< Read pointer in the above buffer */
+    uint8_t             bufFull;            /**< True if above buffer is full */
+    uint8_t             wrongErrorReport;   /**< Error in arguments to CO_errorReport() */
+
+    /** From CO_EM_initCallback() or NULL */
+    void              (*pFunctSignal)(const uint8_t errorBit, const uint32_t infoCode);
 }CO_EM_t;
 
 
@@ -372,7 +375,9 @@ typedef struct{
  * @param preDefErr Pointer to _Pre defined error field_ array from Object
  * dictionary, index 0x1003.
  * @param preDefErrSize Size of the above array.
- * @param CANdev CAN device for Emergency transmission.
+ * @param CANdevRx CAN device for Emergency reception.
+ * @param CANdevRxIdx Index of receive buffer in the above CAN device.
+ * @param CANdevTx CAN device for Emergency transmission.
  * @param CANdevTxIdx Index of transmit buffer in the above CAN device.
  * @param CANidTxEM CAN identifier for Emergency message.
  *
@@ -387,7 +392,9 @@ CO_ReturnError_t CO_EM_init(
         uint8_t                *errorRegister,
         uint32_t               *preDefErr,
         uint8_t                 preDefErrSize,
-        CO_CANmodule_t         *CANdev,
+        CO_CANmodule_t         *CANdevRx,
+        uint16_t                CANdevRxIdx,
+        CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx,
         uint16_t                CANidTxEM);
 
@@ -404,7 +411,7 @@ CO_ReturnError_t CO_EM_init(
  */
 void CO_EM_initCallback(
         CO_EM_t               *em,
-        void                  (*pFunctSignal)(void));
+        void                  (*pFunctSignal)(const uint8_t errorBit, const uint32_t infoCode));
 
 
 /**
