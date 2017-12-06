@@ -283,7 +283,7 @@ typedef struct{
     uint8_t             wrongErrorReport;   /**< Error in arguments to CO_errorReport() */
 
     /** From CO_EM_initCallback() or NULL */
-    void              (*pFunctSignal)(const uint32_t ident,
+    void              (*pFunctSignal)(const uint16_t ident,
                                       const uint16_t errorCode,
                                       const uint8_t errorRegister,
                                       const uint8_t errorBit,
@@ -415,7 +415,7 @@ CO_ReturnError_t CO_EM_init(
  */
 void CO_EM_initCallback(
         CO_EM_t                *em,
-        void                  (*pFunctSignal)(const uint32_t ident,
+        void                  (*pFunctSignal)(const uint16_t ident,
                                               const uint16_t errorCode,
                                               const uint8_t errorRegister,
                                               const uint8_t errorBit,
