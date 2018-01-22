@@ -207,7 +207,7 @@ static void CO_TPDOconfigCom(CO_TPDO_t* TPDO, uint32_t COB_IDUsedByTPDO, uint8_t
  */
 static uint32_t CO_PDOfindMap(
         CO_SDO_t               *SDO,
-        uint32_t                map,
+        uint32_t                map,  
         uint8_t                 R_T,
         uint8_t               **ppData,
         uint8_t                *pLength,
@@ -222,11 +222,11 @@ static uint32_t CO_PDOfindMap(
     uint8_t attr;
 
     index = (uint16_t)(map>>16);
-    subIndex = (uint8_t)(map>>8);
-    dataLen = (uint8_t) map;   /* data length in bits */
+     subIndex = (uint8_t)(map>>8);
+     dataLen = (uint8_t) map;   /* data length in bits */
 
     /* data length must be byte aligned */
-    if(dataLen&0x07) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
+     if(dataLen&0x07) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
 
     dataLen >>= 3;    /* new data length is in bytes */
     *pLength += dataLen;
@@ -390,7 +390,7 @@ static uint32_t CO_TPDOconfigMap(CO_TPDO_t* TPDO, uint8_t noOfMappedObjects){
         uint32_t map = *(pMap++);
 
         /* function do much checking of errors in map */
-        ret = CO_PDOfindMap(
+         ret = CO_PDOfindMap(
                 TPDO->SDO,
                 map,
                 1,
