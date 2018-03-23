@@ -641,7 +641,8 @@ CO_NMT_reset_cmd_t CO_process(
             CO->emPr,
             NMTisPreOrOperational,
             timeDifference_ms * 10,
-            OD_inhibitTimeEMCY);
+            OD_inhibitTimeEMCY,
+            timerNext_ms);
 
 
     reset = CO_NMT_process(
