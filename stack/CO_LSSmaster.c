@@ -986,7 +986,7 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
 {
     uint8_t i;
     uint8_t count;
-    CO_LSSmaster_return_t ret;
+    CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
     CO_LSS_fastscan_lss_sub_next next;
 
     /* parameter validation */
