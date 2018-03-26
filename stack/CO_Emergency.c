@@ -257,6 +257,7 @@ void CO_EM_process(
         }
         else{
             em->bufFull = 0;
+            CO_errorReset(em, CO_EM_EMERGENCY_BUFFER_FULL, 0);
         }
 
         /* write to 'pre-defined error field' (object dictionary, index 0x1003) */
