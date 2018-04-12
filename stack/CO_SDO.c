@@ -1192,8 +1192,8 @@ int8_t CO_SDO_process(
 
                 /* indicate data size, if known */
                 if(SDO->ODF_arg.dataLengthTotal != 0U){
-                    uint32_t len = SDO->ODF_arg.dataLengthTotal;
-                    CO_memcpySwap4(&SDO->CANtxBuff->data[4], &len);
+                    uint32_t datalen = SDO->ODF_arg.dataLengthTotal;
+                    CO_memcpySwap4(&SDO->CANtxBuff->data[4], &datalen);
                     SDO->CANtxBuff->data[0] = 0x41U;
                 }
                 else{
@@ -1305,8 +1305,8 @@ int8_t CO_SDO_process(
 
             /* indicate data size, if known */
             if(SDO->ODF_arg.dataLengthTotal != 0U){
-                uint32_t len = SDO->ODF_arg.dataLengthTotal;
-                CO_memcpySwap4(&SDO->CANtxBuff->data[4], &len);
+                uint32_t datalen = SDO->ODF_arg.dataLengthTotal;
+                CO_memcpySwap4(&SDO->CANtxBuff->data[4], &datalen);
                 SDO->CANtxBuff->data[0] = 0xC6U;
             }
             else{

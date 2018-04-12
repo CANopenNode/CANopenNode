@@ -263,7 +263,7 @@ void CO_delete(int32_t CANbaseAddress);
  * Function must be called cyclically. It processes all "asynchronous" CANopen
  * objects.
  *
- * @param CO This object
+ * @param co This object
  * @param timeDifference_ms Time difference from previous function call in [milliseconds].
  * @param timerNext_ms Return value - info to OS - maximum delay after function
  *        should be called next time in [milliseconds]. Value can be used for OS
@@ -275,7 +275,7 @@ void CO_delete(int32_t CANbaseAddress);
  * @return #CO_NMT_reset_cmd_t from CO_NMT_process().
  */
 CO_NMT_reset_cmd_t CO_process(
-        CO_t                   *CO,
+        CO_t                   *co,
         uint16_t                timeDifference_ms,
         uint16_t               *timerNext_ms);
 
@@ -286,13 +286,13 @@ CO_NMT_reset_cmd_t CO_process(
  * Function must be called cyclically from real time thread with constant
  * interval (1ms typically). It processes SYNC and receive PDO CANopen objects.
  *
- * @param CO This object.
+ * @param co This object.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
  *
  * @return True, if CANopen SYNC message was just received or transmitted.
  */
 bool_t CO_process_SYNC_RPDO(
-        CO_t                   *CO,
+        CO_t                   *co,
         uint32_t                timeDifference_us);
 
 
@@ -302,12 +302,12 @@ bool_t CO_process_SYNC_RPDO(
  * Function must be called cyclically from real time thread with constant.
  * interval (1ms typically). It processes transmit PDO CANopen objects.
  *
- * @param CO This object.
+ * @param co This object.
  * @param syncWas True, if CANopen SYNC message was just received or transmitted.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
  */
 void CO_process_TPDO(
-        CO_t                   *CO,
+        CO_t                   *co,
         bool_t                  syncWas,
         uint32_t                timeDifference_us);
 
