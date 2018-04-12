@@ -115,7 +115,7 @@ static void findVariable(CO_trace_t *trace) {
     uint8_t subIndex;
     uint8_t dataLen;
     void *OdDataPtr = NULL;
-    int dtIndex = 0;
+    unsigned dtIndex = 0;
 
     /* parse mapping */
     index = (uint16_t) ((*trace->map) >> 16);
