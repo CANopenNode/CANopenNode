@@ -86,7 +86,7 @@ void CanLedsSet(eCoLeds led)
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
+void CO_CANsetConfigurationMode(void *CANdevicePtr){
 }
 
 
@@ -99,7 +99,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        CAN_TypeDef            *CANbaseAddress,
+        void                   *CANdevicePtr,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -117,7 +117,7 @@ CO_ReturnError_t CO_CANmodule_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    CANmodule->CANbaseAddress = CANbaseAddress;
+    CANmodule->CANdevicePtr = CANdevicePtr;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
@@ -131,7 +131,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->em = 0;
 
 		// Replaced magic number 0x03 by (CAN_IT_TME | CAN_IT_FMP0) JvL
-    CAN_ITConfig(CANmodule->CANbaseAddress, (CAN_IT_TME | CAN_IT_FMP0), DISABLE);
+    CAN_ITConfig(CANmodule->CANdevicePtr, (CAN_IT_TME | CAN_IT_FMP0), DISABLE);
 
     for (i = 0; i < rxSize; i++)
     {
@@ -151,7 +151,7 @@ CO_ReturnError_t CO_CANmodule_init(
         CO_CANconfigGPIO();
 
     /* Init CAN controler */
-    CAN_DeInit(CANmodule->CANbaseAddress);
+    CAN_DeInit(CANmodule->CANdevicePtr);
     CAN_StructInit(&CAN_InitStruct);
     switch (CANbitRate)
     {
@@ -179,7 +179,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CAN_InitStruct.CAN_NART = ENABLE;   // No Automatic retransmision
 
    /* CO - Changed VJ Start */
-    result = CAN_Init(CANmodule->CANbaseAddress, &CAN_InitStruct);
+    result = CAN_Init(CANmodule->CANdevicePtr, &CAN_InitStruct);
     if (result == 0)
         {
        // TRACE_DEBUG_WP("res=%d\n\r", result);
@@ -210,9 +210,9 @@ CO_ReturnError_t CO_CANmodule_init(
     NVIC_InitStructure.NVIC_IRQChannel = CAN1_TX_INTERRUPTS;
     NVIC_Init(&NVIC_InitStructure);
 
-   // CAN_OperatingModeRequest(CANmodule->CANbaseAddress, CAN_Mode_Normal); // Not needed as after init Can_init functions puts the controller in normal mode - VJ
+   // CAN_OperatingModeRequest(CANmodule->CANdevicePtr, CAN_Mode_Normal); // Not needed as after init Can_init functions puts the controller in normal mode - VJ
 
-    CAN_ITConfig(CANmodule->CANbaseAddress, 0x03, ENABLE);
+    CAN_ITConfig(CANmodule->CANdevicePtr, 0x03, ENABLE);
 
     return CO_ERROR_NO;
 }
@@ -220,7 +220,7 @@ CO_ReturnError_t CO_CANmodule_init(
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
 {
-    CAN_DeInit(CANmodule->CANbaseAddress);
+    CAN_DeInit(CANmodule->CANdevicePtr);
 }
 
 /******************************************************************************/
@@ -303,24 +303,24 @@ CO_CANtx_t *CO_CANtxBufferInit(
 int8_t getFreeTxBuff(CO_CANmodule_t *CANmodule)
 {
     uint8_t txBuff = CAN_TXMAILBOX_0;
-	
-    //if (CAN_TransmitStatus(CANmodule->CANbaseAddress, txBuff) == CAN_TxStatus_Ok)
+
+    //if (CAN_TransmitStatus(CANmodule->CANdevicePtr, txBuff) == CAN_TxStatus_Ok)
     for (txBuff = CAN_TXMAILBOX_0; txBuff <= (CAN_TXMAILBOX_2 + 1); txBuff++)
     {
         switch (txBuff)
         {
         case (CAN_TXMAILBOX_0 ):
-            if (CANmodule->CANbaseAddress->TSR & CAN_TSR_TME0 )
+            if (CANmodule->CANdevicePtr->TSR & CAN_TSR_TME0 )
                 return txBuff;
             else
                 break;
         case (CAN_TXMAILBOX_1 ):
-            if (CANmodule->CANbaseAddress->TSR & CAN_TSR_TME1 )
+            if (CANmodule->CANdevicePtr->TSR & CAN_TSR_TME1 )
                 return txBuff;
             else
                 break;
         case (CAN_TXMAILBOX_2 ):
-            if (CANmodule->CANbaseAddress->TSR & CAN_TSR_TME2 )
+            if (CANmodule->CANdevicePtr->TSR & CAN_TSR_TME2 )
                 return txBuff;
             else
                 break;
@@ -360,7 +360,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
         buffer->bufferFull = 1;
         CANmodule->CANtxCount++;
         // vsechny buffery jsou plny, musime povolit preruseni od vysilace, odvysilat az v preruseni
-        CAN_ITConfig(CANmodule->CANbaseAddress, CAN_IT_TME, ENABLE);
+        CAN_ITConfig(CANmodule->CANdevicePtr, CAN_IT_TME, ENABLE);
     }
     CO_UNLOCK_CAN_SEND();
 
@@ -380,18 +380,18 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule)
    uint32_t err;
    CO_EM_t* em = (CO_EM_t*)CANmodule->em;
 
-   err = CANmodule->CANbaseAddress->ESR;
-   // if(CAN_REG(CANmodule->CANbaseAddress, C_INTF) & 4) err |= 0x80;
+   err = CANmodule->CANdevicePtr->ESR;
+   // if(CAN_REG(CANmodule->CANdevicePtr, C_INTF) & 4) err |= 0x80;
 
    if(CANmodule->errOld != err)
    {
       CANmodule->errOld = err;
 
       //CAN RX bus overflow
-      if(CANmodule->CANbaseAddress->RF0R & 0x08)
+      if(CANmodule->CANdevicePtr->RF0R & 0x08)
       {
          CO_errorReport(em, CO_EM_CAN_RXB_OVERFLOW, CO_EMC_CAN_OVERRUN, err);
-         CANmodule->CANbaseAddress->RF0R &=~0x08;//clear bits
+         CANmodule->CANdevicePtr->RF0R &=~0x08;//clear bits
       }
 
       //CAN TX bus off
@@ -429,7 +429,7 @@ void CO_CANinterrupt_Rx(CO_CANmodule_t *CANmodule)
 {
 	CanRxMsg      CAN1_RxMsg;
 
-	CAN_Receive(CANmodule->CANbaseAddress, CAN_FilterFIFO0, &CAN1_RxMsg);
+	CAN_Receive(CANmodule->CANdevicePtr, CAN_FilterFIFO0, &CAN1_RxMsg);
 	{
 	        uint16_t index;
 	        uint8_t msgMatched = 0;
@@ -457,7 +457,7 @@ void CO_CANinterrupt_Tx(CO_CANmodule_t *CANmodule)
 
      int8_t txBuff;
     /* Clear interrupt flag */
-    CAN_ITConfig(CANmodule->CANbaseAddress, CAN_IT_TME, DISABLE); // Transmit mailbox empty interrupt
+    CAN_ITConfig(CANmodule->CANdevicePtr, CAN_IT_TME, DISABLE); // Transmit mailbox empty interrupt
     /* First CAN message (bootup) was sent successfully */
     CANmodule->firstCANtxMessage = 0;
     /* clear flag from previous message */
@@ -511,8 +511,8 @@ static void CO_CANsendToModule(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer, ui
     CAN1_TxMsg.StdId = ((buffer->ident) >> 21);
     CAN1_TxMsg.RTR = CAN_RTR_DATA;
 
-    CAN_Transmit(CANmodule->CANbaseAddress, &CAN1_TxMsg);
-    CAN_ITConfig(CANmodule->CANbaseAddress, CAN_IT_TME, ENABLE);
+    CAN_Transmit(CANmodule->CANdevicePtr, &CAN1_TxMsg);
+    CAN_ITConfig(CANmodule->CANdevicePtr, CAN_IT_TME, ENABLE);
 
     /*Test code, VJ using Drivers End*/
 

@@ -174,7 +174,7 @@ typedef struct{
 
 /* CAN module object. */
 typedef struct{
-    CAN_TypeDef        *CANbaseAddress;         /* STM32F4xx specific */
+    CAN_TypeDef        *CANdevicePtr;         /* STM32F4xx specific */
     CO_CANrx_t         *rxArray;
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
@@ -194,13 +194,13 @@ typedef struct{
 /* Exported functions -----------------------------------------------------------*/
 
 /* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(CAN_TypeDef* CANbaseAddress);
+void CO_CANsetConfigurationMode(void *CANdevicePtr);
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 /* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        CAN_TypeDef            *CANbaseAddress,
+        void                   *CANdevicePtr,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

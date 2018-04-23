@@ -195,14 +195,14 @@ extern "C"
 #endif
 
 /* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress);
+void CO_CANsetConfigurationMode(void *CANdevicePtr);
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 
 /* Initialize CAN module object. */
 int16_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        void                   *CANdevicePtr,
         CO_CANrx_t             *rxArray,
         uint16_t                rxSize,
         CO_CANtx_t             *txArray,
