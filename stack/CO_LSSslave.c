@@ -79,7 +79,8 @@ static void CO_LSSslave_serviceSwitchStateSelective(
     CO_LSS_cs_t service,
     const CO_CANrxMsg_t *msg)
 {
-    uint32_t value = CO_getUint32(&msg->data[1]);
+    uint32_t value;
+    CO_memcpySwap4(&value, &msg->data[1]);
 
     if(LSSslave->lssState != CO_LSS_STATE_WAITING) {
         return;
@@ -87,16 +88,16 @@ static void CO_LSSslave_serviceSwitchStateSelective(
 
     switch (service) {
         case CO_LSS_SWITCH_STATE_SEL_VENDOR:
-            LSSslave->lssSelect.vendorID = value;
+            LSSslave->lssSelect.identity.vendorID = value;
             break;
         case CO_LSS_SWITCH_STATE_SEL_PRODUCT:
-            LSSslave->lssSelect.productCode = value;
+            LSSslave->lssSelect.identity.productCode = value;
             break;
         case CO_LSS_SWITCH_STATE_SEL_REV:
-            LSSslave->lssSelect.revisionNumber = value;
+            LSSslave->lssSelect.identity.revisionNumber = value;
             break;
         case CO_LSS_SWITCH_STATE_SEL_SERIAL:
-            LSSslave->lssSelect.serialNumber = value;
+            LSSslave->lssSelect.identity.serialNumber = value;
 
             if (CO_LSS_ADDRESS_EQUAL(LSSslave->lssAddress, LSSslave->lssSelect)) {
                 LSSslave->lssState = CO_LSS_STATE_CONFIGURATION;
@@ -193,7 +194,8 @@ static void CO_LSSslave_serviceConfig(
 
             /* notify application */
             if (LSSslave->pFunctLSSactivateBitRate != NULL) {
-              uint16_t delay = CO_getUint16(&msg->data[1]);
+              uint16_t delay;
+              CO_memcpySwap2(&delay, &msg->data[1]);
               LSSslave->pFunctLSSactivateBitRate(
                   LSSslave->functLSSactivateBitRateObject, delay);
             }
@@ -243,16 +245,16 @@ static void CO_LSSslave_serviceInquire(
 
     switch (service) {
         case CO_LSS_INQUIRE_VENDOR:
-            value = LSSslave->lssAddress.vendorID;
+            value = LSSslave->lssAddress.identity.vendorID;
             break;
         case CO_LSS_INQUIRE_PRODUCT:
-            value = LSSslave->lssAddress.productCode;
+            value = LSSslave->lssAddress.identity.productCode;
             break;
         case CO_LSS_INQUIRE_REV:
-            value = LSSslave->lssAddress.revisionNumber;
+            value = LSSslave->lssAddress.identity.revisionNumber;
             break;
         case CO_LSS_INQUIRE_SERIAL:
-            value = LSSslave->lssAddress.serialNumber;
+            value = LSSslave->lssAddress.identity.serialNumber;
             break;
         case CO_LSS_INQUIRE_NODE_ID:
             value = (uint32_t)LSSslave->activeNodeID;
@@ -262,7 +264,7 @@ static void CO_LSSslave_serviceInquire(
     }
     /* send response */
     LSSslave->TXbuff->data[0] = service;
-    CO_setUint32(&LSSslave->TXbuff->data[1], value);
+    CO_memcpySwap4(&LSSslave->TXbuff->data[1], &value);
     CO_memset(&LSSslave->TXbuff->data[5], 0, 4);
     CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
 }
@@ -295,7 +297,7 @@ static void CO_LSSslave_serviceIdent(
         return;
     }
 
-    idNumber = CO_getUint32(&msg->data[1]);
+    CO_memcpySwap4(&idNumber, &msg->data[1]);
     bitCheck = msg->data[5];
     lssSub = msg->data[6];
     lssNext = msg->data[7];
@@ -396,7 +398,7 @@ CO_ReturnError_t CO_LSSslave_init(
 
     /* check LSS address for plausibility. As a bare minimum, the vendor
      * ID and serial number must be set */
-    if (lssAddress.vendorID==0 || lssAddress.serialNumber==0) {
+    if (lssAddress.identity.vendorID==0 || lssAddress.identity.serialNumber==0) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
