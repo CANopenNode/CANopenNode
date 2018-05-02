@@ -414,10 +414,10 @@ CO_ReturnError_t CO_LSSinit(
     CO_LSS_address_t lssAddress;
     CO_ReturnError_t err;
 
-    lssAddress.productCode = OD_identity.productCode;
-    lssAddress.revisionNumber = OD_identity.revisionNumber;
-    lssAddress.serialNumber = OD_identity.serialNumber;
-    lssAddress.vendorID = OD_identity.vendorID;
+    lssAddress.identity.productCode = OD_identity.productCode;
+    lssAddress.identity.revisionNumber = OD_identity.revisionNumber;
+    lssAddress.identity.serialNumber = OD_identity.serialNumber;
+    lssAddress.identity.vendorID = OD_identity.vendorID;
     err = CO_LSSslave_init(
             CO->LSSslave,
             lssAddress,
