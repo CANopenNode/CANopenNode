@@ -529,6 +529,9 @@ CO_ReturnError_t CO_CANopenInit(
             CO->CANmodule[0],
             CO_TXCAN_LSS,
             CO_CAN_ID_LSS_SRV);
+
+    if(err){return err;}
+
 #endif
 
     err = CO_SYNC_init(
