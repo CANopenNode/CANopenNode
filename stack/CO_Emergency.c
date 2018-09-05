@@ -203,6 +203,8 @@ void CO_EM_process(
 
     CO_EM_t *em = emPr->em;
     uint8_t errorRegister;
+    uint8_t errorMask;
+    uint8_t i;
 
     /* verify errors from driver and other */
     CO_CANverifyErrors(emPr->CANdev);
@@ -214,6 +216,7 @@ void CO_EM_process(
 
     /* calculate Error register */
     errorRegister = 0U;
+    errorMask = (uint8_t)~(CO_ERR_REG_GENERIC_ERR | CO_ERR_REG_COMM_ERR | CO_ERR_REG_MANUFACTURER);
     /* generic error */
     if(em->errorStatusBits[5]){
         errorRegister |= CO_ERR_REG_GENERIC_ERR;
@@ -222,7 +225,13 @@ void CO_EM_process(
     if(em->errorStatusBits[2] || em->errorStatusBits[3]){
         errorRegister |= CO_ERR_REG_COMM_ERR;
     }
-    *emPr->errorRegister = (*emPr->errorRegister & 0xEEU) | errorRegister;
+    /* Manufacturer */
+    for(i=6; i<em->errorStatusBitsSize; i++) {
+        if (em->errorStatusBits[i]) {
+            errorRegister |= CO_ERR_REG_MANUFACTURER;
+        }
+    }
+    *emPr->errorRegister = (*emPr->errorRegister & errorMask) | errorRegister;
 
     /* inhibit time */
     if(emPr->inhibitEmTimer < emInhTime){
