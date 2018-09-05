@@ -180,6 +180,29 @@ extern "C" {
     #define CO_UNLOCK_OD()      /**< Unock critical section when accessing Object Dictionary */
 /** @} */
 
+/**
+ * @name Syncronisation functions
+ * syncronisation for message buffer for communication between CAN receive and
+ * message processing threads.
+ *
+ * If receive function runs inside IRQ, no further synchronsiation is needed.
+ * Otherwise, some kind of synchronsiation has to be included. The following
+ * example uses GCC builtin memory barrier __sync_synchronize(). A comprehensive
+ * list can be found here: https://gist.github.com/leo-yuriev/ba186a6bf5cf3a27bae7
+ * \code{.c}
+    #define CANrxMemoryBarrier() {__sync_synchronize();}
+ * \endcode
+ * @{
+ */
+/** Memory barrier */
+#define CANrxMemoryBarrier()
+/** Check if new message has arrived */
+#define IS_CANrxNew(rxNew) ((int)rxNew)
+/** Set new message flag */
+#define SET_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)1L;}
+/** Clear new message flag */
+#define CLEAR_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)0L;}
+/** @} */
 
 /**
  * @defgroup CO_dataTypes Data types

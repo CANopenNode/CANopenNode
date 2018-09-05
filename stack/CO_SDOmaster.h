@@ -144,9 +144,9 @@ typedef struct{
     CO_CANmodule_t     *CANdevRx;
     /** From CO_SDOclient_init() */
     uint16_t            CANdevRxIdx;
-    /** Flag indicates, if new SDO message received from CAN bus.
+    /** Indicates, if new SDO message received from CAN bus.
     It is not cleared, until received message is completely processed. */
-    bool_t              CANrxNew;
+    volatile void      *CANrxNew;
     /** 8 data bytes of the received message */
     uint8_t             CANrxData[8];
     /** From CO_SDOclient_initCallback() or NULL */

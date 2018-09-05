@@ -67,7 +67,7 @@ static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg){
     if(msg->DLC == 1){
         /* copy data and set 'new message' flag. */
         HBconsNode->NMTstate = msg->data[0];
-        HBconsNode->CANrxNew = true;
+        SET_CANrxNew(HBconsNode->CANrxNew);
     }
 }
 
@@ -218,14 +218,14 @@ void CO_HBconsumer_process(
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
             if(monitoredNode->time){/* is node monitored */
                 /* Verify if new Consumer Heartbeat message received */
-                if(monitoredNode->CANrxNew){
+                if(IS_CANrxNew(monitoredNode->CANrxNew)){
                     if(monitoredNode->NMTstate){
                         /* not a bootup message */
                         monitoredNode->monStarted = true;
                         monitoredNode->timeoutTimer = 0;  /* reset timer */
                         timeDifference_ms = 0;
                     }
-                    monitoredNode->CANrxNew = false;
+                    CLEAR_CANrxNew(monitoredNode->CANrxNew);
                 }
                 /* Verify timeout */
                 if(monitoredNode->timeoutTimer < monitoredNode->time) monitoredNode->timeoutTimer += timeDifference_ms;
@@ -249,7 +249,7 @@ void CO_HBconsumer_process(
     else{ /* not in (pre)operational state */
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
             monitoredNode->NMTstate = 0;
-            monitoredNode->CANrxNew = false;
+            CLEAR_CANrxNew(monitoredNode->CANrxNew);
             monitoredNode->monStarted = false;
             monitoredNode++;
         }

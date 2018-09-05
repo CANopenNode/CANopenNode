@@ -89,7 +89,12 @@ extern "C" {
 #if CO_NO_TRACE > 0
     #include "CO_trace.h"
 #endif
-
+#if CO_NO_LSS_SERVER == 1
+    #include "CO_LSSslave.h"
+#endif
+#if CO_NO_LSS_CLIENT == 1
+    #include "CO_LSSmaster.h"
+#endif
 
 /**
  * Default CANopen identifiers.
@@ -114,7 +119,9 @@ typedef enum{
      CO_CAN_ID_RPDO_4            = 0x500,   /**< 0x500, Default RPDO5 (+nodeID) */
      CO_CAN_ID_TSDO              = 0x580,   /**< 0x580, SDO response from server (+nodeID) */
      CO_CAN_ID_RSDO              = 0x600,   /**< 0x600, SDO request from client (+nodeID) */
-     CO_CAN_ID_HEARTBEAT         = 0x700    /**< 0x700, Heartbeat message */
+     CO_CAN_ID_HEARTBEAT         = 0x700,   /**< 0x700, Heartbeat message */
+     CO_CAN_ID_LSS_CLI           = 0x7E4,   /**< 0x7E4, LSS response from server to client */
+     CO_CAN_ID_LSS_SRV           = 0x7E5    /**< 0x7E5, LSS request from client to server */
 }CO_Default_CAN_ID_t;
 
 
@@ -131,6 +138,12 @@ typedef struct{
     CO_RPDO_t          *RPDO[CO_NO_RPDO];/**< RPDO objects */
     CO_TPDO_t          *TPDO[CO_NO_TPDO];/**< TPDO objects */
     CO_HBconsumer_t    *HBcons;         /**<  Heartbeat consumer object*/
+#if CO_NO_LSS_SERVER == 1
+    CO_LSSslave_t      *LSSslave;       /**< LSS server/slave object */
+#endif
+#if CO_NO_LSS_CLIENT == 1
+    CO_LSSmaster_t     *LSSmaster;      /**< LSS master/client object */
+#endif
 #if CO_NO_SDO_CLIENT == 1
     CO_SDOclient_t     *SDOclient;      /**< SDO client object */
 #endif
@@ -162,6 +175,60 @@ typedef struct{
 #endif
 
 
+#if CO_NO_LSS_SERVER == 1
+/**
+ * Allocate and initialize memory for CANopen object
+ *
+ * Function must be called in the communication reset section.
+ *
+ * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
+ * CO_ERROR_OUT_OF_MEMORY
+ */
+CO_ReturnError_t CO_new(void);
+
+
+/**
+ * Initialize CAN driver
+ *
+ * Function must be called in the communication reset section.
+ *
+ * @param CANbaseAddress Address of the CAN module, passed to CO_CANmodule_init().
+ * @param bitRate CAN bit rate.
+ * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
+ * CO_ERROR_ILLEGAL_BAUDRATE, CO_ERROR_OUT_OF_MEMORY
+ */
+CO_ReturnError_t CO_CANinit(
+        int32_t                 CANbaseAddress,
+        uint16_t                bitRate);
+
+
+/**
+ * Initialize CANopen LSS slave
+ *
+ * Function must be called in the communication reset section.
+ *
+ * @param nodeId Node ID of the CANopen device (1 ... 127) or CO_LSS_NODE_ID_ASSIGNMENT
+ * @param bitRate CAN bit rate.
+ * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
+ */
+CO_ReturnError_t CO_LSSinit(
+        uint8_t                 nodeId,
+        uint16_t                bitRate);
+
+
+/**
+ * Initialize CANopen stack.
+ *
+ * Function must be called in the communication reset section.
+ *
+ * @param nodeId Node ID of the CANopen device (1 ... 127).
+ * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
+ */
+CO_ReturnError_t CO_CANopenInit(
+        uint8_t                 nodeId);
+
+
+#else /* CO_NO_LSS_SERVER == 1 */
 /**
  * Initialize CANopen stack.
  *
@@ -169,7 +236,7 @@ typedef struct{
  *
  * @param CANbaseAddress Address of the CAN module, passed to CO_CANmodule_init().
  * @param nodeId Node ID of the CANopen device (1 ... 127).
- * @param nodeId CAN bit rate.
+ * @param bitRate CAN bit rate.
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_OUT_OF_MEMORY, CO_ERROR_ILLEGAL_BAUDRATE
@@ -178,6 +245,8 @@ CO_ReturnError_t CO_init(
         int32_t                 CANbaseAddress,
         uint8_t                 nodeId,
         uint16_t                bitRate);
+
+#endif /* CO_NO_LSS_SERVER == 1 */
 
 
 /**
