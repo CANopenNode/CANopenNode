@@ -253,7 +253,7 @@ CO_ReturnError_t CO_new(void)
     CO->LSSslave                        = &CO0_LSSslave;
   #endif
   #if CO_NO_LSS_CLIENT == 1
-    CO->CO_LSSmaster                    = &CO0_LSSmaster;
+    CO->LSSmaster                       = &CO0_LSSmaster;
   #endif
   #if CO_NO_SDO_CLIENT == 1
     CO->SDOclient                       = &COO_SDOclient;
@@ -414,10 +414,10 @@ CO_ReturnError_t CO_LSSinit(
     CO_LSS_address_t lssAddress;
     CO_ReturnError_t err;
 
-    lssAddress.productCode = OD_identity.productCode;
-    lssAddress.revisionNumber = OD_identity.revisionNumber;
-    lssAddress.serialNumber = OD_identity.serialNumber;
-    lssAddress.vendorID = OD_identity.vendorID;
+    lssAddress.identity.productCode = OD_identity.productCode;
+    lssAddress.identity.revisionNumber = OD_identity.revisionNumber;
+    lssAddress.identity.serialNumber = OD_identity.serialNumber;
+    lssAddress.identity.vendorID = OD_identity.vendorID;
     err = CO_LSSslave_init(
             CO->LSSslave,
             lssAddress,
@@ -529,6 +529,9 @@ CO_ReturnError_t CO_CANopenInit(
             CO->CANmodule[0],
             CO_TXCAN_LSS,
             CO_CAN_ID_LSS_SRV);
+
+    if(err){return err;}
+
 #endif
 
     err = CO_SYNC_init(

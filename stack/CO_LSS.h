@@ -189,7 +189,7 @@ typedef union {
         uint32_t productCode;
         uint32_t revisionNumber;
         uint32_t serialNumber;
-    };
+    } identity;
 } CO_LSS_address_t;
 
 /**
@@ -258,10 +258,10 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
  * Macro to check if two LSS addresses are equal
  */
 #define CO_LSS_ADDRESS_EQUAL(/*CO_LSS_address_t*/ a1, /*CO_LSS_address_t*/ a2) \
-     (a1.productCode == a2.productCode &&         \
-      a1.revisionNumber == a2.revisionNumber &&   \
-      a1.serialNumber == a2.serialNumber &&       \
-      a1.vendorID == a2.vendorID)
+     (a1.identity.productCode == a2.identity.productCode &&         \
+      a1.identity.revisionNumber == a2.identity.revisionNumber &&   \
+      a1.identity.serialNumber == a2.identity.serialNumber &&       \
+      a1.identity.vendorID == a2.identity.vendorID)
 
 #endif /* CO_NO_LSS_CLIENT == 1 || CO_NO_LSS_SERVER == 1 */
 

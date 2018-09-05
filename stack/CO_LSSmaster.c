@@ -234,16 +234,16 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectInitiate(
       CLEAR_CANrxNew(LSSmaster->CANrxNew);
       CO_memset(&LSSmaster->TXbuff->data[6], 0, 3);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_VENDOR;
-      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->vendorID);
+      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.vendorID);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_PRODUCT;
-      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->productCode);
+      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.productCode);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_REV;
-      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->revisionNumber);
+      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.revisionNumber);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_SERIAL;
-      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->serialNumber);
+      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.serialNumber);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
       ret = CO_LSSmaster_WAIT_SLAVE;
@@ -646,7 +646,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_VENDOR) {
 
         ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
-                CO_LSS_INQUIRE_VENDOR, &lssAddress->vendorID);
+                CO_LSS_INQUIRE_VENDOR, &lssAddress->identity.vendorID);
         if (ret == CO_LSSmaster_OK) {
             /* Start next request */
             next = CO_LSSmaster_COMMAND_INQUIRE_PRODUCT;
@@ -656,7 +656,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_PRODUCT) {
 
         ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
-                CO_LSS_INQUIRE_PRODUCT, &lssAddress->productCode);
+                CO_LSS_INQUIRE_PRODUCT, &lssAddress->identity.productCode);
         if (ret == CO_LSSmaster_OK) {
             /* Start next request */
             next = CO_LSSmaster_COMMAND_INQUIRE_REV;
@@ -666,7 +666,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_REV) {
 
         ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
-                CO_LSS_INQUIRE_REV, &lssAddress->revisionNumber);
+                CO_LSS_INQUIRE_REV, &lssAddress->identity.revisionNumber);
         if (ret == CO_LSSmaster_OK) {
             /* Start next request */
             next = CO_LSSmaster_COMMAND_INQUIRE_SERIAL;
@@ -676,7 +676,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_SERIAL) {
 
         ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
-                CO_LSS_INQUIRE_SERIAL, &lssAddress->serialNumber);
+                CO_LSS_INQUIRE_SERIAL, &lssAddress->identity.serialNumber);
     }
     /* Check for next request */
     if (LSSmaster->state == CO_LSSmaster_STATE_CFG_SLECTIVE) {
