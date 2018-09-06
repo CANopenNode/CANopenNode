@@ -67,16 +67,27 @@ extern "C" {
  * @see  @ref CO_NMT_Heartbeat
  */
 
+/**
+ * Heartbeat state of a node
+ */
+typedef enum {
+  CO_HBconsumer_UNCONFIGURED = 0x00U,     /**< Consumer entry inactive */
+  CO_HBconsumer_UNKNOWN      = 0x01U,     /**< Consumer enabled, but no heartbeat received yet */
+  CO_HBconsumer_ACTIVE       = 0x02U,     /**< Heartbeat received within set time */
+  CO_HBconsumer_TIMEOUT      = 0x03U,     /**< No heatbeat received for set time */
+} CO_HBconsumer_state_t;
+
 
 /**
  * One monitored node inside CO_HBconsumer_t.
  */
 typedef struct{
-    uint8_t             NMTstate;       /**< Of the remote node */
-    bool_t              monStarted;     /**< True after reception of the first Heartbeat mesage */
-    uint16_t            timeoutTimer;   /**< Time since last heartbeat received */
-    uint16_t            time;           /**< Consumer heartbeat time from OD */
-    volatile void      *CANrxNew;       /**< Indication if new Heartbeat message received from the CAN bus */
+    uint8_t                 nodeId;       /**< Node Id of the monitored node */
+    CO_NMT_internalState_t  NMTstate;     /**< Of the remote node (Heartbeat payload) */
+    CO_HBconsumer_state_t   HBstate;      /**< Current heartbeat state */
+    uint16_t                timeoutTimer; /**< Time since last heartbeat received */
+    uint16_t                time;         /**< Consumer heartbeat time from OD */
+    volatile void          *CANrxNew;     /**< Indication if new Heartbeat message received from the CAN bus */
 }CO_HBconsNode_t;
 
 
@@ -87,14 +98,14 @@ typedef struct{
  * CO_HBconsNode_t objects.
  */
 typedef struct{
-    CO_EM_t            *em;             /**< From CO_HBconsumer_init() */
-    const uint32_t     *HBconsTime;     /**< From CO_HBconsumer_init() */
-    CO_HBconsNode_t    *monitoredNodes; /**< From CO_HBconsumer_init() */
+    CO_EM_t            *em;               /**< From CO_HBconsumer_init() */
+    const uint32_t     *HBconsTime;       /**< From CO_HBconsumer_init() */
+    CO_HBconsNode_t    *monitoredNodes;   /**< From CO_HBconsumer_init() */
     uint8_t             numberOfMonitoredNodes; /**< From CO_HBconsumer_init() */
     /** True, if all monitored nodes are NMT operational or no node is
         monitored. Can be read by the application */
     uint8_t             allMonitoredOperational;
-    CO_CANmodule_t     *CANdevRx;       /**< From CO_HBconsumer_init() */
+    CO_CANmodule_t     *CANdevRx;         /**< From CO_HBconsumer_init() */
     uint16_t            CANdevRxIdxStart; /**< From CO_HBconsumer_init() */
 }CO_HBconsumer_t;
 
@@ -142,6 +153,29 @@ void CO_HBconsumer_process(
         CO_HBconsumer_t        *HBcons,
         bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_ms);
+
+/**
+ * Get the current state of a heartbeat producer by the producers node ID
+ *
+ * @param HBcons This object.
+ * @param nodeId producer node ID
+ * @return #CO_HBconsumer_state_t
+ */
+CO_HBconsumer_state_t CO_HBconsumer_getStateByNodeId(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 nodeId);
+
+/**
+ * Get the current state of a heartbeat producer by the index in OD 0x1016
+ *
+ * @param HBcons This object.
+ * @param idx object sub index
+ * @return #CO_HBconsumer_state_t
+ */
+CO_HBconsumer_state_t CO_HBconsumer_getStateByIdx(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx);
+
 
 #ifdef __cplusplus
 }

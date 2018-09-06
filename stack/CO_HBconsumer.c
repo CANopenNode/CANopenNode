@@ -57,7 +57,6 @@
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg);
 static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg){
     CO_HBconsNode_t *HBconsNode;
 
@@ -66,7 +65,7 @@ static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg){
     /* verify message length */
     if(msg->DLC == 1){
         /* copy data and set 'new message' flag. */
-        HBconsNode->NMTstate = msg->data[0];
+        HBconsNode->NMTstate = (CO_NMT_internalState_t)msg->data[0];
         SET_CANrxNew(HBconsNode->CANrxNew);
     }
 }
@@ -81,20 +80,21 @@ static void CO_HBcons_monitoredNodeConfig(
         uint32_t                HBconsTime)
 {
     uint16_t COB_ID;
-    uint16_t NodeID;
     CO_HBconsNode_t *monitoredNode;
 
     if(idx >= HBcons->numberOfMonitoredNodes) return;
 
-    NodeID = (uint16_t)((HBconsTime>>16)&0xFF);
     monitoredNode = &HBcons->monitoredNodes[idx];
+    monitoredNode->nodeId = (uint8_t)((HBconsTime>>16)&0xFF);
     monitoredNode->time = (uint16_t)HBconsTime;
-    monitoredNode->NMTstate = 0;
-    monitoredNode->monStarted = false;
+    monitoredNode->NMTstate = CO_NMT_INITIALIZING;
+    monitoredNode->HBstate = CO_HBconsumer_UNCONFIGURED;
 
     /* is channel used */
-    if(NodeID && monitoredNode->time){
-        COB_ID = NodeID + 0x700;
+    if(monitoredNode->nodeId && monitoredNode->time){
+        COB_ID = monitoredNode->nodeId + 0x700;
+        monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
+
     }
     else{
         COB_ID = 0;
@@ -102,14 +102,16 @@ static void CO_HBcons_monitoredNodeConfig(
     }
 
     /* configure Heartbeat consumer CAN reception */
-    CO_CANrxBufferInit(
-            HBcons->CANdevRx,
-            HBcons->CANdevRxIdxStart + idx,
-            COB_ID,
-            0x7FF,
-            0,
-            (void*)&HBcons->monitoredNodes[idx],
-            CO_HBcons_receive);
+    if (monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) {
+        CO_CANrxBufferInit(
+                HBcons->CANdevRx,
+                HBcons->CANdevRxIdxStart + idx,
+                COB_ID,
+                0x7FF,
+                0,
+                (void*)&HBcons->monitoredNodes[idx],
+                CO_HBcons_receive);
+    }
 }
 
 
@@ -118,47 +120,46 @@ static void CO_HBcons_monitoredNodeConfig(
  *
  * For more information see file CO_SDO.h.
  */
-static CO_SDO_abortCode_t CO_ODF_1016(CO_ODF_arg_t *ODF_arg);
-static CO_SDO_abortCode_t CO_ODF_1016(CO_ODF_arg_t *ODF_arg){
+static CO_SDO_abortCode_t CO_ODF_1016(CO_ODF_arg_t *ODF_arg)
+{
     CO_HBconsumer_t *HBcons;
+    uint8_t NodeID;
+    uint16_t HBconsTime;
     uint32_t value;
     CO_SDO_abortCode_t ret = CO_SDO_AB_NONE;
 
-    HBcons = (CO_HBconsumer_t*) ODF_arg->object;
-    value = CO_getUint32(ODF_arg->data);
-
-    if(!ODF_arg->reading){
-        uint8_t NodeID;
-        uint16_t HBconsTime;
-
-        NodeID = (value >> 16U) & 0xFFU;
-        HBconsTime = value & 0xFFFFU;
-
-        if((value & 0xFF800000U) != 0){
-            ret = CO_SDO_AB_PRAM_INCOMPAT;
-        }
-        else if((HBconsTime != 0) && (NodeID != 0)){
-            uint8_t i;
-            /* there must not be more entries with same index and time different than zero */
-            for(i = 0U; i<HBcons->numberOfMonitoredNodes; i++){
-                uint32_t objectCopy = HBcons->HBconsTime[i];
-                uint8_t NodeIDObj = (objectCopy >> 16U) & 0xFFU;
-                uint16_t HBconsTimeObj = objectCopy & 0xFFFFU;
-                if(((ODF_arg->subIndex-1U) != i) && (HBconsTimeObj != 0) && (NodeID == NodeIDObj)){
-                    ret = CO_SDO_AB_PRAM_INCOMPAT;
-                }
-            }
-        }
-        else{
-            ret = CO_SDO_AB_NONE;
-        }
-
-        /* Configure */
-        if(ret == CO_SDO_AB_NONE){
-            CO_HBcons_monitoredNodeConfig(HBcons, ODF_arg->subIndex-1U, value);
-        }
+    if(ODF_arg->reading){
+        return CO_SDO_AB_NONE;
     }
 
+    HBcons = (CO_HBconsumer_t*) ODF_arg->object;
+    value = CO_getUint32(ODF_arg->data);
+    NodeID = (value >> 16U) & 0xFFU;
+    HBconsTime = value & 0xFFFFU;
+
+    if((value & 0xFF800000U) != 0){
+        ret = CO_SDO_AB_PRAM_INCOMPAT;
+    }
+    else if((HBconsTime != 0) && (NodeID != 0)){
+        uint8_t i;
+        /* there must not be more entries with same index and time different than zero */
+        for(i = 0U; i<HBcons->numberOfMonitoredNodes; i++){
+            uint32_t objectCopy = HBcons->HBconsTime[i];
+            uint8_t NodeIDObj = (objectCopy >> 16U) & 0xFFU;
+            uint16_t HBconsTimeObj = objectCopy & 0xFFFFU;
+            if(((ODF_arg->subIndex-1U) != i) && (HBconsTimeObj != 0) && (NodeID == NodeIDObj)){
+                ret = CO_SDO_AB_PRAM_INCOMPAT;
+            }
+        }
+    }
+    else{
+        ret = CO_SDO_AB_NONE;
+    }
+
+    /* Configure */
+    if(ret == CO_SDO_AB_NONE){
+        CO_HBcons_monitoredNodeConfig(HBcons, ODF_arg->subIndex-1U, value);
+    }
     return ret;
 }
 
@@ -208,6 +209,8 @@ void CO_HBconsumer_process(
         uint16_t                timeDifference_ms)
 {
     uint8_t i;
+    uint8_t emcyHeartbeatTimeoutActive = 0;
+    uint8_t emcyRemoteResetActive = 0;
     uint8_t AllMonitoredOperationalCopy;
     CO_HBconsNode_t *monitoredNode;
 
@@ -216,44 +219,106 @@ void CO_HBconsumer_process(
 
     if(NMTisPreOrOperational){
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
-            if(monitoredNode->time){/* is node monitored */
+            if(monitoredNode->time > 0){/* is node monitored */
                 /* Verify if new Consumer Heartbeat message received */
                 if(IS_CANrxNew(monitoredNode->CANrxNew)){
-                    if(monitoredNode->NMTstate){
+                    if(monitoredNode->NMTstate != CO_NMT_INITIALIZING){
                         /* not a bootup message */
-                        monitoredNode->monStarted = true;
+                        monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
                         monitoredNode->timeoutTimer = 0;  /* reset timer */
                         timeDifference_ms = 0;
                     }
                     CLEAR_CANrxNew(monitoredNode->CANrxNew);
                 }
-                /* Verify timeout */
-                if(monitoredNode->timeoutTimer < monitoredNode->time) monitoredNode->timeoutTimer += timeDifference_ms;
 
-                if(monitoredNode->monStarted){
+                /* Verify timeout */
+                if(monitoredNode->timeoutTimer < monitoredNode->time) {
+                    monitoredNode->timeoutTimer += timeDifference_ms;
+                }
+                if(monitoredNode->HBstate!=CO_HBconsumer_UNCONFIGURED &&
+                   monitoredNode->HBstate!=CO_HBconsumer_UNKNOWN) {
                     if(monitoredNode->timeoutTimer >= monitoredNode->time){
                         CO_errorReport(HBcons->em, CO_EM_HEARTBEAT_CONSUMER, CO_EMC_HEARTBEAT, i);
-                        monitoredNode->NMTstate = 0;
+                        emcyHeartbeatTimeoutActive = 1;
+                        monitoredNode->NMTstate = CO_NMT_INITIALIZING;
+                        //todo callback timeout
+                        monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
                     }
-                    else if(monitoredNode->NMTstate == 0){
+                    else if(monitoredNode->NMTstate == CO_NMT_INITIALIZING){
                         /* there was a bootup message */
                         CO_errorReport(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, CO_EMC_HEARTBEAT, i);
+                        emcyRemoteResetActive = 1;
+                        monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
+                        //todo callback bootup
                     }
                 }
-                if(monitoredNode->NMTstate != CO_NMT_OPERATIONAL)
+                if(monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
                     AllMonitoredOperationalCopy = 0;
+                }
             }
             monitoredNode++;
         }
     }
     else{ /* not in (pre)operational state */
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
-            monitoredNode->NMTstate = 0;
+            monitoredNode->NMTstate = CO_NMT_INITIALIZING;
             CLEAR_CANrxNew(monitoredNode->CANrxNew);
-            monitoredNode->monStarted = false;
+            if(monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED){
+                monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
+            }
             monitoredNode++;
         }
         AllMonitoredOperationalCopy = 0;
     }
+    /* clear emergencies. We only have one emergency index for all
+     * monitored nodes! */
+    if ( ! emcyHeartbeatTimeoutActive) {
+        CO_errorReset(HBcons->em, CO_EM_HEARTBEAT_CONSUMER, 0);
+    }
+    if ( ! emcyRemoteResetActive) {
+        CO_errorReset(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, 0);
+    }
+
     HBcons->allMonitoredOperational = AllMonitoredOperationalCopy;
+}
+
+
+/******************************************************************************/
+CO_HBconsumer_state_t CO_HBconsumer_getStateByNodeId(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 nodeId)
+{
+    uint8_t i;
+    CO_HBconsNode_t *monitoredNode;
+
+    if (HBcons == NULL) {
+        return CO_HBconsumer_UNCONFIGURED;
+    }
+
+    /* linear search for the node */
+    monitoredNode = &HBcons->monitoredNodes[0];
+    for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
+        if (monitoredNode->nodeId == nodeId) {
+            return monitoredNode->HBstate;
+        }
+        monitoredNode ++;
+    }
+    /* not found */
+    return CO_HBconsumer_UNCONFIGURED;
+}
+
+
+/******************************************************************************/
+CO_HBconsumer_state_t CO_HBconsumer_getStateByIdx(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx)
+{
+    CO_HBconsNode_t *monitoredNode;
+
+    if (HBcons==NULL || idx > HBcons->numberOfMonitoredNodes) {
+        return CO_HBconsumer_UNCONFIGURED;
+    }
+
+    monitoredNode = &HBcons->monitoredNodes[idx];
+    return monitoredNode->HBstate;
 }
