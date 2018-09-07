@@ -203,6 +203,43 @@ CO_ReturnError_t CO_HBconsumer_init(
 
 
 /******************************************************************************/
+void CO_HBconsumer_initCallbackTimeout(
+    CO_HBconsumer_t        *HBcons,
+    uint8_t                 idx,
+    void                   *object,
+    void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object))
+{
+    CO_HBconsNode_t *monitoredNode;
+
+    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+        return;
+    }
+
+    monitoredNode = &HBcons->monitoredNodes[idx];
+    monitoredNode->pFunctSignalTimeout = pFunctSignal;
+    monitoredNode->functSignalObjectTimeout = object;
+}
+
+
+/******************************************************************************/
+void CO_HBconsumer_initCallbackRemoteReset(
+    CO_HBconsumer_t        *HBcons,
+    uint8_t                 idx,
+    void                   *object,
+    void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object))
+{
+    CO_HBconsNode_t *monitoredNode;
+
+    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+        return;
+    }
+
+    monitoredNode = &HBcons->monitoredNodes[idx];
+    monitoredNode->pFunctSignalRemoteReset = pFunctSignal;
+    monitoredNode->functSignalObjectRemoteReset = object;
+}
+
+/******************************************************************************/
 void CO_HBconsumer_process(
         CO_HBconsumer_t        *HBcons,
         bool_t                  NMTisPreOrOperational,
@@ -238,18 +275,28 @@ void CO_HBconsumer_process(
                 if(monitoredNode->HBstate!=CO_HBconsumer_UNCONFIGURED &&
                    monitoredNode->HBstate!=CO_HBconsumer_UNKNOWN) {
                     if(monitoredNode->timeoutTimer >= monitoredNode->time){
+                        /* timeout expired */
                         CO_errorReport(HBcons->em, CO_EM_HEARTBEAT_CONSUMER, CO_EMC_HEARTBEAT, i);
                         emcyHeartbeatTimeoutActive = 1;
+
                         monitoredNode->NMTstate = CO_NMT_INITIALIZING;
-                        //todo callback timeout
+                        if (monitoredNode->HBstate!=CO_HBconsumer_TIMEOUT &&
+                            monitoredNode->pFunctSignalTimeout!=NULL) {
+                            monitoredNode->pFunctSignalTimeout(monitoredNode->nodeId, i,
+                                monitoredNode->functSignalObjectTimeout);
+                        }
                         monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
                     }
                     else if(monitoredNode->NMTstate == CO_NMT_INITIALIZING){
                         /* there was a bootup message */
                         CO_errorReport(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, CO_EMC_HEARTBEAT, i);
                         emcyRemoteResetActive = 1;
-                        monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
-                        //todo callback bootup
+
+                        monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
+                        if (monitoredNode->pFunctSignalRemoteReset != NULL) {
+                            monitoredNode->pFunctSignalRemoteReset(monitoredNode->nodeId, i,
+                                monitoredNode->functSignalObjectRemoteReset);
+                        }
                     }
                 }
                 if(monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
@@ -284,7 +331,7 @@ void CO_HBconsumer_process(
 
 
 /******************************************************************************/
-CO_HBconsumer_state_t CO_HBconsumer_getStateByNodeId(
+int8_t CO_HBconsumer_getIdxByNodeId(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 nodeId)
 {
@@ -292,30 +339,30 @@ CO_HBconsumer_state_t CO_HBconsumer_getStateByNodeId(
     CO_HBconsNode_t *monitoredNode;
 
     if (HBcons == NULL) {
-        return CO_HBconsumer_UNCONFIGURED;
+        return -1;
     }
 
     /* linear search for the node */
     monitoredNode = &HBcons->monitoredNodes[0];
     for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
         if (monitoredNode->nodeId == nodeId) {
-            return monitoredNode->HBstate;
+            return i;
         }
         monitoredNode ++;
     }
     /* not found */
-    return CO_HBconsumer_UNCONFIGURED;
+    return -1;
 }
 
 
 /******************************************************************************/
-CO_HBconsumer_state_t CO_HBconsumer_getStateByIdx(
+CO_HBconsumer_state_t CO_HBconsumer_getState(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx)
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx > HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
         return CO_HBconsumer_UNCONFIGURED;
     }
 
