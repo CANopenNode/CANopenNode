@@ -556,7 +556,6 @@ CO_SDOclient_return_t CO_SDOclientDownload(
                     *pSDOabortCode = CO_SDO_AB_CMD;
                     SDO_C->state = SDO_STATE_ABORT;
                 }
-                /* continue in next case */
             }
 
             case SDO_STATE_BLOCKDOWNLOAD_INPORGRES:

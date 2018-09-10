@@ -833,25 +833,27 @@ CO_ReturnError_t CO_TPDO_init(
 
 
 /******************************************************************************/
-uint8_t CO_TPDOisCOS(const CO_TPDO_t* TPDO){
+uint8_t CO_TPDOisCOS(CO_TPDO_t *TPDO){
 
     /* Prepare TPDO data automatically from Object Dictionary variables */
-    const uint8_t* const pPDOdata = &(TPDO->CANtxBuff->data[0u]);
-    uint8_t* const* ppODdata = &(TPDO->mapPointer[0u]);
-    const uint8_t dataLength = TPDO->dataLength;
+    uint8_t* pPDOdataByte;
+    uint8_t** ppODdataByte;
 
-    uint8_t rval = 0u;
+    pPDOdataByte = &TPDO->CANtxBuff->data[TPDO->dataLength];
+    ppODdataByte = &TPDO->mapPointer[TPDO->dataLength];
 
-    if ((dataLength > 0u) && (dataLength <= 8u)) {
-        const uint8_t idx = dataLength - 1u;
-        const uint8_t mask = 1u << idx;
-        if ((pPDOdata[idx] != *ppODdata[idx])
-            && ((TPDO->sendIfCOSFlags & mask) != 0u)) {
-            rval = 1u;
-        }
+    switch(TPDO->dataLength){
+        case 8: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x80)) return 1;
+        case 7: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x40)) return 1;
+        case 6: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x20)) return 1;
+        case 5: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x10)) return 1;
+        case 4: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x08)) return 1;
+        case 3: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x04)) return 1;
+        case 2: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x02)) return 1;
+        case 1: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x01)) return 1;
     }
 
-    return rval;
+    return 0;
 }
 
 //#define TPDO_CALLS_EXTENSION
