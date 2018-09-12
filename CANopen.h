@@ -83,7 +83,7 @@ extern "C" {
     #include "CO_SYNC.h"
     #include "CO_PDO.h"
     #include "CO_HBconsumer.h"
-#if CO_NO_SDO_CLIENT == 1
+#if CO_NO_SDO_CLIENT != 0
     #include "CO_SDOmaster.h"
 #endif
 #if CO_NO_TRACE > 0
@@ -144,8 +144,8 @@ typedef struct{
 #if CO_NO_LSS_CLIENT == 1
     CO_LSSmaster_t     *LSSmaster;      /**< LSS master/client object */
 #endif
-#if CO_NO_SDO_CLIENT == 1
-    CO_SDOclient_t     *SDOclient;      /**< SDO client object */
+#if CO_NO_SDO_CLIENT != 0
+    CO_SDOclient_t     *SDOclient[CO_NO_SDO_CLIENT]; /**< SDO client object */
 #endif
 #if CO_NO_TRACE > 0
     CO_trace_t         *trace[CO_NO_TRACE]; /**< Trace object for monitoring variables */

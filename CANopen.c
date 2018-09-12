@@ -88,7 +88,7 @@
             || CO_NO_SYNC                                 != 1     \
             || CO_NO_EMERGENCY                            != 1     \
             || CO_NO_SDO_SERVER                           == 0     \
-            || (CO_NO_SDO_CLIENT != 0 && CO_NO_SDO_CLIENT != 1)    \
+            || CO_NO_SDO_CLIENT                           > 128    \
             || (CO_NO_RPDO < 1 || CO_NO_RPDO > 0x200)              \
             || (CO_NO_TPDO < 1 || CO_NO_TPDO > 0x200)              \
             || ODL_consumerHeartbeatTime_arrayLength      == 0     \
@@ -150,8 +150,8 @@
 #if CO_NO_LSS_CLIENT == 1
     static CO_LSSmaster_t       CO0_LSSmaster;
 #endif
-#if CO_NO_SDO_CLIENT == 1
-    static CO_SDOclient_t       COO_SDOclient;
+#if CO_NO_SDO_CLIENT != 0
+    static CO_SDOclient_t       COO_SDOclient[CO_NO_SDO_CLIENT];
 #endif
 #if CO_NO_TRACE > 0
     static CO_trace_t           COO_trace[CO_NO_TRACE];
@@ -222,7 +222,7 @@ CO_ReturnError_t CO_new(void)
         return CO_ERROR_PARAMETERS;
     }
 
-    #if CO_NO_SDO_CLIENT == 1
+    #if CO_NO_SDO_CLIENT != 0
     if(sizeof(OD_SDOClientParameter_t) != sizeof(CO_SDOclientPar_t)){
         return CO_ERROR_PARAMETERS;
     }
@@ -255,8 +255,10 @@ CO_ReturnError_t CO_new(void)
   #if CO_NO_LSS_CLIENT == 1
     CO->LSSmaster                       = &CO0_LSSmaster;
   #endif
-  #if CO_NO_SDO_CLIENT == 1
-    CO->SDOclient                       = &COO_SDOclient;
+  #if CO_NO_SDO_CLIENT != 0
+    for(i=0; i<CO_NO_SDO_CLIENT; i++) {
+      CO->SDOclient[i]                  = &COO_SDOclient[i];
+    }
   #endif
   #if CO_NO_TRACE > 0
     for(i=0; i<CO_NO_TRACE; i++) {
@@ -294,8 +296,10 @@ CO_ReturnError_t CO_new(void)
       #if CO_NO_LSS_CLIENT == 1
         CO->LSSmaster                       = (CO_LSSmaster_t *)    calloc(1, sizeof(CO_LSSmaster_t));
       #endif
-      #if CO_NO_SDO_CLIENT == 1
-        CO->SDOclient                       = (CO_SDOclient_t *)    calloc(1, sizeof(CO_SDOclient_t));
+      #if CO_NO_SDO_CLIENT != 0
+        for(i=0; i<CO_NO_SDO_CLIENT; i++){
+            CO->SDOclient[i]                = (CO_SDOclient_t *)    calloc(1, sizeof(CO_SDOclient_t));
+        }
       #endif
       #if CO_NO_TRACE > 0
         for(i=0; i<CO_NO_TRACE; i++) {
@@ -330,8 +334,8 @@ CO_ReturnError_t CO_new(void)
   #if CO_NO_LSS_CLIENT == 1
                   + sizeof(CO_LSSmaster_t)
   #endif
-  #if CO_NO_SDO_CLIENT == 1
-                  + sizeof(CO_SDOclient_t)
+  #if CO_NO_SDO_CLIENT != 0
+                  + sizeof(CO_SDOclient_t) * CO_NO_SDO_CLIENT
   #endif
                   + 0;
   #if CO_NO_TRACE > 0
@@ -367,8 +371,10 @@ CO_ReturnError_t CO_new(void)
   #if CO_NO_LSS_CLIENT == 1
     if(CO->LSSmaster                    == NULL) errCnt++;
   #endif
-  #if CO_NO_SDO_CLIENT == 1
-    if(CO->SDOclient                    == NULL) errCnt++;
+  #if CO_NO_SDO_CLIENT != 0
+    for(i=0; i<CO_NO_SDO_CLIENT; i++){
+        if(CO->SDOclient[i]             == NULL) errCnt++;
+    }
   #endif
   #if CO_NO_TRACE > 0
     for(i=0; i<CO_NO_TRACE; i++) {
@@ -607,17 +613,22 @@ CO_ReturnError_t CO_CANopenInit(
     if(err){return err;}
 
 
-#if CO_NO_SDO_CLIENT == 1
-    err = CO_SDOclient_init(
-            CO->SDOclient,
-            CO->SDO[0],
-            (CO_SDOclientPar_t*) &OD_SDOClientParameter[0],
-            CO->CANmodule[0],
-            CO_RXCAN_SDO_CLI,
-            CO->CANmodule[0],
-            CO_TXCAN_SDO_CLI);
+#if CO_NO_SDO_CLIENT != 0
 
-    if(err){return err;}
+    for(i=0; i<CO_NO_SDO_CLIENT; i++){
+
+        err = CO_SDOclient_init(
+                CO->SDOclient[i],
+                CO->SDO[0],
+                (CO_SDOclientPar_t*) &OD_SDOClientParameter[i],
+                CO->CANmodule[0],
+                CO_RXCAN_SDO_CLI+i,
+                CO->CANmodule[0],
+                CO_TXCAN_SDO_CLI+i);
+
+        if(err){return err;}
+
+    }
 #endif
 
 
@@ -694,7 +705,9 @@ void CO_delete(int32_t CANbaseAddress){
       }
   #endif
   #if CO_NO_SDO_CLIENT == 1
-    free(CO->SDOclient);
+      for(i=0; i<CO_NO_SDO_CLIENT; i++) {
+          free(CO->SDOclient[i]);
+      }
   #endif
   #if CO_NO_LSS_SERVER == 1
     free(CO->LSSslave);
