@@ -229,6 +229,10 @@ void CO_SDOclient_initCallback(
  * Function must be called before new SDO communication. If previous SDO
  * communication was with the same node, function does not need to be called.
  *
+ * @remark If configuring SDO client from network is required, this function
+ * should be set as callback for the corresponding SDO client parameter OD
+ * entry.
+ *
  * @param SDO_C This object.
  * @param COB_IDClientToServer See CO_SDOclientPar_t. If zero, then
  * nodeIDOfTheSDOServer is used with default COB-ID.

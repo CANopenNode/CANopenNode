@@ -221,7 +221,9 @@ CO_ReturnError_t CO_SDOclient_init(
 
     SDO_C->COB_IDClientToServerPrev = 0;
     SDO_C->COB_IDServerToClientPrev = 0;
-    CO_SDOclient_setup(SDO_C, 0, 0, 0);
+    CO_SDOclient_setup(SDO_C, SDO_C->SDOClientPar->COB_IDClientToServer,
+                              SDO_C->SDOClientPar->COB_IDServerToClient,
+                              SDO_C->SDOClientPar->nodeIDOfTheSDOServer);
 
     return CO_ERROR_NO;
 }
