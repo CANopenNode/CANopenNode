@@ -92,7 +92,7 @@
 
 /* DOWNLOAD BLOCK */
 #define SDO_STATE_BLOCKDOWNLOAD_INITIATE        100
-#define SDO_STATE_BLOCKDOWNLOAD_INPORGRES       101
+#define SDO_STATE_BLOCKDOWNLOAD_INPROGRES       101
 #define SDO_STATE_BLOCKDOWNLOAD_BLOCK_ACK       102
 #define SDO_STATE_BLOCKDOWNLOAD_CRC             103
 #define SDO_STATE_BLOCKDOWNLOAD_CRC_ACK         104
@@ -550,17 +550,16 @@ CO_SDOclient_return_t CO_SDOclientDownload(
                     SDO_C->block_seqno = 0;
                     SDO_C->bufferOffset = 0;
                     SDO_C->bufferOffsetACK = 0;
-                    SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_INPORGRES;
-
-                    break;
+                    SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_INPROGRES;
                 }
                 else{
                     *pSDOabortCode = CO_SDO_AB_CMD;
                     SDO_C->state = SDO_STATE_ABORT;
                 }
+                break;
             }
 
-            case SDO_STATE_BLOCKDOWNLOAD_INPORGRES:
+            case SDO_STATE_BLOCKDOWNLOAD_INPROGRES:
             case SDO_STATE_BLOCKDOWNLOAD_BLOCK_ACK:{ /*  waiting block ACK */
                 if (SCS == SCS_DOWNLOAD_BLOCK){
                     /*  check server subcommand */
@@ -586,7 +585,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
                     if(SDO_C->bufferOffset >= SDO_C->bufferSize)
                         SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_CRC;
                     else
-                        SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_INPORGRES;
+                        SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_INPROGRES;
                 }
                 else{
                     *pSDOabortCode = CO_SDO_AB_CMD;
@@ -619,6 +618,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
             default:{
                 *pSDOabortCode = CO_SDO_AB_CMD;
                 SDO_C->state = SDO_STATE_ABORT;
+                break;
             }
         }
         SDO_C->timeoutTimer = 0;
@@ -676,7 +676,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
         }
 
         /*  BLOCK */
-        case SDO_STATE_BLOCKDOWNLOAD_INPORGRES:{
+        case SDO_STATE_BLOCKDOWNLOAD_INPROGRES:{
             SDO_C->block_seqno += 1;
             SDO_C->CANtxBuff->data[0] = SDO_C->block_seqno;
 
@@ -736,7 +736,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
         }
     }
 
-    if(SDO_C->state == SDO_STATE_BLOCKDOWNLOAD_INPORGRES) {
+    if(SDO_C->state == SDO_STATE_BLOCKDOWNLOAD_INPROGRES) {
         ret = CO_SDOcli_blockDownldInProgress;
     }
 
@@ -1105,6 +1105,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
             default:{
                 *pSDOabortCode = CO_SDO_AB_CMD;
                 SDO_C->state = SDO_STATE_ABORT;
+                break;
             }
         }
         SDO_C->timeoutTimer = 0;
@@ -1149,7 +1150,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
             SDO_C->state = SDO_STATE_UPLOAD_RESPONSE;
             SDO_C->toggle = ~SDO_C->toggle;
 
-            break;;
+            break;
         }
         /*  BLOCK */
         case SDO_STATE_BLOCKUPLOAD_INITIATE_ACK:{
