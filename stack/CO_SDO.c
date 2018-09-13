@@ -538,6 +538,10 @@ void* CO_OD_getDataPointer(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
     if(object->maxSubIndex == 0U){   /* Object type is Var */
         return object->pData;
     }
+    else if(object->maxSubIndex < subIndex){
+        /* Object type Array/Record, request is out of bounds */
+        return 0;
+    }
     else if(object->attribute != 0U){/* Object type is Array */
         if(subIndex==0){
             /* this is the data, for the subIndex 0 in the array */
