@@ -743,7 +743,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireNodeId(
   }
   /* Check for reply */
   else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_NODE_ID) {
-      uint32_t tmp;
+      uint32_t tmp = 0;
 
       ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
               CO_LSS_INQUIRE_NODE_ID, &tmp);
