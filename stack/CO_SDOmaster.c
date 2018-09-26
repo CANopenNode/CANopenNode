@@ -372,6 +372,12 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
 
     /* if nodeIDOfTheSDOServer == node-ID of this node, then exchange data with this node */
     if(SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId){
+
+        /* Optional signal to RTOS. We can immediately continue SDO Client */
+        if(SDO_C->pFunctSignal != NULL) {
+            SDO_C->pFunctSignal();
+        }
+
         return CO_SDOcli_ok_communicationEnd;
     }
 
@@ -805,6 +811,12 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
 
     /* if nodeIDOfTheSDOServer == node-ID of this node, then exchange data with this node */
     if(SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId){
+
+        /* Optional signal to RTOS. We can immediately continue SDO Client */
+        if(SDO_C->pFunctSignal != NULL) {
+            SDO_C->pFunctSignal();
+        }
+
         return CO_SDOcli_ok_communicationEnd;
     }
 
