@@ -257,10 +257,17 @@ void CO_HBconsumer_process(
     if(NMTisPreOrOperational){
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
             if(monitoredNode->time > 0){/* is node monitored */
-                /* Verify if new Consumer Heartbeat message received */
+                /* Verify if received message is heartbeat or bootup */
                 if(IS_CANrxNew(monitoredNode->CANrxNew)){
-                    if(monitoredNode->NMTstate != CO_NMT_INITIALIZING){
-                        /* not a bootup message */
+                    if(monitoredNode->NMTstate == CO_NMT_INITIALIZING){
+                        /* bootup message, call callback */
+                        if (monitoredNode->pFunctSignalRemoteReset != NULL) {
+                            monitoredNode->pFunctSignalRemoteReset(monitoredNode->nodeId, i,
+                                monitoredNode->functSignalObjectRemoteReset);
+                        }
+                    }
+                    else {
+                        /* heartbeat message */
                         monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
                         monitoredNode->timeoutTimer = 0;  /* reset timer */
                         timeDifference_ms = 0;
@@ -293,10 +300,6 @@ void CO_HBconsumer_process(
                         emcyRemoteResetActive = 1;
 
                         monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
-                        if (monitoredNode->pFunctSignalRemoteReset != NULL) {
-                            monitoredNode->pFunctSignalRemoteReset(monitoredNode->nodeId, i,
-                                monitoredNode->functSignalObjectRemoteReset);
-                        }
                     }
                 }
                 if(monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
