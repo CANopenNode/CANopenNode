@@ -64,7 +64,8 @@ extern "C" {
  * variable _allMonitoredOperational_ inside CO_HBconsumer_t is set to true.
  * Monitoring starts after the reception of the first HeartBeat (not bootup).
  *
- * Heartbeat set up is done by writing to the OD registers 0x1016.
+ * Heartbeat set up is done by writing to the OD registers 0x1016 or by using
+ * the function _CO_HBconsumer_initEntry()_
  *
  * @see  @ref CO_NMT_Heartbeat
  */
@@ -148,6 +149,26 @@ CO_ReturnError_t CO_HBconsumer_init(
         uint16_t                CANdevRxIdxStart);
 
 /**
+ * Initialize one Heartbeat consumer entry
+ *
+ * Calling this function has the same affect as writing to the corresponding
+ * entries in the Object Dictionary (index 0x1016)
+ * @remark The values in the Object Dictionary must be set manually by the
+ * calling function so that heartbeat consumer behaviour matches the OD value.
+ *
+ * @param HBcons This object.
+ * @param idx index of the node in HBcons object
+ * @param nodeId see OD 0x1016 description
+ * @param consumerTime see OD 0x1016 description
+ * @return
+ */
+CO_ReturnError_t CO_HBconsumer_initEntry(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        uint8_t                 nodeId,
+        uint16_t                consumerTime);
+
+/**
  * Initialize Heartbeat consumer timeout callback function.
  *
  * Function initializes optional callback function, which is called when the node
@@ -155,7 +176,7 @@ CO_ReturnError_t CO_HBconsumer_init(
  * which handles this event.
  *
  * @param HBcons This object.
- * @param idx object sub index
+ * @param idx index of the node in HBcons object
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
@@ -173,7 +194,7 @@ void CO_HBconsumer_initCallbackTimeout(
  * which handles this event.
  *
  * @param HBcons This object.
- * @param idx object sub index
+ * @param idx index of the node in HBcons object
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */

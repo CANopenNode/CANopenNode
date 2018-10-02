@@ -43,11 +43,7 @@
  * to do so, delete this exception statement from your version.
  */
 
-
-#include "CO_driver.h"
-#include "CO_SDO.h"
-#include "CO_Emergency.h"
-#include "CO_NMT_Heartbeat.h"
+#include "CANopen.h"
 #include "CO_HBconsumer.h"
 
 /*
@@ -77,7 +73,8 @@ static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg){
 static void CO_HBcons_monitoredNodeConfig(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx,
-        uint32_t                HBconsTime)
+        uint8_t                 nodeId,
+        uint16_t                time)
 {
     uint16_t COB_ID;
     CO_HBconsNode_t *monitoredNode;
@@ -85,14 +82,14 @@ static void CO_HBcons_monitoredNodeConfig(
     if(idx >= HBcons->numberOfMonitoredNodes) return;
 
     monitoredNode = &HBcons->monitoredNodes[idx];
-    monitoredNode->nodeId = (uint8_t)((HBconsTime>>16)&0xFF);
-    monitoredNode->time = (uint16_t)HBconsTime;
+    monitoredNode->nodeId = nodeId;
+    monitoredNode->time = time;
     monitoredNode->NMTstate = CO_NMT_INITIALIZING;
     monitoredNode->HBstate = CO_HBconsumer_UNCONFIGURED;
 
     /* is channel used */
     if(monitoredNode->nodeId && monitoredNode->time){
-        COB_ID = monitoredNode->nodeId + 0x700;
+        COB_ID = monitoredNode->nodeId + CO_CAN_ID_HEARTBEAT;
         monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
 
     }
@@ -126,7 +123,7 @@ static CO_SDO_abortCode_t CO_ODF_1016(CO_ODF_arg_t *ODF_arg)
     uint8_t NodeID;
     uint16_t HBconsTime;
     uint32_t value;
-    CO_SDO_abortCode_t ret = CO_SDO_AB_NONE;
+    CO_ReturnError_t ret;
 
     if(ODF_arg->reading){
         return CO_SDO_AB_NONE;
@@ -138,29 +135,14 @@ static CO_SDO_abortCode_t CO_ODF_1016(CO_ODF_arg_t *ODF_arg)
     HBconsTime = value & 0xFFFFU;
 
     if((value & 0xFF800000U) != 0){
-        ret = CO_SDO_AB_PRAM_INCOMPAT;
-    }
-    else if((HBconsTime != 0) && (NodeID != 0)){
-        uint8_t i;
-        /* there must not be more entries with same index and time different than zero */
-        for(i = 0U; i<HBcons->numberOfMonitoredNodes; i++){
-            uint32_t objectCopy = HBcons->HBconsTime[i];
-            uint8_t NodeIDObj = (objectCopy >> 16U) & 0xFFU;
-            uint16_t HBconsTimeObj = objectCopy & 0xFFFFU;
-            if(((ODF_arg->subIndex-1U) != i) && (HBconsTimeObj != 0) && (NodeID == NodeIDObj)){
-                ret = CO_SDO_AB_PRAM_INCOMPAT;
-            }
-        }
-    }
-    else{
-        ret = CO_SDO_AB_NONE;
+        return CO_SDO_AB_PRAM_INCOMPAT;
     }
 
-    /* Configure */
-    if(ret == CO_SDO_AB_NONE){
-        CO_HBcons_monitoredNodeConfig(HBcons, ODF_arg->subIndex-1U, value);
+    ret = CO_HBconsumer_initEntry(HBcons, ODF_arg->subIndex-1U, NodeID, HBconsTime);
+    if (ret != CO_ERROR_NO) {
+        return CO_SDO_AB_PRAM_INCOMPAT;
     }
-    return ret;
+    return CO_SDO_AB_NONE;
 }
 
 
@@ -192,13 +174,51 @@ CO_ReturnError_t CO_HBconsumer_init(
     HBcons->CANdevRx = CANdevRx;
     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
 
-    for(i=0; i<HBcons->numberOfMonitoredNodes; i++)
-        CO_HBcons_monitoredNodeConfig(HBcons, i, HBcons->HBconsTime[i]);
+    for(i=0; i<HBcons->numberOfMonitoredNodes; i++) {
+        uint8_t nodeId = (HBcons->HBconsTime[i] >> 16U) & 0xFFU;
+        uint16_t time = HBcons->HBconsTime[i] & 0xFFFFU;
+        CO_HBconsumer_initEntry(HBcons, i, nodeId, time);
+    }
 
     /* Configure Object dictionary entry at index 0x1016 */
     CO_OD_configure(SDO, OD_H1016_CONSUMER_HB_TIME, CO_ODF_1016, (void*)HBcons, 0, 0);
 
     return CO_ERROR_NO;
+}
+
+
+/******************************************************************************/
+CO_ReturnError_t CO_HBconsumer_initEntry(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        uint8_t                 nodeId,
+        uint16_t                consumerTime)
+{
+    CO_ReturnError_t ret = CO_ERROR_NO;
+
+    /* verify arguments */
+    if(HBcons==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    if((consumerTime != 0) && (nodeId != 0)){
+        uint8_t i;
+        /* there must not be more entries with same index and time different than zero */
+        for(i = 0U; i<HBcons->numberOfMonitoredNodes; i++){
+            uint32_t objectCopy = HBcons->HBconsTime[i];
+            uint8_t NodeIDObj = (objectCopy >> 16U) & 0xFFU;
+            uint16_t HBconsTimeObj = objectCopy & 0xFFFFU;
+            if((idx != i) && (HBconsTimeObj != 0) && (nodeId == NodeIDObj)){
+                ret = CO_ERROR_ILLEGAL_ARGUMENT;
+            }
+        }
+    }
+
+    /* Configure */
+    if(ret == CO_ERROR_NO){
+        CO_HBcons_monitoredNodeConfig(HBcons, idx, nodeId, consumerTime);
+    }
+    return ret;
 }
 
 
