@@ -340,20 +340,19 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateDeselect(
 
     /* We can always send this command to get into a clean state on the network.
      * If no slave is selected, this command is ignored. */
-    if (LSSmaster->command == CO_LSSmaster_COMMAND_WAITING){
+    LSSmaster->state = CO_LSSmaster_STATE_WAITING;
+    LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
+    LSSmaster->timeoutTimer = 0;
 
-        /* switch state global */
-        LSSmaster->state = CO_LSSmaster_STATE_WAITING;
+    /* switch state global */
+    CLEAR_CANrxNew(LSSmaster->CANrxNew);
+    LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_GLOBAL;
+    LSSmaster->TXbuff->data[1] = CO_LSS_STATE_WAITING;
+    CO_memset(&LSSmaster->TXbuff->data[2], 0, 6);
+    CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
-        CLEAR_CANrxNew(LSSmaster->CANrxNew);
-        LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_GLOBAL;
-        LSSmaster->TXbuff->data[1] = CO_LSS_STATE_WAITING;
-        CO_memset(&LSSmaster->TXbuff->data[2], 0, 6);
-        CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
-
-        /* This is non-confirmed service! */
-        ret = CO_LSSmaster_OK;
-    }
+    /* This is non-confirmed service! */
+    ret = CO_LSSmaster_OK;
 
     return ret;
 }

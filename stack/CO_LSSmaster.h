@@ -252,6 +252,8 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
  * This function deselects all nodes, so it doesn't matter if a specific
  * node is selected.
  *
+ * This function also resets the LSS master state machine to a clean state
+ *
  * @param LSSmaster This object.
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_OK
