@@ -290,7 +290,7 @@ void CO_EM_process(
 
         /* check again after inhibit time elapsed */
         diff = (emInhTime + 9) / 10; /* time difference in ms, always round up */
-        if (*timerNext_ms > diff) {
+        if (timerNext_ms != NULL && *timerNext_ms > diff) {
             *timerNext_ms = diff;
         }
     }
