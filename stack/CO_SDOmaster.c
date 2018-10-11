@@ -50,6 +50,7 @@
 #include "CO_SDOmaster.h"
 #include "crc16-ccitt.h"
 
+#define DIRKESBUGFIX 1
 
 /* Client command specifier */
 #define CCS_DOWNLOAD_INITIATE           1
@@ -376,8 +377,11 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
     if(dataSize <= 4){
         uint16_t i;
         /* expedited transfer */
+#ifdef DIRKESBUGFIX // DW: Dirkes AZR reagiert nur auf  0x2B (2 Byte Daten) , ansonten "Objekt does not exit"
+        SDO_C->CANtxBuff->data[0] = 0x2B ;
+#else
         SDO_C->CANtxBuff->data[0] = 0x23 | ((4-dataSize) << 2);
-
+#endif        
         /* copy data */
         for(i=dataSize+3; i>=4; i--) SDO_C->CANtxBuff->data[i] = dataTx[i-4];
     }
