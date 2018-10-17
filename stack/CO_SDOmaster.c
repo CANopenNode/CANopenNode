@@ -902,7 +902,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
                 if (SCS == SCS_UPLOAD_INITIATE){
                     if(SDO_C->CANrxData[0] & 0x02){
                         volatile uint8_t size;
-                        volatile uint8_t objectLen;
+//                        volatile uint8_t objectLen;
                         /* Expedited transfer */
                         if(SDO_C->CANrxData[0] & 0x01)/* is size indicated */
                             size = 4 - ((SDO_C->CANrxData[0]>>2)&0x03);    /* size */
