@@ -52,6 +52,11 @@
 
 #define DIRKESBUGFIX 1
 
+#ifdef DIRKESBUGFIX
+extern uint16_t ipa_system;
+enum{ALL,NONE,AC,AZR};
+#endif
+
 /* Client command specifier */
 #define CCS_DOWNLOAD_INITIATE           1
 #define CCS_DOWNLOAD_SEGMENT            0
@@ -378,7 +383,11 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
         uint16_t i;
         /* expedited transfer */
 #ifdef DIRKESBUGFIX // DW: Dirkes AZR reagiert nur auf  0x2B (2 Byte Daten) , ansonten "Objekt does not exit"
-        SDO_C->CANtxBuff->data[0] = 0x2B ;
+        if(ipa_system == AZR)
+            SDO_C->CANtxBuff->data[0] = 0x2B ;
+        else
+            SDO_C->CANtxBuff->data[0] = 0x23 | ((4-dataSize) << 2);
+        
 #else
         SDO_C->CANtxBuff->data[0] = 0x23 | ((4-dataSize) << 2);
 #endif        
