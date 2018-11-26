@@ -240,6 +240,22 @@ CO_HBconsumer_state_t CO_HBconsumer_getState(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx);
 
+/**
+ * Get the current NMT state of a heartbeat producer by the index in OD 0x1016
+ *
+ * NMT state is only available when heartbeat is enabled for this index!
+ *
+ * @param HBcons This object.
+ * @param idx object sub index
+ * @param [out] #CO_NMT_internalState_t of this index
+ * @retval 0 NMT state has been received and is valid
+ * @retval -1 not valid
+ */
+int8_t CO_HBconsumer_getNmtState(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        CO_NMT_internalState_t *nmtState);
+
 
 #ifdef __cplusplus
 }

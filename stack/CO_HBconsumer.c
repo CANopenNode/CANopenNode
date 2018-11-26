@@ -392,3 +392,25 @@ CO_HBconsumer_state_t CO_HBconsumer_getState(
     monitoredNode = &HBcons->monitoredNodes[idx];
     return monitoredNode->HBstate;
 }
+
+/******************************************************************************/
+int8_t CO_HBconsumer_getNmtState(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        CO_NMT_internalState_t *nmtState)
+{
+    CO_HBconsNode_t *monitoredNode;
+
+    if (HBcons==NULL || nmtState==NULL || idx>HBcons->numberOfMonitoredNodes) {
+        return -1;
+    }
+    *nmtState = CO_NMT_INITIALIZING;
+
+    monitoredNode = &HBcons->monitoredNodes[idx];
+
+    if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
+      *nmtState = monitoredNode->NMTstate;
+      return 0;
+    }
+    return -1;
+}
