@@ -171,7 +171,8 @@ extern "C" {
     while (1) {
         CO_LSSslave_process(CO->LSSslave, activeBit, activeNid,
                             &pendingBit, &pendingNid);
-        if (pendingNid != CO_LSS_NODE_ID_ASSIGNMENT) {
+        if (pendingNid!=CO_LSS_NODE_ID_ASSIGNMENT &&
+            CO_LSSslave_getState(CO->LSSslave)==CO_LSS_STATE_WAITING) {
              printf("node ID has been found: %d", pendingNid);
              break;
         }
@@ -331,6 +332,15 @@ void CO_LSSslave_process(
         uint8_t                 activeNodeId,
         uint16_t               *pendingBitRate,
         uint8_t                *pendingNodeId);
+
+/**
+ * Get current LSS state
+ *
+ * @param LSSslave This object.
+ * @return #CO_LSS_state_t
+ */
+CO_LSS_state_t CO_LSSslave_getState(
+        CO_LSSslave_t          *LSSslave);
 
 /**
  * Process LSS LED

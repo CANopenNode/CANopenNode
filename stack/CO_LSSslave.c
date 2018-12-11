@@ -497,6 +497,17 @@ void CO_LSSslave_process(
 
 
 /******************************************************************************/
+CO_LSS_state_t CO_LSSslave_getState(
+        CO_LSSslave_t          *LSSslave)
+{
+  if(LSSslave != NULL){
+      return LSSslave->lssState;
+  }
+  return CO_LSS_STATE_WAITING;
+}
+
+
+/******************************************************************************/
 bool_t CO_LSSslave_LEDprocess(
         CO_LSSslave_t          *LSSslave,
         uint16_t                timeDifference_ms,
