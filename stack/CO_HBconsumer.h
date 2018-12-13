@@ -91,6 +91,9 @@ typedef struct{
     uint16_t                timeoutTimer; /**< Time since last heartbeat received */
     uint16_t                time;         /**< Consumer heartbeat time from OD */
     volatile void          *CANrxNew;     /**< Indication if new Heartbeat message received from the CAN bus */
+    /** Callback for heartbeat state change to active event */
+    void                  (*pFunctSignalHbStarted)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initTimeoutCallback() or NULL */
+    void                   *functSignalObjectHbStarted;/**< Pointer to object */
     /** Callback for consumer timeout event */
     void                  (*pFunctSignalTimeout)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initTimeoutCallback() or NULL */
     void                   *functSignalObjectTimeout;/**< Pointer to object */
@@ -167,6 +170,25 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
         uint8_t                 idx,
         uint8_t                 nodeId,
         uint16_t                consumerTime);
+
+/**
+ * Initialize Heartbeat consumer started callback function.
+ *
+ * Function initializes optional callback function, which is called for the
+ * first received heartbeat after activating hb consumer or timeout.
+ * Function may wake up external task, which handles this event.
+ *
+ * @param HBcons This object.
+ * @param idx index of the node in HBcons object
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_HBconsumer_initCallbackHeartbeatStarted(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        void                   *object,
+        void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
+
 
 /**
  * Initialize Heartbeat consumer timeout callback function.

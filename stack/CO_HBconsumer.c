@@ -223,6 +223,25 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
 
 
 /******************************************************************************/
+void CO_HBconsumer_initCallbackHeartbeatStarted(
+    CO_HBconsumer_t        *HBcons,
+    uint8_t                 idx,
+    void                   *object,
+    void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object))
+{
+    CO_HBconsNode_t *monitoredNode;
+
+    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+        return;
+    }
+
+    monitoredNode = &HBcons->monitoredNodes[idx];
+    monitoredNode->pFunctSignalHbStarted = pFunctSignal;
+    monitoredNode->functSignalObjectHbStarted = object;
+}
+
+
+/******************************************************************************/
 void CO_HBconsumer_initCallbackTimeout(
     CO_HBconsumer_t        *HBcons,
     uint8_t                 idx,
@@ -288,6 +307,11 @@ void CO_HBconsumer_process(
                     }
                     else {
                         /* heartbeat message */
+                        if (monitoredNode->HBstate!=CO_HBconsumer_ACTIVE &&
+                            monitoredNode->pFunctSignalHbStarted!=NULL) {
+                            monitoredNode->pFunctSignalHbStarted(monitoredNode->nodeId, i,
+                                monitoredNode->functSignalObjectHbStarted);
+                        }
                         monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
                         monitoredNode->timeoutTimer = 0;  /* reset timer */
                         timeDifference_ms = 0;
