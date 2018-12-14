@@ -258,6 +258,16 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         uint16_t               *timerNext_ms);
 
 
+/**
+ * Query current NMT state
+ *
+ * @param NMT This object.
+ *
+ * @return #CO_NMT_internalState_t
+ */
+CO_NMT_internalState_t CO_NMT_getInternalState(
+        CO_NMT_t               *NMT);
+
 
 #ifdef __cplusplus
 }
