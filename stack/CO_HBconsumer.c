@@ -65,7 +65,7 @@ static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg){
 
     /* verify message length */
     if(msg->DLC == 1){
-        /* copy data and set 'new message' flag. */
+        /* copy data and set 'new message' flg. */
         HBconsNode->NMTstate = msg->data[0];
         HBconsNode->CANrxNew = true;
     }

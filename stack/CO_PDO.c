@@ -853,7 +853,7 @@ uint8_t CO_TPDOisCOS(CO_TPDO_t *TPDO){
     return 0;
 }
 
-//#define TPDO_CALLS_EXTENSION
+#define TPDO_CALLS_EXTENSION
 /******************************************************************************/
 int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
     int16_t i;
@@ -902,7 +902,7 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
     return CO_CANsend(TPDO->CANdevTx, TPDO->CANtxBuff);
 }
 
-//#define RPDO_CALLS_EXTENSION
+#define RPDO_CALLS_EXTENSION
 /******************************************************************************/
 void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 

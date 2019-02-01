@@ -78,10 +78,10 @@ extern "C" {
 #ifdef CO_USE_OWN_CRC16
 extern
 #endif
-unsigned short crc16_ccitt(
+uint16_t crc16_ccitt(
         const unsigned char     block[],
-        unsigned int            blockLength,
-        unsigned short          crc);
+        uint16_t             blockLength,
+        uint16_t          crc);
 
 #ifdef __cplusplus
 }

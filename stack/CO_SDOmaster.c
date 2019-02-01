@@ -715,7 +715,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
 
             uint16_t tmp16;
 
-            tmp16 = crc16_ccitt((unsigned char *)SDO_C->buffer, (unsigned int)SDO_C->bufferSize, 0);
+            tmp16 = crc16_ccitt((uint8_t *)SDO_C->buffer, (uint16_t)SDO_C->bufferSize, 0);
 
             SDO_C->CANtxBuff->data[1] = (uint8_t) tmp16;
             SDO_C->CANtxBuff->data[2] = (uint8_t) (tmp16>>8);
@@ -1080,7 +1080,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
                         uint16_t tmp16;
                         CO_memcpySwap2(&tmp16, &SDO_C->CANrxData[1]);
 
-                        if (tmp16 != crc16_ccitt((unsigned char *)SDO_C->buffer, (unsigned int)SDO_C->dataSizeTransfered, 0)){
+                        if (tmp16 != crc16_ccitt((uint8_t *)SDO_C->buffer, (uint16_t)SDO_C->dataSizeTransfered, 0)){
                             *pSDOabortCode = CO_SDO_AB_CRC;
                             SDO_C->state = SDO_STATE_ABORT;
                         }

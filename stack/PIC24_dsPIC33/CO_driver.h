@@ -62,6 +62,7 @@
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for 'true' and 'false' */
 
+#define CO_FCY          64000 //(FCY/1000) ///< Einstellung für CAN Takt Fcy=Fosc/2
 
 /* CAN message buffer sizes for CAN module 1 and 2. Valid values
  * are 0, 4, 6, 8, 12, 16. Default is one TX and seven RX messages (FIFO). */
@@ -113,7 +114,7 @@
 /* CAN module base addresses */
     #define ADDR_CAN1               ((uint16_t)&C1CTRL1)
     #define ADDR_CAN2               ((uint16_t)&C2CTRL1)
-
+    
 /* DMA addresses */
     #define ADDR_DMA0               ((uint16_t)&DMA0CON)
     #define ADDR_DMA1               ((uint16_t)&DMA1CON)
@@ -192,6 +193,7 @@
     #define TQ_x_20   1, 8, 8, 3  /* good timing */
     #define TQ_x_21   1, 8, 8, 4
     #define TQ_x_25   1, 8, 8, 8
+
 
     #if CO_FCY == 2000
         #define CO_CANbitRateDataInitializers  \
@@ -323,7 +325,7 @@
         {1, 2,   TQ_x_20},   /*CAN=500kbps*/   \
         {1, 1,   TQ_x_25},   /*CAN=800kbps*/   \
         {1, 1,   TQ_x_20}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 48000
+    #elif CO_FCY == 48000
         #define CO_CANbitRateDataInitializers  \
         {1, 63,  TQ_x_19},   /*Not possible*/  \
         {1, 63,  TQ_x_19},   /*CAN=20kbps*/    \
@@ -333,7 +335,7 @@
         {1, 3,   TQ_x_16},   /*CAN=500kbps*/   \
         {1, 2,   TQ_x_15},   /*CAN=800kbps*/   \
         {1, 2,   TQ_x_12}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 56000
+    #elif CO_FCY == 56000
         #define CO_CANbitRateDataInitializers  \
         {1, 61,  TQ_x_23},   /*Not possible*/  \
         {1, 61,  TQ_x_23},   /*CAN=20kbps*/    \
@@ -343,7 +345,7 @@
         {1, 4,   TQ_x_14},   /*CAN=500kbps*/   \
         {1, 5,   TQ_x_7 },   /*CAN=800kbps*/   \
         {1, 2,   TQ_x_14}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 64000
+    #elif CO_FCY == 64000
         #define CO_CANbitRateDataInitializers  \
         {1, 64,  TQ_x_25},   /*Not possible*/  \
         {1, 64,  TQ_x_25},   /*CAN=20kbps*/    \
@@ -353,6 +355,16 @@
         {1, 4,   TQ_x_16},   /*CAN=500kbps*/   \
         {1, 2,   TQ_x_20},   /*CAN=800kbps*/   \
         {1, 2,   TQ_x_16}    /*CAN=1000kbps*/
+    #elif CO_FCY == 60000
+        #define CO_CANbitRateDataInitializers  \
+        {1, 64,  TQ_x_25},   /*Not possible*/  \
+        {1, 59,  TQ_x_25},   /*CAN=20kbps*/    \
+        {1, 39,  TQ_x_15},   /*CAN=50kbps*/    \
+        {1, 14,  TQ_x_16},   /*CAN=125kbps*/   \
+        {1, 7,   TQ_x_15},   /*CAN=250kbps*/   \
+        {1, 3,   TQ_x_15},   /*CAN=500kbps*/   \
+        {1, 1,   TQ_x_25},   /*Not working*/   \
+        {1, 1,   TQ_x_15}    /*CAN=1000kbps*/
     #elif CO_FCY == 70000
         #define CO_CANbitRateDataInitializers  \
         {1, 64,  TQ_x_25},   /*Not possible*/  \
