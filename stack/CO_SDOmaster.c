@@ -50,6 +50,12 @@
 #include "CO_SDOmaster.h"
 #include "crc16-ccitt.h"
 
+#define DIRKESBUGFIX 1
+
+#ifdef DIRKESBUGFIX
+extern uint16_t ipa_system;
+enum{ALL,NONE,AC,AZR};
+#endif
 
 /* Client command specifier */
 #define CCS_DOWNLOAD_INITIATE           1
@@ -376,8 +382,15 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
     if(dataSize <= 4){
         uint16_t i;
         /* expedited transfer */
+#ifdef DIRKESBUGFIX // DW: Dirkes AZR reagiert nur auf  0x2B (2 Byte Daten) , ansonten "Objekt does not exit"
+        if(ipa_system == AZR)
+            SDO_C->CANtxBuff->data[0] = 0x2B ;
+        else
+            SDO_C->CANtxBuff->data[0] = 0x23 | ((4-dataSize) << 2);
+        
+#else
         SDO_C->CANtxBuff->data[0] = 0x23 | ((4-dataSize) << 2);
-
+#endif        
         /* copy data */
         for(i=dataSize+3; i>=4; i--) SDO_C->CANtxBuff->data[i] = dataTx[i-4];
     }
@@ -756,7 +769,8 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
         uint8_t                 blockEnable)
 {
     /* verify parameters */
-    if(SDO_C == NULL || dataRx == 0 ) {// DW || dataRxSize < 4) {
+//     if(SDO_C == NULL || dataRx == 0 ) {// DW || dataRxSize < 4) {
+    if((SDO_C == NULL || dataRx == 0 )|| dataRxSize < 4) {
         return CO_SDOcli_wrongArguments;
     }
 
@@ -827,7 +841,8 @@ CO_SDOclient_return_t CO_SDOclientUpload(
     uint16_t indexTmp;
     uint32_t tmp32;
     CO_SDOclient_return_t ret = CO_SDOcli_waitingServerResponse;
-
+    
+    
     /* verify parameters */
     if(SDO_C == NULL) {
         return CO_SDOcli_wrongArguments;
@@ -895,7 +910,8 @@ CO_SDOclient_return_t CO_SDOclientUpload(
 
                 if (SCS == SCS_UPLOAD_INITIATE){
                     if(SDO_C->CANrxData[0] & 0x02){
-                        uint8_t size;
+                        volatile uint8_t size;
+//                        volatile uint8_t objectLen;
                         /* Expedited transfer */
                         if(SDO_C->CANrxData[0] & 0x01)/* is size indicated */
                             size = 4 - ((SDO_C->CANrxData[0]>>2)&0x03);    /* size */
@@ -903,7 +919,20 @@ CO_SDOclient_return_t CO_SDOclientUpload(
                             size = 4;
 
                         *pDataSize = size;
-
+                        
+                        /* is size of variable in OD big enough for size bytes to copy */
+                        /* DW Das ist nur nötig, da wir direkt auf das OD schreiben und nicht einen RX Zwischenspeicher haben */
+                        /* Eigentlich prüft CO_SDOclientUploadInitiate das der Puffer minimal 4 Byte ist, was immer reicht. */
+                        /* Die Prüfung ist aber abgeschaltet um direkt ins OD zu schreiben.*/
+                        /* Vielleicht besser mal auf Dauer umbauen und seperaten RX Buffer nehmen, den prüfen und dann manuell in OD kopieren.
+                         */ 
+//                        uint16_t entryNo = CO_OD_find(SDO_C->SDO, SDO_C->index);
+//                        objectLen = CO_OD_getLength(SDO_C->SDO, entryNo, SDO_C->subIndex);
+//                        if(objectLen < size)    /* Data type does not match, to big */
+//                        {
+//                            size=objectLen;     /* copy leanght bytes instead of indicated */
+//
+//                        }
                         /* copy data */
                         while(size--) SDO_C->buffer[size] = SDO_C->CANrxData[4+size];
                         SDO_C->state = SDO_STATE_NOTDEFINED;
