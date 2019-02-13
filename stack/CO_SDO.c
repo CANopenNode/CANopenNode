@@ -48,7 +48,7 @@
 #include "CO_SDO.h"
 #include "crc16-ccitt.h"
 
-
+#define DIRKESBUGFIX 
 /* Client command specifier, see DS301 */
 #define CCS_DOWNLOAD_INITIATE          1U
 #define CCS_DOWNLOAD_SEGMENT           0U
@@ -699,11 +699,17 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
         SDO->ODF_arg.dataLength = length;
     }
 
+#ifdef DIRKESBUGFIX 
+     /* verify length except for domain data type */
+    else if(SDO->ODF_arg.dataLength != length && length!= 2){     // Dirkes nutzt immer 2B = 2 Byte length
+        return CO_SDO_AB_TYPE_MISMATCH;     /* Length of service parameter does not match */
+    }
+#else    
     /* verify length except for domain data type */
     else if(SDO->ODF_arg.dataLength != length){
         return CO_SDO_AB_TYPE_MISMATCH;     /* Length of service parameter does not match */
     }
-
+#endif
     /* swap data if processor is not little endian (CANopen is) */
 #ifdef CO_BIG_ENDIAN
     if((SDO->ODF_arg.attribute & CO_ODA_MB_VALUE) != 0){
