@@ -885,7 +885,7 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
             ODF_arg.object = ext->object;
             ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
             ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
-            ODF_arg.data = pSDO->OD[entryNo].pData;
+            ODF_arg.data = CO_OD_getDataPointer(pSDO, entryNo, subIndex); //https://github.com/CANopenNode/CANopenNode/issues/100
             ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
             ext->pODFunc(&ODF_arg);
         }
@@ -964,7 +964,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
                 ODF_arg.object = ext->object;
                 ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
                 ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
-                ODF_arg.data = pSDO->OD[entryNo].pData;
+                ODF_arg.data = CO_OD_getDataPointer(pSDO, entryNo, subIndex); //https://github.com/CANopenNode/CANopenNode/issues/100
                 ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
                 ext->pODFunc(&ODF_arg);
             }
