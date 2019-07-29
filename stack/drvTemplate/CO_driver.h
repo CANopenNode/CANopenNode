@@ -197,7 +197,7 @@ extern "C" {
 /** Memory barrier */
 #define CANrxMemoryBarrier()
 /** Check if new message has arrived */
-#define IS_CANrxNew(rxNew) ((int)rxNew)
+#define IS_CANrxNew(rxNew) ((intptr_t)rxNew)
 /** Set new message flag */
 #define SET_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)1L;}
 /** Clear new message flag */
