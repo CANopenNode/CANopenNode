@@ -1332,7 +1332,7 @@ int8_t CO_SDO_process(
             CLEAR_CANrxNew(SDO->CANrxNew);
             SDO->state = CO_SDO_ST_UPLOAD_BL_SUBBLOCK;
             /* continue in next case */
-        }
+        } __attribute__((fallthrough));
 
         case CO_SDO_ST_UPLOAD_BL_SUBBLOCK:{
             /* is block confirmation received */
