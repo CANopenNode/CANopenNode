@@ -36,7 +36,7 @@ SOURCES =       $(STACKDRV_SRC)/CO_driver.c     \
 
 OBJS = $(SOURCES:%.c=%.o)
 CC = gcc
-CFLAGS = -Wall $(INCLUDE_DIRS)
+CFLAGS = -Wall -Wextra $(INCLUDE_DIRS)
 LDFLAGS =
 
 
