@@ -748,16 +748,21 @@ CO_NMT_reset_cmd_t CO_process(
     uint8_t i;
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
+#ifdef CO_USE_LEDS
     static uint16_t ms50 = 0;
+#endif /* CO_USE_LEDS */
 
     if(CO->NMT->operatingState == CO_NMT_PRE_OPERATIONAL || CO->NMT->operatingState == CO_NMT_OPERATIONAL)
         NMTisPreOrOperational = true;
 
+#ifdef CO_USE_LEDS
     ms50 += timeDifference_ms;
     if(ms50 >= 50){
         ms50 -= 50;
         CO_NMT_blinkingProcess50ms(CO->NMT);
     }
+#endif /* CO_USE_LEDS */
+
     if(timerNext_ms != NULL){
         if(*timerNext_ms > 50){
             *timerNext_ms = 50;

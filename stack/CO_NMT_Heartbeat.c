@@ -114,17 +114,21 @@ CO_ReturnError_t CO_NMT_init(
     }
 
     /* blinking bytes */
+#ifdef CO_USE_LEDS
     NMT->LEDflickering          = 0;
     NMT->LEDblinking            = 0;
     NMT->LEDsingleFlash         = 0;
     NMT->LEDdoubleFlash         = 0;
     NMT->LEDtripleFlash         = 0;
     NMT->LEDquadrupleFlash      = 0;
+#endif /* CO_USE_LEDS */
 
     /* Configure object variables */
     NMT->operatingState         = CO_NMT_INITIALIZING;
+#ifdef CO_USE_LEDS
     NMT->LEDgreenRun            = -1;
     NMT->LEDredError            = 1;
+#endif /* CO_USE_LEDS */
     NMT->nodeId                 = nodeId;
     NMT->firstHBTime            = firstHBTime;
     NMT->resetCommand           = 0;
@@ -171,6 +175,7 @@ void CO_NMT_initCallback(
 
 
 /******************************************************************************/
+#ifdef CO_USE_LEDS
 void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
 
     if(++NMT->LEDflickering >= 1) NMT->LEDflickering = -1;
@@ -203,6 +208,7 @@ void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
         case  124:  NMT->LEDquadrupleFlash =  -20; break;
     }
 }
+#endif /* CO_USE_LEDS */
 
 
 /******************************************************************************/
@@ -260,6 +266,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         CANpassive = 1;
 
 
+#ifdef CO_USE_LEDS
     /* CANopen green RUN LED (DR 303-3) */
     switch(NMT->operatingState){
         case CO_NMT_STOPPED:          NMT->LEDgreenRun = NMT->LEDsingleFlash;   break;
@@ -286,6 +293,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 
     else
         NMT->LEDredError = -1;
+#endif /* CO_USE_LEDS */
 
 
     /* in case of error enter pre-operational state */

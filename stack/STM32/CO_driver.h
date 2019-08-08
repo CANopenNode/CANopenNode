@@ -61,6 +61,8 @@
 #define PACKED_STRUCT               __attribute__((packed))
 #define ALIGN_STRUCT_DWORD          __attribute__((aligned(4)))
 
+#define CO_USE_LEDS
+
 /* Peripheral addresses */
     #define ADDR_CAN1               CAN1
     #define TMIDxR_TXRQ  ((uint32_t)0x00000001) /* Transmit mailbox request */
