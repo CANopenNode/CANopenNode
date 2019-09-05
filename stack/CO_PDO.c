@@ -980,7 +980,8 @@ void CO_TPDO_process(
         CO_TPDO_t              *TPDO,
         CO_SYNC_t              *SYNC,
         bool_t                  syncWas,
-        uint32_t                timeDifference_us)
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us)
 {
     if(TPDO->valid && *TPDO->operatingState == CO_NMT_OPERATIONAL){
 
@@ -1035,4 +1036,7 @@ void CO_TPDO_process(
     /* update timers */
     TPDO->inhibitTimer = (TPDO->inhibitTimer > timeDifference_us) ? (TPDO->inhibitTimer - timeDifference_us) : 0;
     TPDO->eventTimer = (TPDO->eventTimer > timeDifference_us) ? (TPDO->eventTimer - timeDifference_us) : 0;
+    if(timerNext_us != NULL){
+        *timerNext_us = (TPDO->sendRequest ? ((TPDO->inhibitTimer + 9) / 10) : TPDO->eventTimer);
+    }
 }

@@ -391,12 +391,14 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas);
  * @param SYNC SYNC object. Ignored if NULL.
  * @param syncWas True, if CANopen SYNC message was just received or transmitted.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param timerNext_us Return value - info to OS - see CO_process_SYNC_PDO().
  */
 void CO_TPDO_process(
         CO_TPDO_t              *TPDO,
         CO_SYNC_t              *SYNC,
         bool_t                  syncWas,
-        uint32_t                timeDifference_us);
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us);
 
 #ifdef __cplusplus
 }
