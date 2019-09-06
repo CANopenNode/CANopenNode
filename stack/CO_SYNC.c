@@ -369,15 +369,14 @@ uint8_t CO_SYNC_process(
             }
             else{
                 SYNC->curentSyncTimeIsInsideWindow = true;
+                /* Immediately continue while inside the window */
+                if(timerNext_us != NULL){
+                    *timerNext_us = 0;
+                }
             }
         }
         else{
             SYNC->curentSyncTimeIsInsideWindow = true;
-        }
-
-        /* Immediately continue while inside the window */
-        if(timerNext_us != NULL && SYNC->curentSyncTimeIsInsideWindow){
-            *timerNext_us = 0;
         }
 
         /* Verify timeout of SYNC */
