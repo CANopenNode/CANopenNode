@@ -1036,7 +1036,7 @@ void CO_TPDO_process(
     /* update timers */
     TPDO->inhibitTimer = (TPDO->inhibitTimer > timeDifference_us) ? (TPDO->inhibitTimer - timeDifference_us) : 0;
     TPDO->eventTimer = (TPDO->eventTimer > timeDifference_us) ? (TPDO->eventTimer - timeDifference_us) : 0;
-    if(timerNext_us != NULL){
+    if(timerNext_us != NULL && TPDO->sendRequest){
         if(TPDO->TPDOCommPar->inhibitTime && *timerNext_us > TPDO->inhibitTimer){
             *timerNext_us = (TPDO->inhibitTimer + 9) / 10;
         }else if(TPDO->TPDOCommPar->eventTimer && *timerNext_us > TPDO->eventTimer){
