@@ -235,7 +235,18 @@ CO_NMT_reset_cmd_t CO_NMT_process(
             if(HBtime > NMT->firstHBTime) NMT->HBproducerTimer = HBtime - NMT->firstHBTime;
             else                          NMT->HBproducerTimer = 0;
 
-            NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+            
+            if((NMTstartup & 0x01) == 1) // 1F80 bit 0 indicates if node is NMT manager 
+            {
+                //NMT manager may enter operational mode automatically if bit 3 is set true
+                if((NMTstartup & 0x04) == 0) 
+                    NMT->operatingState = CO_NMT_OPERATIONAL;
+                else
+                    NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+            } else {
+                //slave node are only allowed to enter preop after boot
+                NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+            }
         }
     }
 
