@@ -912,6 +912,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
     }
     else if(!RPDO->synchronous || syncWas)
     {
+        bool_t update = false;
         uint8_t bufNo = 0;
 
         /* Determine, which of the two rx buffers, contains relevant message. */
@@ -934,36 +935,37 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
             for(; i>0; i--) {
                 **(ppODdataByte++) = *(pPDOdataByte++);
             }
-
-#ifdef RPDO_CALLS_EXTENSION
-            if(RPDO->SDO->ODExtensions){
-                /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
-                const uint32_t* pMap = &RPDO->RPDOMapPar->mappedObject1;
-                CO_SDO_t *pSDO = RPDO->SDO;
-
-                for(i=RPDO->RPDOMapPar->numberOfMappedObjects; i>0; i--){
-                    uint32_t map = *(pMap++);
-                    uint16_t index = (uint16_t)(map>>16);
-                    uint8_t subIndex = (uint8_t)(map>>8);
-                    uint16_t entryNo = CO_OD_find(pSDO, index);
-                    if ( entryNo == 0xFFFF ) continue;
-                    CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
-                    if( ext->pODFunc == NULL) continue;
-                    CO_ODF_arg_t ODF_arg;
-                    memset((void*)&ODF_arg, 0, sizeof(CO_ODF_arg_t));
-                    ODF_arg.reading = false;
-                    ODF_arg.index = index;
-                    ODF_arg.subIndex = subIndex;
-                    ODF_arg.object = ext->object;
-                    ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
-                    ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
-                    ODF_arg.data = pSDO->OD[entryNo].pData;
-                    ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
-                    ext->pODFunc(&ODF_arg);
-                }
-            }
-#endif
+            update = true;
         }
+#ifdef RPDO_CALLS_EXTENSION
+        if(update==true && RPDO->SDO->ODExtensions){
+            int16_t i;
+            /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
+            const uint32_t* pMap = &RPDO->RPDOMapPar->mappedObject1;
+            CO_SDO_t *pSDO = RPDO->SDO;
+
+            for(i=RPDO->RPDOMapPar->numberOfMappedObjects; i>0; i--){
+                uint32_t map = *(pMap++);
+                uint16_t index = (uint16_t)(map>>16);
+                uint8_t subIndex = (uint8_t)(map>>8);
+                uint16_t entryNo = CO_OD_find(pSDO, index);
+                if ( entryNo == 0xFFFF ) continue;
+                CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
+                if( ext->pODFunc == NULL) continue;
+                CO_ODF_arg_t ODF_arg;
+                memset((void*)&ODF_arg, 0, sizeof(CO_ODF_arg_t));
+                ODF_arg.reading = false;
+                ODF_arg.index = index;
+                ODF_arg.subIndex = subIndex;
+                ODF_arg.object = ext->object;
+                ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
+                ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
+                ODF_arg.data = pSDO->OD[entryNo].pData;
+                ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
+                ext->pODFunc(&ODF_arg);
+            }
+        }
+#endif
     }
 }
 
