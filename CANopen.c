@@ -110,13 +110,14 @@
 
     #define CO_RXCAN_NMT       0                                      /*  index for NMT message */
     #define CO_RXCAN_SYNC      1                                      /*  index for SYNC message */
-    #define CO_RXCAN_RPDO     (CO_RXCAN_SYNC+CO_NO_SYNC)              /*  start index for RPDO messages */
+    #define CO_RXCAN_EMERG    (CO_RXCAN_SYNC+CO_NO_SYNC)              /*  index for Emergency message */
+    #define CO_RXCAN_RPDO     (CO_RXCAN_EMERG+CO_NO_EMERGENCY)        /*  start index for RPDO messages */
     #define CO_RXCAN_SDO_SRV  (CO_RXCAN_RPDO+CO_NO_RPDO)              /*  start index for SDO server message (request) */
     #define CO_RXCAN_SDO_CLI  (CO_RXCAN_SDO_SRV+CO_NO_SDO_SERVER)     /*  start index for SDO client message (response) */
     #define CO_RXCAN_CONS_HB  (CO_RXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  start index for Heartbeat Consumer messages */
     #define CO_RXCAN_LSS      (CO_RXCAN_CONS_HB+CO_NO_HB_CONS)        /*  index for LSS rx message */
     /* total number of received CAN messages */
-    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS+CO_NO_LSS_SERVER+CO_NO_LSS_CLIENT)
+    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS)
 
     #define CO_TXCAN_NMT       0                                      /*  index for NMT master message */
     #define CO_TXCAN_SYNC      CO_TXCAN_NMT+CO_NO_NMT_MASTER          /*  index for SYNC message */
@@ -494,6 +495,8 @@ CO_ReturnError_t CO_CANopenInit(
            &OD_errorRegister,
            &OD_preDefinedErrorField[0],
             ODL_preDefinedErrorField_arrayLength,
+            CO->CANmodule[0],
+            CO_RXCAN_EMERG,
             CO->CANmodule[0],
             CO_TXCAN_EMERG,
             CO_CAN_ID_EMERGENCY + nodeId);
