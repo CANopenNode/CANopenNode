@@ -283,11 +283,13 @@ typedef struct{
     uint8_t             wrongErrorReport;   /**< Error in arguments to CO_errorReport() */
 
     /** From CO_EM_initCallback() or NULL */
-    void              (*pFunctSignal)(const uint16_t ident,
-                                      const uint16_t errorCode,
-                                      const uint8_t errorRegister,
-                                      const uint8_t errorBit,
-                                      const uint32_t infoCode);
+    void              (*pFunctSignal)(void);
+    /** From CO_EM_initCallbackRx() or NULL */
+    void              (*pFunctSignalRx)(const uint16_t ident,
+                                        const uint16_t errorCode,
+                                        const uint8_t errorRegister,
+                                        const uint8_t errorBit,
+                                        const uint32_t infoCode);
 }CO_EM_t;
 
 
@@ -414,12 +416,31 @@ CO_ReturnError_t CO_EM_init(
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
 void CO_EM_initCallback(
+        CO_EM_t               *em,
+        void                  (*pFunctSignal)(void));
+
+
+/**
+ * Initialize Emergency received callback function.
+ *
+ * Function initializes optional callback function, which executes after
+ * error condition is received. Function may wake up external task,
+ * which processes mainline CANopen functions.
+ * 
+ * @remark Depending on the CAN driver implementation, this function is called
+ * inside an ISR
+ *
+ * @param em This object.
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_EM_initCallbackRx(
         CO_EM_t                *em,
-        void                  (*pFunctSignal)(const uint16_t ident,
-                                              const uint16_t errorCode,
-                                              const uint8_t errorRegister,
-                                              const uint8_t errorBit,
-                                              const uint32_t infoCode));
+        void                  (*pFunctSignalRx)(const uint16_t ident,
+                                                const uint16_t errorCode,
+                                                const uint8_t errorRegister,
+                                                const uint8_t errorBit,
+                                                const uint32_t infoCode));
+
 
 /**
  * Process Error control and Emergency object.
