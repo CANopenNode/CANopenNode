@@ -630,15 +630,16 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
         ext = &SDO->ODExtensions[SDO->entryNo];
     }
 
+    CO_LOCK_OD();
+
     /* copy data from OD to SDO buffer if not domain */
     if(ODdata != NULL){
-        CO_LOCK_OD();
         while(length--) *(SDObuffer++) = *(ODdata++);
-        CO_UNLOCK_OD();
     }
     /* if domain, Object dictionary function MUST exist */
     else{
         if(ext->pODFunc == NULL){
+            CO_UNLOCK_OD();
             return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
         }
     }
@@ -648,14 +649,19 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
     if(ext->pODFunc != NULL){
         uint32_t abortCode = ext->pODFunc(&SDO->ODF_arg);
         if(abortCode != 0U){
+            CO_UNLOCK_OD();
             return abortCode;
         }
 
         /* dataLength (upadted by pODFunc) must be inside limits */
         if((SDO->ODF_arg.dataLength == 0U) || (SDO->ODF_arg.dataLength > SDOBufferSize)){
+            CO_UNLOCK_OD();
             return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
         }
     }
+
+    CO_UNLOCK_OD();
+
     SDO->ODF_arg.offset += SDO->ODF_arg.dataLength;
     SDO->ODF_arg.firstSegment = false;
 
@@ -716,6 +722,8 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
     }
 #endif
 
+    CO_LOCK_OD();
+
     /* call Object dictionary function if registered */
     SDO->ODF_arg.reading = false;
     if(SDO->ODExtensions != NULL){
@@ -724,6 +732,7 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
         if(ext->pODFunc != NULL){
             uint32_t abortCode = ext->pODFunc(&SDO->ODF_arg);
             if(abortCode != 0U){
+                CO_UNLOCK_OD();
                 return abortCode;
             }
         }
@@ -738,12 +747,12 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
 
     /* copy data from SDO buffer to OD if not domain */
     if(ODdata != NULL && exception_1003 == false){
-        CO_LOCK_OD();
         while(length--){
             *(ODdata++) = *(SDObuffer++);
         }
-        CO_UNLOCK_OD();
     }
+
+    CO_UNLOCK_OD();
 
     return 0;
 }
