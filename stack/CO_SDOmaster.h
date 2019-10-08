@@ -144,9 +144,9 @@ typedef struct{
     CO_CANmodule_t     *CANdevRx;
     /** From CO_SDOclient_init() */
     uint16_t            CANdevRxIdx;
-    /** Flag indicates, if new SDO message received from CAN bus.
+    /** Indicates, if new SDO message received from CAN bus.
     It is not cleared, until received message is completely processed. */
-    bool_t              CANrxNew;
+    volatile void      *CANrxNew;
     /** 8 data bytes of the received message */
     uint8_t             CANrxData[8];
     /** From CO_SDOclient_initCallback() or NULL */
@@ -228,6 +228,10 @@ void CO_SDOclient_initCallback(
  *
  * Function must be called before new SDO communication. If previous SDO
  * communication was with the same node, function does not need to be called.
+ *
+ * @remark If configuring SDO client from network is required, this function
+ * should be set as callback for the corresponding SDO client parameter OD
+ * entry.
  *
  * @param SDO_C This object.
  * @param COB_IDClientToServer See CO_SDOclientPar_t. If zero, then

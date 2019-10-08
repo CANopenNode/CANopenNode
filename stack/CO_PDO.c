@@ -81,7 +81,7 @@ static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
             RPDO->CANrxData[1][6] = msg->data[6];
             RPDO->CANrxData[1][7] = msg->data[7];
 
-            RPDO->CANrxNew[1] = true;
+            SET_CANrxNew(RPDO->CANrxNew[1]);
         }
         else {
             /* copy data into default buffer and set 'new message' flag */
@@ -94,7 +94,7 @@ static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
             RPDO->CANrxData[0][6] = msg->data[6];
             RPDO->CANrxData[0][7] = msg->data[7];
 
-            RPDO->CANrxNew[0] = true;
+            SET_CANrxNew(RPDO->CANrxNew[0]);
         }
     }
 }
@@ -129,7 +129,8 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
     else{
         ID = 0;
         RPDO->valid = false;
-        RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
+        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
     }
     r = CO_CANrxBufferInit(
             RPDO->CANdevRx,         /* CAN device */
@@ -141,7 +142,8 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
             CO_PDO_receive);        /* this function will process received message */
     if(r != CO_ERROR_NO){
         RPDO->valid = false;
-        RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
+        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
     }
 }
 
@@ -491,7 +493,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOcom(CO_ODF_arg_t *ODF_arg){
 
         /* Remove old message from second buffer. */
         if(RPDO->synchronous != synchronousPrev) {
-            RPDO->CANrxNew[1] = false;
+            CLEAR_CANrxNew(RPDO->CANrxNew[1]);
         }
     }
 
@@ -761,7 +763,8 @@ CO_ReturnError_t CO_RPDO_init(
     CO_OD_configure(SDO, idx_RPDOMapPar, CO_ODF_RPDOmap, (void*)RPDO, 0, 0);
 
     /* configure communication and mapping */
-    RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+    CLEAR_CANrxNew(RPDO->CANrxNew[0]);
+    CLEAR_CANrxNew(RPDO->CANrxNew[1]);
     RPDO->CANdevRx = CANdevRx;
     RPDO->CANdevRxIdx = CANdevRxIdx;
 
@@ -882,7 +885,7 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
             ODF_arg.object = ext->object;
             ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
             ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
-            ODF_arg.data = pSDO->OD[entryNo].pData;
+            ODF_arg.data = CO_OD_getDataPointer(pSDO, entryNo, subIndex); //https://github.com/CANopenNode/CANopenNode/issues/100
             ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
             ext->pODFunc(&ODF_arg);
         }
@@ -908,7 +911,8 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 
     if(!RPDO->valid || !(*RPDO->operatingState == CO_NMT_OPERATIONAL))
     {
-        RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
+        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
     }
     else if(!RPDO->synchronous || syncWas)
     {
@@ -920,7 +924,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
             bufNo = 1;
         }
 
-        while(RPDO->CANrxNew[bufNo]){
+        while(IS_CANrxNew(RPDO->CANrxNew[bufNo])){
             int16_t i;
             uint8_t* pPDOdataByte;
             uint8_t** ppODdataByte;
@@ -931,7 +935,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 
             /* Copy data to Object dictionary. If between the copy operation CANrxNew
              * is set to true by receive thread, then copy the latest data again. */
-            RPDO->CANrxNew[bufNo] = false;
+            CLEAR_CANrxNew(RPDO->CANrxNew[bufNo]);
             for(; i>0; i--) {
                 **(ppODdataByte++) = *(pPDOdataByte++);
             }
@@ -960,7 +964,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
                 ODF_arg.object = ext->object;
                 ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
                 ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
-                ODF_arg.data = pSDO->OD[entryNo].pData;
+                ODF_arg.data = CO_OD_getDataPointer(pSDO, entryNo, subIndex); //https://github.com/CANopenNode/CANopenNode/issues/100
                 ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
                 ext->pODFunc(&ODF_arg);
             }

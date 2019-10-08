@@ -26,6 +26,8 @@ SOURCES =       $(STACKDRV_SRC)/CO_driver.c     \
                 $(STACK_SRC)/CO_PDO.c           \
                 $(STACK_SRC)/CO_HBconsumer.c    \
                 $(STACK_SRC)/CO_SDOmaster.c     \
+                $(STACK_SRC)/CO_LSSmaster.c     \
+                $(STACK_SRC)/CO_LSSslave.c      \
                 $(STACK_SRC)/CO_trace.c         \
                 $(CANOPEN_SRC)/CANopen.c        \
                 $(APPL_SRC)/CO_OD.c             \

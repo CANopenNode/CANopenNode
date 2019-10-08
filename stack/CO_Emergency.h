@@ -418,12 +418,14 @@ void CO_EM_initCallback(
  * @param NMTisPreOrOperational True if this node is NMT_PRE_OPERATIONAL or NMT_OPERATIONAL.
  * @param timeDifference_100us Time difference from previous function call in [100 * microseconds].
  * @param emInhTime _Inhibit time EMCY_ (object dictionary, index 0x1015).
+ * @param timerNext_ms Return value - info to OS - see CO_process().
  */
 void CO_EM_process(
         CO_EMpr_t              *emPr,
         bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_100us,
-        uint16_t                emInhTime);
+        uint16_t                emInhTime,
+        uint16_t               *timerNext_ms);
 
 
 #endif

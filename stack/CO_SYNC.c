@@ -67,7 +67,7 @@ static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
     if((operState == CO_NMT_OPERATIONAL) || (operState == CO_NMT_PRE_OPERATIONAL)){
         if(SYNC->counterOverflowValue == 0){
             if(msg->DLC == 0U){
-                SYNC->CANrxNew = true;
+                SET_CANrxNew(SYNC->CANrxNew);
             }
             else{
                 SYNC->receiveError = (uint16_t)msg->DLC | 0x0100U;
@@ -76,13 +76,13 @@ static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
         else{
             if(msg->DLC == 1U){
                 SYNC->counter = msg->data[0];
-                SYNC->CANrxNew = true;
+                SET_CANrxNew(SYNC->CANrxNew);
             }
             else{
                 SYNC->receiveError = (uint16_t)msg->DLC | 0x0200U;
             }
         }
-        if(SYNC->CANrxNew) {
+        if(IS_CANrxNew(SYNC->CANrxNew)) {
             SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
         }
     }
@@ -213,7 +213,7 @@ static CO_SDO_abortCode_t CO_ODF_1019(CO_ODF_arg_t *ODF_arg){
         if(SYNC->periodTime){
             ret = CO_SDO_AB_DATA_DEV_STATE;
         }
-        else if((value == 1) || (value > 240 && value <= 255)){
+        else if((value == 1) || (value > 240)){
             ret = CO_SDO_AB_INVALID_VALUE;
         }
         else{
@@ -272,7 +272,7 @@ CO_ReturnError_t CO_SYNC_init(
 
     SYNC->curentSyncTimeIsInsideWindow = true;
 
-    SYNC->CANrxNew = false;
+    CLEAR_CANrxNew(SYNC->CANrxNew);
     SYNC->CANrxToggle = false;
     SYNC->timer = 0;
     SYNC->counter = 0;
@@ -329,10 +329,10 @@ uint8_t CO_SYNC_process(
         if(timerNew > SYNC->timer) SYNC->timer = timerNew;
 
         /* was SYNC just received */
-        if(SYNC->CANrxNew){
+        if(IS_CANrxNew(SYNC->CANrxNew)){
             SYNC->timer = 0;
             ret = 1;
-            SYNC->CANrxNew = false;
+            CLEAR_CANrxNew(SYNC->CANrxNew);
         }
 
         /* SYNC producer */
@@ -368,7 +368,7 @@ uint8_t CO_SYNC_process(
             CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
     }
     else {
-        SYNC->CANrxNew = false;
+        CLEAR_CANrxNew(SYNC->CANrxNew);
     }
 
     /* verify error from receive function */
