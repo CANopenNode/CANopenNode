@@ -287,7 +287,7 @@ CO_ReturnError_t CO_new(void)
         CO->emPr                            = (CO_EMpr_t *)         calloc(1, sizeof(CO_EMpr_t));
         CO->NMT                             = (CO_NMT_t *)          calloc(1, sizeof(CO_NMT_t));
         CO->SYNC                            = (CO_SYNC_t *)         calloc(1, sizeof(CO_SYNC_t));
-		CO->TS                              = (CO_TS_t *)          	calloc(1, sizeof(CO_TS_t));
+	CO->TS                              = (CO_TS_t *)           calloc(1, sizeof(CO_TS_t));
         for(i=0; i<CO_NO_RPDO; i++){
             CO->RPDO[i]                     = (CO_RPDO_t *)         calloc(1, sizeof(CO_RPDO_t));
         }
