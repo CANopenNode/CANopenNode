@@ -344,6 +344,7 @@ CO_ReturnError_t CO_new(void)
   #if CO_NO_SDO_CLIENT != 0
                   + sizeof(CO_SDOclient_t) * CO_NO_SDO_CLIENT
   #endif
+                  + 0;
   #if CO_NO_TRACE > 0
     CO_memoryUsed += sizeof(CO_trace_t) * CO_NO_TRACE;
     for(i=0; i<CO_NO_TRACE; i++) {
@@ -363,7 +364,7 @@ CO_ReturnError_t CO_new(void)
     if(CO->emPr                         == NULL) errCnt++;
     if(CO->NMT                          == NULL) errCnt++;
     if(CO->SYNC                         == NULL) errCnt++;
-    if(CO->TS                     		== NULL) errCnt++;
+    if(CO->TS                     	== NULL) errCnt++;
     for(i=0; i<CO_NO_RPDO; i++){
         if(CO->RPDO[i]                  == NULL) errCnt++;
     }
