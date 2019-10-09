@@ -95,6 +95,7 @@
    FEATURES
 *******************************************************************************/
    #define CO_NO_SYNC                     1   //Associated objects: 1005, 1006, 1007, 2103, 2104
+   #define CO_NO_TS                       1   //Associated objects: 1012-1013
    #define CO_NO_EMERGENCY                1   //Associated objects: 1014, 1015
    #define CO_NO_SDO_SERVER               1   //Associated objects: 1200
    #define CO_NO_SDO_CLIENT               0   

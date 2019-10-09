@@ -81,6 +81,7 @@ extern "C" {
     #include "CO_Emergency.h"
     #include "CO_NMT_Heartbeat.h"
     #include "CO_SYNC.h"
+    #include "CO_TimeStamp.h"
     #include "CO_PDO.h"
     #include "CO_HBconsumer.h"
 #if CO_NO_SDO_CLIENT != 0
@@ -135,6 +136,7 @@ typedef struct{
     CO_EMpr_t          *emPr;           /**< Emergency process object */
     CO_NMT_t           *NMT;            /**< NMT object */
     CO_SYNC_t          *SYNC;           /**< SYNC object */
+    CO_TS_t            *TS;             /**< TS object */
     CO_RPDO_t          *RPDO[CO_NO_RPDO];/**< RPDO objects */
     CO_TPDO_t          *TPDO[CO_NO_TPDO];/**< TPDO objects */
     CO_HBconsumer_t    *HBcons;         /**<  Heartbeat consumer object*/

@@ -155,6 +155,7 @@ typedef enum{
 #define CO_EMC_DAM_MPDO                 0x8230U /**< 0x8230, DAM MPDO not processed, destination object not available */
 #define CO_EMC_SYNC_DATA_LENGTH         0x8240U /**< 0x8240, Unexpected SYNC data length */
 #define CO_EMC_RPDO_TIMEOUT             0x8250U /**< 0x8250, RPDO timeout */
+#define CO_EMC_TS_DATA_LENGTH           0x8260U /**< 0x8260, Unexpected TS data length */
 #define CO_EMC_EXTERNAL_ERROR           0x9000U /**< 0x90xx, External Error */
 #define CO_EMC_ADDITIONAL_FUNC          0xF000U /**< 0xF0xx, Additional Functions */
 #define CO_EMC_DEVICE_SPECIFIC          0xFF00U /**< 0xFFxx, Device specific */
@@ -210,8 +211,8 @@ typedef enum{
 #define CO_EM_CAN_RX_BUS_PASSIVE        0x06U /**< 0x06, communication, info, CAN receive bus is passive */
 #define CO_EM_CAN_TX_BUS_PASSIVE        0x07U /**< 0x07, communication, info, CAN transmit bus is passive */
 #define CO_EM_NMT_WRONG_COMMAND         0x08U /**< 0x08, communication, info, Wrong NMT command received */
-#define CO_EM_09_unused                 0x09U /**< 0x09, (unused) */
-#define CO_EM_0A_unused                 0x0AU /**< 0x0A, (unused) */
+#define CO_EM_TS_TIME_OUT               0x09U /**< 0x09, communication, info, Time stamp message timeout */
+#define CO_EM_TS_LENGTH                 0x0AU /**< 0x0A, communication, info, Unexpected Time stamp data length */
 #define CO_EM_0B_unused                 0x0BU /**< 0x0B, (unused) */
 #define CO_EM_0C_unused                 0x0CU /**< 0x0C, (unused) */
 #define CO_EM_0D_unused                 0x0DU /**< 0x0D, (unused) */
