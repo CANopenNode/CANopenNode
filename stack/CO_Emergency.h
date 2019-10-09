@@ -109,7 +109,7 @@ typedef enum{
     CO_ERR_REG_GENERIC_ERR  = 0x01U, /**< bit 0, generic error */
     CO_ERR_REG_CURRENT      = 0x02U, /**< bit 1, current */
     CO_ERR_REG_VOLTAGE      = 0x04U, /**< bit 2, voltage */
-    CO_ERR_ERG_TEMPERATUR   = 0x08U, /**< bit 3, temperature */
+    CO_ERR_REG_TEMPERATURE  = 0x08U, /**< bit 3, temperature */
     CO_ERR_REG_COMM_ERR     = 0x10U, /**< bit 4, communication error (overrun, error state) */
     CO_ERR_REG_DEV_PROFILE  = 0x20U, /**< bit 5, device profile specific */
     CO_ERR_REG_RESERVED     = 0x40U, /**< bit 6, reserved (always 0) */
