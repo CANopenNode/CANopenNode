@@ -48,7 +48,7 @@
 #include "CO_SDO.h"
 #include "crc16-ccitt.h"
 
-
+#define DIRKESBUGFIX 
 /* Client command specifier, see DS301 */
 #define CCS_DOWNLOAD_INITIATE          1U
 #define CCS_DOWNLOAD_SEGMENT           0U
@@ -619,7 +619,7 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
     uint8_t *SDObuffer = SDO->ODF_arg.data;
     uint8_t *ODdata = (uint8_t*)SDO->ODF_arg.ODdataStorage;
     uint16_t length = SDO->ODF_arg.dataLength;
-    CO_OD_extension_t *ext = 0;
+    CO_OD_extension_t *ext = NULL;
 
     /* is object readable? */
     if((SDO->ODF_arg.attribute & CO_ODA_READABLE) == 0)
@@ -638,17 +638,21 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
     }
     /* if domain, Object dictionary function MUST exist */
     else{
-        if(ext->pODFunc == NULL){
-            return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
+        if (ext != NULL){
+            if(ext->pODFunc == NULL ){
+                return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
+            }
         }
     }
 
     /* call Object dictionary function if registered */
     SDO->ODF_arg.reading = true;
-    if(ext->pODFunc != NULL){
-        uint32_t abortCode = ext->pODFunc(&SDO->ODF_arg);
-        if(abortCode != 0U){
-            return abortCode;
+    if (ext != NULL){
+        if(ext->pODFunc != NULL && ext != NULL){
+            uint32_t abortCode = ext->pODFunc(&SDO->ODF_arg);
+            if(abortCode != 0U){
+                return abortCode;
+            }
         }
 
         /* dataLength (upadted by pODFunc) must be inside limits */
@@ -695,11 +699,17 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
         SDO->ODF_arg.dataLength = length;
     }
 
+#ifdef DIRKESBUGFIX 
+     /* verify length except for domain data type */
+    else if(SDO->ODF_arg.dataLength != length && length!= 2){     // Dirkes nutzt immer 2B = 2 Byte length
+        return CO_SDO_AB_TYPE_MISMATCH;     /* Length of service parameter does not match */
+    }
+#else    
     /* verify length except for domain data type */
     else if(SDO->ODF_arg.dataLength != length){
         return CO_SDO_AB_TYPE_MISMATCH;     /* Length of service parameter does not match */
     }
-
+#endif
     /* swap data if processor is not little endian (CANopen is) */
 #ifdef CO_BIG_ENDIAN
     if((SDO->ODF_arg.attribute & CO_ODA_MB_VALUE) != 0){

@@ -46,7 +46,6 @@
 #include "CO_trace.h"
 #include <stdio.h>
 
-
 /* Different functions for processing value for different data types. */
 static int32_t getValueI8 (void *OD_variable) { return (int32_t) *((int8_t*)   OD_variable);}
 static int32_t getValueI16(void *OD_variable) { return (int32_t) *((int16_t*)  OD_variable);}
@@ -115,7 +114,7 @@ static void findVariable(CO_trace_t *trace) {
     uint8_t subIndex;
     uint8_t dataLen;
     void *OdDataPtr = NULL;
-    int dtIndex = 0;
+    int16_t dtIndex = 0;
 
     /* parse mapping */
     index = (uint16_t) ((*trace->map) >> 16);

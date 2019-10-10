@@ -393,7 +393,7 @@ typedef enum{
     OD_H1009_MANUF_HW_VERSION     = 0x1009U,/**< Manufacturer hardware version */
     OD_H100A_MANUF_SW_VERSION     = 0x100AU,/**< Manufacturer software version */
     OD_H100B_RSV                  = 0x100BU,/**< Reserved */
-    OD_H100C_GUARD_TIME           = 0x100CU,/**< Guard time */
+    OD_H100C_canGuardTime           = 0x100CU,/**< Guard time */
     OD_H100D_LIFETIME_FACTOR      = 0x100DU,/**< Life time factor */
     OD_H100E_RSV                  = 0x100EU,/**< Reserved */
     OD_H100F_RSV                  = 0x100FU,/**< Reserved */
