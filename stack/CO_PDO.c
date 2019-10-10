@@ -66,7 +66,7 @@ static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
 
     RPDO = (CO_RPDO_t*)object;   /* this is the correct pointer type of the first argument */
 
-    if( (RPDO->valid) &&
+        if( (RPDO->valid) &&
         (*RPDO->operatingState == CO_NMT_OPERATIONAL) &&
         (msg->DLC >= RPDO->dataLength))
     {

@@ -77,6 +77,7 @@ extern "C" {
 
     #include "CO_driver.h"
     #include "CO_OD.h"
+    #include "TMM50_OD.h"
     #include "CO_SDO.h"
     #include "CO_Emergency.h"
     #include "CO_NMT_Heartbeat.h"
@@ -158,7 +159,7 @@ typedef struct{
  * @return other: same as CO_CANsend().
  */
 #if CO_NO_NMT_MASTER == 1
-    uint8_t CO_sendNMTcommand(CO_t *CO, uint8_t command, uint8_t nodeID);
+    CO_ReturnError_t CO_sendNMTcommand(CO_t *CO, uint8_t command, uint8_t nodeID);
 #endif
 
 
