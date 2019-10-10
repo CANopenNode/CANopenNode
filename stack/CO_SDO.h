@@ -646,7 +646,7 @@ typedef struct{
     /** Indication end of block transfer */
     bool_t              endOfTransfer;
     /** Variable indicates, if new SDO message received from CAN bus */
-    bool_t              CANrxNew;
+    volatile void      *CANrxNew;
     /** From CO_SDO_initCallback() or NULL */
     void              (*pFunctSignal)(void);
     /** From CO_SDO_init() */
@@ -676,6 +676,17 @@ typedef union{
  * @param size Number of data bytes to be copied (max 0xFFFF).
  */
 void CO_memcpy(uint8_t dest[], const uint8_t src[], const uint16_t size);
+
+/**
+ * Helper function like memset.
+ *
+ * Function fills destination with char "c".
+ *
+ * @param dest Destination location.
+ * @param c set value.
+ * @param size Number of data bytes to be copied (max 0xFFFF).
+ */
+void CO_memset(uint8_t dest[], uint8_t c, const uint16_t size);
 
 
 /**

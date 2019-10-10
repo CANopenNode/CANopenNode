@@ -30,6 +30,7 @@ CANopen Features
  - Emergency message.
  - Sync producer/consumer.
  - Non-volatile storage.
+ - LSS master and slave, LSS fastscan
 
 
 Usage of the CANopenNode
@@ -107,6 +108,18 @@ Flowchart of a typical CANopenNode implementation
              |   from any node in the|
              |   CANopen network.    |
               -----------------------
+              
+              -----------------------
+             | LSS client (optional) |
+             |                       |
+             | - Can be called by    |
+             |   external application|
+             | - Can do LSS requests |
+             | - Can request node    |
+             |   enumeration         |
+              -----------------------
+              
+              
 ~~~
 
 
@@ -118,6 +131,9 @@ File structure
    - **CO_Emergency.h/.c** - CANopen Emergency object.
    - **CO_NMT_Heartbeat.h/.c** - CANopen Network slave and Heartbeat producer object.
    - **CO_HBconsumer.h/.c** - CANopen Heartbeat consumer object.
+   - **CO_LSS.h** - CANopen LSS common. This is common to LSS master and slave.
+   - **CO_LSSmaster.h/.c** - CANopen LSS master functionality.
+   - **CO_LSSslave.h/.c** - CANopen LSS slave functionality.
    - **CO_SYNC.h/.c** - CANopen SYNC producer and consumer object.
    - **CO_SDO.h/.c** - CANopen SDO server object. It serves data from Object dictionary.
    - **CO_PDO.h/.c** - CANopen PDO object. It configures, receives and transmits CANopen process data.

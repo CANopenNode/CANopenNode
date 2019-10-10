@@ -61,6 +61,8 @@
 
     #define CO_LOCK_OD()
     #define CO_UNLOCK_OD()
+
+    #define CANrxMemoryBarrier()
 #else
     #define CO_LOCK_CAN_SEND()      /* not needed */
     #define CO_UNLOCK_CAN_SEND()
@@ -72,7 +74,14 @@
     extern pthread_mutex_t CO_OD_mtx;
     #define CO_LOCK_OD()            {if(pthread_mutex_lock(&CO_OD_mtx) != 0) CO_errExit("Mutex lock CO_OD_mtx failed");}
     #define CO_UNLOCK_OD()          {if(pthread_mutex_unlock(&CO_OD_mtx) != 0) CO_errExit("Mutex unlock CO_OD_mtx failed");}
+
+    #define CANrxMemoryBarrier()    {__sync_synchronize();}
 #endif
+
+/* Syncronisation functions */
+#define IS_CANrxNew(rxNew) ((int)rxNew)
+#define SET_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)1L;}
+#define CLEAR_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)0L;}
 
 
 /* Data types */

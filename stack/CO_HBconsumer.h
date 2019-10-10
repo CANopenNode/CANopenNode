@@ -64,19 +64,42 @@ extern "C" {
  * variable _allMonitoredOperational_ inside CO_HBconsumer_t is set to true.
  * Monitoring starts after the reception of the first HeartBeat (not bootup).
  *
+ * Heartbeat set up is done by writing to the OD registers 0x1016 or by using
+ * the function _CO_HBconsumer_initEntry()_
+ *
  * @see  @ref CO_NMT_Heartbeat
  */
+
+/**
+ * Heartbeat state of a node
+ */
+typedef enum {
+  CO_HBconsumer_UNCONFIGURED = 0x00U,     /**< Consumer entry inactive */
+  CO_HBconsumer_UNKNOWN      = 0x01U,     /**< Consumer enabled, but no heartbeat received yet */
+  CO_HBconsumer_ACTIVE       = 0x02U,     /**< Heartbeat received within set time */
+  CO_HBconsumer_TIMEOUT      = 0x03U,     /**< No heatbeat received for set time */
+} CO_HBconsumer_state_t;
 
 
 /**
  * One monitored node inside CO_HBconsumer_t.
  */
 typedef struct{
-    uint8_t             NMTstate;       /**< Of the remote node */
-    bool_t              monStarted;     /**< True after reception of the first Heartbeat mesage */
-    uint16_t            timeoutTimer;   /**< Time since last heartbeat received */
-    uint16_t            time;           /**< Consumer heartbeat time from OD */
-    bool_t              CANrxNew;       /**< True if new Heartbeat message received from the CAN bus */
+    uint8_t                 nodeId;       /**< Node Id of the monitored node */
+    CO_NMT_internalState_t  NMTstate;     /**< Of the remote node (Heartbeat payload) */
+    CO_HBconsumer_state_t   HBstate;      /**< Current heartbeat state */
+    uint16_t                timeoutTimer; /**< Time since last heartbeat received */
+    uint16_t                time;         /**< Consumer heartbeat time from OD */
+    volatile void          *CANrxNew;     /**< Indication if new Heartbeat message received from the CAN bus */
+    /** Callback for heartbeat state change to active event */
+    void                  (*pFunctSignalHbStarted)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initTimeoutCallback() or NULL */
+    void                   *functSignalObjectHbStarted;/**< Pointer to object */
+    /** Callback for consumer timeout event */
+    void                  (*pFunctSignalTimeout)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initTimeoutCallback() or NULL */
+    void                   *functSignalObjectTimeout;/**< Pointer to object */
+    /** Callback for remote reset event */
+    void                  (*pFunctSignalRemoteReset)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initRemoteResetCallback() or NULL */
+    void                   *functSignalObjectRemoteReset;/**< Pointer to object */
 }CO_HBconsNode_t;
 
 
@@ -87,14 +110,14 @@ typedef struct{
  * CO_HBconsNode_t objects.
  */
 typedef struct{
-    CO_EM_t            *em;             /**< From CO_HBconsumer_init() */
-    const uint32_t     *HBconsTime;     /**< From CO_HBconsumer_init() */
-    CO_HBconsNode_t    *monitoredNodes; /**< From CO_HBconsumer_init() */
+    CO_EM_t            *em;               /**< From CO_HBconsumer_init() */
+    const uint32_t     *HBconsTime;       /**< From CO_HBconsumer_init() */
+    CO_HBconsNode_t    *monitoredNodes;   /**< From CO_HBconsumer_init() */
     uint8_t             numberOfMonitoredNodes; /**< From CO_HBconsumer_init() */
     /** True, if all monitored nodes are NMT operational or no node is
         monitored. Can be read by the application */
     uint8_t             allMonitoredOperational;
-    CO_CANmodule_t     *CANdevRx;       /**< From CO_HBconsumer_init() */
+    CO_CANmodule_t     *CANdevRx;         /**< From CO_HBconsumer_init() */
     uint16_t            CANdevRxIdxStart; /**< From CO_HBconsumer_init() */
 }CO_HBconsumer_t;
 
@@ -128,6 +151,80 @@ CO_ReturnError_t CO_HBconsumer_init(
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdxStart);
 
+/**
+ * Initialize one Heartbeat consumer entry
+ *
+ * Calling this function has the same affect as writing to the corresponding
+ * entries in the Object Dictionary (index 0x1016)
+ * @remark The values in the Object Dictionary must be set manually by the
+ * calling function so that heartbeat consumer behaviour matches the OD value.
+ *
+ * @param HBcons This object.
+ * @param idx index of the node in HBcons object
+ * @param nodeId see OD 0x1016 description
+ * @param consumerTime see OD 0x1016 description
+ * @return
+ */
+CO_ReturnError_t CO_HBconsumer_initEntry(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        uint8_t                 nodeId,
+        uint16_t                consumerTime);
+
+/**
+ * Initialize Heartbeat consumer started callback function.
+ *
+ * Function initializes optional callback function, which is called for the
+ * first received heartbeat after activating hb consumer or timeout.
+ * Function may wake up external task, which handles this event.
+ *
+ * @param HBcons This object.
+ * @param idx index of the node in HBcons object
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_HBconsumer_initCallbackHeartbeatStarted(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        void                   *object,
+        void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
+
+
+/**
+ * Initialize Heartbeat consumer timeout callback function.
+ *
+ * Function initializes optional callback function, which is called when the node
+ * state changes from active to timeout. Function may wake up external task,
+ * which handles this event.
+ *
+ * @param HBcons This object.
+ * @param idx index of the node in HBcons object
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_HBconsumer_initCallbackTimeout(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        void                   *object,
+        void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
+
+/**
+ * Initialize Heartbeat consumer remote reset detected callback function.
+ *
+ * Function initializes optional callback function, which is called when a bootup
+ * message is received from the remote node. Function may wake up external task,
+ * which handles this event.
+ *
+ * @param HBcons This object.
+ * @param idx index of the node in HBcons object
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_HBconsumer_initCallbackRemoteReset(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        void                   *object,
+        void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
 
 /**
  * Process Heartbeat consumer object.
@@ -142,6 +239,45 @@ void CO_HBconsumer_process(
         CO_HBconsumer_t        *HBcons,
         bool_t                  NMTisPreOrOperational,
         uint16_t                timeDifference_ms);
+
+/**
+ * Get the heartbeat producer object index by node ID
+ *
+ * @param HBcons This object.
+ * @param nodeId producer node ID
+ * @return index. -1 if not found
+ */
+int8_t CO_HBconsumer_getIdxByNodeId(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 nodeId);
+
+/**
+ * Get the current state of a heartbeat producer by the index in OD 0x1016
+ *
+ * @param HBcons This object.
+ * @param idx object sub index
+ * @return #CO_HBconsumer_state_t
+ */
+CO_HBconsumer_state_t CO_HBconsumer_getState(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx);
+
+/**
+ * Get the current NMT state of a heartbeat producer by the index in OD 0x1016
+ *
+ * NMT state is only available when heartbeat is enabled for this index!
+ *
+ * @param HBcons This object.
+ * @param idx object sub index
+ * @param [out] #CO_NMT_internalState_t of this index
+ * @retval 0 NMT state has been received and is valid
+ * @retval -1 not valid
+ */
+int8_t CO_HBconsumer_getNmtState(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
+        CO_NMT_internalState_t *nmtState);
+
 
 #ifdef __cplusplus
 }

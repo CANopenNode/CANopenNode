@@ -105,8 +105,8 @@ typedef struct{
     /** True, if current time is inside synchronous window.
     In this case synchronous PDO may be sent. */
     bool_t              curentSyncTimeIsInsideWindow;
-    /** Variable indicates, if new SYNC message received from CAN bus */
-    bool_t              CANrxNew;
+    /** Indicates, if new SYNC message received from CAN bus */
+    volatile void      *CANrxNew;
     /** Variable toggles, if new SYNC message received from CAN bus */
     bool_t              CANrxToggle;
     /** Counter of the SYNC message if counterOverflowValue is different than zero */

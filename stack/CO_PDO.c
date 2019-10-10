@@ -81,7 +81,7 @@ static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
             RPDO->CANrxData[1][6] = msg->data[6];
             RPDO->CANrxData[1][7] = msg->data[7];
 
-            RPDO->CANrxNew[1] = true;
+            SET_CANrxNew(RPDO->CANrxNew[1]);
         }
         else {
             /* copy data into default buffer and set 'new message' flag */
@@ -94,7 +94,7 @@ static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
             RPDO->CANrxData[0][6] = msg->data[6];
             RPDO->CANrxData[0][7] = msg->data[7];
 
-            RPDO->CANrxNew[0] = true;
+            SET_CANrxNew(RPDO->CANrxNew[0]);
         }
     }
 }
@@ -129,7 +129,8 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
     else{
         ID = 0;
         RPDO->valid = false;
-        RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
+        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
     }
     r = CO_CANrxBufferInit(
             RPDO->CANdevRx,         /* CAN device */
@@ -141,7 +142,8 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
             CO_PDO_receive);        /* this function will process received message */
     if(r != CO_ERROR_NO){
         RPDO->valid = false;
-        RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
+        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
     }
 }
 
@@ -491,7 +493,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOcom(CO_ODF_arg_t *ODF_arg){
 
         /* Remove old message from second buffer. */
         if(RPDO->synchronous != synchronousPrev) {
-            RPDO->CANrxNew[1] = false;
+            CLEAR_CANrxNew(RPDO->CANrxNew[1]);
         }
     }
 
@@ -761,7 +763,8 @@ CO_ReturnError_t CO_RPDO_init(
     CO_OD_configure(SDO, idx_RPDOMapPar, CO_ODF_RPDOmap, (void*)RPDO, 0, 0);
 
     /* configure communication and mapping */
-    RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+    CLEAR_CANrxNew(RPDO->CANrxNew[0]);
+    CLEAR_CANrxNew(RPDO->CANrxNew[1]);
     RPDO->CANdevRx = CANdevRx;
     RPDO->CANdevRxIdx = CANdevRxIdx;
 
@@ -882,7 +885,7 @@ int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
             ODF_arg.object = ext->object;
             ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
             ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
-            ODF_arg.data = pSDO->OD[entryNo].pData;
+            ODF_arg.data = CO_OD_getDataPointer(pSDO, entryNo, subIndex); //https://github.com/CANopenNode/CANopenNode/issues/100
             ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
             ext->pODFunc(&ODF_arg);
         }
@@ -908,10 +911,12 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 
     if(!RPDO->valid || !(*RPDO->operatingState == CO_NMT_OPERATIONAL))
     {
-        RPDO->CANrxNew[0] = RPDO->CANrxNew[1] = false;
+        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
+        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
     }
     else if(!RPDO->synchronous || syncWas)
     {
+        bool_t update = false;
         uint8_t bufNo = 0;
 
         /* Determine, which of the two rx buffers, contains relevant message. */
@@ -919,7 +924,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
             bufNo = 1;
         }
 
-        while(RPDO->CANrxNew[bufNo]){
+        while(IS_CANrxNew(RPDO->CANrxNew[bufNo])){
             int16_t i;
             uint8_t* pPDOdataByte;
             uint8_t** ppODdataByte;
@@ -930,40 +935,41 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 
             /* Copy data to Object dictionary. If between the copy operation CANrxNew
              * is set to true by receive thread, then copy the latest data again. */
-            RPDO->CANrxNew[bufNo] = false;
+            CLEAR_CANrxNew(RPDO->CANrxNew[bufNo]);
             for(; i>0; i--) {
                 **(ppODdataByte++) = *(pPDOdataByte++);
             }
-
-#ifdef RPDO_CALLS_EXTENSION
-            if(RPDO->SDO->ODExtensions){
-                /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
-                const uint32_t* pMap = &RPDO->RPDOMapPar->mappedObject1;
-                CO_SDO_t *pSDO = RPDO->SDO;
-
-                for(i=RPDO->RPDOMapPar->numberOfMappedObjects; i>0; i--){
-                    uint32_t map = *(pMap++);
-                    uint16_t index = (uint16_t)(map>>16);
-                    uint8_t subIndex = (uint8_t)(map>>8);
-                    uint16_t entryNo = CO_OD_find(pSDO, index);
-                    if ( entryNo == 0xFFFF ) continue;
-                    CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
-                    if( ext->pODFunc == NULL) continue;
-                    CO_ODF_arg_t ODF_arg;
-                    memset((void*)&ODF_arg, 0, sizeof(CO_ODF_arg_t));
-                    ODF_arg.reading = false;
-                    ODF_arg.index = index;
-                    ODF_arg.subIndex = subIndex;
-                    ODF_arg.object = ext->object;
-                    ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
-                    ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
-                    ODF_arg.data = pSDO->OD[entryNo].pData;
-                    ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
-                    ext->pODFunc(&ODF_arg);
-                }
-            }
-#endif
+            update = true;
         }
+#ifdef RPDO_CALLS_EXTENSION
+        if(update==true && RPDO->SDO->ODExtensions){
+            int16_t i;
+            /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
+            const uint32_t* pMap = &RPDO->RPDOMapPar->mappedObject1;
+            CO_SDO_t *pSDO = RPDO->SDO;
+
+            for(i=RPDO->RPDOMapPar->numberOfMappedObjects; i>0; i--){
+                uint32_t map = *(pMap++);
+                uint16_t index = (uint16_t)(map>>16);
+                uint8_t subIndex = (uint8_t)(map>>8);
+                uint16_t entryNo = CO_OD_find(pSDO, index);
+                if ( entryNo == 0xFFFF ) continue;
+                CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
+                if( ext->pODFunc == NULL) continue;
+                CO_ODF_arg_t ODF_arg;
+                memset((void*)&ODF_arg, 0, sizeof(CO_ODF_arg_t));
+                ODF_arg.reading = false;
+                ODF_arg.index = index;
+                ODF_arg.subIndex = subIndex;
+                ODF_arg.object = ext->object;
+                ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
+                ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
+                ODF_arg.data = CO_OD_getDataPointer(pSDO, entryNo, subIndex); //https://github.com/CANopenNode/CANopenNode/issues/100
+                ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
+                ext->pODFunc(&ODF_arg);
+            }
+        }
+#endif
     }
 }
 
