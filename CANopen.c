@@ -707,7 +707,7 @@ void CO_delete(int32_t CANbaseAddress){
           free(CO_traceValueBuffers[i]);
       }
   #endif
-  #if CO_NO_SDO_CLIENT == 1
+  #if CO_NO_SDO_CLIENT != 0
       for(i=0; i<CO_NO_SDO_CLIENT; i++) {
           free(CO->SDOclient[i]);
       }
