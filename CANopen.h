@@ -228,7 +228,7 @@ CO_ReturnError_t CO_CANopenInit(
         uint8_t                 nodeId);
 
 
-#else /* CO_NO_LSS_SERVER == 1 */
+#else /* CO_NO_LSS_SERVER != 1 */
 /**
  * Initialize CANopen stack.
  *
@@ -246,7 +246,7 @@ CO_ReturnError_t CO_init(
         uint8_t                 nodeId,
         uint16_t                bitRate);
 
-#endif /* CO_NO_LSS_SERVER == 1 */
+#endif /* CO_NO_LSS_SERVER != 1 */
 
 
 /**
