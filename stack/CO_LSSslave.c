@@ -212,7 +212,7 @@ static void CO_LSSslave_serviceConfig(
                 /* Store "pending" to "persistent" */
                 result = LSSslave->pFunctLSScfgStore(LSSslave->functLSScfgStore,
                     LSSslave->pendingNodeID, LSSslave->pendingBitRate);
-                if (result != true) {
+                if (!result) {
                     errorCode = CO_LSS_CFG_STORE_FAILED;
                 }
             }
@@ -331,7 +331,7 @@ static void CO_LSSslave_serviceIdent(
             }
         }
     }
-    if (ack == true) {
+    if (ack) {
         LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
         CO_memset(&LSSslave->TXbuff->data[1], 0, 7);
         CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);

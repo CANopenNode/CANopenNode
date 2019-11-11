@@ -514,7 +514,7 @@ uint16_t CO_OD_getAttribute(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
             attr |= CO_ODA_WRITEABLE;
         }
 
-        if(subIndex == 0U  && exception_1003 == false){
+        if(subIndex == 0U  && exception_1003){
             /* First subIndex is readonly */
             attr &= ~(CO_ODA_WRITEABLE | CO_ODA_RPDO_MAPABLE);
             attr |= CO_ODA_READABLE;
@@ -757,7 +757,7 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
     }
 
     /* copy data from SDO buffer to OD if not domain */
-    if(ODdata != NULL && exception_1003 == false){
+    if((ODdata != NULL) && exception_1003){
         while(length--){
             *(ODdata++) = *(SDObuffer++);
         }
