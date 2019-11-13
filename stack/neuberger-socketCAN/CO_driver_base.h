@@ -204,7 +204,7 @@ static inline void CO_UNLOCK_OD()   { (void)pthread_mutex_unlock(&CO_OD_mutex); 
 /** Memory barrier */
 #define CANrxMemoryBarrier() {__sync_synchronize();}
 /** Check if new message has arrived */
-#define IS_CANrxNew(rxNew) ((int)rxNew)
+#define IS_CANrxNew(rxNew) ((uintptr_t)rxNew)
 /** Set new message flag */
 #define SET_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)1L;}
 /** Clear new message flag */
@@ -281,7 +281,7 @@ typedef struct{
 
 #ifdef CO_DRIVER_MULTI_INTERFACE
     /** info about last received message */
-    int32_t             CANbaseAddress; /**< CAN Interface identifier */
+    void               *CANdriverState; /**< CAN Interface identifier */
     struct timespec     timestamp;      /**< time of reception */
 #endif
 }CO_CANrx_t;
@@ -301,7 +301,7 @@ typedef struct{
     volatile bool_t     syncFlag;
 
     /** info about transmit message */
-    int32_t             CANbaseAddress; /**< CAN Interface identifier to use */
+    void               *CANdriverState; /**< CAN Interface identifier to use */
 } CO_CANtx_t;
 
 /**

@@ -71,16 +71,16 @@ void reset_mailbox_conf(can_mb_conf_t *p_mailbox)
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(Can *CANbaseAddress)
+void CO_CANsetConfigurationMode(void *CANdriverState)
 {
-  CO_UNUSED(CANbaseAddress);
+  CO_UNUSED(CANdriverState);
 }
 
 
 /******************************************************************************/
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule)
 {
-  CO_UNUSED(CANmodule->CANbaseAddress);
+  CO_UNUSED(CANmodule->CANdriverState);
 
     CANmodule->CANnormal = true;
 }
@@ -89,7 +89,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule)
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        Can                    *CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -105,7 +105,7 @@ CO_ReturnError_t CO_CANmodule_init(
     }
 
   /* Configure object variables */
-  CANmodule->CANbaseAddress = CANbaseAddress;
+  CANmodule->CANdriverState = CANdriverState;
   CANmodule->rxArray = rxArray;
   CANmodule->rxSize = rxSize;
   CANmodule->txArray = txArray;
@@ -130,7 +130,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
   /* Configure CAN module registers */
 
-  if (CANmodule->CANbaseAddress == CAN0)
+  if (((uintptr_t) CANmodule->CANdriverState) == CAN0)
   {
     /* CAN0 Transceiver */
     static sn65hvd234_ctrl_t can0_transceiver;
@@ -163,7 +163,7 @@ CO_ReturnError_t CO_CANmodule_init(
       NVIC_EnableIRQ(CAN0_IRQn);
     }
 
-    can_reset_all_mailbox(CANmodule->CANbaseAddress);
+    can_reset_all_mailbox(CANmodule->CANdriverState);
 
     /* CAN module filters are not used, all messages with standard 11-bit */
     /* identifier will be received */
@@ -182,10 +182,10 @@ CO_ReturnError_t CO_CANmodule_init(
       /* Standard mode only, not extended mode */
       CANmodule->rxMbConf[i].ul_id_msk = CAN_MAM_MIDvA_Msk;
       CANmodule->rxMbConf[i].ul_id = CAN_MID_MIDvA(0);
-      can_mailbox_init(CANmodule->CANbaseAddress, &CANmodule->rxMbConf[i]);
+      can_mailbox_init(CANmodule->CANdriverState, &CANmodule->rxMbConf[i]);
 
       /* Enable CAN0 mailbox number i interrupt. */
-      can_enable_interrupt(CANmodule->CANbaseAddress, (0x1u << i));
+      can_enable_interrupt(CANmodule->CANdriverState, (0x1u << i));
     }
 
     /* Init last CAN0 mailbox, number 7, as transmit mailbox */
@@ -195,10 +195,10 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->txMbConf.uc_tx_prio = 14;
     CANmodule->txMbConf.uc_id_ver = 0;
     CANmodule->txMbConf.ul_id_msk = 0;
-    can_mailbox_init(CANmodule->CANbaseAddress, &CANmodule->txMbConf);
+    can_mailbox_init(CANmodule->CANdriverState, &CANmodule->txMbConf);
   }
 
-  if (CANmodule->CANbaseAddress == CAN1)
+  if (CANmodule->CANdriverState == CAN1)
   {
     /* CAN1 Transceiver */
     static sn65hvd234_ctrl_t can1_transceiver;
@@ -229,7 +229,7 @@ CO_ReturnError_t CO_CANmodule_init(
       NVIC_EnableIRQ(CAN1_IRQn);
     }
 
-    can_reset_all_mailbox(CANmodule->CANbaseAddress);
+    can_reset_all_mailbox(CANmodule->CANdriverState);
 
     /* CAN module filters are not used, all messages with standard 11-bit */
     /* identifier will be received */
@@ -249,10 +249,10 @@ CO_ReturnError_t CO_CANmodule_init(
       /* Standard mode only, not extended mode */
       CANmodule->rxMbConf[i].ul_id_msk = CAN_MAM_MIDvA_Msk;
       CANmodule->rxMbConf[i].ul_id = CAN_MID_MIDvA(0);
-      can_mailbox_init(CANmodule->CANbaseAddress, &CANmodule->rxMbConf[i]);
+      can_mailbox_init(CANmodule->CANdriverState, &CANmodule->rxMbConf[i]);
 
       /* Enable CAN1 mailbox number i interrupt. */
-      can_enable_interrupt(CANmodule->CANbaseAddress, (0x1u << i));
+      can_enable_interrupt(CANmodule->CANdriverState, (0x1u << i));
     }
 
     /* Init last CAN1 mailbox, number 7, as transmit mailbox */
@@ -262,7 +262,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->txMbConf.uc_tx_prio = 14;
     CANmodule->txMbConf.uc_id_ver = 0;
     CANmodule->txMbConf.ul_id_msk = 0;
-    can_mailbox_init(CANmodule->CANbaseAddress, &CANmodule->txMbConf);
+    can_mailbox_init(CANmodule->CANdriverState, &CANmodule->txMbConf);
   }
 
   return CO_ERROR_NO;
@@ -273,7 +273,7 @@ CO_ReturnError_t CO_CANmodule_init(
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
 {
   /* Turn the module off  */
-  can_disable(CANmodule->CANbaseAddress);
+  can_disable(CANmodule->CANdriverState);
 }
 
 
@@ -372,7 +372,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
   CO_LOCK_CAN_SEND();
 
   /* If CAN TX buffer is free, copy message to it */
-  if (((can_mailbox_get_status(CANmodule->CANbaseAddress, CANMB_TX) & CAN_MSR_MRDY) == CAN_MSR_MRDY) && (CANmodule->CANtxCount == 0))
+  if (((can_mailbox_get_status(CANmodule->CANdriverState, CANMB_TX) & CAN_MSR_MRDY) == CAN_MSR_MRDY) && (CANmodule->CANtxCount == 0))
   {
     CANmodule->bufferInhibitFlag = buffer->syncFlag;
 
@@ -383,18 +383,18 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     CANmodule->txMbConf.uc_length = buffer->DLC;
 
     if (buffer->rtr)
-      can_mailbox_tx_remote_frame(CANmodule->CANbaseAddress, &CANmodule->txMbConf);
+      can_mailbox_tx_remote_frame(CANmodule->CANdriverState, &CANmodule->txMbConf);
     else
-      can_mailbox_write(CANmodule->CANbaseAddress, &CANmodule->txMbConf);
+      can_mailbox_write(CANmodule->CANdriverState, &CANmodule->txMbConf);
 
-    can_global_send_transfer_cmd(CANmodule->CANbaseAddress, 1 << CANMB_TX);
+    can_global_send_transfer_cmd(CANmodule->CANdriverState, 1 << CANMB_TX);
   }
   else /* If no buffer is free, message will be sent by interrupt */
   {
     buffer->bufferFull = true;
     CANmodule->CANtxCount++;
   }
-  can_enable_interrupt(CANmodule->CANbaseAddress, 0x1u << CANMB_TX);
+  can_enable_interrupt(CANmodule->CANdriverState, 0x1u << CANMB_TX);
   CO_UNLOCK_CAN_SEND();
 
   return err;
@@ -446,9 +446,9 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
   /* get error counters from module. Id possible, function may use different way to
   * determine errors. */
 
-  rxErrors = can_get_rx_error_cnt(CANmodule->CANbaseAddress);
+  rxErrors = can_get_rx_error_cnt(CANmodule->CANdriverState);
 
-  txErrors = can_get_tx_error_cnt(CANmodule->CANbaseAddress);
+  txErrors = can_get_tx_error_cnt(CANmodule->CANdriverState);
 
   //overflow = CANmodule->txSize;
 
@@ -516,12 +516,12 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule)
 {
   uint32_t ul_status;
 
-  ul_status = can_get_status(CANmodule->CANbaseAddress);
+  ul_status = can_get_status(CANmodule->CANdriverState);
   if (ul_status & GLOBAL_MAILBOX_MASK)
   {
     for (uint8_t i = 0; i < CANMB_NUMBER; i++)
     {
-      ul_status = can_mailbox_get_status(CANmodule->CANbaseAddress, i);
+      ul_status = can_mailbox_get_status(CANmodule->CANdriverState, i);
       if ((ul_status & CAN_MSR_MRDY) == CAN_MSR_MRDY) //Mailbox Ready Bit
       {
         //Handle interrupt
@@ -537,7 +537,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule)
 
           CANmodule->rxMbConf[i].ul_mb_idx = i;
           CANmodule->rxMbConf[i].ul_status = ul_status;
-          can_mailbox_read(CANmodule->CANbaseAddress, &CANmodule->rxMbConf[i]);
+          can_mailbox_read(CANmodule->CANdriverState, &CANmodule->rxMbConf[i]);
 
 
           /* Get message from module here */
@@ -617,11 +617,11 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule)
                 CANmodule->txMbConf.uc_length = buffer->DLC;
 
                 if (buffer->rtr)
-                  can_mailbox_tx_remote_frame(CANmodule->CANbaseAddress, &CANmodule->txMbConf);
+                  can_mailbox_tx_remote_frame(CANmodule->CANdriverState, &CANmodule->txMbConf);
                 else
-                  can_mailbox_write(CANmodule->CANbaseAddress, &CANmodule->txMbConf);
+                  can_mailbox_write(CANmodule->CANdriverState, &CANmodule->txMbConf);
 
-                can_global_send_transfer_cmd(CANmodule->CANbaseAddress, 1 << CANMB_TX);
+                can_global_send_transfer_cmd(CANmodule->CANdriverState, 1 << CANMB_TX);
 
                 break; /* Exit for loop */
               }
@@ -636,7 +636,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule)
           else
           {
             /* Nothing more to send */
-            can_disable_interrupt(CANmodule->CANbaseAddress, 0x1u << CANMB_TX);
+            can_disable_interrupt(CANmodule->CANdriverState, 0x1u << CANMB_TX);
           }
         }
         break;

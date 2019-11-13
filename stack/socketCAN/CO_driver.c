@@ -99,7 +99,7 @@ static CO_ReturnError_t setFilters(CO_CANmodule_t *CANmodule){
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(int32_t CANbaseAddress){
+void CO_CANsetConfigurationMode(void *CANdriverState){
 }
 
 
@@ -116,7 +116,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        int32_t                 CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -127,13 +127,13 @@ CO_ReturnError_t CO_CANmodule_init(
     uint16_t i;
 
     /* verify arguments */
-    if(CANmodule==NULL || CANbaseAddress==0 || rxArray==NULL || txArray==NULL){
+    if(CANmodule==NULL || CANdriverState==NULL || rxArray==NULL || txArray==NULL){
         ret = CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* Configure object variables */
     if(ret == CO_ERROR_NO){
-        CANmodule->CANbaseAddress = CANbaseAddress;
+        CANmodule->CANdriverState = CANdriverState;
         CANmodule->rxArray = rxArray;
         CANmodule->rxSize = rxSize;
         CANmodule->txArray = txArray;
@@ -173,8 +173,9 @@ CO_ReturnError_t CO_CANmodule_init(
         if(CANmodule->fd < 0){
             ret = CO_ERROR_ILLEGAL_ARGUMENT;
         }else{
+            const int * const ifindex_ptr = CANdriverState;
             sockAddr.can_family = AF_CAN;
-            sockAddr.can_ifindex = CANbaseAddress;
+            sockAddr.can_ifindex = *ifindex_ptr;
             if(bind(CANmodule->fd, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) != 0){
                 ret = CO_ERROR_ILLEGAL_ARGUMENT;
             }
@@ -335,7 +336,7 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
     CO_EM_t* em = (CO_EM_t*)CANmodule->em;
     uint32_t err;
 
-    canGetErrorCounters(CANmodule->CANbaseAddress, &rxErrors, &txErrors);
+    canGetErrorCounters(CANmodule->CANdriverState, &rxErrors, &txErrors);
     if(txErrors > 0xFFFF) txErrors = 0xFFFF;
     if(rxErrors > 0xFF) rxErrors = 0xFF;
 

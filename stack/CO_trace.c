@@ -47,7 +47,6 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-
 /* Different functions for processing value for different data types. */
 static int32_t getValueI8 (void *OD_variable) { return (int32_t) *((int8_t*)   OD_variable);}
 static int32_t getValueI16(void *OD_variable) { return (int32_t) *((int16_t*)  OD_variable);}
@@ -59,10 +58,10 @@ static int32_t getValueU32(void *OD_variable) { return           *((int32_t*)  O
 
 /* Different functions for printing points for different data types. */
 static uint32_t printPointCsv(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "%"PRIu32";%"PRId32"\n", timeStamp,             value);
+    return snprintf(s, size, "%" PRIu32 ";%" PRId32 "\n", timeStamp,              value);
 }
 static uint32_t printPointCsvUnsigned(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "%"PRIu32";%"PRIu32"\n", timeStamp, (uint32_t)  value);
+    return snprintf(s, size, "%" PRIu32 ";%" PRIu32 "\n", timeStamp, (uint32_t)   value);
 }
 static uint32_t printPointBinary(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
     if(size < 8) return 0;
@@ -71,16 +70,16 @@ static uint32_t printPointBinary(char *s, uint32_t size, uint32_t timeStamp, int
     return 8;
 }
 static uint32_t printPointSvgStart(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "M%"PRIu32",%"PRId32"", timeStamp,             value);
+    return snprintf(s, size, "M%" PRIu32 ",%" PRId32, timeStamp,             value);
 }
 static uint32_t printPointSvgStartUnsigned(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "M%"PRIu32",%"PRIu32"", timeStamp, (uint32_t)  value);
+    return snprintf(s, size, "M%" PRIu32 ",%" PRIu32, timeStamp, (uint32_t)  value);
 }
 static uint32_t printPointSvg(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "H%"PRIu32"V%"PRId32"", timeStamp,             value);
+    return snprintf(s, size, "H%" PRIu32 "V%" PRId32, timeStamp,             value);
 }
 static uint32_t printPointSvgUnsigned(char *s, uint32_t size, uint32_t timeStamp, int32_t value) {
-    return snprintf(s, size, "H%"PRIu32"V%"PRIu32"", timeStamp, (uint32_t)  value);
+    return snprintf(s, size, "H%" PRIu32 "V%" PRIu32, timeStamp, (uint32_t)  value);
 }
 
 

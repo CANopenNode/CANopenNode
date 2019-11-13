@@ -365,7 +365,7 @@ typedef struct{
 
 /* CAN module object. */
 typedef struct{
-    uint16_t            CANbaseAddress;
+    void               *CANdriverState;
     CO_CANrxMsg_t       CANmsgBuff[33]; /* PIC32 specific: CAN message buffer for CAN module. 32 buffers for receive, 1 buffer for transmit */
     uint8_t             CANmsgBuffSize; /* PIC32 specific: Size of the above buffer == 33. Take care initial value! */
     CO_CANrx_t         *rxArray;
@@ -387,7 +387,7 @@ typedef struct{
 
 
 /* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress);
+void CO_CANsetConfigurationMode(void *CANdriverState);
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 
@@ -401,7 +401,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

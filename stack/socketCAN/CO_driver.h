@@ -79,7 +79,7 @@
 #endif
 
 /* Syncronisation functions */
-#define IS_CANrxNew(rxNew) ((intptr_t)rxNew)
+#define IS_CANrxNew(rxNew) ((uintptr_t)rxNew)
 #define SET_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)1L;}
 #define CLEAR_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)0L;}
 
@@ -143,7 +143,7 @@ typedef struct{
 
 /* CAN module object. */
 typedef struct{
-    int32_t             CANbaseAddress;
+    void               *CANdriverState;
 #ifdef CO_LOG_CAN_MESSAGES
     CO_CANtx_t          txRecord;
 #endif
@@ -180,14 +180,14 @@ void CO_errExit(char* msg);
 
 
 /* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(int32_t fdSocket);
+void CO_CANsetConfigurationMode(void *CANdriverState);
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 
 /* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        int32_t                 CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

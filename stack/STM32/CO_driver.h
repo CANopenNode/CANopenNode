@@ -77,7 +77,7 @@
     #define CO_LOCK_OD()            __set_PRIMASK(1);
     #define CO_UNLOCK_OD()          __set_PRIMASK(0);
 
-    
+
 #define CLOCK_CAN                   RCC_APB1Periph_CAN1
 
 #define CAN_REMAP_2                 /* Select CAN1 remap 2 */
@@ -183,7 +183,7 @@ typedef struct{
 
 /* CAN module object. */
 typedef struct{
-    CAN_TypeDef        *CANbaseAddress;         /* STM32F4xx specific */
+    CAN_TypeDef        *CANdriverState;         /* STM32F4xx specific */
     CO_CANrx_t         *rxArray;
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
@@ -215,13 +215,13 @@ void CanLedsSet(eCoLeds led);
 
 
 /* Request CAN configuration or normal mode */
-//void CO_CANsetConfigurationMode(CAN_TypeDef *CANbaseAddress);
+//void CO_CANsetConfigurationMode(CAN_TypeDef *CANdriverState);
 //void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 /* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        CAN_TypeDef            *CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
