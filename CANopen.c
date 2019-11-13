@@ -391,17 +391,17 @@ CO_ReturnError_t CO_new(void)
 
 /******************************************************************************/
 CO_ReturnError_t CO_CANinit(
-        int32_t                 CANbaseAddress,
+        void                   *CANdriverState,
         uint16_t                bitRate)
 {
     CO_ReturnError_t err;
 
     CO->CANmodule[0]->CANnormal = false;
-    CO_CANsetConfigurationMode(CANbaseAddress);
+    CO_CANsetConfigurationMode(CANdriverState);
 
     err = CO_CANmodule_init(
             CO->CANmodule[0],
-            CANbaseAddress,
+            CANdriverState,
             CO_CANmodule_rxArray0,
             CO_RXCAN_NO_MSGS,
             CO_CANmodule_txArray0,
@@ -663,7 +663,7 @@ CO_ReturnError_t CO_CANopenInit(
 
 /******************************************************************************/
 CO_ReturnError_t CO_init(
-        int32_t                 CANbaseAddress,
+        void                   *CANdriverState,
         uint8_t                 nodeId,
         uint16_t                bitRate)
 {
@@ -674,15 +674,15 @@ CO_ReturnError_t CO_init(
         return err;
     }
 
-    err = CO_CANinit(CANbaseAddress, bitRate);
+    err = CO_CANinit(CANdriverState, bitRate);
     if (err) {
-        CO_delete(CANbaseAddress);
+        CO_delete(CANdriverState);
         return err;
     }
 
     err = CO_CANopenInit(nodeId);
     if (err) {
-        CO_delete(CANbaseAddress);
+        CO_delete(CANdriverState);
         return err;
     }
 
@@ -691,12 +691,12 @@ CO_ReturnError_t CO_init(
 
 
 /******************************************************************************/
-void CO_delete(int32_t CANbaseAddress){
+void CO_delete(void *CANdriverState){
 #ifndef CO_USE_GLOBALS
     int16_t i;
 #endif
 
-    CO_CANsetConfigurationMode(CANbaseAddress);
+    CO_CANsetConfigurationMode(CANdriverState);
     CO_CANmodule_disable(CO->CANmodule[0]);
 
 #ifndef CO_USE_GLOBALS

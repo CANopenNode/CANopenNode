@@ -54,7 +54,7 @@ unsigned int CO_interruptStatus = 0;
 /**
  * Macro and Constants - CAN module registers
  */
-    #define CAN_REG(base, offset) (*((volatile uint32_t *) ((base) + _CAN1_BASE_ADDRESS + (offset))))
+    #define CAN_REG(base, offset) (*((volatile uint32_t *) (((uintptr_t) base) + _CAN1_BASE_ADDRESS + (offset))))
 
     #define CLR          0x04
     #define SET          0x08
@@ -91,20 +91,20 @@ unsigned int CO_interruptStatus = 0;
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
-    uint32_t C_CONcopy = CAN_REG(CANbaseAddress, C_CON);
+void CO_CANsetConfigurationMode(void *CANdriverState){
+    uint32_t C_CONcopy = CAN_REG(CANdriverState, C_CON);
 
     /* switch ON can module */
     C_CONcopy |= 0x00008000;
-    CAN_REG(CANbaseAddress, C_CON) = C_CONcopy;
+    CAN_REG(CANdriverState, C_CON) = C_CONcopy;
 
     /* request configuration mode */
     C_CONcopy &= 0xF8FFFFFF;
     C_CONcopy |= 0x04000000;
-    CAN_REG(CANbaseAddress, C_CON) = C_CONcopy;
+    CAN_REG(CANdriverState, C_CON) = C_CONcopy;
 
     /* wait for configuration mode */
-    while((CAN_REG(CANbaseAddress, C_CON) & 0x00E00000) != 0x00800000);
+    while((CAN_REG(CANdriverState, C_CON) & 0x00E00000) != 0x00800000);
 }
 
 
@@ -112,10 +112,10 @@ void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 
     /* request normal mode */
-    CAN_REG(CANmodule->CANbaseAddress, C_CON+CLR) = 0x07000000;
+    CAN_REG(CANmodule->CANdriverState, C_CON+CLR) = 0x07000000;
 
     /* wait for normal mode */
-    while((CAN_REG(CANmodule->CANbaseAddress, C_CON) & 0x00E00000) != 0x00000000);
+    while((CAN_REG(CANmodule->CANdriverState, C_CON) & 0x00E00000) != 0x00000000);
 
     CANmodule->CANnormal = true;
 }
@@ -124,7 +124,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -139,7 +139,7 @@ CO_ReturnError_t CO_CANmodule_init(
     }
 
     /* Configure object variables */
-    CANmodule->CANbaseAddress = CANbaseAddress;
+    CANmodule->CANdriverState = CANdriverState;
     CANmodule->CANmsgBuffSize = 33; /* Must be the same as size of CANmodule->CANmsgBuff array. */
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
@@ -170,13 +170,13 @@ CO_ReturnError_t CO_CANmodule_init(
 
 
     /* Configure control register (configuration mode, receive timer stamp is enabled, module is on) */
-    CAN_REG(CANbaseAddress, C_CON) = 0x04108000;
+    CAN_REG(CANdriverState, C_CON) = 0x04108000;
 
 
     /* Configure FIFO */
-    CAN_REG(CANbaseAddress, C_FIFOBA) = CO_KVA_TO_PA(CANmodule->CANmsgBuff);/* FIFO base address */
-    CAN_REG(CANbaseAddress, C_FIFOCON) = (NO_CAN_RXF==32) ? 0x001F0000 : 0x000F0000;     /* FIFO0: receive FIFO, 32(16) buffers */
-    CAN_REG(CANbaseAddress, C_FIFOCON+0x40) = 0x00000080;/* FIFO1: transmit FIFO, 1 buffer */
+    CAN_REG(CANdriverState, C_FIFOBA) = CO_KVA_TO_PA(CANmodule->CANmsgBuff);/* FIFO base address */
+    CAN_REG(CANdriverState, C_FIFOCON) = (NO_CAN_RXF==32) ? 0x001F0000 : 0x000F0000;     /* FIFO0: receive FIFO, 32(16) buffers */
+    CAN_REG(CANdriverState, C_FIFOCON+0x40) = 0x00000080;/* FIFO1: transmit FIFO, 1 buffer */
 
 
     /* Configure CAN timing */
@@ -191,7 +191,7 @@ CO_ReturnError_t CO_CANmodule_init(
         case 800:  i=6; break;
         case 1000: i=7; break;
     }
-    CAN_REG(CANbaseAddress, C_CFG) =
+    CAN_REG(CANdriverState, C_CFG) =
         ((uint32_t)(CO_CANbitRateData[i].phSeg2 - 1)) << 16 |  /* SEG2PH */
         0x00008000                                            |  /* SEG2PHTS = 1, SAM = 0 */
         ((uint32_t)(CO_CANbitRateData[i].phSeg1 - 1)) << 11 |  /* SEG1PH */
@@ -203,35 +203,35 @@ CO_ReturnError_t CO_CANmodule_init(
     /* CAN module hardware filters */
     /* clear all filter control registers (disable filters, mask 0 and FIFO 0 selected for all filters) */
     for(i=0; i<(NO_CAN_RXF/4); i++)
-        CAN_REG(CANbaseAddress, C_FLTCON+i*0x10) = 0x00000000;
+        CAN_REG(CANdriverState, C_FLTCON+i*0x10) = 0x00000000;
     if(CANmodule->useCANrxFilters){
         /* CAN module filters are used, they will be configured with */
         /* CO_CANrxBufferInit() functions, called by separate CANopen */
         /* init functions. */
         /* Configure all masks so, that received message must match filter */
-        CAN_REG(CANbaseAddress, C_RXM) = 0xFFE80000;
-        CAN_REG(CANbaseAddress, C_RXM+0x10) = 0xFFE80000;
-        CAN_REG(CANbaseAddress, C_RXM+0x20) = 0xFFE80000;
-        CAN_REG(CANbaseAddress, C_RXM+0x30) = 0xFFE80000;
+        CAN_REG(CANdriverState, C_RXM) = 0xFFE80000;
+        CAN_REG(CANdriverState, C_RXM+0x10) = 0xFFE80000;
+        CAN_REG(CANdriverState, C_RXM+0x20) = 0xFFE80000;
+        CAN_REG(CANdriverState, C_RXM+0x30) = 0xFFE80000;
     }
     else{
         /* CAN module filters are not used, all messages with standard 11-bit */
         /* identifier will be received */
         /* Configure mask 0 so, that all messages with standard identifier are accepted */
-        CAN_REG(CANbaseAddress, C_RXM) = 0x00080000;
+        CAN_REG(CANdriverState, C_RXM) = 0x00080000;
         /* configure one filter for FIFO 0 and enable it */
-        CAN_REG(CANbaseAddress, C_RXF) = 0x00000000;
-        CAN_REG(CANbaseAddress, C_FLTCON) = 0x00000080;
+        CAN_REG(CANdriverState, C_RXF) = 0x00000000;
+        CAN_REG(CANdriverState, C_FLTCON) = 0x00000080;
     }
 
 
     /* CAN interrupt registers */
     /* Enable 'RX buffer not empty' (RXNEMPTYIE) interrupt in FIFO 0 (third layer interrupt) */
-    CAN_REG(CANbaseAddress, C_FIFOINT) = 0x00010000;
+    CAN_REG(CANdriverState, C_FIFOINT) = 0x00010000;
     /* Enable 'Tx buffer empty' (TXEMPTYIE) interrupt in FIFO 1 (third layer interrupt) */
-    CAN_REG(CANbaseAddress, C_FIFOINT+0x40) = 0x00000000; /* will be enabled in CO_CANsend */
+    CAN_REG(CANdriverState, C_FIFOINT+0x40) = 0x00000000; /* will be enabled in CO_CANsend */
     /* Enable receive (RBIE) and transmit (TBIE) buffer interrupt (secont layer interrupt) */
-    CAN_REG(CANbaseAddress, C_INT) = 0x00030000;
+    CAN_REG(CANdriverState, C_INT) = 0x00030000;
     /* CAN interrupt (first layer) must be configured by application */
 
     return CO_ERROR_NO;
@@ -240,7 +240,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
-    CO_CANsetConfigurationMode(CANmodule->CANbaseAddress);
+    CO_CANsetConfigurationMode(CANmodule->CANdriverState);
 }
 
 
@@ -284,7 +284,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
             volatile uint32_t *pRXM0, *pRXM1, *pRXM2, *pRXM3;
             volatile uint8_t *pFLTCON;
             uint8_t selectMask;
-            uint16_t addr = CANmodule->CANbaseAddress;
+            uint16_t addr = CANmodule->CANdriverState;
 
             /* get correct part of the filter control register */
             pFLTCON = (volatile uint8_t*)(&CAN_REG(addr, C_FLTCON)); /* pointer to first filter control register */
@@ -374,7 +374,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
 /******************************************************************************/
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CO_ReturnError_t err = CO_ERROR_NO;
-    uint16_t addr = CANmodule->CANbaseAddress;
+    uint16_t addr = CANmodule->CANdriverState;
     volatile uint32_t* TX_FIFOcon = &CAN_REG(addr, C_FIFOCON+0x40);
     volatile uint32_t* TX_FIFOconSet = &CAN_REG(addr, C_FIFOCON+0x48);
     uint32_t* TXmsgBuffer = CO_PA_TO_KVA1(CAN_REG(addr, C_FIFOUA+0x40));
@@ -420,8 +420,8 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
 /******************************************************************************/
 void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
     uint32_t tpdoDeleted = 0U;
-    volatile uint32_t* TX_FIFOcon = &CAN_REG(CANmodule->CANbaseAddress, C_FIFOCON+0x40);
-    volatile uint32_t* TX_FIFOconClr = &CAN_REG(CANmodule->CANbaseAddress, C_FIFOCON+0x44);
+    volatile uint32_t* TX_FIFOcon = &CAN_REG(CANmodule->CANdriverState, C_FIFOCON+0x40);
+    volatile uint32_t* TX_FIFOconClr = &CAN_REG(CANmodule->CANdriverState, C_FIFOCON+0x44);
 
     CO_LOCK_CAN_SEND();
     /* Abort message from CAN module, if there is synchronous TPDO.
@@ -462,11 +462,11 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
     CO_EM_t* em = (CO_EM_t*)CANmodule->em;
     uint32_t err;
 
-    TREC = CAN_REG(CANmodule->CANbaseAddress, C_TREC);
+    TREC = CAN_REG(CANmodule->CANdriverState, C_TREC);
     rxErrors = (uint8_t) TREC;
     txErrors = (uint8_t) (TREC>>8);
     if(TREC&0x00200000) txErrors = 256; /* bus off */
-    overflow = (CAN_REG(CANmodule->CANbaseAddress, C_FIFOINT)&0x8) ? 1 : 0;
+    overflow = (CAN_REG(CANmodule->CANdriverState, C_FIFOINT)&0x8) ? 1 : 0;
 
     err = ((uint32_t)txErrors << 16) | ((uint32_t)rxErrors << 8) | overflow;
 
@@ -518,7 +518,7 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
     uint8_t ICODE;
-    ICODE = (uint8_t) CAN_REG(CANmodule->CANbaseAddress, C_VEC) & 0x7F;
+    ICODE = (uint8_t) CAN_REG(CANmodule->CANdriverState, C_VEC) & 0x7F;
 
     /* receive interrupt (New CAN message is available in RX FIFO 0 buffer) */
     if(ICODE == 0){
@@ -528,7 +528,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
         bool_t msgMatched = false;
 
-        rcvMsg = (CO_CANrxMsg_t*) CO_PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA));
+        rcvMsg = (CO_CANrxMsg_t*) CO_PA_TO_KVA1(CAN_REG(CANmodule->CANdriverState, C_FIFOUA));
         rcvMsgIdent = rcvMsg->ident;
         if(rcvMsg->RTR) rcvMsgIdent |= 0x0800;
         if(CANmodule->useCANrxFilters){
@@ -562,7 +562,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         }
 
         /* Update the message buffer pointer */
-        CAN_REG(CANmodule->CANbaseAddress, C_FIFOCON+0x08) = 0x2000;   /* set UINC */
+        CAN_REG(CANmodule->CANdriverState, C_FIFOCON+0x08) = 0x2000;   /* set UINC */
     }
 
 
@@ -587,9 +587,9 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
 
                     /* Copy message to CAN buffer */
                     CANmodule->bufferInhibitFlag = buffer->syncFlag;
-                    uint32_t* TXmsgBuffer = CO_PA_TO_KVA1(CAN_REG(CANmodule->CANbaseAddress, C_FIFOUA+0x40));
+                    uint32_t* TXmsgBuffer = CO_PA_TO_KVA1(CAN_REG(CANmodule->CANdriverState, C_FIFOUA+0x40));
                     uint32_t* message = (uint32_t*) buffer;
-                    volatile uint32_t* TX_FIFOconSet = &CAN_REG(CANmodule->CANbaseAddress, C_FIFOCON+0x48);
+                    volatile uint32_t* TX_FIFOconSet = &CAN_REG(CANmodule->CANdriverState, C_FIFOCON+0x48);
                     *(TXmsgBuffer++) = *(message++);
                     *(TXmsgBuffer++) = *(message++);
                     *(TXmsgBuffer++) = *(message++);
@@ -609,7 +609,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
 
         /* if no more messages, disable 'Tx buffer empty' (TXEMPTYIE) interrupt */
         if(CANmodule->CANtxCount == 0U){
-            CAN_REG(CANmodule->CANbaseAddress, C_FIFOINT+0x44) = 0x01000000;
+            CAN_REG(CANmodule->CANdriverState, C_FIFOINT+0x44) = 0x01000000;
         }
     }
 }

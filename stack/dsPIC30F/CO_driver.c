@@ -52,7 +52,7 @@ extern const CO_CANbitRateData_t  CO_CANbitRateData[8];
 /**
  * Macro and Constants - CAN module registers - offset.
  */
-    #define CAN_REG(base, offset) (*((volatile uint16_t *) (base + offset)))
+    #define CAN_REG(base, offset) (*((volatile uint16_t *) (((uintptr_t) base) + offset)))
 
     #define C_RXF0SID    0x00
     #define C_RXF0EIDH   0x02
@@ -102,29 +102,29 @@ extern const CO_CANbitRateData_t  CO_CANbitRateData[8];
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
-    uint16_t C_CTRLcopy = CAN_REG(CANbaseAddress, C_CTRL);
+void CO_CANsetConfigurationMode(void *CANdriverState){
+    uint16_t C_CTRLcopy = CAN_REG(CANdriverState, C_CTRL);
 
     /* set REQOP = 0x4 */
     C_CTRLcopy &= 0xFCFF;
     C_CTRLcopy |= 0x0400;
-    CAN_REG(CANbaseAddress, C_CTRL) = C_CTRLcopy;
+    CAN_REG(CANdriverState, C_CTRL) = C_CTRLcopy;
 
     /* while OPMODE != 4 */
-    while((CAN_REG(CANbaseAddress, C_CTRL) & 0x00E0) != 0x0080);
+    while((CAN_REG(CANdriverState, C_CTRL) & 0x00E0) != 0x0080);
 }
 
 
 /******************************************************************************/
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
-    uint16_t C_CTRLcopy = CAN_REG(CANmodule->CANbaseAddress, C_CTRL);
+    uint16_t C_CTRLcopy = CAN_REG(CANmodule->CANdriverState, C_CTRL);
 
     /* set REQOP = 0x0 */
     C_CTRLcopy &= 0xF8FF;
-    CAN_REG(CANmodule->CANbaseAddress, C_CTRL) = C_CTRLcopy;
+    CAN_REG(CANmodule->CANdriverState, C_CTRL) = C_CTRLcopy;
 
     /* while OPMODE != 0 */
-    while((CAN_REG(CANmodule->CANbaseAddress, C_CTRL) & 0x00E0) != 0x0000);
+    while((CAN_REG(CANmodule->CANdriverState, C_CTRL) & 0x00E0) != 0x0000);
 
     CANmodule->CANnormal = true;
 }
@@ -133,7 +133,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -148,7 +148,7 @@ CO_ReturnError_t CO_CANmodule_init(
     }
 
     /* Configure object variables */
-    CANmodule->CANbaseAddress = CANbaseAddress;
+    CANmodule->CANdriverState = CANdriverState;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
@@ -171,7 +171,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
 
     /* Configure control register */
-    CAN_REG(CANbaseAddress, C_CTRL) = 0x0400;
+    CAN_REG(CANdriverState, C_CTRL) = 0x0400;
 
 
     /* Configure CAN timing */
@@ -188,44 +188,44 @@ CO_ReturnError_t CO_CANmodule_init(
     }
 
     if(CO_CANbitRateData[i].scale == 1)
-        CAN_REG(CANbaseAddress, C_CTRL) |= 0x0800;
+        CAN_REG(CANdriverState, C_CTRL) |= 0x0800;
 
-    CAN_REG(CANbaseAddress, C_CFG1) = (CO_CANbitRateData[i].SJW - 1) << 6 |
+    CAN_REG(CANdriverState, C_CFG1) = (CO_CANbitRateData[i].SJW - 1) << 6 |
                                          (CO_CANbitRateData[i].BRP - 1);
 
-    CAN_REG(CANbaseAddress, C_CFG2) = ((uint16_t)(CO_CANbitRateData[i].phSeg2 - 1)) << 8 |
+    CAN_REG(CANdriverState, C_CFG2) = ((uint16_t)(CO_CANbitRateData[i].phSeg2 - 1)) << 8 |
                                         0x0080 |
                                         (CO_CANbitRateData[i].phSeg1 - 1) << 3 |
                                         (CO_CANbitRateData[i].PROP - 1);
 
 
     /* setup RX and TX control registers */
-    CAN_REG(CANbaseAddress, C_RXBUF0 + C_RXCON) = 0x0040;
-    CAN_REG(CANbaseAddress, C_RXBUF1 + C_RXCON) = 0x0000;
-    CAN_REG(CANbaseAddress, C_TXBUF0 + C_TXCON) = 0x0000;
-    CAN_REG(CANbaseAddress, C_TXBUF1 + C_TXCON) = 0x0000;
-    CAN_REG(CANbaseAddress, C_TXBUF2 + C_TXCON) = 0x0000;
+    CAN_REG(CANdriverState, C_RXBUF0 + C_RXCON) = 0x0040;
+    CAN_REG(CANdriverState, C_RXBUF1 + C_RXCON) = 0x0000;
+    CAN_REG(CANdriverState, C_TXBUF0 + C_TXCON) = 0x0000;
+    CAN_REG(CANdriverState, C_TXBUF1 + C_TXCON) = 0x0000;
+    CAN_REG(CANdriverState, C_TXBUF2 + C_TXCON) = 0x0000;
 
 
     /* CAN module hardware filters */
-    CAN_REG(CANbaseAddress, C_RXF0SID) = 0x0000;
-    CAN_REG(CANbaseAddress, C_RXF1SID) = 0x0000;
-    CAN_REG(CANbaseAddress, C_RXF2SID) = 0x0000;
-    CAN_REG(CANbaseAddress, C_RXF3SID) = 0x0000;
-    CAN_REG(CANbaseAddress, C_RXF4SID) = 0x0000;
-    CAN_REG(CANbaseAddress, C_RXF5SID) = 0x0000;
+    CAN_REG(CANdriverState, C_RXF0SID) = 0x0000;
+    CAN_REG(CANdriverState, C_RXF1SID) = 0x0000;
+    CAN_REG(CANdriverState, C_RXF2SID) = 0x0000;
+    CAN_REG(CANdriverState, C_RXF3SID) = 0x0000;
+    CAN_REG(CANdriverState, C_RXF4SID) = 0x0000;
+    CAN_REG(CANdriverState, C_RXF5SID) = 0x0000;
     /* CAN module filters are not used, all messages with standard 11-bit */
     /* identifier will be received */
     /* Set masks so, that all messages with standard identifier are accepted */
-    CAN_REG(CANbaseAddress, C_RXM0SID) = 0x0001;
-    CAN_REG(CANbaseAddress, C_RXM1SID) = 0x0001;
+    CAN_REG(CANdriverState, C_RXM0SID) = 0x0001;
+    CAN_REG(CANdriverState, C_RXM1SID) = 0x0001;
 
 
     /* CAN interrupt registers */
     /* clear interrupt flags */
-    CAN_REG(CANbaseAddress, C_INTF) = 0x0000;
+    CAN_REG(CANdriverState, C_INTF) = 0x0000;
     /* enable both two receive interrupts and one transmit interrupt for TX0 */
-    CAN_REG(CANbaseAddress, C_INTE) = 0x0007;
+    CAN_REG(CANdriverState, C_INTE) = 0x0007;
     /* CAN interrupt (combined) must be configured by application */
 
     return CO_ERROR_NO;
@@ -234,7 +234,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
-    CO_CANsetConfigurationMode(CANmodule->CANbaseAddress);
+    CO_CANsetConfigurationMode(CANmodule->CANdriverState);
 }
 
 
@@ -354,7 +354,7 @@ static void CO_CANsendToModule(uint16_t dest, CO_CANtx_t *src){
 /******************************************************************************/
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CO_ReturnError_t err = CO_ERROR_NO;
-    uint16_t addr = CANmodule->CANbaseAddress;
+    uint16_t addr = CANmodule->CANdriverState;
 
     /* Verify overflow */
     if(buffer->bufferFull){
@@ -394,7 +394,7 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
     uint8_t err;
     CO_EM_t* em = (CO_EM_t*)CANmodule->em;
 
-    err = CAN_REG(CANmodule->CANbaseAddress, C_INTF)>>8;
+    err = CAN_REG(CANmodule->CANdriverState, C_INTF)>>8;
 
     if(CANmodule->errOld != err){
         CANmodule->errOld = err;
@@ -402,7 +402,7 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
         /* CAN RX bus overflow */
         if(err & 0xC0){
             CO_errorReport(em, CO_EM_CAN_RXB_OVERFLOW, CO_EMC_CAN_OVERRUN, err);
-            CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0x3FFF;/* clear bits */
+            CAN_REG(CANmodule->CANdriverState, C_INTF) &= 0x3FFF;/* clear bits */
         }
 
         /* CAN TX bus off */
@@ -447,7 +447,7 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
     uint16_t ICODE;
-    ICODE = CAN_REG(CANmodule->CANbaseAddress, C_CTRL) & 0xE;
+    ICODE = CAN_REG(CANmodule->CANdriverState, C_CTRL) & 0xE;
 
     /* receive interrupt 0 (New CAN messagge is available in RX buffer 0) */
     if(ICODE == 0xC){
@@ -457,7 +457,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
         bool_t msgMatched = false;
 
-        rcvMsg = (CO_CANrxMsg_t*) (CANmodule->CANbaseAddress + C_RXBUF0);
+        rcvMsg = (CO_CANrxMsg_t*) (CANmodule->CANdriverState + C_RXBUF0);
         rcvMsgIdent = rcvMsg->ident;
         /* CAN module filters are not used, message with any standard 11-bit identifier */
         /* has been received. Search rxArray form CANmodule for the same CAN-ID. */
@@ -479,7 +479,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         rcvMsg->CON &= 0xFF7F;
 
         /* Clear interrupt flag */
-        CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0xFFFE;
+        CAN_REG(CANmodule->CANdriverState, C_INTF) &= 0xFFFE;
     }
 
 
@@ -491,7 +491,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
         bool_t msgMatched = false;
 
-        rcvMsg = (CO_CANrxMsg_t*) (CANmodule->CANbaseAddress + C_RXBUF1);
+        rcvMsg = (CO_CANrxMsg_t*) (CANmodule->CANdriverState + C_RXBUF1);
         rcvMsgIdent = rcvMsg->ident;
         /* CAN module filters are not used, message with any standard 11-bit identifier */
         /* has been received. Search rxArray form CANmodule for the same CAN-ID. */
@@ -513,20 +513,20 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         rcvMsg->CON &= 0xFF7F;
 
         /* Clear interrupt flag */
-        CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0xFFFD;
+        CAN_REG(CANmodule->CANdriverState, C_INTF) &= 0xFFFD;
     }
 
 
     /* transmit interrupt (TX buffer is free) */
     else if(ICODE == 0x8){
         /* Clear interrupt flag */
-        CAN_REG(CANmodule->CANbaseAddress, C_INTF) &= 0xFFFB;
+        CAN_REG(CANmodule->CANdriverState, C_INTF) &= 0xFFFB;
         /* First CAN message (bootup) was sent successfully */
         CANmodule->firstCANtxMessage = false;
         /* clear flag from previous message */
         CANmodule->bufferInhibitFlag = false;
         /* Are there any new messages waiting to be send and buffer is free */
-        if(CANmodule->CANtxCount > 0U && (CAN_REG(CANmodule->CANbaseAddress, C_TXBUF0 + C_TXCON) & 0x8) == 0){
+        if(CANmodule->CANtxCount > 0U && (CAN_REG(CANmodule->CANdriverState, C_TXBUF0 + C_TXCON) & 0x8) == 0){
             uint16_t i;             /* index of transmitting message */
 
             /* first buffer */
@@ -540,7 +540,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
 
                     /* Copy message to CAN buffer */
                     CANmodule->bufferInhibitFlag = buffer->syncFlag;
-                    CO_CANsendToModule(CANmodule->CANbaseAddress + C_TXBUF0, buffer);
+                    CO_CANsendToModule(CANmodule->CANdriverState + C_TXBUF0, buffer);
                     break;                      /* exit for loop */
                 }
                 buffer++;

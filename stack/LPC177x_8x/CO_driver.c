@@ -151,13 +151,13 @@ void CO_CANrxMsgHandler(void *object, const CO_CANrxMsg_t *message){
 }
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(uint16_t CANbaseAddress){
+void CO_CANsetConfigurationMode(void *CANdriverState){
 }
 
 
 /******************************************************************************/
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
-            
+
     Chip_CAN_SetAFMode(LPC_CANAF, CAN_AF_NORMAL_MODE);
 
     CANmodule->CANnormal = true;
@@ -167,7 +167,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -176,33 +176,33 @@ CO_ReturnError_t CO_CANmodule_init(
 {
     uint16_t i;
     uint8_t nodeId=0;
-    
+
     /* verify arguments */
     if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* Configure object variables */
-    CANmodule->CANbaseAddress = CANbaseAddress;
+    CANmodule->CANdriverState = CANdriverState;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
     CANmodule->CANnormal = false;
-#if AF_LUT_USED    
+#if AF_LUT_USED
     CANmodule->useCANrxFilters = (rxSize <= 32U) ? true : false;/* microcontroller dependent */
 #else
     CANmodule->useCANrxFilters = false;
-#endif    
+#endif
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;
     CANmodule->CANtxCount = 0U;
     CANmodule->errOld = 0U;
     CANmodule->em = NULL;
 
-     
+
     DEBUGOUT("CO_CANmodule_init Baud: %d\r\n",(CANbitRate * 1000));
-    
+
     for(i=0U; i<rxSize; i++){
         rxArray[i].ident = 0U;
         rxArray[i].pFunct = CO_CANrxMsgHandler;
@@ -214,7 +214,7 @@ CO_ReturnError_t CO_CANmodule_init(
     Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 4, (IOCON_FUNC2 | IOCON_MODE_INACT | IOCON_DIGMODE_EN));
 	/* CAN_TD2*/
     Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 5, (IOCON_FUNC2 | IOCON_MODE_INACT | IOCON_DIGMODE_EN ));
-   
+
     /* CAN_TERMINATION swapped over with nCAN_HEARTBEAT, so this pin is actually CAN_TERMINATION*/
     Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 21, (IOCON_FUNC0 | IOCON_MODE_INACT ));
     Chip_GPIO_WriteDirBit(LPC_GPIO, 1, 21, true);
@@ -223,7 +223,7 @@ CO_ReturnError_t CO_CANmodule_init(
     Chip_IOCON_PinMuxSet(LPC_IOCON, CAN_RUN_LED_PORT, CAN_RUN_LED_PIN, IOCON_FUNC0);
     Chip_GPIO_WriteDirBit(LPC_GPIO, CAN_RUN_LED_PORT, CAN_RUN_LED_PIN, true);
     Chip_GPIO_WritePortBit(LPC_GPIO, CAN_RUN_LED_PORT,CAN_RUN_LED_PIN, true);
-    
+
     Chip_IOCON_PinMuxSet(LPC_IOCON, CAN_NODE_ID_0_PORT, CAN_NODE_ID_0_PIN, (IOCON_FUNC0 | IOCON_MODE_INACT));
     Chip_GPIO_WriteDirBit(LPC_GPIO, CAN_NODE_ID_0_PORT, CAN_NODE_ID_0_PIN, false);
     Chip_IOCON_PinMuxSet(LPC_IOCON, CAN_NODE_ID_1_PORT, CAN_NODE_ID_1_PIN, (IOCON_FUNC0 | IOCON_MODE_INACT));
@@ -234,7 +234,7 @@ CO_ReturnError_t CO_CANmodule_init(
     Chip_GPIO_WriteDirBit(LPC_GPIO, CAN_NODE_ID_3_PORT, CAN_NODE_ID_3_PIN, false);
     Chip_IOCON_PinMuxSet(LPC_IOCON, CAN_NODE_ID_4_PORT, CAN_NODE_ID_4_PIN, (IOCON_FUNC0 | IOCON_MODE_INACT));
     Chip_GPIO_WriteDirBit(LPC_GPIO, CAN_NODE_ID_4_PORT, CAN_NODE_ID_4_PIN, false);
-    
+
     nodeId = 0;
     nodeId |= (uint8_t)(Chip_GPIO_GetPinState(LPC_GPIO, CAN_NODE_ID_0_PORT, CAN_NODE_ID_0_PIN) ? 1: 0);
     nodeId |= (uint8_t)(Chip_GPIO_GetPinState(LPC_GPIO, CAN_NODE_ID_1_PORT, CAN_NODE_ID_1_PIN) ? (1<<1): 0);
@@ -244,7 +244,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
     DEBUGOUT("CO_CANmodule_init nodeId: 0x%x\r\n",nodeId);
     OD_CANNodeID = nodeId;
-    
+
     /* Configure CAN module registers */
 	Chip_CAN_Init(LPC_CAN, LPC_CANAF, LPC_CANAF_RAM);
     /* Configure CAN timing */
@@ -255,7 +255,7 @@ CO_ReturnError_t CO_CANmodule_init(
     /* Configure CAN module hardware filters */
     if(CANmodule->useCANrxFilters){
         DEBUGOUT("\tCAN Rx Acceptance Filters ON \r\n");
-#if AF_LUT_USED        
+#if AF_LUT_USED
         /* CAN module filters are used, they will be configured with */
         /* CO_CANrxBufferInit() functions, called by separate CANopen */
         /* init functions. */
@@ -270,11 +270,11 @@ CO_ReturnError_t CO_CANmodule_init(
 #else
         Chip_CAN_SetAFMode(LPC_CANAF, CAN_AF_NORMAL_MODE);
 #endif /*FULL_CAN_AF_USED*/
-        
-#else                
+
+#else
         DEBUGOUT("\tCAN Rx Acceptance Filters NOT OPERATIONAL for the debug stages\r\n");
         Chip_CAN_SetAFMode(LPC_CANAF, CAN_AF_BYBASS_MODE);
-#endif        
+#endif
     }
     else
 	{
@@ -282,12 +282,12 @@ CO_ReturnError_t CO_CANmodule_init(
         /* identifier will be received */
         /* Configure mask 0 so, that all messages with standard identifier are accepted */
         Chip_CAN_SetAFMode(LPC_CANAF, CAN_AF_BYBASS_MODE);
-                
+
         DEBUGOUT("\tCAN Rx Acceptance Filters Bypass \r\n");
     }
     /* configure CAN interrupt registers */
     NVIC_EnableIRQ(CAN_IRQn);
-    
+
     return CO_ERROR_NO;
 }
 
@@ -308,9 +308,9 @@ uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg){
 uint16_t CO_CAN_Get_My_NodeID(void){
 
     uint16_t     myNodeId=0;
-    
+
     myNodeId = Chip_GPIO_ReadPortBit(LPC_GPIO, CAN_NODE_ID_0_PORT, CAN_NODE_ID_0_PIN);
-    
+
     return myNodeId;
 }
 /******************************************************************************/
@@ -324,7 +324,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
         void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message))
 {
     CO_ReturnError_t ret = CO_ERROR_NO;
-    
+
     if((CANmodule!=NULL) && (object!=NULL) && (pFunct!=NULL) && (index < CANmodule->rxSize)){
         /* buffer, which will be configured */
         CO_CANrx_t *buffer = &CANmodule->rxArray[index];
@@ -359,7 +359,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
         bool_t                  syncFlag)
 {
     CO_CANtx_t *buffer = NULL;
-    
+
     if((CANmodule != NULL) && (index < CANmodule->txSize)){
         /* get specific buffer */
         buffer = &CANmodule->txArray[index];
@@ -382,7 +382,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CO_ReturnError_t err = CO_ERROR_NO;
 	CAN_BUFFER_ID_T   TxBuf;
-    
+
     /* Verify overflow */
     if(buffer->bufferFull){
         if(!CANmodule->firstCANtxMessage){
@@ -391,16 +391,16 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
         }
         err = CO_ERROR_TX_OVERFLOW;
     }
-  
+
     CO_LOCK_CAN_SEND();
-    
+
     /* if CAN TX buffer is free, copy message to it */
     TxBuf = Chip_CAN_GetFreeTxBuf(LPC_CAN);
     if( TxBuf < CAN_BUFFER_LAST && CANmodule->CANtxCount == 0){
         CANmodule->bufferInhibitFlag = buffer->syncFlag;
         /* copy message and txRequest */
         Chip_CAN_Send(LPC_CAN, TxBuf,(CAN_MSG_T*)buffer);
-       
+
         /*DEBUGOUT("CO_CANsend!!!\r\n");*/
         /*PrintCANMsg((CAN_MSG_T*)buffer);*/
     }
@@ -422,12 +422,12 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
     uint32_t tpdoDeleted = 0U;
 
     CO_LOCK_CAN_SEND();
-    
+
     /* Abort message from CAN module, if there is synchronous TPDO.
      * Take special care with this functionality. */
     /*Check if any of the buffer is pending transmition and bufferInhibitFlag is true*/
     if(( 0 == (Chip_CAN_GetGlobalStatus(LPC_CAN) & CAN_GSR_TBS)) && CANmodule->bufferInhibitFlag){
-       
+
         /* if not already in progress, a pending Transmission Request for
             the selected Transmit Buffer is cancelled. */
         Chip_CAN_SetCmd(LPC_CAN, CAN_CMR_STB(CAN_BUFFER_1) | CAN_CMR_AT);
@@ -470,8 +470,8 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
 
     /* get error counters from module. Id possible, function may use different way to
      * determine errors. */
-    rxErrors = CAN_GSR_RXERR(Chip_CAN_GetGlobalStatus(LPC_CAN)); 
-    txErrors = CAN_GSR_TXERR(Chip_CAN_GetGlobalStatus(LPC_CAN)); 
+    rxErrors = CAN_GSR_RXERR(Chip_CAN_GetGlobalStatus(LPC_CAN));
+    txErrors = CAN_GSR_TXERR(Chip_CAN_GetGlobalStatus(LPC_CAN));
     overflow = (Chip_CAN_GetGlobalStatus(LPC_CAN) & CAN_GSR_DOS) ; /*CAN Data Overrun Status */  CANmodule->txSize;
 
     err = ((uint32_t)txErrors << 16) | ((uint32_t)rxErrors << 8) | overflow;
@@ -532,19 +532,19 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
     CO_CANrx_t *buffer = NULL;  /* receive message buffer from CO_CANmodule_t object. */
     bool_t msgMatched = false;
     CAN_BUFFER_ID_T   TxBuf;
-                
+
     /*Read the int status register */
     IntStatus = Chip_CAN_GetIntStatus(LPC_CAN);
 
-    
+
     /* receive interrupt */
     if(IntStatus & CAN_ICR_RI){
- 
+
         /* get message from module */
         Chip_CAN_Receive(LPC_CAN,(CAN_MSG_T*)&RcvMsgBuf);
         rcvMsg = &RcvMsgBuf;
         rcvMsgIdent = rcvMsg->ident;
-         
+
 #if AF_LUT_USED   /*Implement once AF will be used*/
         if(CANmodule->useCANrxFilters){
 
@@ -560,7 +560,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
             }
         }
         else
-#endif            
+#endif
         {
             /* CAN module filters are not used, message with any standard 11-bit identifier */
             /* has been received. Search rxArray form CANmodule for the same CAN-ID. */
@@ -572,18 +572,18 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
                 }
                 buffer++;
             }
-            
+
         }
 
         /* Call specific function, which will process the message */
         if(msgMatched && (buffer != NULL) && (buffer->pFunct != NULL)){
-        
+
             buffer->pFunct(buffer->object, rcvMsg);
         }
 		else
 		{
-			DEBUGOUT("Unsupported Message Received!!!\r\n");  
-            PrintCANMsg((CAN_MSG_T*)rcvMsg); 
+			DEBUGOUT("Unsupported Message Received!!!\r\n");
+            PrintCANMsg((CAN_MSG_T*)rcvMsg);
 		}
 
         /* Clear interrupt flag */
@@ -703,7 +703,7 @@ static void PrintAFLUT(void)
 	CAN_EXT_ID_ENTRY_T ExtEntry;
 	CAN_STD_ID_RANGE_ENTRY_T StdGrpEntry;
 	CAN_EXT_ID_RANGE_ENTRY_T ExtGrpEntry;
-   
+
     DEBUGOUT("Print AF LUT... \r\n");
 #if FULL_CAN_AF_USED
 	/* Full CAN Table */
@@ -771,7 +771,7 @@ static void ChangeAFLUT(void)
 	CAN_STD_ID_RANGE_ENTRY_T StdGrpEntry = {{CAN_CTRL_NO, 0, 0x7A0}, {CAN_CTRL_NO, 0, 0x7B0}};
 	CAN_EXT_ID_RANGE_ENTRY_T ExtGrpEntry = {{CAN_CTRL_NO, ((1 << 11) | 0x7A0)}, {CAN_CTRL_NO, ((1 << 11) | 0x7B0)}};
 
-	
+
 #if FULL_CAN_AF_USED
 	/* Edit Full CAN Table */
 	Chip_CAN_InsertFullCANEntry(LPC_CANAF, LPC_CANAF_RAM, &FullEntry);
@@ -835,7 +835,7 @@ static void ChangeAFLUT(void)
 	Chip_CAN_RemoveGroupEXTEntry(LPC_CANAF, LPC_CANAF_RAM, Chip_CAN_GetEntriesNum(LPC_CANAF, LPC_CANAF_RAM, CANAF_RAM_EFF_GRP_SEC) - 1);
 	Chip_CAN_RemoveGroupEXTEntry(LPC_CANAF, LPC_CANAF_RAM, Chip_CAN_GetEntriesNum(LPC_CANAF, LPC_CANAF_RAM, CANAF_RAM_EFF_GRP_SEC) / 2);
 	PrintAFLUT();
-#endif    
+#endif
 }
 
 #endif

@@ -283,7 +283,7 @@ typedef struct{
  * CAN module object. It may be different in different microcontrollers.
  */
 typedef struct{
-    int32_t             CANbaseAddress; /**< From CO_CANmodule_init() */
+    void               *CANdriverState; /**< From CO_CANmodule_init() */
     CO_CANrx_t         *rxArray;        /**< From CO_CANmodule_init() */
     uint16_t            rxSize;         /**< From CO_CANmodule_init() */
     CO_CANtx_t         *txArray;        /**< From CO_CANmodule_init() */
@@ -309,7 +309,7 @@ typedef struct{
 
 
 /**
- * Endianes.
+ * Endianness.
  *
  * Depending on processor or compiler architecture, one of the two macros must
  * be defined: CO_LITTLE_ENDIAN or CO_BIG_ENDIAN. CANopen itself is little endian.
@@ -320,9 +320,9 @@ typedef struct{
 /**
  * Request CAN configuration (stopped) mode and *wait* untill it is set.
  *
- * @param CANbaseAddress CAN module base address.
+ * @param CANdriverState User-provided CAN module structure.
  */
-void CO_CANsetConfigurationMode(int32_t CANbaseAddress);
+void CO_CANsetConfigurationMode(void *CANdriverState);
 
 
 /**
@@ -340,7 +340,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  * be in Configuration Mode before.
  *
  * @param CANmodule This object will be initialized.
- * @param CANbaseAddress CAN module base address.
+ * @param CANdriverState User-provided CAN module structure..
  * @param rxArray Array for handling received CAN messages
  * @param rxSize Size of the above array. Must be equal to number of receiving CAN objects.
  * @param txArray Array for handling transmitting CAN messages
@@ -352,7 +352,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        int32_t                 CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

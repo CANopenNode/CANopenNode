@@ -281,7 +281,7 @@ typedef struct{
 
 #ifdef CO_DRIVER_MULTI_INTERFACE
     /** info about last received message */
-    int32_t             CANbaseAddress; /**< CAN Interface identifier */
+    void               *CANdriverState; /**< CAN Interface identifier */
     struct timespec     timestamp;      /**< time of reception */
 #endif
 }CO_CANrx_t;
@@ -301,7 +301,7 @@ typedef struct{
     volatile bool_t     syncFlag;
 
     /** info about transmit message */
-    int32_t             CANbaseAddress; /**< CAN Interface identifier to use */
+    void               *CANdriverState; /**< CAN Interface identifier to use */
 } CO_CANtx_t;
 
 /**

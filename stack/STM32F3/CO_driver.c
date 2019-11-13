@@ -66,7 +66,8 @@ static uint8_t CO_CANsendToModule(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(CAN_TypeDef* CANbaseAddress){
+void CO_CANsetConfigurationMode(void *CANdriverState){
+    (void) CANdriverState;
 }
 
 
@@ -79,7 +80,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        CAN_TypeDef            *CANbaseAddress,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -97,7 +98,7 @@ CO_ReturnError_t CO_CANmodule_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    CANmodule->CANbaseAddress = CANbaseAddress;
+    CANmodule->CANdriverState = CANdriverState;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
@@ -109,14 +110,14 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->CANtxCount = 0;
     CANmodule->errOld = 0;
     CANmodule->em = 0;
-	
-    CAN_ITConfig(CANmodule->CANbaseAddress, (CAN_IT_TME | CAN_IT_FMP0), DISABLE);
+
+    CAN_ITConfig(CANmodule->CANdriverState, (CAN_IT_TME | CAN_IT_FMP0), DISABLE);
 
     for (i = 0; i < rxSize; i++) {
         CANmodule->rxArray[i].ident = 0;
         CANmodule->rxArray[i].pFunct = 0;
     }
-    
+
     for (i = 0; i < txSize; i++) {
         CANmodule->txArray[i].bufferFull = 0;
     }
@@ -128,9 +129,9 @@ CO_ReturnError_t CO_CANmodule_init(
     CO_CANconfigGPIO();
 
     /* Init CAN controler */
-    CAN_DeInit(CANmodule->CANbaseAddress);
+    CAN_DeInit(CANmodule->CANdriverState);
     CAN_StructInit(&CAN_InitStruct);
- 
+
     switch (CANbitRate) {
         case 1000: CAN_InitStruct.CAN_Prescaler = 2;
             break;
@@ -150,13 +151,13 @@ CO_ReturnError_t CO_CANmodule_init(
         case 10: CAN_InitStruct.CAN_Prescaler = 200;
             break;
     }
-    
+
     CAN_InitStruct.CAN_SJW = CAN_SJW_1tq;     // changed by VJ, old value = CAN_SJW_1tq;
     CAN_InitStruct.CAN_BS1 = CAN_BS1_13tq;    // changed by VJ, old value = CAN_BS1_3tq;
     CAN_InitStruct.CAN_BS2 = CAN_BS2_2tq;     // changed by VJ, old value = CAN_BS2_2tq;
     CAN_InitStruct.CAN_NART = ENABLE;         // No Automatic retransmision
 
-    result = CAN_Init(CANmodule->CANbaseAddress, &CAN_InitStruct);
+    result = CAN_Init(CANmodule->CANdriverState, &CAN_InitStruct);
     if (result == 0) {
        return CO_ERROR_TIMEOUT;  /* CO- Return Init failed */
     }
@@ -185,7 +186,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
     /* Can_init function of ST Driver puts the controller into the normal mode */
 
-    CAN_ITConfig(CANmodule->CANbaseAddress, (CAN_IT_TME | CAN_IT_FMP0), ENABLE);
+    CAN_ITConfig(CANmodule->CANdriverState, (CAN_IT_TME | CAN_IT_FMP0), ENABLE);
 
     return CO_ERROR_NO;
 }
@@ -193,7 +194,7 @@ CO_ReturnError_t CO_CANmodule_init(
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
 {
-    CAN_DeInit(CANmodule->CANbaseAddress);
+    CAN_DeInit(CANmodule->CANdriverState);
 }
 
 /******************************************************************************/
@@ -282,7 +283,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     }
 
     CO_LOCK_CAN_SEND();
-    
+
     /* First try to transmit the message immediately if mailbox is free.
      * Only one TX mailbox is used of the three available in the hardware */
     CANmodule->bufferInhibitFlag = buffer->syncFlag;
@@ -306,13 +307,13 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
 
     CO_LOCK_CAN_SEND();
     /* Abort message from CAN module, if there is synchronous TPDO. */
-    state = CAN_TransmitStatus(CANmodule->CANbaseAddress, CO_CAN_TXMAILBOX);
+    state = CAN_TransmitStatus(CANmodule->CANdriverState, CO_CAN_TXMAILBOX);
     if((state == CAN_TxStatus_Pending) && (CANmodule->bufferInhibitFlag)) {
-        CAN_CancelTransmit(CANmodule->CANbaseAddress, CO_CAN_TXMAILBOX);
+        CAN_CancelTransmit(CANmodule->CANdriverState, CO_CAN_TXMAILBOX);
         CANmodule->bufferInhibitFlag = false;
         tpdoDeleted = 1U;
     }
-    
+
     /* delete also pending synchronous TPDOs in TX buffers */
     if(CANmodule->CANtxCount != 0U){
         uint16_t i;
@@ -342,15 +343,15 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule)
     uint32_t err;
     CO_EM_t* em = (CO_EM_t*)CANmodule->em;
 
-    err = CANmodule->CANbaseAddress->ESR;
+    err = CANmodule->CANdriverState->ESR;
 
     if(CANmodule->errOld != err) {
         CANmodule->errOld = err;
 
         /* CAN RX bus overflow */
-        if(CANmodule->CANbaseAddress->RF0R & 0x10) {
+        if(CANmodule->CANdriverState->RF0R & 0x10) {
             CO_errorReport(em, CO_EM_CAN_RXB_OVERFLOW, CO_EMC_CAN_OVERRUN, err);
-            CANmodule->CANbaseAddress->RF0R &=~0x10;//clear bits
+            CANmodule->CANdriverState->RF0R &=~0x10;//clear bits
         }
 
         /* CAN TX bus off */
@@ -360,7 +361,7 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule)
         else {
             CO_errorReset(em, CO_EM_CAN_TX_BUS_OFF, err);
         }
-        
+
         /* CAN TX or RX bus passive */
         if(err & 0x02) {
             if(!CANmodule->firstCANtxMessage) CO_errorReport(em, CO_EM_CAN_TX_BUS_PASSIVE, CO_EMC_CAN_PASSIVE, err);
@@ -391,8 +392,8 @@ void CO_CANinterrupt_Rx(CO_CANmodule_t *CANmodule)
     uint8_t msgMatched = 0;
     CO_CANrx_t *msgBuff = CANmodule->rxArray;
 
-	CAN_Receive(CANmodule->CANbaseAddress, CAN_FilterFIFO0, &CAN1_RxMsg);
-    
+	CAN_Receive(CANmodule->CANdriverState, CAN_FilterFIFO0, &CAN1_RxMsg);
+
     for (index = 0; index < CANmodule->rxSize; index++) {
         uint16_t msg = (CAN1_RxMsg.StdId << 2) | (CAN1_RxMsg.RTR ? 2 : 0);
 
@@ -402,7 +403,7 @@ void CO_CANinterrupt_Rx(CO_CANmodule_t *CANmodule)
         }
         msgBuff++;
     }
-    
+
     /* Call specific function, which will process the message */
     if (msgMatched && msgBuff->pFunct) {
         msgBuff->pFunct(msgBuff->object, (CO_CANrxMsg_t*) &CAN1_RxMsg);
@@ -415,10 +416,10 @@ void CO_CANinterrupt_Tx(CO_CANmodule_t *CANmodule)
 {
     /* First CAN message (bootup) was sent successfully */
     CANmodule->firstCANtxMessage = 0;
-    
+
     /* clear flag from previous message */
     CANmodule->bufferInhibitFlag = 0;
-    
+
     /* Are there any new messages waiting to be send */
     if (CANmodule->CANtxCount > 0) {
         uint16_t i;             /* index of transmitting message */
@@ -431,7 +432,7 @@ void CO_CANinterrupt_Tx(CO_CANmodule_t *CANmodule)
             if(buffer->bufferFull) {
                 buffer->bufferFull = 0;
                 CANmodule->CANtxCount--;
-                
+
                 /* Copy message to CAN buffer */
                 CANmodule->bufferInhibitFlag = buffer->syncFlag;
                 CO_CANsendToModule(CANmodule, buffer);
@@ -451,8 +452,8 @@ static uint8_t CO_CANsendToModule(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     CAN_TxMailBox_TypeDef* txMbox;
 
     /* Checks if the transmit mailbox is available */
-    if ((CANmodule->CANbaseAddress->TSR & CAN_TSR_TME0) == CAN_TSR_TME0) {
-        txMbox = &CANmodule->CANbaseAddress->sTxMailBox[CO_CAN_TXMAILBOX];
+    if ((CANmodule->CANdriverState->TSR & CAN_TSR_TME0) == CAN_TSR_TME0) {
+        txMbox = &CANmodule->CANdriverState->sTxMailBox[CO_CAN_TXMAILBOX];
     }
     else {
         return CAN_TxStatus_NoMailBox;
@@ -466,21 +467,21 @@ static uint8_t CO_CANsendToModule(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     buffer->DLC &= (uint8_t)0x0000000F;
     txMbox->TDTR &= (uint32_t)0xFFFFFFF0;
     txMbox->TDTR |= buffer->DLC;
-    
+
     /* Data field */
-    txMbox->TDLR = (((uint32_t)buffer->data[3] << 24) |  
+    txMbox->TDLR = (((uint32_t)buffer->data[3] << 24) |
                     ((uint32_t)buffer->data[2] << 16) |
-                    ((uint32_t)buffer->data[1] << 8) | 
+                    ((uint32_t)buffer->data[1] << 8) |
                     ((uint32_t)buffer->data[0]));
-                    
-    txMbox->TDHR = (((uint32_t)buffer->data[7] << 24) | 
+
+    txMbox->TDHR = (((uint32_t)buffer->data[7] << 24) |
                     ((uint32_t)buffer->data[6] << 16) |
                     ((uint32_t)buffer->data[5] << 8) |
                     ((uint32_t)buffer->data[4]));
-                    
+
     /* Request transmission */
     txMbox->TIR |= 1;
-    
+
     return 0;
 }
 
@@ -501,9 +502,9 @@ static void CO_CANconfigGPIO (void)
 	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_Level_1;
 	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	
+
 	GPIO_Init(GPIO_CAN, &GPIO_InitStruct);
-    
+
     /* Map to correct alternative function (9 == CAN) */
 	GPIO_PinAFConfig(GPIO_CAN, GPIO_PinSource_CAN_RX, GPIO_AF_9);
 	GPIO_PinAFConfig(GPIO_CAN, GPIO_PinSource_CAN_TX, GPIO_AF_9);
