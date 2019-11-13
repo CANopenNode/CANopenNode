@@ -66,8 +66,8 @@ static uint8_t CO_CANsendToModule(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(void *CANdevicePtr){
-    (void) CANdevicePtr;
+void CO_CANsetConfigurationMode(void *CANdriverState){
+    (void) CANdriverState;
 }
 
 
@@ -80,7 +80,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdevicePtr,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -98,7 +98,7 @@ CO_ReturnError_t CO_CANmodule_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    CANmodule->CANdevicePtr = CANdevicePtr;
+    CANmodule->CANdriverState = CANdriverState;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
@@ -111,7 +111,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->errOld = 0;
     CANmodule->em = 0;
 
-    CAN_ITConfig(CANmodule->CANdevicePtr, (CAN_IT_TME | CAN_IT_FMP0), DISABLE);
+    CAN_ITConfig(CANmodule->CANdriverState, (CAN_IT_TME | CAN_IT_FMP0), DISABLE);
 
     for (i = 0; i < rxSize; i++) {
         CANmodule->rxArray[i].ident = 0;
@@ -129,7 +129,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CO_CANconfigGPIO();
 
     /* Init CAN controler */
-    CAN_DeInit(CANmodule->CANdevicePtr);
+    CAN_DeInit(CANmodule->CANdriverState);
     CAN_StructInit(&CAN_InitStruct);
 
     switch (CANbitRate) {
@@ -157,7 +157,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CAN_InitStruct.CAN_BS2 = CAN_BS2_2tq;     // changed by VJ, old value = CAN_BS2_2tq;
     CAN_InitStruct.CAN_NART = ENABLE;         // No Automatic retransmision
 
-    result = CAN_Init(CANmodule->CANdevicePtr, &CAN_InitStruct);
+    result = CAN_Init(CANmodule->CANdriverState, &CAN_InitStruct);
     if (result == 0) {
        return CO_ERROR_TIMEOUT;  /* CO- Return Init failed */
     }
@@ -186,7 +186,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
     /* Can_init function of ST Driver puts the controller into the normal mode */
 
-    CAN_ITConfig(CANmodule->CANdevicePtr, (CAN_IT_TME | CAN_IT_FMP0), ENABLE);
+    CAN_ITConfig(CANmodule->CANdriverState, (CAN_IT_TME | CAN_IT_FMP0), ENABLE);
 
     return CO_ERROR_NO;
 }
@@ -194,7 +194,7 @@ CO_ReturnError_t CO_CANmodule_init(
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
 {
-    CAN_DeInit(CANmodule->CANdevicePtr);
+    CAN_DeInit(CANmodule->CANdriverState);
 }
 
 /******************************************************************************/
@@ -307,9 +307,9 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
 
     CO_LOCK_CAN_SEND();
     /* Abort message from CAN module, if there is synchronous TPDO. */
-    state = CAN_TransmitStatus(CANmodule->CANdevicePtr, CO_CAN_TXMAILBOX);
+    state = CAN_TransmitStatus(CANmodule->CANdriverState, CO_CAN_TXMAILBOX);
     if((state == CAN_TxStatus_Pending) && (CANmodule->bufferInhibitFlag)) {
-        CAN_CancelTransmit(CANmodule->CANdevicePtr, CO_CAN_TXMAILBOX);
+        CAN_CancelTransmit(CANmodule->CANdriverState, CO_CAN_TXMAILBOX);
         CANmodule->bufferInhibitFlag = false;
         tpdoDeleted = 1U;
     }
@@ -343,15 +343,15 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule)
     uint32_t err;
     CO_EM_t* em = (CO_EM_t*)CANmodule->em;
 
-    err = CANmodule->CANdevicePtr->ESR;
+    err = CANmodule->CANdriverState->ESR;
 
     if(CANmodule->errOld != err) {
         CANmodule->errOld = err;
 
         /* CAN RX bus overflow */
-        if(CANmodule->CANdevicePtr->RF0R & 0x10) {
+        if(CANmodule->CANdriverState->RF0R & 0x10) {
             CO_errorReport(em, CO_EM_CAN_RXB_OVERFLOW, CO_EMC_CAN_OVERRUN, err);
-            CANmodule->CANdevicePtr->RF0R &=~0x10;//clear bits
+            CANmodule->CANdriverState->RF0R &=~0x10;//clear bits
         }
 
         /* CAN TX bus off */
@@ -392,7 +392,7 @@ void CO_CANinterrupt_Rx(CO_CANmodule_t *CANmodule)
     uint8_t msgMatched = 0;
     CO_CANrx_t *msgBuff = CANmodule->rxArray;
 
-	CAN_Receive(CANmodule->CANdevicePtr, CAN_FilterFIFO0, &CAN1_RxMsg);
+	CAN_Receive(CANmodule->CANdriverState, CAN_FilterFIFO0, &CAN1_RxMsg);
 
     for (index = 0; index < CANmodule->rxSize; index++) {
         uint16_t msg = (CAN1_RxMsg.StdId << 2) | (CAN1_RxMsg.RTR ? 2 : 0);
@@ -452,8 +452,8 @@ static uint8_t CO_CANsendToModule(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     CAN_TxMailBox_TypeDef* txMbox;
 
     /* Checks if the transmit mailbox is available */
-    if ((CANmodule->CANdevicePtr->TSR & CAN_TSR_TME0) == CAN_TSR_TME0) {
-        txMbox = &CANmodule->CANdevicePtr->sTxMailBox[CO_CAN_TXMAILBOX];
+    if ((CANmodule->CANdriverState->TSR & CAN_TSR_TME0) == CAN_TSR_TME0) {
+        txMbox = &CANmodule->CANdriverState->sTxMailBox[CO_CAN_TXMAILBOX];
     }
     else {
         return CAN_TxStatus_NoMailBox;

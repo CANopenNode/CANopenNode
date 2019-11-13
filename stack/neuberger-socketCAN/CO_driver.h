@@ -93,7 +93,7 @@ extern "C" {
  * socketCAN interface object
  */
 typedef struct {
-    void               *CANdevicePtr;   /**< CAN Interface identifier */
+    void               *CANdriverState;   /**< CAN Interface identifier */
     char                ifName[IFNAMSIZ]; /**< CAN Interface name */
     int                 fd;               /**< socketCAN file descriptor */
 #ifdef CO_DRIVER_ERROR_REPORTING
@@ -131,9 +131,9 @@ typedef struct{
 /**
  * Request CAN configuration (stopped) mode and *wait* until it is set.
  *
- * @param CANdevicePtr CAN module base address.
+ * @param CANdriverState CAN module base address.
  */
-void CO_CANsetConfigurationMode(void *CANdevicePtr);
+void CO_CANsetConfigurationMode(void *CANdriverState);
 
 
 /**
@@ -152,7 +152,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  * be in Configuration Mode before.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdevicePtr unused
+ * @param CANdriverState unused
  * @param rxArray Array for handling received CAN messages
  * @param rxSize Size of the above array. Must be equal to number of receiving CAN objects.
  * @param txArray Array for handling transmitting CAN messages
@@ -169,7 +169,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  * be in Configuration Mode before.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdevicePtr CAN module base address.
+ * @param CANdriverState CAN module base address.
  * @param rxArray Array for handling received CAN messages
  * @param rxSize Size of the above array. Must be equal to number of receiving CAN objects.
  * @param txArray Array for handling transmitting CAN messages
@@ -182,7 +182,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 #endif
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdevicePtr,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -197,13 +197,13 @@ CO_ReturnError_t CO_CANmodule_init(
  * Function must be called after CO_CANmodule_init.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdevicePtr CAN module base address.
+ * @param CANdriverState CAN module base address.
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_SYSCALL or CO_ERROR_INVALID_STATE.
  */
 CO_ReturnError_t CO_CANmodule_addInterface(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdevicePtr);
+        void                   *CANdriverState);
 
 #endif
 
@@ -266,7 +266,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
  *
  * @param CANmodule This object.
  * @param ident 11-bit standard CAN Identifier.
- * @param [out] CANdevicePtrRx message was received on this interface
+ * @param [out] CANdriverStateRx message was received on this interface
  * @param [out] timestamp message was received at this time (system clock)
  *
  * @retval false message has never been received, therefore no base address
@@ -276,7 +276,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
 bool_t CO_CANrxBuffer_getInterface(
         CO_CANmodule_t         *CANmodule,
         uint32_t                ident,
-        void                  **CANdevicePtrRx,
+        void                  **CANdriverStateRx,
         struct timespec        *timestamp);
 
 #endif
@@ -319,14 +319,14 @@ CO_CANtx_t *CO_CANtxBufferInit(
  *
  * @param CANmodule This object.
  * @param ident 11-bit standard CAN Identifier.
- * @param CANdevicePtrTx use this interface. NULL = not specified
+ * @param CANdriverStateTx use this interface. NULL = not specified
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_CANtxBuffer_setInterface(
         CO_CANmodule_t         *CANmodule,
         uint32_t                ident,
-        void                   *CANdevicePtrTx);
+        void                   *CANdriverStateTx);
 
 #endif
 

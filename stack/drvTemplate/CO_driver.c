@@ -51,7 +51,7 @@
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(void *CANdevicePtr){
+void CO_CANsetConfigurationMode(void *CANdriverState){
     /* Put CAN module in configuration mode */
 }
 
@@ -67,7 +67,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdevicePtr,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -82,7 +82,7 @@ CO_ReturnError_t CO_CANmodule_init(
     }
 
     /* Configure object variables */
-    CANmodule->CANdevicePtr = CANdevicePtr;
+    CANmodule->CANdriverState = CANdriverState;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;

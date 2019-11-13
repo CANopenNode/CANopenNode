@@ -444,7 +444,7 @@ typedef struct{
 
 /* CAN module object. */
 typedef struct{
-    void               *CANdevicePtr;
+    void               *CANdriverState;
     __eds__ CO_CANrxMsg_t *CANmsgBuff;  /* dsPIC33F specific: CAN message buffer for CAN module */
     uint8_t             CANmsgBuffSize; /* dsPIC33F specific: Size of the above buffer */
     CO_CANrx_t         *rxArray;
@@ -466,14 +466,14 @@ typedef struct{
 
 
 /* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(void *CANdevicePtr);
+void CO_CANsetConfigurationMode(void *CANdriverState);
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 
 
 /* Initialize CAN module object. */
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdevicePtr,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],

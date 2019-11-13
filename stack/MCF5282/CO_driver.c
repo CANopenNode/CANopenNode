@@ -52,7 +52,7 @@ extern const CO_CANbitRateData_t  CO_CANbitRateData[8];
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(void *CANdevicePtr){
+void CO_CANsetConfigurationMode(void *CANdriverState){
 
     /* sets the module as running */
     MCF_FlexCAN_CANMCR &= ~MCF_FlexCAN_CANMCR_STOP;
@@ -80,7 +80,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdevicePtr,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -96,7 +96,7 @@ CO_ReturnError_t CO_CANmodule_init(
     }
 
     /* Configure object variables */
-    CANmodule->CANdevicePtr = CANdevicePtr;
+    CANmodule->CANdriverState = CANdriverState;
     CANmodule->CANmsgBuffSize = nb_CANbuff;
     CANmodule->rxArray = rxArray;
     CANmodule->rxSize = rxSize;
@@ -209,7 +209,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
-    CO_CANsetConfigurationMode(CANmodule->CANdevicePtr);
+    CO_CANsetConfigurationMode(CANmodule->CANdriverState);
 }
 
 

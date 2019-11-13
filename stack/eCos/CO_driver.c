@@ -156,7 +156,7 @@ static void reportErrorReturnCode(Cyg_ErrNo ErrCode, CO_CANmodule_t *CANmodule,
  * Set mode of CAN controller (configuration, active...)
  * This function properly handles errors when setting mode
  */
-static void setCAN_Mode(cyg_can_mode mode, void *CANdevicePtr)
+static void setCAN_Mode(cyg_can_mode mode, void *CANdriverState)
 {
 	if (!can_module)
 	{
@@ -176,16 +176,16 @@ static void setCAN_Mode(cyg_can_mode mode, void *CANdevicePtr)
 
 
 //=============================================================================
-void CO_CANsetConfigurationMode(void *CANdevicePtr)
+void CO_CANsetConfigurationMode(void *CANdriverState)
 {
-	setCAN_Mode(CYGNUM_CAN_MODE_CONFIG, CANdevicePtr);
+	setCAN_Mode(CYGNUM_CAN_MODE_CONFIG, CANdriverState);
 }
 
 
 //=============================================================================
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule)
 {
-	setCAN_Mode(CYGNUM_CAN_MODE_START, CANmodule->CANdevicePtr);
+	setCAN_Mode(CYGNUM_CAN_MODE_START, CANmodule->CANdriverState);
 
     CANmodule->CANnormal = true;
 }
@@ -510,7 +510,7 @@ Cyg_ErrNo canInit(CO_CANmodule_t* CANmodule, uint16_t CANbitRate)
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdevicePtr,
+        void                   *CANdriverState,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
