@@ -1,7 +1,7 @@
 /**
  * CAN module object for Linux socketCAN.
  *
- * @file        CO_driver_target.h
+ * @file        CO_driver_base.h
  * @ingroup     CO_driver
  * @author      Janez Paternoster, Martin Wagner
  * @copyright   2004 - 2015 Janez Paternoster, 2018 Neuberger Gebaeudeautomation GmbH
@@ -57,25 +57,9 @@
 #include <linux/can.h>
 #include <net/if.h>
 
-#include "CO_types.h"
-
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
-
-/**
- * Endianness.
- *
- * Depending on processor or compiler architecture, one of the two macros must
- * be defined: CO_LITTLE_ENDIAN or CO_BIG_ENDIAN. CANopen itself is little endian.
- */
-#ifdef __BYTE_ORDER
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    #define CO_LITTLE_ENDIAN
-#else
-    #define CO_BIG_ENDIAN
-#endif /* __BYTE_ORDER == __LITTLE_ENDIAN */
-#endif /* __BYTE_ORDER */
+#endif
 
 /**
  * @defgroup CO_driver Driver
@@ -233,14 +217,41 @@ static inline void CO_UNLOCK_OD()   { (void)pthread_mutex_unlock(&CO_OD_mutex); 
  *
  * According to Misra C
  */
-/* int8_t to uint64_t are defined in stdint.h */
-typedef unsigned char           bool_t;     /**< bool_t */
-typedef float                   float32_t;  /**< float32_t */
-typedef long double             float64_t;  /**< float64_t */
-typedef char                    char_t;     /**< char_t */
-typedef unsigned char           oChar_t;    /**< oChar_t */
-typedef unsigned char           domain_t;   /**< domain_t */
+    /* int8_t to uint64_t are defined in stdint.h */
+    typedef unsigned char           bool_t;     /**< bool_t */
+    typedef float                   float32_t;  /**< float32_t */
+    typedef long double             float64_t;  /**< float64_t */
+    typedef char                    char_t;     /**< char_t */
+    typedef unsigned char           oChar_t;    /**< oChar_t */
+    typedef unsigned char           domain_t;   /**< domain_t */
 /** @} */
+
+
+/**
+ * Return values of some CANopen functions. If function was executed
+ * successfully it returns 0 otherwise it returns <0.
+ */
+typedef enum{
+    CO_ERROR_NO                 = 0,    /**< Operation completed successfully */
+    CO_ERROR_ILLEGAL_ARGUMENT   = -1,   /**< Error in function arguments */
+    CO_ERROR_OUT_OF_MEMORY      = -2,   /**< Memory allocation failed */
+    CO_ERROR_TIMEOUT            = -3,   /**< Function timeout */
+    CO_ERROR_ILLEGAL_BAUDRATE   = -4,   /**< Illegal baudrate passed to function CO_CANmodule_init() */
+    CO_ERROR_RX_OVERFLOW        = -5,   /**< Previous message was not processed yet */
+    CO_ERROR_RX_PDO_OVERFLOW    = -6,   /**< previous PDO was not processed yet */
+    CO_ERROR_RX_MSG_LENGTH      = -7,   /**< Wrong receive message length */
+    CO_ERROR_RX_PDO_LENGTH      = -8,   /**< Wrong receive PDO length */
+    CO_ERROR_TX_OVERFLOW        = -9,   /**< Previous message is still waiting, buffer full */
+    CO_ERROR_TX_BUSY            = -10,  /**< Sending rejected because driver is busy. Try again */
+    CO_ERROR_TX_PDO_WINDOW      = -11,  /**< Synchronous TPDO is outside window */
+    CO_ERROR_TX_UNCONFIGURED    = -12,  /**< Transmit buffer was not confugured properly */
+    CO_ERROR_PARAMETERS         = -13,  /**< Error in function function parameters */
+    CO_ERROR_DATA_CORRUPT       = -14,  /**< Stored data are corrupt */
+    CO_ERROR_CRC                = -15,  /**< CRC does not match */
+    CO_ERROR_WRONG_NMT_STATE    = -16,  /**< Command can't be processed in current state */
+    CO_ERROR_SYSCALL            = -17,  /**< Syscall failed */
+    CO_ERROR_INVALID_STATE      = -18   /**< Driver not ready */
+}CO_ReturnError_t;
 
 
 /**
@@ -293,9 +304,23 @@ typedef struct{
     void               *CANdriverState; /**< CAN Interface identifier to use */
 } CO_CANtx_t;
 
+/**
+ * Endianess.
+ *
+ * Depending on processor or compiler architecture, one of the two macros must
+ * be defined: CO_LITTLE_ENDIAN or CO_BIG_ENDIAN. CANopen itself is little endian.
+ */
+#ifdef __BYTE_ORDER
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    #define CO_LITTLE_ENDIAN
+#else
+    #define CO_BIG_ENDIAN
+#endif
+#endif
+
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif /*__cplusplus*/
 
 /** @} */
 #endif

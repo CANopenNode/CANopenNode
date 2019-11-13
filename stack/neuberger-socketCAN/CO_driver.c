@@ -498,9 +498,9 @@ uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg)
 /******************************************************************************/
 CO_ReturnError_t CO_CANrxBufferInit(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                index,
-        uint16_t                ident,
-        uint16_t                mask,
+        uint32_t                index,
+        uint32_t                ident,
+        uint32_t                mask,
         bool_t                  rtr,
         void                   *object,
         void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message))
@@ -508,7 +508,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     if((CANmodule!=NULL) && (index < CANmodule->rxSize)){
-        uint16_t i;
+        uint32_t i;
         CO_CANrx_t *buffer;
 
         /* check if COB ID is already used */
@@ -599,8 +599,8 @@ bool_t CO_CANrxBuffer_getInterface(
 /******************************************************************************/
 CO_CANtx_t *CO_CANtxBufferInit(
         CO_CANmodule_t         *CANmodule,
-        uint16_t                index,
-        uint16_t                ident,
+        uint32_t                index,
+        uint32_t                ident,
         bool_t                  rtr,
         uint8_t                 noOfBytes,
         bool_t                  syncFlag)
