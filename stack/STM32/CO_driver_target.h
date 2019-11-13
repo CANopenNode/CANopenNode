@@ -1,7 +1,7 @@
 /*
  * CAN module object for ST STM32F103 microcontroller.
  *
- * @file        CO_driver.h
+ * @file        CO_driver_target.h
  * @author      Janez Paternoster
  * @author      Ondrej Netik
  * @author      Vijayendra
@@ -46,34 +46,31 @@
  */
 
 
-#ifndef CO_DRIVER_H
-#define CO_DRIVER_H
-
-
-/* For documentation see file drvTemplate/CO_driver.h */
+#ifndef CO_DRIVER_TARGET_H
+#define CO_DRIVER_TARGET_H
 
 
 /* Includes ------------------------------------------------------------------*/
-#include "common.h"
-#include "stm32f10x_conf.h"
+// #include "common.h"
+// #include "stm32f10x_conf.h"
 
 /* Exported define -----------------------------------------------------------*/
 #define PACKED_STRUCT               __attribute__((packed))
 #define ALIGN_STRUCT_DWORD          __attribute__((aligned(4)))
 
 /* Peripheral addresses */
-    #define ADDR_CAN1               CAN1
-    #define TMIDxR_TXRQ  ((uint32_t)0x00000001) /* Transmit mailbox request */
+#define ADDR_CAN1 CAN1
+#define TMIDxR_TXRQ ((uint32_t)0x00000001) /* Transmit mailbox request */
 
 /* Critical sections */
-    #define CO_LOCK_CAN_SEND()      __set_PRIMASK(1);
-    #define CO_UNLOCK_CAN_SEND()    __set_PRIMASK(0);
+#define CO_LOCK_CAN_SEND()      __set_PRIMASK(1);
+#define CO_UNLOCK_CAN_SEND()    __set_PRIMASK(0);
 
-    #define CO_LOCK_EMCY()          __set_PRIMASK(1);
-    #define CO_UNLOCK_EMCY()        __set_PRIMASK(0);
+#define CO_LOCK_EMCY()          __set_PRIMASK(1);
+#define CO_UNLOCK_EMCY()        __set_PRIMASK(0);
 
-    #define CO_LOCK_OD()            __set_PRIMASK(1);
-    #define CO_UNLOCK_OD()          __set_PRIMASK(0);
+#define CO_LOCK_OD()            __set_PRIMASK(1);
+#define CO_UNLOCK_OD()          __set_PRIMASK(0);
 
 
 #define CLOCK_CAN                   RCC_APB1Periph_CAN1
@@ -120,30 +117,11 @@
 
 #define INAK_TIMEOUT        ((uint32_t)0x0000FFFF)
 /* Data types */
-    typedef float                   float32_t;
-    typedef long double             float64_t;
-    typedef char                    char_t;
-    typedef unsigned char           oChar_t;
-    typedef unsigned char           domain_t;
-
-/* Return values */
-typedef enum{
-    CO_ERROR_NO                 = 0,
-    CO_ERROR_ILLEGAL_ARGUMENT   = -1,
-    CO_ERROR_OUT_OF_MEMORY      = -2,
-    CO_ERROR_TIMEOUT            = -3,
-    CO_ERROR_ILLEGAL_BAUDRATE   = -4,
-    CO_ERROR_RX_OVERFLOW        = -5,
-    CO_ERROR_RX_PDO_OVERFLOW    = -6,
-    CO_ERROR_RX_MSG_LENGTH      = -7,
-    CO_ERROR_RX_PDO_LENGTH      = -8,
-    CO_ERROR_TX_OVERFLOW        = -9,
-    CO_ERROR_TX_PDO_WINDOW      = -10,
-    CO_ERROR_TX_UNCONFIGURED    = -11,
-    CO_ERROR_PARAMETERS         = -12,
-    CO_ERROR_DATA_CORRUPT       = -13,
-    CO_ERROR_CRC                = -14
-}CO_ReturnError_t;
+typedef float                   float32_t;
+typedef long double             float64_t;
+typedef char                    char_t;
+typedef unsigned char           oChar_t;
+typedef unsigned char           domain_t;
 
 /* CAN receive message structure as aligned in CAN module.
  * prevzato z stm32f10_can.h - velikostne polozky a poradi odpovidaji. */
@@ -212,65 +190,10 @@ void CanLedsOff(eCoLeds led);
 void CanLedsSet(eCoLeds led);
 
 
-/* Request CAN configuration or normal mode */
-//void CO_CANsetConfigurationMode(CAN_TypeDef *CANdriverState);
-//void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
-
-/* Initialize CAN module object. */
-CO_ReturnError_t CO_CANmodule_init(
-        CO_CANmodule_t         *CANmodule,
-        void                   *CANdriverState,
-        CO_CANrx_t              rxArray[],
-        uint16_t                rxSize,
-        CO_CANtx_t              txArray[],
-        uint16_t                txSize,
-        uint16_t                CANbitRate);
-
-
-/* Switch off CANmodule. */
-void CO_CANmodule_disable(CO_CANmodule_t *CANmodule);
-
-
-/* Read CAN identifier */
-//uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg);
-
-
-/* Configure CAN message receive buffer. */
-CO_ReturnError_t CO_CANrxBufferInit(
-        CO_CANmodule_t         *CANmodule,
-        uint16_t                index,
-        uint16_t                ident,
-        uint16_t                mask,
-        int8_t                  rtr,
-        void                   *object,
-        void                  (*pFunct)(void *object, CO_CANrxMsg_t *message));
-
-
-/* Configure CAN message transmit buffer. */
-CO_CANtx_t *CO_CANtxBufferInit(
-        CO_CANmodule_t         *CANmodule,
-        uint16_t                index,
-        uint16_t                ident,
-        int8_t                  rtr,
-        uint8_t                 noOfBytes,
-        int8_t                  syncFlag);
-
-/* Send CAN message. */
-CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
-
-
-/* Clear all synchronous TPDOs from CAN module transmit buffers. */
-void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
-
-
-/* Verify all errors of CAN module. */
-void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
-
-
 /* CAN interrupts receives and transmits CAN messages. */
 void CO_CANinterrupt_Rx(CO_CANmodule_t *CANmodule);
 void CO_CANinterrupt_Tx(CO_CANmodule_t *CANmodule);
 void CO_CANinterrupt_Status(CO_CANmodule_t *CANmodule);
 
 
-#endif
+#endif /* CO_DRIVER_TARGET_H */
