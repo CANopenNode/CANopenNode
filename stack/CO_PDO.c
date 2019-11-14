@@ -52,6 +52,12 @@
 #include "CO_PDO.h"
 #include <string.h>
 
+#ifdef __GNUC__
+#define FALLTHROUGH __attribute__((fallthrough));
+#else
+#define FALLTHROUGH
+#endif
+
 /*
  * Read received message from CAN module.
  *
@@ -843,13 +849,13 @@ uint8_t CO_TPDOisCOS(CO_TPDO_t *TPDO){
     ppODdataByte = &TPDO->mapPointer[TPDO->dataLength];
 
     switch(TPDO->dataLength){
-        case 8: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x80)) return 1; __attribute__((fallthrough));
-        case 7: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x40)) return 1; __attribute__((fallthrough));
-        case 6: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x20)) return 1; __attribute__((fallthrough));
-        case 5: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x10)) return 1; __attribute__((fallthrough));
-        case 4: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x08)) return 1; __attribute__((fallthrough));
-        case 3: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x04)) return 1; __attribute__((fallthrough));
-        case 2: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x02)) return 1; __attribute__((fallthrough));
+        case 8: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x80)) return 1; FALLTHROUGH
+        case 7: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x40)) return 1; FALLTHROUGH
+        case 6: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x20)) return 1; FALLTHROUGH
+        case 5: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x10)) return 1; FALLTHROUGH
+        case 4: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x08)) return 1; FALLTHROUGH
+        case 3: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x04)) return 1; FALLTHROUGH
+        case 2: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x02)) return 1; FALLTHROUGH
         case 1: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x01)) return 1;
     }
 
@@ -916,9 +922,10 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
     }
     else if(!RPDO->synchronous || syncWas)
     {
+#ifdef RPDO_CALLS_EXTENSION
         bool_t update = false;
+#endif /* RPDO_CALLS_EXTENSION */
         uint8_t bufNo = 0;
-        (void)update;
 
         /* Determine, which of the two rx buffers, contains relevant message. */
         if(RPDO->synchronous && !RPDO->SYNC->CANrxToggle) {
@@ -940,7 +947,9 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
             for(; i>0; i--) {
                 **(ppODdataByte++) = *(pPDOdataByte++);
             }
+#ifdef RPDO_CALLS_EXTENSION
             update = true;
+#endif /* RPDO_CALLS_EXTENSION */
         }
 #ifdef RPDO_CALLS_EXTENSION
         if(update==true && RPDO->SDO->ODExtensions){
@@ -970,7 +979,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
                 ext->pODFunc(&ODF_arg);
             }
         }
-#endif
+#endif /* RPDO_CALLS_EXTENSION */
     }
 }
 

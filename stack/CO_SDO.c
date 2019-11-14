@@ -58,6 +58,11 @@
 #define CCS_UPLOAD_BLOCK               5U
 #define CCS_ABORT                      0x80U
 
+#ifdef __GNUC__
+#define FALLTHROUGH __attribute__((fallthrough));
+#else
+#define FALLTHROUGH
+#endif
 
 #if CO_SDO_BUFFER_SIZE < 7
     #error CO_SDO_BUFFER_SIZE must be greater than 7
@@ -1332,7 +1337,7 @@ int8_t CO_SDO_process(
             CLEAR_CANrxNew(SDO->CANrxNew);
             SDO->state = CO_SDO_ST_UPLOAD_BL_SUBBLOCK;
             /* continue in next case */
-        } __attribute__((fallthrough));
+        } FALLTHROUGH;
 
         case CO_SDO_ST_UPLOAD_BL_SUBBLOCK:{
             /* is block confirmation received */

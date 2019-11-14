@@ -159,7 +159,7 @@ typedef struct{
     int8_t              LEDquadrupleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDgreenRun;    /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDredError;    /**< See @ref CO_NMT_statusLEDdiodes */
-#endif
+#endif /* CO_USE_LEDS */
 
     uint8_t             resetCommand;   /**< If different than zero, device will reset */
     uint8_t             nodeId;         /**< CANopen Node ID of this device */
