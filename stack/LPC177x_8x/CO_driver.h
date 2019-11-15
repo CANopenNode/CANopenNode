@@ -76,6 +76,7 @@
     #define CAN_NODE_ID_4_PORT      1
     #define CAN_NODE_ID_4_PIN       28
 
+    #define CO_USE_LEDS
     #define CAN_RUN_LED_PORT        1
     #define CAN_RUN_LED_PIN         20
 
