@@ -67,7 +67,7 @@ static void CO_EM_receive(void *object, const CO_CANrxMsg_t *msg){
     if(em!=NULL && em->pFunctSignalRx!=NULL){
         CO_memcpySwap2(&errorCode, &msg->data[0]);
         CO_memcpySwap4(&infoCode, &msg->data[4]);
-        em->pFunctSignalRx(msg->ident & 0x07FFU,
+        em->pFunctSignalRx(CO_CANrxMsg_readIdent(msg),
                            errorCode,
                            msg->data[2],
                            msg->data[3],
