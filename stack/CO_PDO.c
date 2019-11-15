@@ -979,8 +979,13 @@ void CO_TPDO_process(
         CO_TPDO_t              *TPDO,
         CO_SYNC_t              *SYNC,
         bool_t                  syncWas,
-        uint32_t                timeDifference_us)
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us)
 {
+    /* update timers */
+    TPDO->inhibitTimer = (TPDO->inhibitTimer > timeDifference_us) ? (TPDO->inhibitTimer - timeDifference_us) : 0;
+    TPDO->eventTimer = (TPDO->eventTimer > timeDifference_us) ? (TPDO->eventTimer - timeDifference_us) : 0;
+
     if(TPDO->valid && *TPDO->operatingState == CO_NMT_OPERATIONAL){
 
         /* Send PDO by application request or by Event timer */
@@ -990,6 +995,13 @@ void CO_TPDO_process(
                     /* successfully sent */
                     TPDO->inhibitTimer = ((uint32_t) TPDO->TPDOCommPar->inhibitTime) * 100;
                     TPDO->eventTimer = ((uint32_t) TPDO->TPDOCommPar->eventTimer) * 1000;
+                }
+            }
+            if(timerNext_us != NULL){
+                if(TPDO->TPDOCommPar->inhibitTime && *timerNext_us > TPDO->inhibitTimer){
+                    *timerNext_us = (TPDO->inhibitTimer + 9) / 10;
+                }else if(TPDO->TPDOCommPar->eventTimer && *timerNext_us > TPDO->eventTimer){
+                    *timerNext_us = TPDO->eventTimer;
                 }
             }
         }
@@ -1030,8 +1042,4 @@ void CO_TPDO_process(
         if(TPDO->TPDOCommPar->transmissionType>=254) TPDO->sendRequest = 1;
         else                                         TPDO->sendRequest = 0;
     }
-
-    /* update timers */
-    TPDO->inhibitTimer = (TPDO->inhibitTimer > timeDifference_us) ? (TPDO->inhibitTimer - timeDifference_us) : 0;
-    TPDO->eventTimer = (TPDO->eventTimer > timeDifference_us) ? (TPDO->eventTimer - timeDifference_us) : 0;
 }
