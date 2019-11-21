@@ -50,7 +50,6 @@
 #include "CO_NMT_Heartbeat.h"
 #include "CO_SYNC.h"
 #include "CO_PDO.h"
-#include <string.h>
 
 /*
  * Read received message from CAN module.
@@ -70,7 +69,7 @@ static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
         (*RPDO->operatingState == CO_NMT_OPERATIONAL) &&
         (msg->DLC >= RPDO->dataLength))
     {
-        if(RPDO->synchronous && RPDO->SYNC->CANrxToggle) {
+        if(RPDO->SYNC && RPDO->synchronous && RPDO->SYNC->CANrxToggle) {
             /* copy data into second buffer and set 'new message' flag */
             RPDO->CANrxData[1][0] = msg->data[0];
             RPDO->CANrxData[1][1] = msg->data[1];
@@ -742,7 +741,7 @@ CO_ReturnError_t CO_RPDO_init(
         uint16_t                CANdevRxIdx)
 {
     /* verify arguments */
-    if(RPDO==NULL || em==NULL || SDO==NULL || SYNC==NULL || operatingState==NULL ||
+    if(RPDO==NULL || em==NULL || SDO==NULL || operatingState==NULL ||
         RPDOCommPar==NULL || RPDOMapPar==NULL || CANdevRx==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -780,6 +779,7 @@ CO_ReturnError_t CO_TPDO_init(
         CO_TPDO_t              *TPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
+        CO_SYNC_t              *SYNC,
         uint8_t                *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
@@ -800,6 +800,7 @@ CO_ReturnError_t CO_TPDO_init(
     /* Configure object variables */
     TPDO->em = em;
     TPDO->SDO = SDO;
+    TPDO->SYNC = SYNC;
     TPDO->TPDOCommPar = TPDOCommPar;
     TPDO->TPDOMapPar = TPDOMapPar;
     TPDO->operatingState = operatingState;
@@ -920,7 +921,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
         uint8_t bufNo = 0;
 
         /* Determine, which of the two rx buffers, contains relevant message. */
-        if(RPDO->synchronous && !RPDO->SYNC->CANrxToggle) {
+        if(RPDO->SYNC && RPDO->synchronous && !RPDO->SYNC->CANrxToggle) {
             bufNo = 1;
         }
 
@@ -977,7 +978,6 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 /******************************************************************************/
 void CO_TPDO_process(
         CO_TPDO_t              *TPDO,
-        CO_SYNC_t              *SYNC,
         bool_t                  syncWas,
         uint32_t                timeDifference_us)
 {
@@ -995,7 +995,7 @@ void CO_TPDO_process(
         }
 
         /* Synchronous PDOs */
-        else if(SYNC && syncWas){
+        else if(TPDO->SYNC && syncWas){
             /* send synchronous acyclic PDO */
             if(TPDO->TPDOCommPar->transmissionType == 0){
                 if(TPDO->sendRequest) CO_TPDOsend(TPDO);
@@ -1004,14 +1004,14 @@ void CO_TPDO_process(
             else{
                 /* is the start of synchronous TPDO transmission */
                 if(TPDO->syncCounter == 255){
-                    if(SYNC->counterOverflowValue && TPDO->TPDOCommPar->SYNCStartValue)
+                    if(TPDO->SYNC->counterOverflowValue && TPDO->TPDOCommPar->SYNCStartValue)
                         TPDO->syncCounter = 254;   /* SYNCStartValue is in use */
                     else
                         TPDO->syncCounter = TPDO->TPDOCommPar->transmissionType;
                 }
                 /* if the SYNCStartValue is in use, start first TPDO after SYNC with matched SYNCStartValue. */
                 if(TPDO->syncCounter == 254){
-                    if(SYNC->counter == TPDO->TPDOCommPar->SYNCStartValue){
+                    if(TPDO->SYNC->counter == TPDO->TPDOCommPar->SYNCStartValue){
                         TPDO->syncCounter = TPDO->TPDOCommPar->transmissionType;
                         CO_TPDOsend(TPDO);
                     }
