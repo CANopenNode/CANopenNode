@@ -86,6 +86,9 @@ extern "C" {
 #if CO_NO_SDO_CLIENT != 0
     #include "CO_SDOmaster.h"
 #endif
+#ifdef CO_NO_TRACE
+#define CO_NO_TRACE 0
+#endif
 #if CO_NO_TRACE > 0
     #include "CO_trace.h"
 #endif
@@ -192,13 +195,13 @@ CO_ReturnError_t CO_new(void);
  *
  * Function must be called in the communication reset section.
  *
- * @param CANdriverState Pointer to the CAN module, passed to CO_CANmodule_init().
+ * @param CANdevicePtr Pointer to the CAN module, passed to CO_CANmodule_init().
  * @param bitRate CAN bit rate.
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_ILLEGAL_BAUDRATE, CO_ERROR_OUT_OF_MEMORY
  */
 CO_ReturnError_t CO_CANinit(
-        void                   *CANdriverState,
+        void                   *CANdevicePtr,
         uint16_t                bitRate);
 
 
@@ -234,7 +237,7 @@ CO_ReturnError_t CO_CANopenInit(
  *
  * Function must be called in the communication reset section.
  *
- * @param CANdriverState Pointer to the user-defined CAN base structure, passed to CO_CANmodule_init().
+ * @param CANdevicePtr Pointer to the user-defined CAN base structure, passed to CO_CANmodule_init().
  * @param nodeId Node ID of the CANopen device (1 ... 127).
  * @param bitRate CAN bit rate.
  *
@@ -242,7 +245,7 @@ CO_ReturnError_t CO_CANopenInit(
  * CO_ERROR_OUT_OF_MEMORY, CO_ERROR_ILLEGAL_BAUDRATE
  */
 CO_ReturnError_t CO_init(
-        void                   *CANdriverState,
+        void                   *CANdevicePtr,
         uint8_t                 nodeId,
         uint16_t                bitRate);
 
@@ -252,9 +255,9 @@ CO_ReturnError_t CO_init(
 /**
  * Delete CANopen object and free memory. Must be called at program exit.
  *
- * @param CANdriverState Pointer to the user-defined CAN base structure, passed to CO_CANmodule_init().
+ * @param CANdevicePtr Pointer to the user-defined CAN base structure, passed to CO_CANmodule_init().
  */
-void CO_delete(void *CANdriverState);
+void CO_delete(void *CANdevicePtr);
 
 
 /**
