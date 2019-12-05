@@ -81,6 +81,17 @@
     #define CO_LOCK_OD()            CO_interruptStatus = __builtin_disable_interrupts()
     #define CO_UNLOCK_OD()          if(CO_interruptStatus & 0x00000001) {__builtin_enable_interrupts();}
 
+/**
+ * @name Memory/heap management functions mapping
+ * Here the user may select heap management functions according to needs.
+ * @{
+ */
+#define COmalloc(size) malloc(size) 
+/** Calloc */
+#define COcalloc(items, size) calloc(items, size) 
+/** Free */
+#define COfree(loc) free(loc)
+/** @} */
 
 /* Data types */
     /* int8_t to uint64_t are defined in stdint.h */

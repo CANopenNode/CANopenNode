@@ -112,6 +112,20 @@
 /* Timeout for initialization */
 
 #define INAK_TIMEOUT        ((uint32_t)0x0000FFFF)
+
+/**
+ * @name Memory/heap management functions mapping
+ * Here the user may select heap management functions according to needs.
+ * @{
+ */
+#define COmalloc(size) malloc(size) 
+/** Calloc */
+#define COcalloc(items, size) calloc(items, size) 
+/** Free */
+#define COfree(loc) free(loc)
+/** @} */
+
+
 /* Data types */
     typedef float                   float32_t;
     typedef long double             float64_t;

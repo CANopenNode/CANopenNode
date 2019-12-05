@@ -21,7 +21,7 @@ CO_NotifyPipe_t *CO_NotifyPipeCreate(void)
     if (ret < 0) {
         return NULL;
     }
-    p = calloc(1, sizeof(CO_NotifyPipe_t));
+    p = COcalloc(1, sizeof(CO_NotifyPipe_t));
     if (p == NULL) {
         return NULL;
     }
@@ -38,7 +38,7 @@ void CO_NotifyPipeFree(CO_NotifyPipe_t *p)
     }
     close(p->m_sendFd);
     close(p->m_receiveFd);
-    free(p);
+    COfree(p);
 }
 
 

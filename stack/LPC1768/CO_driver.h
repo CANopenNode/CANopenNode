@@ -70,6 +70,18 @@
     #define CO_LOCK_OD()
     #define CO_UNLOCK_OD()
 
+/**
+ * @name Memory/heap management functions mapping
+ * Here the user may select heap management functions according to needs.
+ * @{
+ */
+#define COmalloc(size) malloc(size) 
+/** Calloc */
+#define COcalloc(items, size) calloc(items, size) 
+/** Free */
+#define COfree(loc) free(loc)
+/** @} */    
+
 
 /* Data types */
     /* int8_t to uint64_t are defined in stdint.h */

@@ -272,41 +272,41 @@ CO_ReturnError_t CO_new(void)
 #else
     if(CO == NULL){    /* Use malloc only once */
         CO = &COO;
-        CO->CANmodule[0]                    = (CO_CANmodule_t *)    calloc(1, sizeof(CO_CANmodule_t));
-        CO_CANmodule_rxArray0               = (CO_CANrx_t *)        calloc(CO_RXCAN_NO_MSGS, sizeof(CO_CANrx_t));
-        CO_CANmodule_txArray0               = (CO_CANtx_t *)        calloc(CO_TXCAN_NO_MSGS, sizeof(CO_CANtx_t));
+        CO->CANmodule[0]                    = (CO_CANmodule_t *)    COcalloc(1, sizeof(CO_CANmodule_t));
+        CO_CANmodule_rxArray0               = (CO_CANrx_t *)        COcalloc(CO_RXCAN_NO_MSGS, sizeof(CO_CANrx_t));
+        CO_CANmodule_txArray0               = (CO_CANtx_t *)        COcalloc(CO_TXCAN_NO_MSGS, sizeof(CO_CANtx_t));
         for(i=0; i<CO_NO_SDO_SERVER; i++){
-            CO->SDO[i]                      = (CO_SDO_t *)          calloc(1, sizeof(CO_SDO_t));
+            CO->SDO[i]                      = (CO_SDO_t *)          COcalloc(1, sizeof(CO_SDO_t));
         }
-        CO_SDO_ODExtensions                 = (CO_OD_extension_t*)  calloc(CO_OD_NoOfElements, sizeof(CO_OD_extension_t));
-        CO->em                              = (CO_EM_t *)           calloc(1, sizeof(CO_EM_t));
-        CO->emPr                            = (CO_EMpr_t *)         calloc(1, sizeof(CO_EMpr_t));
-        CO->NMT                             = (CO_NMT_t *)          calloc(1, sizeof(CO_NMT_t));
-        CO->SYNC                            = (CO_SYNC_t *)         calloc(1, sizeof(CO_SYNC_t));
+        CO_SDO_ODExtensions                 = (CO_OD_extension_t*)  COcalloc(CO_OD_NoOfElements, sizeof(CO_OD_extension_t));
+        CO->em                              = (CO_EM_t *)           COcalloc(1, sizeof(CO_EM_t));
+        CO->emPr                            = (CO_EMpr_t *)         COcalloc(1, sizeof(CO_EMpr_t));
+        CO->NMT                             = (CO_NMT_t *)          COcalloc(1, sizeof(CO_NMT_t));
+        CO->SYNC                            = (CO_SYNC_t *)         COcalloc(1, sizeof(CO_SYNC_t));
         for(i=0; i<CO_NO_RPDO; i++){
-            CO->RPDO[i]                     = (CO_RPDO_t *)         calloc(1, sizeof(CO_RPDO_t));
+            CO->RPDO[i]                     = (CO_RPDO_t *)         COcalloc(1, sizeof(CO_RPDO_t));
         }
         for(i=0; i<CO_NO_TPDO; i++){
-            CO->TPDO[i]                     = (CO_TPDO_t *)         calloc(1, sizeof(CO_TPDO_t));
+            CO->TPDO[i]                     = (CO_TPDO_t *)         COcalloc(1, sizeof(CO_TPDO_t));
         }
-        CO->HBcons                          = (CO_HBconsumer_t *)   calloc(1, sizeof(CO_HBconsumer_t));
-        CO_HBcons_monitoredNodes            = (CO_HBconsNode_t *)   calloc(CO_NO_HB_CONS, sizeof(CO_HBconsNode_t));
+        CO->HBcons                          = (CO_HBconsumer_t *)   COcalloc(1, sizeof(CO_HBconsumer_t));
+        CO_HBcons_monitoredNodes            = (CO_HBconsNode_t *)   COcalloc(CO_NO_HB_CONS, sizeof(CO_HBconsNode_t));
       #if CO_NO_LSS_SERVER == 1
-        CO->LSSslave                        = (CO_LSSslave_t *)     calloc(1, sizeof(CO_LSSslave_t));
+        CO->LSSslave                        = (CO_LSSslave_t *)     COcalloc(1, sizeof(CO_LSSslave_t));
       #endif
       #if CO_NO_LSS_CLIENT == 1
-        CO->LSSmaster                       = (CO_LSSmaster_t *)    calloc(1, sizeof(CO_LSSmaster_t));
+        CO->LSSmaster                       = (CO_LSSmaster_t *)    COcalloc(1, sizeof(CO_LSSmaster_t));
       #endif
       #if CO_NO_SDO_CLIENT != 0
         for(i=0; i<CO_NO_SDO_CLIENT; i++){
-            CO->SDOclient[i]                = (CO_SDOclient_t *)    calloc(1, sizeof(CO_SDOclient_t));
+            CO->SDOclient[i]                = (CO_SDOclient_t *)    COcalloc(1, sizeof(CO_SDOclient_t));
         }
       #endif
       #if CO_NO_TRACE > 0
         for(i=0; i<CO_NO_TRACE; i++) {
-            CO->trace[i]                    = (CO_trace_t *)        calloc(1, sizeof(CO_trace_t));
-            CO_traceTimeBuffers[i]          = (uint32_t *)          calloc(OD_traceConfig[i].size, sizeof(uint32_t));
-            CO_traceValueBuffers[i]         = (int32_t *)           calloc(OD_traceConfig[i].size, sizeof(int32_t));
+            CO->trace[i]                    = (CO_trace_t *)        COcalloc(1, sizeof(CO_trace_t));
+            CO_traceTimeBuffers[i]          = (uint32_t *)          COcalloc(OD_traceConfig[i].size, sizeof(uint32_t));
+            CO_traceValueBuffers[i]         = (int32_t *)           COcalloc(OD_traceConfig[i].size, sizeof(int32_t));
             if(CO_traceTimeBuffers[i] != NULL && CO_traceValueBuffers[i] != NULL) {
                 CO_traceBufferSize[i] = OD_traceConfig[i].size;
             } else {
@@ -702,41 +702,41 @@ void CO_delete(void *CANdriverState){
 #ifndef CO_USE_GLOBALS
   #if CO_NO_TRACE > 0
       for(i=0; i<CO_NO_TRACE; i++) {
-          free(CO->trace[i]);
-          free(CO_traceTimeBuffers[i]);
-          free(CO_traceValueBuffers[i]);
+          COfree(CO->trace[i]);
+          COfree(CO_traceTimeBuffers[i]);
+          COfree(CO_traceValueBuffers[i]);
       }
   #endif
   #if CO_NO_SDO_CLIENT != 0
       for(i=0; i<CO_NO_SDO_CLIENT; i++) {
-          free(CO->SDOclient[i]);
+          COfree(CO->SDOclient[i]);
       }
   #endif
   #if CO_NO_LSS_SERVER == 1
-    free(CO->LSSslave);
+    COfree(CO->LSSslave);
   #endif
   #if CO_NO_LSS_CLIENT == 1
-    free(CO->LSSmaster);
+    COfree(CO->LSSmaster);
   #endif
-    free(CO_HBcons_monitoredNodes);
-    free(CO->HBcons);
+    COfree(CO_HBcons_monitoredNodes);
+    COfree(CO->HBcons);
     for(i=0; i<CO_NO_RPDO; i++){
-        free(CO->RPDO[i]);
+        COfree(CO->RPDO[i]);
     }
     for(i=0; i<CO_NO_TPDO; i++){
-        free(CO->TPDO[i]);
+        COfree(CO->TPDO[i]);
     }
-    free(CO->SYNC);
-    free(CO->NMT);
-    free(CO->emPr);
-    free(CO->em);
-    free(CO_SDO_ODExtensions);
+    COfree(CO->SYNC);
+    COfree(CO->NMT);
+    COfree(CO->emPr);
+    COfree(CO->em);
+    COfree(CO_SDO_ODExtensions);
     for(i=0; i<CO_NO_SDO_SERVER; i++){
-        free(CO->SDO[i]);
+        COfree(CO->SDO[i]);
     }
-    free(CO_CANmodule_txArray0);
-    free(CO_CANmodule_rxArray0);
-    free(CO->CANmodule[0]);
+    COfree(CO_CANmodule_txArray0);
+    COfree(CO_CANmodule_rxArray0);
+    COfree(CO->CANmodule[0]);
     CO = NULL;
 #endif
 }

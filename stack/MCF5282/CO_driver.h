@@ -71,6 +71,17 @@
     #define CO_LOCK_OD()            asm{ move.w        #0x2700,sr};
     #define CO_UNLOCK_OD()          asm{ move.w        #0x2000,sr};
 
+/**
+ * @name Memory/heap management functions mapping
+ * Here the user may select heap management functions according to needs.
+ * @{
+ */
+#define COmalloc(size) malloc(size) 
+/** Calloc */
+#define COcalloc(items, size) calloc(items, size) 
+/** Free */
+#define COfree(loc) free(loc)
+/** @} */
 
 /* MACRO : get information from Rx buffer */
 #define MCF_CANMB_MSG(x)      (*(CO_CANrxMsg_t *)(&__IPSBAR[0x1C0080 + ((x)*0x10)]))

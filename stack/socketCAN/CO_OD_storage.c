@@ -111,7 +111,7 @@ int CO_OD_storage_saveSecure(
     uint16_t CRC = 0;
 
     /* Generate new string with extension '.old' and rename current file to it. */
-    filename_old = malloc(strlen(filename)+10);
+    filename_old = COmalloc(strlen(filename)+10);
     if(filename_old != NULL) {
         strcpy(filename_old, filename);
         strcat(filename_old, ".old");
@@ -148,7 +148,7 @@ int CO_OD_storage_saveSecure(
         uint32_t cnt = 0;
         uint16_t CRC2 = 0;
 
-        buf = malloc(odSize + 4);
+        buf = COmalloc(odSize + 4);
         if(buf != NULL) {
             fp = fopen(filename, "r");
             if(fp != NULL) {
@@ -158,7 +158,7 @@ int CO_OD_storage_saveSecure(
                 cnt += fread(buf, 1, 4, fp);
                 fclose(fp);
             }
-            free(buf);
+            COfree(buf);
         }
         /* If size or CRC differs, report error */
         if(buf == NULL || fp == NULL || cnt != (odSize + 2) || CRC != CRC2) {
@@ -172,7 +172,7 @@ int CO_OD_storage_saveSecure(
         rename(filename_old, filename);
     }
 
-    free(filename_old);
+    COfree(filename_old);
 
     return ret;
 }
@@ -190,7 +190,7 @@ int CO_OD_storage_restoreSecure(char *filename) {
 
         fclose(fp);
 
-        filename_old = malloc(strlen(filename)+10);
+        filename_old = COmalloc(strlen(filename)+10);
         if(filename_old != NULL) {
             strcpy(filename_old, filename);
             strcat(filename_old, ".old");
@@ -199,7 +199,7 @@ int CO_OD_storage_restoreSecure(char *filename) {
             if(rename(filename, filename_old) != 0) {
                 ret = RETURN_ERROR;
             }
-            free(filename_old);
+            COfree(filename_old);
         }
         else {
             ret = RETURN_ERROR;
@@ -245,7 +245,7 @@ CO_ReturnError_t CO_OD_storage_init(
         odStor->tmr1msPrev = 0;
         odStor->lastSavedMs = 0;
 
-        buf = malloc(odStor->odSize);
+        buf = COmalloc(odStor->odSize);
         if(buf == NULL) {
             ret = CO_ERROR_OUT_OF_MEMORY;
         }
@@ -284,7 +284,7 @@ CO_ReturnError_t CO_OD_storage_init(
         }
     }
 
-    free(buf);
+    COfree(buf);
 
     return ret;
 }
@@ -313,7 +313,7 @@ CO_ReturnError_t CO_OD_storage_autoSave(
 
         /* allocate buffer and open file if necessary */
         if(ret == CO_ERROR_NO) {
-            buf = malloc(odStor->odSize);
+            buf = COmalloc(odStor->odSize);
             if(odStor->fp == NULL) {
                 odStor->fp = fopen(odStor->filename, "r+");
             }
@@ -364,7 +364,7 @@ CO_ReturnError_t CO_OD_storage_autoSave(
             odStor->lastSavedMs = 0;
         }
 
-        free(buf);
+        COfree(buf);
     }
 
     odStor->tmr1msPrev = timer1ms;

@@ -49,7 +49,7 @@ static CO_ReturnError_t setFilters(CO_CANmodule_t *CANmodule){
 
         nFiltersIn = CANmodule->rxSize;
         nFiltersOut = 0;
-        filtersOut = (struct can_filter *) calloc(nFiltersIn, sizeof(struct can_filter));
+        filtersOut = (struct can_filter *) COcalloc(nFiltersIn, sizeof(struct can_filter));
 
         if(filtersOut == NULL){
             ret = CO_ERROR_OUT_OF_MEMORY;
@@ -81,7 +81,7 @@ static CO_ReturnError_t setFilters(CO_CANmodule_t *CANmodule){
                 ret = CO_ERROR_ILLEGAL_ARGUMENT;
             }
 
-            free(filtersOut);
+            COfree(filtersOut);
         }
     }else{
         /* Use one socketCAN filter, match any CAN address, including extended and rtr. */
@@ -183,7 +183,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
         /* allocate memory for filter array */
         if(ret == CO_ERROR_NO){
-            CANmodule->filter = (struct can_filter *) calloc(rxSize, sizeof(struct can_filter));
+            CANmodule->filter = (struct can_filter *) COcalloc(rxSize, sizeof(struct can_filter));
             if(CANmodule->filter == NULL){
                 ret = CO_ERROR_OUT_OF_MEMORY;
             }
@@ -216,7 +216,7 @@ CO_ReturnError_t CO_CANmodule_init(
 /******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
     close(CANmodule->fd);
-    free(CANmodule->filter);
+    COfree(CANmodule->filter);
     CANmodule->filter = NULL;
 }
 
