@@ -70,6 +70,25 @@ extern "C" {
  * - bit 31 should be set for a consumer
  * - bit 30 should be set for a producer
  *
+ * 
+ * ###TIME CONSUMER
+ * 
+ * CO_TIME_init() configuration :
+ * - COB_ID_TIME : 0x80000100L -> TIME consumer with TIME_COB_ID = 0x100
+ * - TIMECyclePeriod : 
+ *      - 0 -> no EMCY will be transmitted in case of TIME timeout
+ *      - X -> an EMCY will be transmitted in case of TIME timeout (X * 1.5) ms
+ *
+ * Latest time value is stored in \p CO->TIME->Time variable.
+ * 
+ * 
+ * ###TIME PRODUCER
+ * 
+ * CO_TIME_init() configuration :
+ * - COB_ID_TIME : 0x40000100L -> TIME producer with TIME_COB_ID = 0x100
+ * - TIMECyclePeriod : Time transmit period in ms
+ *
+ * Write time value in \p CO->TIME->Time variable, this will be sent at TIMECyclePeriod.
  */
     
 #define TIME_MSG_LENGTH 6U
@@ -118,7 +137,7 @@ typedef struct{
  * @param SDO SDO server object.
  * @param operatingState Pointer to variable indicating CANopen device NMT internal state.
  * @param COB_ID_TIMEMessage Should be intialized with CO_CAN_ID_TIME_STAMP
- * @param TIMECyclePeriod Set to TIME period to enable timeout detection (1,5x period) or 0.
+ * @param TIMECyclePeriod TIME period in ms (may also be used in consumer mode for timeout detection (1.5x period)).
  * @param CANdevRx CAN device for TIME reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  *
@@ -145,7 +164,7 @@ CO_ReturnError_t CO_TIME_init(
  * @param timeDifference_ms Time difference from previous function call in [milliseconds].
  *
  * @return 0: No special meaning.
- * @return 1: New TIME message recently received.
+ * @return 1: New TIME message recently received (consumer) / transmited (producer).
  */
 uint8_t CO_TIME_process(
         CO_TIME_t  *TIME,
