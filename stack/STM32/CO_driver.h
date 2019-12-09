@@ -209,6 +209,7 @@ typedef struct{
     void               *em;
 }CO_CANmodule_t;
 
+#ifdef CO_USE_LEDS
 /* Init CAN Led Interface */
 typedef enum {
     eCoLed_None = 0,
@@ -223,6 +224,7 @@ void InitCanLeds(void);
 void CanLedsOn(eCoLeds led);
 void CanLedsOff(eCoLeds led);
 void CanLedsSet(eCoLeds led);
+#endif /* CO_USE_LEDS */
 
 
 /* Request CAN configuration or normal mode */

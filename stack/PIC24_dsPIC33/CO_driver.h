@@ -333,7 +333,7 @@
         {1, 2,   TQ_x_20},   /*CAN=500kbps*/   \
         {1, 1,   TQ_x_25},   /*CAN=800kbps*/   \
         {1, 1,   TQ_x_20}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 48000
+    #elif CO_FCY == 48000
         #define CO_CANbitRateDataInitializers  \
         {1, 63,  TQ_x_19},   /*Not possible*/  \
         {1, 63,  TQ_x_19},   /*CAN=20kbps*/    \
@@ -343,7 +343,7 @@
         {1, 3,   TQ_x_16},   /*CAN=500kbps*/   \
         {1, 2,   TQ_x_15},   /*CAN=800kbps*/   \
         {1, 2,   TQ_x_12}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 56000
+    #elif CO_FCY == 56000
         #define CO_CANbitRateDataInitializers  \
         {1, 61,  TQ_x_23},   /*Not possible*/  \
         {1, 61,  TQ_x_23},   /*CAN=20kbps*/    \
@@ -353,7 +353,7 @@
         {1, 4,   TQ_x_14},   /*CAN=500kbps*/   \
         {1, 5,   TQ_x_7 },   /*CAN=800kbps*/   \
         {1, 2,   TQ_x_14}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 64000
+    #elif CO_FCY == 64000
         #define CO_CANbitRateDataInitializers  \
         {1, 64,  TQ_x_25},   /*Not possible*/  \
         {1, 64,  TQ_x_25},   /*CAN=20kbps*/    \
