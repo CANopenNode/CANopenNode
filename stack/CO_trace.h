@@ -31,9 +31,8 @@
 extern "C" {
 #endif
 
-#include "CANopen.h"
-
-#if CO_NO_TRACE > 0
+#include "CO_driver.h"
+#include "CO_SDO.h"
 
 
 /**
@@ -163,8 +162,6 @@ void CO_trace_init(
  * @return 0 on success, -1 on error.
  */
 void CO_trace_process(CO_trace_t *trace, uint32_t timestamp);
-
-#endif /* CO_NO_TRACE */
 
 #ifdef __cplusplus
 }
