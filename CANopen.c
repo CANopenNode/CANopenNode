@@ -748,6 +748,7 @@ void CO_delete(int32_t CANbaseAddress){
         free(CO->TPDO[i]);
     }
     free(CO->SYNC);
+    free(CO->TIME);
     free(CO->NMT);
     free(CO->emPr);
     free(CO->em);
