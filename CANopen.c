@@ -205,6 +205,9 @@ CO_ReturnError_t CO_init(
         NMTM_txBuff->data[0] = command;
         NMTM_txBuff->data[1] = nodeID;
 
+        /* Protect access to NMT operatingState and resetCommand */
+        CO_LOCK_NMT();
+
         /* Apply NMT command also to this node, if set so. */
         if(nodeID == 0 || nodeID == CO_this->NMT->nodeId){
             switch(command){

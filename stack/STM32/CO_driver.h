@@ -75,6 +75,9 @@
     #define CO_LOCK_OD()            __set_PRIMASK(1);
     #define CO_UNLOCK_OD()          __set_PRIMASK(0);
 
+    #define CO_LOCK_NMT()           __set_PRIMASK(1);
+    #define CO_UNLOCK_NMT()         __set_PRIMASK(0);
+
 
 #define CLOCK_CAN                   RCC_APB1Periph_CAN1
 
