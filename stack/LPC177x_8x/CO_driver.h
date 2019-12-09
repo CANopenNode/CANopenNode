@@ -90,6 +90,9 @@
     #define CO_LOCK_OD()            taskENTER_CRITICAL()
     #define CO_UNLOCK_OD()          taskEXIT_CRITICAL()
 
+    #define CO_LOCK_NMT()           taskENTER_CRITICAL()
+    #define CO_UNLOCK_NMT()         taskEXIT_CRITICAL()
+
 
 /* Data types */
     /* int8_t to uint64_t are defined in stdint.h */

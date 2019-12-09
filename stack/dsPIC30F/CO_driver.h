@@ -71,6 +71,9 @@
     #define CO_LOCK_OD()            asm volatile ("disi #0x3FFF")
     #define CO_UNLOCK_OD()          asm volatile ("disi #0x0000")
 
+    #define CO_LOCK_NMT()           asm volatile ("disi #0x3FFF")
+    #define CO_UNLOCK_NMT()         asm volatile ("disi #0x0000")
+
 
 /* Data types */
     /* int8_t to uint64_t are defined in stdint.h */

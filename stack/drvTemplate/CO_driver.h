@@ -178,6 +178,10 @@ extern "C" {
 
     #define CO_LOCK_OD()        /**< Lock critical section when accessing Object Dictionary */
     #define CO_UNLOCK_OD()      /**< Unock critical section when accessing Object Dictionary */
+
+    #define CO_LOCK_NMT()       /**< Lock critical section when accessing NMT Object asyncronous */
+    #define CO_UNLOCK_NMT()     /**< Lock critical section when accessing NMT Object asyncronous */
+
 /** @} */
 
 /**

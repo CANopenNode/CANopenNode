@@ -71,6 +71,10 @@
     #define CO_LOCK_OD()            asm{ move.w        #0x2700,sr};
     #define CO_UNLOCK_OD()          asm{ move.w        #0x2000,sr};
 
+    #define CO_LOCK_NMT()           asm{ move.w        #0x2700,sr};
+    #define CO_UNLOCK_NMT()         asm{ move.w        #0x2000,sr};
+
+
 
 /* MACRO : get information from Rx buffer */
 #define MCF_CANMB_MSG(x)      (*(CO_CANrxMsg_t *)(&__IPSBAR[0x1C0080 + ((x)*0x10)]))

@@ -70,6 +70,9 @@
     #define CO_LOCK_OD()
     #define CO_UNLOCK_OD()
 
+    #define CO_LOCK_NMT()
+    #define CO_UNLOCK_NMT()
+
 
 /* Data types */
     /* int8_t to uint64_t are defined in stdint.h */
