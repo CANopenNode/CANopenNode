@@ -88,6 +88,7 @@
             || CO_NO_SYNC                                 != 1     \
             || CO_NO_EMERGENCY                            != 1     \
             || CO_NO_SDO_SERVER                           == 0     \
+            || CO_NO_TIME                                 >  1     \
             || CO_NO_SDO_CLIENT                           > 128    \
             || (CO_NO_RPDO < 1 || CO_NO_RPDO > 0x200)              \
             || (CO_NO_TPDO < 1 || CO_NO_TPDO > 0x200)              \
@@ -111,24 +112,26 @@
     #define CO_RXCAN_NMT       0                                      /*  index for NMT message */
     #define CO_RXCAN_SYNC      1                                      /*  index for SYNC message */
     #define CO_RXCAN_EMERG    (CO_RXCAN_SYNC+CO_NO_SYNC)              /*  index for Emergency message */
-    #define CO_RXCAN_RPDO     (CO_RXCAN_EMERG+CO_NO_EMERGENCY)        /*  start index for RPDO messages */
+    #define CO_RXCAN_TIME     (CO_RXCAN_EMERG+CO_NO_EMERGENCY)        /*  index for TIME message */
+    #define CO_RXCAN_RPDO     (CO_RXCAN_TIME+CO_NO_TIME)              /*  start index for RPDO messages */
     #define CO_RXCAN_SDO_SRV  (CO_RXCAN_RPDO+CO_NO_RPDO)              /*  start index for SDO server message (request) */
     #define CO_RXCAN_SDO_CLI  (CO_RXCAN_SDO_SRV+CO_NO_SDO_SERVER)     /*  start index for SDO client message (response) */
     #define CO_RXCAN_CONS_HB  (CO_RXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  start index for Heartbeat Consumer messages */
     #define CO_RXCAN_LSS      (CO_RXCAN_CONS_HB+CO_NO_HB_CONS)        /*  index for LSS rx message */
     /* total number of received CAN messages */
-    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS)
+    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TIME+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS)
 
     #define CO_TXCAN_NMT       0                                      /*  index for NMT master message */
     #define CO_TXCAN_SYNC      CO_TXCAN_NMT+CO_NO_NMT_MASTER          /*  index for SYNC message */
     #define CO_TXCAN_EMERG    (CO_TXCAN_SYNC+CO_NO_SYNC)              /*  index for Emergency message */
-    #define CO_TXCAN_TPDO     (CO_TXCAN_EMERG+CO_NO_EMERGENCY)        /*  start index for TPDO messages */
+    #define CO_TXCAN_TIME     (CO_TXCAN_EMERG+CO_NO_EMERGENCY)        /*  index for TIME message */
+    #define CO_TXCAN_TPDO     (CO_TXCAN_TIME+CO_NO_TIME)              /*  start index for TPDO messages */
     #define CO_TXCAN_SDO_SRV  (CO_TXCAN_TPDO+CO_NO_TPDO)              /*  start index for SDO server message (response) */
     #define CO_TXCAN_SDO_CLI  (CO_TXCAN_SDO_SRV+CO_NO_SDO_SERVER)     /*  start index for SDO client message (request) */
     #define CO_TXCAN_HB       (CO_TXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  index for Heartbeat message */
     #define CO_TXCAN_LSS      (CO_TXCAN_HB+CO_NO_HB_PROD)             /*  index for LSS tx message */
     /* total number of transmitted CAN messages */
-    #define CO_TXCAN_NO_MSGS (CO_NO_NMT_MASTER+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_PROD+CO_NO_LSS_SERVER+CO_NO_LSS_CLIENT)
+    #define CO_TXCAN_NO_MSGS (CO_NO_NMT_MASTER+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TIME+CO_NO_TPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_PROD+CO_NO_LSS_SERVER+CO_NO_LSS_CLIENT)
 
 
 #ifdef CO_USE_GLOBALS
@@ -141,6 +144,7 @@
     static CO_EMpr_t            COO_EMpr;
     static CO_NMT_t             COO_NMT;
     static CO_SYNC_t            COO_SYNC;
+    static CO_TIME_t            COO_TIME;
     static CO_RPDO_t            COO_RPDO[CO_NO_RPDO];
     static CO_TPDO_t            COO_TPDO[CO_NO_TPDO];
     static CO_HBconsumer_t      COO_HBcons;
@@ -244,6 +248,7 @@ CO_ReturnError_t CO_new(void)
     CO->emPr                            = &COO_EMpr;
     CO->NMT                             = &COO_NMT;
     CO->SYNC                            = &COO_SYNC;
+    CO->TIME                            = &COO_TIME;
     for(i=0; i<CO_NO_RPDO; i++)
         CO->RPDO[i]                     = &COO_RPDO[i];
     for(i=0; i<CO_NO_TPDO; i++)
@@ -283,6 +288,7 @@ CO_ReturnError_t CO_new(void)
         CO->emPr                            = (CO_EMpr_t *)         calloc(1, sizeof(CO_EMpr_t));
         CO->NMT                             = (CO_NMT_t *)          calloc(1, sizeof(CO_NMT_t));
         CO->SYNC                            = (CO_SYNC_t *)         calloc(1, sizeof(CO_SYNC_t));
+        CO->TIME                            = (CO_TIME_t *)         calloc(1, sizeof(CO_TIME_t));
         for(i=0; i<CO_NO_RPDO; i++){
             CO->RPDO[i]                     = (CO_RPDO_t *)         calloc(1, sizeof(CO_RPDO_t));
         }
@@ -325,6 +331,7 @@ CO_ReturnError_t CO_new(void)
                   + sizeof(CO_EMpr_t)
                   + sizeof(CO_NMT_t)
                   + sizeof(CO_SYNC_t)
+                  + sizeof(CO_TIME_t)
                   + sizeof(CO_RPDO_t) * CO_NO_RPDO
                   + sizeof(CO_TPDO_t) * CO_NO_TPDO
                   + sizeof(CO_HBconsumer_t)
@@ -358,6 +365,7 @@ CO_ReturnError_t CO_new(void)
     if(CO->emPr                         == NULL) errCnt++;
     if(CO->NMT                          == NULL) errCnt++;
     if(CO->SYNC                         == NULL) errCnt++;
+    if(CO->TIME                     	== NULL) errCnt++;
     for(i=0; i<CO_NO_RPDO; i++){
         if(CO->RPDO[i]                  == NULL) errCnt++;
     }
@@ -499,7 +507,7 @@ CO_ReturnError_t CO_CANopenInit(
             CO_RXCAN_EMERG,
             CO->CANmodule[0],
             CO_TXCAN_EMERG,
-            CO_CAN_ID_EMERGENCY + nodeId);
+            (uint16_t)CO_CAN_ID_EMERGENCY + nodeId);
 
     if(err){return err;}
 
@@ -558,7 +566,20 @@ CO_ReturnError_t CO_CANopenInit(
 
     if(err){return err;}
 
+    err = CO_TIME_init(
+            CO->TIME,
+            CO->em,
+            CO->SDO[0],
+            &CO->NMT->operatingState,
+            OD_COB_ID_TIME,
+            0,
+            CO->CANmodule[0],
+            CO_RXCAN_TIME,
+            CO->CANmodule[0],
+            CO_TXCAN_TIME);
 
+    if(err){return err;}
+    
     for(i=0; i<CO_NO_RPDO; i++){
         CO_CANmodule_t *CANdevRx = CO->CANmodule[0];
         uint16_t CANdevRxIdx = CO_RXCAN_RPDO + i;
@@ -798,6 +819,11 @@ CO_NMT_reset_cmd_t CO_process(
     CO_HBconsumer_process(
             CO->HBcons,
             NMTisPreOrOperational,
+            timeDifference_ms);
+    
+    
+    CO_TIME_process(
+            CO->TIME, 
             timeDifference_ms);
 
     return reset;
