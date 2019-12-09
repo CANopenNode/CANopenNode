@@ -102,6 +102,18 @@ typedef struct {
 } CO_CANinterface_t;
 
 /**
+ * @name Memory/heap management functions mapping
+ * Here the user may select heap management functions according to needs.
+ * @{
+ */
+#define COmalloc(size) malloc(size) 
+/** Calloc */
+#define COcalloc(items, size) calloc(items, size) 
+/** Free */
+#define COfree(loc) free(loc)
+/** @} */
+
+/**
  * CAN module object. It may be different in different microcontrollers.
  */
 typedef struct{

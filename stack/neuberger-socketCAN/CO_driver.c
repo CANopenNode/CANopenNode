@@ -281,7 +281,7 @@ CO_ReturnError_t CO_CANmodule_init(
     /* initialize socketCAN filters
      * CAN module filters will be configured with CO_CANrxBufferInit()
      * functions, called by separate CANopen init functions */
-    CANmodule->rxFilter = calloc(CANmodule->rxSize, sizeof(struct can_filter));
+    CANmodule->rxFilter = COcalloc(CANmodule->rxSize, sizeof(struct can_filter));
     if(CANmodule->rxFilter == NULL){
         log_printf(LOG_DEBUG, DBG_ERRNO, "malloc()");
         return CO_ERROR_OUT_OF_MEMORY;
@@ -461,7 +461,7 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
         interface->fd = -1;
     }
     if (CANmodule->CANinterfaces != NULL) {
-        free(CANmodule->CANinterfaces);
+        COfree(CANmodule->CANinterfaces);
     }
     CANmodule->CANinterfaceCount = 0;
 
@@ -481,7 +481,7 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
     CANmodule->fdEpoll = -1;
 
     if (CANmodule->rxFilter != NULL) {
-        free(CANmodule->rxFilter);
+        COfree(CANmodule->rxFilter);
     }
     CANmodule->rxFilter = NULL;
 }

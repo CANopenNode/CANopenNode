@@ -106,6 +106,17 @@
     #define CO_LOCK_NMT()           cyg_scheduler_lock()
     #define CO_UNLOCK_NMT()         cyg_scheduler_unlock()
 
+/**
+ * @name Memory/heap management functions mapping
+ * Here the user may select heap management functions according to needs.
+ * @{
+ */
+#define COmalloc(size) malloc(size) 
+/** Calloc */
+#define COcalloc(items, size) calloc(items, size) 
+/** Free */
+#define COfree(loc) free(loc)
+/** @} */
 
 
 /* Data types */
