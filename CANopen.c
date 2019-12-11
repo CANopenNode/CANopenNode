@@ -756,7 +756,9 @@ void CO_delete(void *CANdriverState){
     for(i=0; i<CO_NO_TPDO; i++){
         free(CO->TPDO[i]);
     }
+  #if CO_NO_SYNC == 1
     free(CO->SYNC);
+  #endif
     free(CO->NMT);
     free(CO->emPr);
     free(CO->em);
