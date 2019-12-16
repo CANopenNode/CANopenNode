@@ -759,6 +759,7 @@ void CO_delete(void *CANdriverState){
   #if CO_NO_SYNC == 1
     free(CO->SYNC);
   #endif
+    free(CO->TIME);
     free(CO->NMT);
     free(CO->emPr);
     free(CO->em);
