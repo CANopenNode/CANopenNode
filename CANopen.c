@@ -749,11 +749,14 @@ void CO_delete(void *CANdriverState){
     for(i=0; i<CO_NO_TPDO; i++){
         COfree(CO->TPDO[i]);
     }
+
     COfree(CO->SYNC);
     COfree(CO->NMT);
     COfree(CO->emPr);
     COfree(CO->em);
+    COfree(CO->TIME);
     COfree(CO_SDO_ODExtensions);
+
     for(i=0; i<CO_NO_SDO_SERVER; i++){
         COfree(CO->SDO[i]);
     }
