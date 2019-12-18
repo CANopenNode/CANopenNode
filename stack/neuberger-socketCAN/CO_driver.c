@@ -348,7 +348,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     interface = &CANmodule->CANinterfaces[CANmodule->CANinterfaceCount - 1];
 
     interface->CANdriverState = CANdriverState;
-    ifName = if_indextoname(CANdriverState, interface->ifName);
+    ifName = if_indextoname((uintptr_t)interface->CANdriverState, interface->ifName);
     if (ifName == NULL) {
         log_printf(LOG_DEBUG, DBG_ERRNO, "if_indextoname()");
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -396,7 +396,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     /* bind socket */
     memset(&sockAddr, 0, sizeof(sockAddr));
     sockAddr.can_family = AF_CAN;
-    sockAddr.can_ifindex = CANdriverState;
+    sockAddr.can_ifindex = (uintptr_t)interface->CANdriverState;
     ret = bind(interface->fd, (struct sockaddr*)&sockAddr, sizeof(sockAddr));
     if(ret < 0){
         log_printf(LOG_ERR, CAN_BINDING_FAILED, interface->ifName);
