@@ -332,7 +332,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     can_err_mask_t err_mask;
 #endif
 
-    if (CANmodule->CANnormal != false) {
+    if (!CANmodule->CANnormal) {
         /* can't change config now! */
         return CO_ERROR_INVALID_STATE;
     }
@@ -570,32 +570,27 @@ bool_t CO_CANrxBuffer_getInterface(
         void                  **CANdriverStateRx,
         struct timespec        *timestamp)
 {
-    if (CANmodule != NULL){
-        uint32_t index;
-        CO_CANrx_t *buffer;
+    CO_CANrx_t *buffer;
 
-        index = CO_CANgetIndexFromIdent(CANmodule->rxIdentToIndex, ident);
-        if ((index == CO_INVALID_COB_ID) || (index > CANmodule->rxSize)) {
-            return false;
-        }
-        buffer = &CANmodule->rxArray[index];
-
-        /* return values */
-        if (CANdriverStateRx != NULL) {
-            *CANdriverStateRx = buffer->CANdriverState;
-        }
-        if (timestamp != NULL) {
-            *timestamp = buffer->timestamp;
-        }
-
-        if (buffer->CANdriverState >= 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
+    if (CANmodule == NULL){
+        return false;
     }
-    return false;
+
+    const uint32_t index = CO_CANgetIndexFromIdent(CANmodule->rxIdentToIndex, ident);
+    if ((index == CO_INVALID_COB_ID) || (index > CANmodule->rxSize)) {
+      return false;
+    }
+    buffer = &CANmodule->rxArray[index];
+
+    /* return values */
+    if (CANbaseAddressRx != NULL) {
+      *CANbaseAddressRx = buffer->CANbaseAddress;
+    }
+    if (timestamp != NULL) {
+      *timestamp = buffer->timestamp;
+    }
+
+    return buffer->CANbaseAddress >= 0;
 }
 
 #endif

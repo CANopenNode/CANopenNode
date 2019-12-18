@@ -174,7 +174,7 @@ static CO_CANinterfaceState_t CO_CANerrorNoack(
 {
     CO_CANinterfaceState_t result = CO_INTERFACE_ACTIVE;
 
-    if (CANerrorhandler->listenOnly == true) {
+    if (CANerrorhandler->listenOnly) {
         return CO_INTERFACE_LISTEN_ONLY;
     }
 
@@ -240,7 +240,7 @@ void CO_CANerror_rxMsg(
     }
 
     /* someone is active, we can leave listen only immediately */
-    if (CANerrorhandler->listenOnly == true) {
+    if (CANerrorhandler->listenOnly) {
         CO_CANerrorClearListenOnly(CANerrorhandler);
     }
     CANerrorhandler->noackCounter = 0;
@@ -257,7 +257,7 @@ CO_CANinterfaceState_t CO_CANerror_txMsg(
         return CO_INTERFACE_BUS_OFF;
     }
 
-    if (CANerrorhandler->listenOnly == true) {
+    if (CANerrorhandler->listenOnly) {
         clock_gettime(CLOCK_MONOTONIC, &now);
         if (CANerrorhandler->timestamp.tv_sec + CO_CANerror_LISTEN_ONLY < now.tv_sec) {
             /* let's try that again. Maybe someone is waiting for LSS now. It
@@ -308,4 +308,3 @@ CO_CANinterfaceState_t CO_CANerror_rxMsgError(
 
     return CO_INTERFACE_ACTIVE;
 }
-

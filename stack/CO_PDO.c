@@ -916,7 +916,10 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
     }
     else if(!RPDO->synchronous || syncWas)
     {
+#if defined(RPDO_CALLS_EXTENSION)
         bool_t update = false;
+#endif /* defined(RPDO_CALLS_EXTENSION) */
+
         uint8_t bufNo = 0;
 
         /* Determine, which of the two rx buffers, contains relevant message. */
@@ -939,10 +942,12 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
             for(; i>0; i--) {
                 **(ppODdataByte++) = *(pPDOdataByte++);
             }
+#if defined(RPDO_CALLS_EXTENSION)
             update = true;
+#endif /* defined(RPDO_CALLS_EXTENSION) */
         }
 #ifdef RPDO_CALLS_EXTENSION
-        if(update==true && RPDO->SDO->ODExtensions){
+        if(update && RPDO->SDO->ODExtensions){
             int16_t i;
             /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
             const uint32_t* pMap = &RPDO->RPDOMapPar->mappedObject1;
