@@ -60,6 +60,7 @@ static void CO_CANClkSetting (void);
 static void CO_CANconfigGPIO (void);
 static void CO_CANsendToModule(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer, uint8_t transmit_mailbox);
 
+#ifdef CO_USE_LEDS
 void InitCanLeds(void)
 {
     vLED_InitRCC();
@@ -79,6 +80,7 @@ void CanLedsSet(eCoLeds led)
         vLED_OffPB15Led();
 
 }
+#endif /* CO_USE_LEDS */
 
 /*******************************************************************************
    Macro and Constants - CAN module registers

@@ -81,6 +81,7 @@ extern "C" {
     #include "CO_Emergency.h"
     #include "CO_NMT_Heartbeat.h"
     #include "CO_SYNC.h"
+    #include "CO_TIME.h"
     #include "CO_PDO.h"
     #include "CO_HBconsumer.h"
 #if CO_NO_SDO_CLIENT != 0
@@ -108,7 +109,7 @@ typedef enum{
      CO_CAN_ID_NMT_SERVICE       = 0x000,   /**< 0x000, Network management */
      CO_CAN_ID_SYNC              = 0x080,   /**< 0x080, Synchronous message */
      CO_CAN_ID_EMERGENCY         = 0x080,   /**< 0x080, Emergency messages (+nodeID) */
-     CO_CAN_ID_TIME_STAMP        = 0x100,   /**< 0x100, Time stamp message */
+     CO_CAN_ID_TIME              = 0x100,   /**< 0x100, Time message */
      CO_CAN_ID_TPDO_1            = 0x180,   /**< 0x180, Default TPDO1 (+nodeID) */
      CO_CAN_ID_RPDO_1            = 0x200,   /**< 0x200, Default RPDO1 (+nodeID) */
      CO_CAN_ID_TPDO_2            = 0x280,   /**< 0x280, Default TPDO2 (+nodeID) */
@@ -135,6 +136,7 @@ typedef struct{
     CO_EMpr_t          *emPr;           /**< Emergency process object */
     CO_NMT_t           *NMT;            /**< NMT object */
     CO_SYNC_t          *SYNC;           /**< SYNC object */
+    CO_TIME_t          *TIME;           /**< TIME object */
     CO_RPDO_t          *RPDO[CO_NO_RPDO];/**< RPDO objects */
     CO_TPDO_t          *TPDO[CO_NO_TPDO];/**< TPDO objects */
     CO_HBconsumer_t    *HBcons;         /**<  Heartbeat consumer object*/

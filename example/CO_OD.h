@@ -70,6 +70,21 @@
    typedef char_t       VISIBLE_STRING;
    typedef oChar_t      OCTET_STRING;
    typedef domain_t     DOMAIN;
+   
+   #ifndef timeOfDay_t
+    typedef union {
+        unsigned long long ullValue;
+        struct {
+            unsigned long ms:28;
+            unsigned reserved:4;
+            unsigned days:16;
+            unsigned reserved2:16;
+        };
+    }timeOfDay_t;
+#endif
+
+    typedef timeOfDay_t TIME_OF_DAY;
+    typedef timeOfDay_t TIME_DIFFERENCE;
 
 
 /*******************************************************************************
@@ -95,6 +110,7 @@
    FEATURES
 *******************************************************************************/
    #define CO_NO_SYNC                     1   //Associated objects: 1005, 1006, 1007, 2103, 2104
+   #define CO_NO_TIME                     1   //Associated objects: 1012-1013
    #define CO_NO_EMERGENCY                1   //Associated objects: 1014, 1015
    #define CO_NO_SDO_SERVER               1   //Associated objects: 1200
    #define CO_NO_SDO_CLIENT               0   
@@ -238,6 +254,7 @@ struct sCO_OD_ROM{
 /*1008      */ VISIBLE_STRING manufacturerDeviceName[11];
 /*1009      */ VISIBLE_STRING manufacturerHardwareVersion[4];
 /*100A      */ VISIBLE_STRING manufacturerSoftwareVersion[4];
+/*1012      */ UNSIGNED32     COB_ID_TIME;
 /*1014      */ UNSIGNED32     COB_ID_EMCY;
 /*1015      */ UNSIGNED16     inhibitTimeEMCY;
 /*1016      */ UNSIGNED32     consumerHeartbeatTime[4];
@@ -314,6 +331,9 @@ extern struct sCO_OD_ROM CO_OD_ROM;
       #define ODL_restoreDefaultParameters_arrayLength   1
       #define ODA_restoreDefaultParameters_restoreAllDefaultParameters 0
 
+/*1012, Data Type: UNSIGNED32 */
+      #define OD_COB_ID_TIME                             CO_OD_ROM.COB_ID_TIME
+		
 /*1014, Data Type: UNSIGNED32 */
       #define OD_COB_ID_EMCY                             CO_OD_ROM.COB_ID_EMCY
 

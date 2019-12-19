@@ -29,6 +29,7 @@ CANopen Features
  - SDO master.
  - Emergency message.
  - Sync producer/consumer.
+ - Time protocol (producer/consumer).
  - Non-volatile storage.
  - LSS master and slave, LSS fastscan
 
@@ -135,6 +136,7 @@ File structure
    - **CO_LSSmaster.h/.c** - CANopen LSS master functionality.
    - **CO_LSSslave.h/.c** - CANopen LSS slave functionality.
    - **CO_SYNC.h/.c** - CANopen SYNC producer and consumer object.
+   - **CO_TIME.h/.c** - CANopen TIME protocol object.
    - **CO_SDO.h/.c** - CANopen SDO server object. It serves data from Object dictionary.
    - **CO_PDO.h/.c** - CANopen PDO object. It configures, receives and transmits CANopen process data.
    - **CO_SDOmaster.h/.c** - CANopen SDO client object (master functionality).

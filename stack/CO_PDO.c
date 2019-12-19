@@ -952,7 +952,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 #endif /* RPDO_CALLS_EXTENSION */
         }
 #ifdef RPDO_CALLS_EXTENSION
-        if(update==true && RPDO->SDO->ODExtensions){
+        if(update && RPDO->SDO->ODExtensions){
             int16_t i;
             /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
             const uint32_t* pMap = &RPDO->RPDOMapPar->mappedObject1;

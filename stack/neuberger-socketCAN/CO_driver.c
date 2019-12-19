@@ -332,7 +332,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     can_err_mask_t err_mask;
 #endif
 
-    if (CANmodule->CANnormal != false) {
+    if (!CANmodule->CANnormal) {
         /* can't change config now! */
         return CO_ERROR_INVALID_STATE;
     }
@@ -348,7 +348,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     interface = &CANmodule->CANinterfaces[CANmodule->CANinterfaceCount - 1];
 
     interface->CANdriverState = CANdriverState;
-    ifName = if_indextoname(CANdriverState, interface->ifName);
+    ifName = if_indextoname((uintptr_t)interface->CANdriverState, interface->ifName);
     if (ifName == NULL) {
         log_printf(LOG_DEBUG, DBG_ERRNO, "if_indextoname()");
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -396,7 +396,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     /* bind socket */
     memset(&sockAddr, 0, sizeof(sockAddr));
     sockAddr.can_family = AF_CAN;
-    sockAddr.can_ifindex = CANdriverState;
+    sockAddr.can_ifindex = (uintptr_t)interface->CANdriverState;
     ret = bind(interface->fd, (struct sockaddr*)&sockAddr, sizeof(sockAddr));
     if(ret < 0){
         log_printf(LOG_ERR, CAN_BINDING_FAILED, interface->ifName);
@@ -498,9 +498,9 @@ uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg)
 /******************************************************************************/
 CO_ReturnError_t CO_CANrxBufferInit(
         CO_CANmodule_t         *CANmodule,
-        uint32_t                index,
-        uint32_t                ident,
-        uint32_t                mask,
+        uint16_t                index,
+        uint16_t                ident,
+        uint16_t                mask,
         bool_t                  rtr,
         void                   *object,
         void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message))
@@ -508,7 +508,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     if((CANmodule!=NULL) && (index < CANmodule->rxSize)){
-        uint32_t i;
+        uint16_t i;
         CO_CANrx_t *buffer;
 
         /* check if COB ID is already used */
@@ -570,32 +570,27 @@ bool_t CO_CANrxBuffer_getInterface(
         void                  **CANdriverStateRx,
         struct timespec        *timestamp)
 {
-    if (CANmodule != NULL){
-        uint32_t index;
-        CO_CANrx_t *buffer;
+    CO_CANrx_t *buffer;
 
-        index = CO_CANgetIndexFromIdent(CANmodule->rxIdentToIndex, ident);
-        if ((index == CO_INVALID_COB_ID) || (index > CANmodule->rxSize)) {
-            return false;
-        }
-        buffer = &CANmodule->rxArray[index];
-
-        /* return values */
-        if (CANdriverStateRx != NULL) {
-            *CANdriverStateRx = buffer->CANdriverState;
-        }
-        if (timestamp != NULL) {
-            *timestamp = buffer->timestamp;
-        }
-
-        if (buffer->CANdriverState >= 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
+    if (CANmodule == NULL){
+        return false;
     }
-    return false;
+
+    const uint32_t index = CO_CANgetIndexFromIdent(CANmodule->rxIdentToIndex, ident);
+    if ((index == CO_INVALID_COB_ID) || (index > CANmodule->rxSize)) {
+      return false;
+    }
+    buffer = &CANmodule->rxArray[index];
+
+    /* return values */
+    if (CANbaseAddressRx != NULL) {
+      *CANbaseAddressRx = buffer->CANbaseAddress;
+    }
+    if (timestamp != NULL) {
+      *timestamp = buffer->timestamp;
+    }
+
+    return buffer->CANbaseAddress >= 0;
 }
 
 #endif
@@ -604,8 +599,8 @@ bool_t CO_CANrxBuffer_getInterface(
 /******************************************************************************/
 CO_CANtx_t *CO_CANtxBufferInit(
         CO_CANmodule_t         *CANmodule,
-        uint32_t                index,
-        uint32_t                ident,
+        uint16_t                index,
+        uint16_t                ident,
         bool_t                  rtr,
         uint8_t                 noOfBytes,
         bool_t                  syncFlag)

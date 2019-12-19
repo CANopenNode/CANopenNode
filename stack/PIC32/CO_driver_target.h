@@ -1,10 +1,9 @@
 /*
- * CAN module object for Freescale MCF5282 ColdFire V2 microcontroller.
+ * CAN module object for Microchip PIC32MX microcontroller.
  *
- * @file        CO_driver.h
+ * @file        CO_driver_target.h
  * @author      Janez Paternoster
- * @author      Laurent Grosbois
- * @copyright   2004 - 2014 Janez Paternoster
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -44,46 +43,52 @@
  */
 
 
-#ifndef CO_DRIVER_H
-#define CO_DRIVER_H
+#ifndef CO_DRIVER_TARGET_H
+#define CO_DRIVER_TARGET_H
 
 
-/* For documentation see file drvTemplate/CO_driver.h */
-
-
-#include "mcf5282.h"        /* processor header file */
+#include <p32xxxx.h>        /* processor header file */
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
+#include <stdbool.h>        /* for 'true', 'false' */
 
+/* Endianness */
+#define CO_LITTLE_ENDIAN
 
 /* CAN module base address */
-    #define ADDR_CAN1               0
-    #define ADDR_CAN2               (_CAN2_BASE_ADDRESS - _CAN1_BASE_ADDRESS)
+#define ADDR_CAN1               0
+#define ADDR_CAN2               (_CAN2_BASE_ADDRESS - _CAN1_BASE_ADDRESS)
+
+
+/* Translate a kernel virtual address in KSEG0 or KSEG1 to a real
+* physical address and back. */
+typedef unsigned long CO_paddr_t; /* a physical address */
+typedef unsigned long CO_vaddr_t; /* a virtual address */
+#define CO_KVA_TO_PA(v) 	((CO_paddr_t)(v) & 0x1fffffff)
+#define CO_PA_TO_KVA0(pa)	((void *) ((pa) | 0x80000000))
+#define CO_PA_TO_KVA1(pa)	((void *) ((pa) | 0xa0000000))
 
 
 /* Critical sections */
-    #define CO_LOCK_CAN_SEND()      asm{ move.w        #0x2700,sr};
-    #define CO_UNLOCK_CAN_SEND()    asm{ move.w        #0x2000,sr};
+extern unsigned int CO_interruptStatus;
+#define CO_LOCK_CAN_SEND()      CO_interruptStatus = __builtin_disable_interrupts()
+#define CO_UNLOCK_CAN_SEND()    if(CO_interruptStatus & 0x00000001) {__builtin_enable_interrupts();}
 
-    #define CO_LOCK_EMCY()          asm{ move.w        #0x2700,sr};
-    #define CO_UNLOCK_EMCY()        asm{ move.w        #0x2000,sr};
+#define CO_LOCK_EMCY()          CO_interruptStatus = __builtin_disable_interrupts()
+#define CO_UNLOCK_EMCY()        if(CO_interruptStatus & 0x00000001) {__builtin_enable_interrupts();}
 
-    #define CO_LOCK_OD()            asm{ move.w        #0x2700,sr};
-    #define CO_UNLOCK_OD()          asm{ move.w        #0x2000,sr};
-
-
-/* MACRO : get information from Rx buffer */
-#define MCF_CANMB_MSG(x)      (*(CO_CANrxMsg_t *)(&__IPSBAR[0x1C0080 + ((x)*0x10)]))
+#define CO_LOCK_OD()            CO_interruptStatus = __builtin_disable_interrupts()
+#define CO_UNLOCK_OD()          if(CO_interruptStatus & 0x00000001) {__builtin_enable_interrupts();}
 
 
 /* Data types */
-    /* int8_t to uint64_t are defined in stdint.h */
-    typedef unsigned char           bool_t;
-    typedef float                   float32_t;
-    typedef long double             float64_t;
-    typedef char                    char_t;
-    typedef unsigned char           oChar_t;
-    typedef unsigned char           domain_t;
+/* int8_t to uint64_t are defined in stdint.h */
+typedef unsigned char           bool_t;
+typedef float                   float32_t;
+typedef long double             float64_t;
+typedef char                    char_t;
+typedef unsigned char           oChar_t;
+typedef unsigned char           domain_t;
 
 
 /* CAN bit rates
@@ -305,35 +310,15 @@ typedef struct{
 }CO_CANbitRateData_t;
 
 
-/* Return values */
-typedef enum{
-    CO_ERROR_NO                 = 0,
-    CO_ERROR_ILLEGAL_ARGUMENT   = -1,
-    CO_ERROR_OUT_OF_MEMORY      = -2,
-    CO_ERROR_TIMEOUT            = -3,
-    CO_ERROR_ILLEGAL_BAUDRATE   = -4,
-    CO_ERROR_RX_OVERFLOW        = -5,
-    CO_ERROR_RX_PDO_OVERFLOW    = -6,
-    CO_ERROR_RX_MSG_LENGTH      = -7,
-    CO_ERROR_RX_PDO_LENGTH      = -8,
-    CO_ERROR_TX_OVERFLOW        = -9,
-    CO_ERROR_TX_PDO_WINDOW      = -10,
-    CO_ERROR_TX_UNCONFIGURED    = -11,
-    CO_ERROR_PARAMETERS         = -12,
-    CO_ERROR_DATA_CORRUPT       = -13,
-    CO_ERROR_CRC                = -14
-}CO_ReturnError_t;
-
-
 /* CAN receive message structure as aligned in CAN module. */
 typedef struct{
-    unsigned    timestamp   :8; /* 8 bits timestamp, see MCF5282 documentation */
-    unsigned    code        :4; /* Message Buffer code. see MCF52825 documentation */
-    unsigned    DLC         :4; /* Data length code */
-    unsigned    sid         :11;/* Standard Identifier - 11bits */
-    unsigned    RTR         :1; /* Remote Transmission Request bit */
-    unsigned                :4;
-    unsigned    timestamp16 :16;/* See MCF5282 documentation */
+    unsigned    ident    :11;   /* Standard Identifier */
+    unsigned    FILHIT   :5;    /* Filter hit, see PIC32MX documentation */
+    unsigned    CMSGTS   :16;   /* CAN message timestamp, see PIC32MX documentation */
+    unsigned    DLC      :4;    /* Data length code (bits 0...3) */
+    unsigned             :5;
+    unsigned    RTR      :1;    /* Remote Transmission Request bit */
+    unsigned             :22;
     uint8_t     data[8];        /* 8 data bytes */
 }CO_CANrxMsg_t;
 
@@ -349,8 +334,8 @@ typedef struct{
 
 /* Transmit message object. */
 typedef struct{
-    uint8_t             DLC;
-    uint16_t            ident;
+    uint32_t            CMSGSID;     /* Equal to register in transmit message buffer. Includes standard Identifier */
+    uint32_t            CMSGEID;     /* Equal to register in transmit message buffer. Includes data length code and RTR */
     uint8_t             data[8];
     volatile bool_t     bufferFull;
     volatile bool_t     syncFlag;
@@ -360,8 +345,8 @@ typedef struct{
 /* CAN module object. */
 typedef struct{
     void               *CANdriverState;
-    CO_CANrxMsg_t      *CANmsgBuff;
-    uint8_t             CANmsgBuffSize;
+    CO_CANrxMsg_t       CANmsgBuff[33]; /* PIC32 specific: CAN message buffer for CAN module. 32 buffers for receive, 1 buffer for transmit */
+    uint8_t             CANmsgBuffSize; /* PIC32 specific: Size of the above buffer == 33. Take care initial value! */
     CO_CANrx_t         *rxArray;
     uint16_t            rxSize;
     CO_CANtx_t         *txArray;
@@ -376,74 +361,12 @@ typedef struct{
 }CO_CANmodule_t;
 
 
-/* Endianes */
-#define CO_LITTLE_ENDIAN
-
-
-/* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(void *CANdriverState);
-void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
-
-
-/* Initialize CAN module object.
+/* CAN interrupt receives and transmits CAN messages.
  *
- * MCF5282 FlexCAN configuration: 16 buffers are available.
- * Buffers [0..13] are used for reception
- * Buffers [14..15] are used for reception
+ * Function must be called directly from _C1Interrupt or _C2Interrupt with
+ * high priority.
  */
-CO_ReturnError_t CO_CANmodule_init(
-        CO_CANmodule_t         *CANmodule,
-        void                   *CANdriverState,
-        CO_CANrx_t              rxArray[],
-        uint16_t                rxSize,
-        CO_CANtx_t              txArray[],
-        uint16_t                txSize,
-        uint16_t                CANbitRate);    /* Valid values are (in kbps): 125, 1000. If value is illegal, bitrate defaults to 125. */
+void CO_CANinterrupt(CO_CANmodule_t *CANmodule);
 
 
-/* Switch off CANmodule. */
-void CO_CANmodule_disable(CO_CANmodule_t *CANmodule);
-
-
-/* Read CAN identifier */
-uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg);
-
-
-/* Configure CAN message receive buffer. */
-CO_ReturnError_t CO_CANrxBufferInit(
-        CO_CANmodule_t         *CANmodule,
-        uint16_t                index,
-        uint16_t                ident,
-        uint16_t                mask,
-        bool_t                  rtr,
-        void                   *object,
-        void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message));
-
-
-/* Configure CAN message transmit buffer. */
-CO_CANtx_t *CO_CANtxBufferInit(
-        CO_CANmodule_t         *CANmodule,
-        uint16_t                index,
-        uint16_t                ident,
-        bool_t                  rtr,
-        uint8_t                 noOfBytes,
-        bool_t                  syncFlag);
-
-
-/* Send CAN message. */
-CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
-
-
-/* Clear all synchronous TPDOs from CAN module transmit buffers. */
-void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
-
-
-/* Verify all errors of CAN module. */
-void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
-
-
-/* CAN interrupt receives and transmits CAN messages. */
-void CO_CANinterrupt(CO_CANmodule_t *CANmodule, uint16_t ICODE);
-
-
-#endif
+#endif /* CO_DRIVER_TARGET_H */
