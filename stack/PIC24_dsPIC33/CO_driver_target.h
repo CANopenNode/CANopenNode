@@ -1,7 +1,7 @@
 /*
  * CAN module object for Microchip dsPIC33 or PIC24 microcontroller.
  *
- * @file        CO_driver.h
+ * @file        CO_driver_target.h
  * @author      Janez Paternoster
  * @author      Peter Rozsahegyi (EDS)
  * @author      Jens Nielsen (CAN receive)
@@ -45,11 +45,8 @@
  */
 
 
-#ifndef CO_DRIVER_H
-#define CO_DRIVER_H
-
-
-/* For documentation see file drvTemplate/CO_driver.h */
+#ifndef CO_DRIVER_TARGET_H
+#define CO_DRIVER_TARGET_H
 
 
 #if defined(__dsPIC33F__) || defined(__PIC24H__)
@@ -61,91 +58,93 @@
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for 'true' and 'false' */
 
+/* Endianness */
+#define CO_LITTLE_ENDIAN
 
 /* CAN message buffer sizes for CAN module 1 and 2. Valid values
  * are 0, 4, 6, 8, 12, 16. Default is one TX and seven RX messages (FIFO). */
-    #ifndef CO_CAN1msgBuffSize
-        #define CO_CAN1msgBuffSize   8
-    #endif
-    #ifndef CO_CAN2msgBuffSize
-        #define CO_CAN2msgBuffSize   0  //CAN module 2 not used by default
-    #endif
+#ifndef CO_CAN1msgBuffSize
+    #define CO_CAN1msgBuffSize   8
+#endif /* CO_CAN1msgBuffSize */
+#ifndef CO_CAN2msgBuffSize
+    #define CO_CAN2msgBuffSize   0  //CAN module 2 not used by default
+#endif /* CO_CAN2msgBuffSize */
 
 
 /* Default DMA addresses for CAN modules. */
-    #ifndef CO_CAN1_DMA0
-        #define CO_CAN1_DMA0 ADDR_DMA0
-    #endif
-    #ifndef CO_CAN1_DMA1
-        #define CO_CAN1_DMA1 ADDR_DMA1
-    #endif
-    #ifndef CO_CAN2_DMA0
-        #define CO_CAN2_DMA0 ADDR_DMA2
-    #endif
-    #ifndef CO_CAN2_DMA1
-        #define CO_CAN2_DMA1 ADDR_DMA3
-    #endif
+#ifndef CO_CAN1_DMA0
+    #define CO_CAN1_DMA0 ADDR_DMA0
+#endif /* CO_CAN1_DMA0 */
+#ifndef CO_CAN1_DMA1
+    #define CO_CAN1_DMA1 ADDR_DMA1
+#endif /* CO_CAN1_DMA1 */
+#ifndef CO_CAN2_DMA0
+    #define CO_CAN2_DMA0 ADDR_DMA2
+#endif /* CO_CAN2_DMA0 */
+#ifndef CO_CAN2_DMA1
+    #define CO_CAN2_DMA1 ADDR_DMA3
+#endif /* CO_CAN2_DMA1 */
 
 
 /* Define DMA attribute on supported platforms */
-    #if defined(__dsPIC33F__) || defined(__PIC24H__) || defined(__DMA_BASE)
-        #define __dma  __attribute__((space(dma)))
-    #else
-        #define __dma
-        #if defined(__C30_VERSION__) && !defined(__XC16_VERSION__)
-            #define __builtin_dmaoffset(V)  (uint16_t)V
-        #endif
+#if defined(__dsPIC33F__) || defined(__PIC24H__) || defined(__DMA_BASE)
+    #define __dma  __attribute__((space(dma)))
+#else
+    #define __dma
+    #if defined(__C30_VERSION__) && !defined(__XC16_VERSION__)
+        #define __builtin_dmaoffset(V)  (uint16_t)V
     #endif
+#endif
 
 /* Define EDS attribute on supported platforms */
-    #if defined(__HAS_EDS__)
-        #define __eds __attribute__((eds))
-        #if defined(__C30_VERSION__) && !defined(__XC16_VERSION__)
-            #define __builtin_dmapage(V)  (uint16_t)0
-        #endif
-    #else
-        #define __eds
-        #define __eds__
+#if defined(__HAS_EDS__)
+    #define __eds __attribute__((eds))
+    #if defined(__C30_VERSION__) && !defined(__XC16_VERSION__)
+        #define __builtin_dmapage(V)  (uint16_t)0
     #endif
+#else
+    #define __eds
+    #define __eds__
+#endif
 
 
 /* CAN module base addresses */
-    #define ADDR_CAN1               ((uint16_t)&C1CTRL1)
-    #define ADDR_CAN2               ((uint16_t)&C2CTRL1)
+#define ADDR_CAN1               ((uint16_t)&C1CTRL1)
+#define ADDR_CAN2               ((uint16_t)&C2CTRL1)
 
 /* DMA addresses */
-    #define ADDR_DMA0               ((uint16_t)&DMA0CON)
-    #define ADDR_DMA1               ((uint16_t)&DMA1CON)
-    #define ADDR_DMA2               ((uint16_t)&DMA2CON)
-    #define ADDR_DMA3               ((uint16_t)&DMA3CON)
-    #define ADDR_DMA4               ((uint16_t)&DMA4CON)
-    #define ADDR_DMA5               ((uint16_t)&DMA5CON)
-    #define ADDR_DMA6               ((uint16_t)&DMA6CON)
-    #define ADDR_DMA7               ((uint16_t)&DMA7CON)
+#define ADDR_DMA0               ((uint16_t)&DMA0CON)
+#define ADDR_DMA1               ((uint16_t)&DMA1CON)
+#define ADDR_DMA2               ((uint16_t)&DMA2CON)
+#define ADDR_DMA3               ((uint16_t)&DMA3CON)
+#define ADDR_DMA4               ((uint16_t)&DMA4CON)
+#define ADDR_DMA5               ((uint16_t)&DMA5CON)
+#define ADDR_DMA6               ((uint16_t)&DMA6CON)
+#define ADDR_DMA7               ((uint16_t)&DMA7CON)
 
 
 /* Critical sections */
-    #define CO_LOCK_CAN_SEND()      asm volatile ("disi #0x3FFF")
-    #define CO_UNLOCK_CAN_SEND()    asm volatile ("disi #0x0000")
+#define CO_LOCK_CAN_SEND()      asm volatile ("disi #0x3FFF")
+#define CO_UNLOCK_CAN_SEND()    asm volatile ("disi #0x0000")
 
-    #define CO_LOCK_EMCY()          asm volatile ("disi #0x3FFF")
-    #define CO_UNLOCK_EMCY()        asm volatile ("disi #0x0000")
+#define CO_LOCK_EMCY()          asm volatile ("disi #0x3FFF")
+#define CO_UNLOCK_EMCY()        asm volatile ("disi #0x0000")
 
-    #define CO_LOCK_OD()            asm volatile ("disi #0x3FFF")
-    #define CO_UNLOCK_OD()          asm volatile ("disi #0x0000")
+#define CO_LOCK_OD()            asm volatile ("disi #0x3FFF")
+#define CO_UNLOCK_OD()          asm volatile ("disi #0x0000")
 
-    #define CO_DISABLE_INTERRUPTS()  asm volatile ("disi #0x3FFF")
-    #define CO_ENABLE_INTERRUPTS()   asm volatile ("disi #0x0000")
+#define CO_DISABLE_INTERRUPTS()  asm volatile ("disi #0x3FFF")
+#define CO_ENABLE_INTERRUPTS()   asm volatile ("disi #0x0000")
 
 
 /* Data types */
-    /* int8_t to uint64_t are defined in stdint.h */
-    typedef unsigned char           bool_t;
-    typedef float                   float32_t;
-    typedef long double             float64_t;
-    typedef char                    char_t;
-    typedef unsigned char           oChar_t;
-    typedef unsigned char           domain_t;
+/* int8_t to uint64_t are defined in stdint.h */
+typedef unsigned char           bool_t;
+typedef float                   float32_t;
+typedef long double             float64_t;
+typedef char                    char_t;
+typedef unsigned char           oChar_t;
+typedef unsigned char           domain_t;
 
 
 /* CAN bit rates
@@ -322,7 +321,7 @@
         {1, 2,   TQ_x_20},   /*CAN=500kbps*/   \
         {1, 1,   TQ_x_25},   /*CAN=800kbps*/   \
         {1, 1,   TQ_x_20}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 48000
+    #elif CO_FCY == 48000
         #define CO_CANbitRateDataInitializers  \
         {1, 63,  TQ_x_19},   /*Not possible*/  \
         {1, 63,  TQ_x_19},   /*CAN=20kbps*/    \
@@ -332,7 +331,7 @@
         {1, 3,   TQ_x_16},   /*CAN=500kbps*/   \
         {1, 2,   TQ_x_15},   /*CAN=800kbps*/   \
         {1, 2,   TQ_x_12}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 56000
+    #elif CO_FCY == 56000
         #define CO_CANbitRateDataInitializers  \
         {1, 61,  TQ_x_23},   /*Not possible*/  \
         {1, 61,  TQ_x_23},   /*CAN=20kbps*/    \
@@ -342,7 +341,7 @@
         {1, 4,   TQ_x_14},   /*CAN=500kbps*/   \
         {1, 5,   TQ_x_7 },   /*CAN=800kbps*/   \
         {1, 2,   TQ_x_14}    /*CAN=1000kbps*/
-    #elif CO_FSYS == 64000
+    #elif CO_FCY == 64000
         #define CO_CANbitRateDataInitializers  \
         {1, 64,  TQ_x_25},   /*Not possible*/  \
         {1, 64,  TQ_x_25},   /*CAN=20kbps*/    \
@@ -364,8 +363,8 @@
         {1, 2,   TQ_x_17}    /*Not working*/
     #else
         #error define_CO_FCY CO_FCY not supported
-    #endif
-#endif
+    #endif /* CO_FCY == <value> */
+#endif /* CO_FCY */
 
 
 /* Structure contains timing coefficients for CAN module.
@@ -384,26 +383,6 @@ typedef struct{
     uint8_t   phSeg1;   /* (1...8) Phase Segment 1 time */
     uint8_t   phSeg2;   /* (1...8) Phase Segment 2 time */
 }CO_CANbitRateData_t;
-
-
-/* Return values */
-typedef enum{
-    CO_ERROR_NO                 = 0,
-    CO_ERROR_ILLEGAL_ARGUMENT   = -1,
-    CO_ERROR_OUT_OF_MEMORY      = -2,
-    CO_ERROR_TIMEOUT            = -3,
-    CO_ERROR_ILLEGAL_BAUDRATE   = -4,
-    CO_ERROR_RX_OVERFLOW        = -5,
-    CO_ERROR_RX_PDO_OVERFLOW    = -6,
-    CO_ERROR_RX_MSG_LENGTH      = -7,
-    CO_ERROR_RX_PDO_LENGTH      = -8,
-    CO_ERROR_TX_OVERFLOW        = -9,
-    CO_ERROR_TX_PDO_WINDOW      = -10,
-    CO_ERROR_TX_UNCONFIGURED    = -11,
-    CO_ERROR_PARAMETERS         = -12,
-    CO_ERROR_DATA_CORRUPT       = -13,
-    CO_ERROR_CRC                = -14
-}CO_ReturnError_t;
 
 
 /* CAN receive message structure as aligned in CAN module.
@@ -461,67 +440,6 @@ typedef struct{
 }CO_CANmodule_t;
 
 
-/* Endianes */
-#define CO_LITTLE_ENDIAN
-
-
-/* Request CAN configuration or normal mode */
-void CO_CANsetConfigurationMode(void *CANdriverState);
-void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
-
-
-/* Initialize CAN module object. */
-CO_ReturnError_t CO_CANmodule_init(
-        CO_CANmodule_t         *CANmodule,
-        void                   *CANdriverState,
-        CO_CANrx_t              rxArray[],
-        uint16_t                rxSize,
-        CO_CANtx_t              txArray[],
-        uint16_t                txSize,
-        uint16_t                CANbitRate);
-
-
-/* Switch off CANmodule. */
-void CO_CANmodule_disable(CO_CANmodule_t *CANmodule);
-
-
-/* Read CAN identifier */
-uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg);
-
-
-/* Configure CAN message receive buffer. */
-CO_ReturnError_t CO_CANrxBufferInit(
-        CO_CANmodule_t         *CANmodule,
-        uint16_t                index,
-        uint16_t                ident,
-        uint16_t                mask,
-        bool_t                  rtr,
-        void                   *object,
-        void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message));
-
-
-/* Configure CAN message transmit buffer. */
-CO_CANtx_t *CO_CANtxBufferInit(
-        CO_CANmodule_t         *CANmodule,
-        uint16_t                index,
-        uint16_t                ident,
-        bool_t                  rtr,
-        uint8_t                 noOfBytes,
-        bool_t                  syncFlag);
-
-
-/* Send CAN message. */
-CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
-
-
-/* Clear all synchronous TPDOs from CAN module transmit buffers. */
-void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
-
-
-/* Verify all errors of CAN module. */
-void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
-
-
 /* CAN interrupt receives and transmits CAN messages.
  *
  * Function must be called directly from _C1Interrupt or _C2Interrupt with
@@ -530,4 +448,4 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
 void CO_CANinterrupt(CO_CANmodule_t *CANmodule);
 
 
-#endif
+#endif /* CO_DRIVER_TARGET_H */

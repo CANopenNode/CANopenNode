@@ -23,6 +23,7 @@ SOURCES =       $(STACKDRV_SRC)/CO_driver.c     \
                 $(STACK_SRC)/CO_Emergency.c     \
                 $(STACK_SRC)/CO_NMT_Heartbeat.c \
                 $(STACK_SRC)/CO_SYNC.c          \
+                $(STACK_SRC)/CO_TIME.c          \
                 $(STACK_SRC)/CO_PDO.c           \
                 $(STACK_SRC)/CO_HBconsumer.c    \
                 $(STACK_SRC)/CO_SDOmaster.c     \

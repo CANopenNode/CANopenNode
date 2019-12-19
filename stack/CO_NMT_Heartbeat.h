@@ -150,6 +150,7 @@ typedef enum{
  */
 typedef struct{
     uint8_t             operatingState; /**< See @ref CO_NMT_internalState_t */
+#ifdef CO_USE_LEDS
     int8_t              LEDflickering;  /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDblinking;    /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDsingleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
@@ -158,6 +159,7 @@ typedef struct{
     int8_t              LEDquadrupleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDgreenRun;    /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDredError;    /**< See @ref CO_NMT_statusLEDdiodes */
+#endif /* CO_USE_LEDS */
 
     uint8_t             resetCommand;   /**< If different than zero, device will reset */
     uint8_t             nodeId;         /**< CANopen Node ID of this device */
@@ -228,7 +230,9 @@ void CO_NMT_initCallback(
  *
  * @param NMT NMT object.
  */
+#ifdef CO_USE_LEDS
 void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT);
+#endif /* CO_USE_LEDS */
 
 
 /**

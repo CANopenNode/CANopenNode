@@ -1,7 +1,7 @@
 /**
- * CAN module object for generic microcontroller.
+ * CAN driver functions.
  *
- * This file is a template for other microcontrollers.
+ * Defines functions that must be implemented for each target.
  *
  * @file        CO_driver.h
  * @ingroup     CO_driver
@@ -45,19 +45,18 @@
  * to do so, delete this exception statement from your version.
  */
 
-
 #ifndef CO_DRIVER_H
 #define CO_DRIVER_H
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
+
+#include "CO_driver_target.h"
+#include "CO_types.h"
 
 /* Include processor header file */
-#include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
-#include <stdbool.h>        /* for 'true', 'false' */
-
 
 /**
  * @defgroup CO_driver Driver
@@ -134,188 +133,6 @@ extern "C" {
  * _bufferFull_ flags in CO_CANtx_t array set to true. In that case messages with
  * lower index inside array will be sent first.
  */
-
-
-/**
- * @name Critical sections
- * CANopenNode is designed to run in different threads, as described in README.
- * Threads are implemented differently in different systems. In microcontrollers
- * threads are interrupts with different priorities, for example.
- * It is necessary to protect sections, where different threads access to the
- * same resource. In simple systems interrupts or scheduler may be temporary
- * disabled between access to the shared resource. Otherwise mutexes or
- * semaphores can be used.
- *
- * ####Reentrant functions.
- * Functions CO_CANsend() from C_driver.h, CO_errorReport() from CO_Emergency.h
- * and CO_errorReset() from CO_Emergency.h may be called from different threads.
- * Critical sections must be protected. Eather by disabling scheduler or
- * interrupts or by mutexes or semaphores.
- *
- * ####Object Dictionary variables.
- * In general, there are two threads, which accesses OD variables: mainline and
- * timer. CANopenNode initialization and SDO server runs in mainline. PDOs runs
- * in faster timer thread. Processing of PDOs must not be interrupted by
- * mainline. Mainline thread must protect sections, which accesses the same OD
- * variables as timer thread. This care must also take the application. Note
- * that not all variables are allowed to be mapped to PDOs, so they may not need
- * to be protected. SDO server protects sections with access to OD variables.
- *
- * ####CAN receive thread.
- * It partially processes received CAN data and puts them into appropriate
- * objects. Objects are later processed. It does not need protection of
- * critical sections. There is one circumstance, where CANrx should be disabled:
- * After presence of SYNC message on CANopen bus, CANrx should be temporary
- * disabled until all receive PDOs are processed. See also CO_SYNC.h file and
- * CO_SYNC_initCallback() function.
- * @{
- */
-    #define CO_LOCK_CAN_SEND()  /**< Lock critical section in CO_CANsend() */
-    #define CO_UNLOCK_CAN_SEND()/**< Unlock critical section in CO_CANsend() */
-
-    #define CO_LOCK_EMCY()      /**< Lock critical section in CO_errorReport() or CO_errorReset() */
-    #define CO_UNLOCK_EMCY()    /**< Unlock critical section in CO_errorReport() or CO_errorReset() */
-
-    #define CO_LOCK_OD()        /**< Lock critical section when accessing Object Dictionary */
-    #define CO_UNLOCK_OD()      /**< Unock critical section when accessing Object Dictionary */
-/** @} */
-
-/**
- * @name Syncronisation functions
- * syncronisation for message buffer for communication between CAN receive and
- * message processing threads.
- *
- * If receive function runs inside IRQ, no further synchronsiation is needed.
- * Otherwise, some kind of synchronsiation has to be included. The following
- * example uses GCC builtin memory barrier __sync_synchronize(). A comprehensive
- * list can be found here: https://gist.github.com/leo-yuriev/ba186a6bf5cf3a27bae7
- * \code{.c}
-    #define CANrxMemoryBarrier() {__sync_synchronize();}
- * \endcode
- * @{
- */
-/** Memory barrier */
-#define CANrxMemoryBarrier()
-/** Check if new message has arrived */
-#define IS_CANrxNew(rxNew) ((uintptr_t)rxNew)
-/** Set new message flag */
-#define SET_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)1L;}
-/** Clear new message flag */
-#define CLEAR_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)0L;}
-/** @} */
-
-/**
- * @defgroup CO_dataTypes Data types
- * @{
- *
- * According to Misra C
- */
-    /* int8_t to uint64_t are defined in stdint.h */
-    typedef unsigned char           bool_t;     /**< bool_t */
-    typedef float                   float32_t;  /**< float32_t */
-    typedef long double             float64_t;  /**< float64_t */
-    typedef char                    char_t;     /**< char_t */
-    typedef unsigned char           oChar_t;    /**< oChar_t */
-    typedef unsigned char           domain_t;   /**< domain_t */
-/** @} */
-
-
-/**
- * Return values of some CANopen functions. If function was executed
- * successfully it returns 0 otherwise it returns <0.
- */
-typedef enum{
-    CO_ERROR_NO                 = 0,    /**< Operation completed successfully */
-    CO_ERROR_ILLEGAL_ARGUMENT   = -1,   /**< Error in function arguments */
-    CO_ERROR_OUT_OF_MEMORY      = -2,   /**< Memory allocation failed */
-    CO_ERROR_TIMEOUT            = -3,   /**< Function timeout */
-    CO_ERROR_ILLEGAL_BAUDRATE   = -4,   /**< Illegal baudrate passed to function CO_CANmodule_init() */
-    CO_ERROR_RX_OVERFLOW        = -5,   /**< Previous message was not processed yet */
-    CO_ERROR_RX_PDO_OVERFLOW    = -6,   /**< previous PDO was not processed yet */
-    CO_ERROR_RX_MSG_LENGTH      = -7,   /**< Wrong receive message length */
-    CO_ERROR_RX_PDO_LENGTH      = -8,   /**< Wrong receive PDO length */
-    CO_ERROR_TX_OVERFLOW        = -9,   /**< Previous message is still waiting, buffer full */
-    CO_ERROR_TX_PDO_WINDOW      = -10,  /**< Synchronous TPDO is outside window */
-    CO_ERROR_TX_UNCONFIGURED    = -11,  /**< Transmit buffer was not confugured properly */
-    CO_ERROR_PARAMETERS         = -12,  /**< Error in function function parameters */
-    CO_ERROR_DATA_CORRUPT       = -13,  /**< Stored data are corrupt */
-    CO_ERROR_CRC                = -14   /**< CRC does not match */
-}CO_ReturnError_t;
-
-
-/**
- * CAN receive message structure as aligned in CAN module. It is different in
- * different microcontrollers. It usually contains other variables.
- */
-typedef struct{
-    /** CAN identifier. It must be read through CO_CANrxMsg_readIdent() function. */
-    uint32_t            ident;
-    uint8_t             DLC ;           /**< Length of CAN message */
-    uint8_t             data[8];        /**< 8 data bytes */
-}CO_CANrxMsg_t;
-
-
-/**
- * Received message object
- */
-typedef struct{
-    uint16_t            ident;          /**< Standard CAN Identifier (bits 0..10) + RTR (bit 11) */
-    uint16_t            mask;           /**< Standard Identifier mask with same alignment as ident */
-    void               *object;         /**< From CO_CANrxBufferInit() */
-    void              (*pFunct)(void *object, const CO_CANrxMsg_t *message);  /**< From CO_CANrxBufferInit() */
-}CO_CANrx_t;
-
-
-/**
- * Transmit message object.
- */
-typedef struct{
-    uint32_t            ident;          /**< CAN identifier as aligned in CAN module */
-    uint8_t             DLC ;           /**< Length of CAN message. (DLC may also be part of ident) */
-    uint8_t             data[8];        /**< 8 data bytes */
-    volatile bool_t     bufferFull;     /**< True if previous message is still in buffer */
-    /** Synchronous PDO messages has this flag set. It prevents them to be sent outside the synchronous window */
-    volatile bool_t     syncFlag;
-}CO_CANtx_t;
-
-
-/**
- * CAN module object. It may be different in different microcontrollers.
- */
-typedef struct{
-    void               *CANdriverState; /**< From CO_CANmodule_init() */
-    CO_CANrx_t         *rxArray;        /**< From CO_CANmodule_init() */
-    uint16_t            rxSize;         /**< From CO_CANmodule_init() */
-    CO_CANtx_t         *txArray;        /**< From CO_CANmodule_init() */
-    uint16_t            txSize;         /**< From CO_CANmodule_init() */
-    volatile bool_t     CANnormal;      /**< CAN module is in normal mode */
-    /** Value different than zero indicates, that CAN module hardware filters
-      * are used for CAN reception. If there is not enough hardware filters,
-      * they won't be used. In this case will be *all* received CAN messages
-      * processed by software. */
-    volatile bool_t     useCANrxFilters;
-    /** If flag is true, then message in transmitt buffer is synchronous PDO
-      * message, which will be aborted, if CO_clearPendingSyncPDOs() function
-      * will be called by application. This may be necessary if Synchronous
-      * window time was expired. */
-    volatile bool_t     bufferInhibitFlag;
-    /** Equal to 1, when the first transmitted message (bootup message) is in CAN TX buffers */
-    volatile bool_t     firstCANtxMessage;
-    /** Number of messages in transmit buffer, which are waiting to be copied to the CAN module */
-    volatile uint16_t   CANtxCount;
-    uint32_t            errOld;         /**< Previous state of CAN errors */
-    void               *em;             /**< Emergency object */
-}CO_CANmodule_t;
-
-
-/**
- * Endianness.
- *
- * Depending on processor or compiler architecture, one of the two macros must
- * be defined: CO_LITTLE_ENDIAN or CO_BIG_ENDIAN. CANopen itself is little endian.
- */
-#define CO_LITTLE_ENDIAN
-
 
 /**
  * Request CAN configuration (stopped) mode and *wait* untill it is set.
@@ -476,19 +293,9 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
  */
 void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
 
-
-/**
- * Receives and transmits CAN messages.
- *
- * Function must be called directly from high priority CAN interrupt.
- *
- * @param CANmodule This object.
- */
-void CO_CANinterrupt(CO_CANmodule_t *CANmodule);
-
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 /** @} */
-#endif
+#endif /* CO_DRIVER_H */

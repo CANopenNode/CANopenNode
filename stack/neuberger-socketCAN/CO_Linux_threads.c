@@ -165,7 +165,7 @@ void CANrx_threadTmr_process(void)
       /* at least one timer interval occured */
       CO_LOCK_OD();
 
-      if(CO->CANmodule[0]->CANnormal == true) {
+      if(CO->CANmodule[0]->CANnormal) {
 
         for (i = 0; i <= missed; i++) {
           /* Process Sync and read inputs */
