@@ -215,6 +215,7 @@ typedef struct{
 typedef struct{
     CO_EM_t            *em;             /**< From CO_TPDO_init() */
     CO_SDO_t           *SDO;            /**< From CO_TPDO_init() */
+    CO_SYNC_t          *SYNC;           /**< From CO_TPDO_init() */
     const CO_TPDOCommPar_t *TPDOCommPar;/**< From CO_TPDO_init() */
     const CO_TPDOMapPar_t  *TPDOMapPar; /**< From CO_TPDO_init() */
     uint8_t            *operatingState; /**< From CO_TPDO_init() */
@@ -324,6 +325,7 @@ CO_ReturnError_t CO_TPDO_init(
         CO_TPDO_t              *TPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
+        CO_SYNC_t              *SYNC,
         uint8_t                *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
@@ -394,7 +396,6 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas);
  */
 void CO_TPDO_process(
         CO_TPDO_t              *TPDO,
-        CO_SYNC_t              *SYNC,
         bool_t                  syncWas,
         uint32_t                timeDifference_us);
 

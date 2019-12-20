@@ -150,8 +150,11 @@ static void tmrTask_thread(void){
         if(CO->CANmodule[0]->CANnormal) {
             bool_t syncWas;
 
-            /* Process Sync and read inputs */
-            syncWas = CO_process_SYNC_RPDO(CO, TMR_TASK_INTERVAL);
+            /* Process Sync */
+            syncWas = CO_process_SYNC(CO, TMR_TASK_INTERVAL);
+
+            /* Read inputs */
+            CO_process_RPDO(CO, syncWas);
 
             /* Further I/O or nonblocking application code may go here. */
 
