@@ -146,7 +146,9 @@
 #if CO_NO_SYNC == 1
     static CO_SYNC_t            COO_SYNC;
 #endif
+#if CO_NO_TIME == 1
     static CO_TIME_t            COO_TIME;
+#endif
     static CO_RPDO_t            COO_RPDO[CO_NO_RPDO];
     static CO_TPDO_t            COO_TPDO[CO_NO_TPDO];
     static CO_HBconsumer_t      COO_HBcons;
@@ -253,7 +255,9 @@ CO_ReturnError_t CO_new(void)
   #if CO_NO_SYNC == 1
     CO->SYNC                            = &COO_SYNC;
   #endif
+  #if CO_NO_TIME == 1
     CO->TIME                            = &COO_TIME;
+  #endif
     for(i=0; i<CO_NO_RPDO; i++)
         CO->RPDO[i]                     = &COO_RPDO[i];
     for(i=0; i<CO_NO_TPDO; i++)
@@ -295,7 +299,9 @@ CO_ReturnError_t CO_new(void)
       #if CO_NO_SYNC == 1
         CO->SYNC                            = (CO_SYNC_t *)         calloc(1, sizeof(CO_SYNC_t));
       #endif
+      #if CO_NO_TIME == 1
         CO->TIME                            = (CO_TIME_t *)         calloc(1, sizeof(CO_TIME_t));
+      #endif
         for(i=0; i<CO_NO_RPDO; i++){
             CO->RPDO[i]                     = (CO_RPDO_t *)         calloc(1, sizeof(CO_RPDO_t));
         }
@@ -338,7 +344,9 @@ CO_ReturnError_t CO_new(void)
                   + sizeof(CO_EMpr_t)
                   + sizeof(CO_NMT_t)
                   + sizeof(CO_SYNC_t)
+  #if CO_NO_TIME == 1
                   + sizeof(CO_TIME_t)
+  #endif
                   + sizeof(CO_RPDO_t) * CO_NO_RPDO
                   + sizeof(CO_TPDO_t) * CO_NO_TPDO
                   + sizeof(CO_HBconsumer_t)
@@ -372,7 +380,9 @@ CO_ReturnError_t CO_new(void)
     if(CO->emPr                         == NULL) errCnt++;
     if(CO->NMT                          == NULL) errCnt++;
     if(CO->SYNC                         == NULL) errCnt++;
+  #if CO_NO_TIME == 1
     if(CO->TIME                     	== NULL) errCnt++;
+  #endif
     for(i=0; i<CO_NO_RPDO; i++){
         if(CO->RPDO[i]                  == NULL) errCnt++;
     }
@@ -575,6 +585,7 @@ CO_ReturnError_t CO_CANopenInit(
     if(err){return err;}
 #endif
 
+#if CO_NO_TIME == 1
     err = CO_TIME_init(
             CO->TIME,
             CO->em,
@@ -588,6 +599,7 @@ CO_ReturnError_t CO_CANopenInit(
             CO_TXCAN_TIME);
 
     if(err){return err;}
+#endif
 
     for(i=0; i<CO_NO_RPDO; i++){
         CO_CANmodule_t *CANdevRx = CO->CANmodule[0];
@@ -759,7 +771,9 @@ void CO_delete(void *CANdriverState){
   #if CO_NO_SYNC == 1
     free(CO->SYNC);
   #endif
+  #if CO_NO_TIME == 1
     free(CO->TIME);
+  #endif
     free(CO->NMT);
     free(CO->emPr);
     free(CO->em);
@@ -836,11 +850,12 @@ CO_NMT_reset_cmd_t CO_process(
             CO->HBcons,
             NMTisPreOrOperational,
             timeDifference_ms);
-    
-    
+
+#if CO_NO_TIME == 1
     CO_TIME_process(
             CO->TIME, 
             timeDifference_ms);
+#endif
 
     return reset;
 }
