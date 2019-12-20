@@ -165,11 +165,14 @@ void CANrx_threadTmr_process(void)
       /* at least one timer interval occured */
       CO_LOCK_OD();
 
-      if(CO->CANmodule[0]->CANnormal == true) {
+      if(CO->CANmodule[0]->CANnormal) {
 
         for (i = 0; i <= missed; i++) {
-          /* Process Sync and read inputs */
-          syncWas = CO_process_SYNC_RPDO(CO, threadRT.us_interval);
+          /* Process Sync */
+          syncWas = CO_process_SYNC(CO, threadRT.us_interval);
+
+          /* Read inputs */
+          CO_process_RPDO(CO, syncWas);
 
           /* Write outputs */
           CO_process_TPDO(CO, syncWas, threadRT.us_interval);

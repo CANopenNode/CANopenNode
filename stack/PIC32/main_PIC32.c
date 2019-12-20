@@ -300,8 +300,11 @@ void __ISR(_TIMER_2_VECTOR, IPL3SOFT) CO_TimerInterruptHandler(void){
         bool_t syncWas;
         int i;
 
-        /* Process Sync and read inputs */
-        syncWas = CO_process_SYNC_RPDO(CO, 1000);
+        /* Process Sync */
+        syncWas = CO_process_SYNC(CO, 1000);
+
+        /* Read inputs */
+        CO_process_RPDO(CO, syncWas);
 
         /* Further I/O or nonblocking application code may go here. */
 #if CO_NO_TRACE > 0

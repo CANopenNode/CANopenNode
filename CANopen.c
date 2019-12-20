@@ -85,7 +85,7 @@
 /* Verify features from CO_OD *************************************************/
     /* generate error, if features are not correctly configured for this project */
     #if        CO_NO_NMT_MASTER                           >  1     \
-            || CO_NO_SYNC                                 != 1     \
+            || CO_NO_SYNC                                 >  1     \
             || CO_NO_EMERGENCY                            != 1     \
             || CO_NO_SDO_SERVER                           == 0     \
             || CO_NO_TIME                                 >  1     \
@@ -143,7 +143,9 @@
     static CO_EM_t              COO_EM;
     static CO_EMpr_t            COO_EMpr;
     static CO_NMT_t             COO_NMT;
+#if CO_NO_SYNC == 1
     static CO_SYNC_t            COO_SYNC;
+#endif
     static CO_TIME_t            COO_TIME;
     static CO_RPDO_t            COO_RPDO[CO_NO_RPDO];
     static CO_TPDO_t            COO_TPDO[CO_NO_TPDO];
@@ -277,6 +279,7 @@ CO_ReturnError_t CO_new(void)
 #ifdef CO_USE_GLOBALS
     CO = &COO;
 
+    CO_memset((uint8_t*)CO, 0, sizeof(CO_t));
     CO->CANmodule[0]                    = &COO_CANmodule;
     CO_CANmodule_rxArray0               = &COO_CANmodule_rxArray0[0];
     CO_CANmodule_txArray0               = &COO_CANmodule_txArray0[0];
@@ -286,7 +289,9 @@ CO_ReturnError_t CO_new(void)
     CO->em                              = &COO_EM;
     CO->emPr                            = &COO_EMpr;
     CO->NMT                             = &COO_NMT;
+  #if CO_NO_SYNC == 1
     CO->SYNC                            = &COO_SYNC;
+  #endif
     CO->TIME                            = &COO_TIME;
     for(i=0; i<CO_NO_RPDO; i++)
         CO->RPDO[i]                     = &COO_RPDO[i];
@@ -326,7 +331,9 @@ CO_ReturnError_t CO_new(void)
         CO->em                              = (CO_EM_t *)           calloc(1, sizeof(CO_EM_t));
         CO->emPr                            = (CO_EMpr_t *)         calloc(1, sizeof(CO_EMpr_t));
         CO->NMT                             = (CO_NMT_t *)          calloc(1, sizeof(CO_NMT_t));
+      #if CO_NO_SYNC == 1
         CO->SYNC                            = (CO_SYNC_t *)         calloc(1, sizeof(CO_SYNC_t));
+      #endif
         CO->TIME                            = (CO_TIME_t *)         calloc(1, sizeof(CO_TIME_t));
         for(i=0; i<CO_NO_RPDO; i++){
             CO->RPDO[i]                     = (CO_RPDO_t *)         calloc(1, sizeof(CO_RPDO_t));
@@ -590,6 +597,7 @@ CO_ReturnError_t CO_CANopenInit(
 
 #endif
 
+#if CO_NO_SYNC == 1
     err = CO_SYNC_init(
             CO->SYNC,
             CO->em,
@@ -604,6 +612,7 @@ CO_ReturnError_t CO_CANopenInit(
             CO_TXCAN_SYNC);
 
     if(err){return err;}
+#endif
 
     err = CO_TIME_init(
             CO->TIME,
@@ -618,7 +627,7 @@ CO_ReturnError_t CO_CANopenInit(
             CO_TXCAN_TIME);
 
     if(err){return err;}
-    
+
     for(i=0; i<CO_NO_RPDO; i++){
         CO_CANmodule_t *CANdevRx = CO->CANmodule[0];
         uint16_t CANdevRxIdx = CO_RXCAN_RPDO + i;
@@ -642,12 +651,12 @@ CO_ReturnError_t CO_CANopenInit(
         if(err){return err;}
     }
 
-
     for(i=0; i<CO_NO_TPDO; i++){
         err = CO_TPDO_init(
                 CO->TPDO[i],
                 CO->em,
                 CO->SDO[0],
+                CO->SYNC,
                &CO->NMT->operatingState,
                 nodeId,
                 ((i<4) ? (CO_CAN_ID_TPDO_1+i*0x100) : 0),
@@ -786,7 +795,10 @@ void CO_delete(void *CANdriverState){
     for(i=0; i<CO_NO_TPDO; i++){
         free(CO->TPDO[i]);
     }
+  #if CO_NO_SYNC == 1
     free(CO->SYNC);
+  #endif
+    free(CO->TIME);
     free(CO->NMT);
     free(CO->emPr);
     free(CO->em);
@@ -874,11 +886,11 @@ CO_NMT_reset_cmd_t CO_process(
 
 
 /******************************************************************************/
+#if CO_NO_SYNC == 1
 bool_t CO_process_SYNC_RPDO(
         CO_t                   *CO_this,
         uint32_t                timeDifference_us)
 {
-    int16_t i;
     bool_t syncWas = false;
 
     switch(CO_SYNC_process(CO_this->SYNC, timeDifference_us, OD_synchronousWindowLength)){
@@ -890,11 +902,20 @@ bool_t CO_process_SYNC_RPDO(
             break;
     }
 
+    return syncWas;
+}
+#endif
+
+/******************************************************************************/
+void CO_process_RPDO(
+        CO_t                   *CO,
+        bool_t                  syncWas)
+{
+    int16_t i;
+
     for(i=0; i<CO_NO_RPDO; i++){
         CO_RPDO_process(CO_this->RPDO[i], syncWas);
     }
-
-    return syncWas;
 }
 
 
@@ -908,7 +929,8 @@ void CO_process_TPDO(
 
     /* Verify PDO Change Of State and process PDOs */
     for(i=0; i<CO_NO_TPDO; i++){
-        if(!CO_this->TPDO[i]->sendRequest) CO_this->TPDO[i]->sendRequest = CO_TPDOisCOS(CO_this->TPDO[i]);
-        CO_TPDO_process(CO_this->TPDO[i], CO_this->SYNC, syncWas, timeDifference_us);
+        if(!CO_this->TPDO[i]->sendRequest) 
+            CO_this->TPDO[i]->sendRequest = CO_TPDOisCOS(CO_this->TPDO[i]);
+        CO_TPDO_process(CO_this->TPDO[i], syncWas, timeDifference_us);
     }
 }

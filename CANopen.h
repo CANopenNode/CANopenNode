@@ -282,21 +282,35 @@ CO_NMT_reset_cmd_t CO_process(
         uint16_t               *timerNext_ms);
 
 
+#if CO_NO_SYNC == 1
 /**
- * Process CANopen SYNC and RPDO objects.
+ * Process CANopen SYNC objects.
  *
  * Function must be called cyclically from real time thread with constant
- * interval (1ms typically). It processes SYNC and receive PDO CANopen objects.
+ * interval (1ms typically). It processes SYNC CANopen objects.
  *
  * @param CO_this This object.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
  *
  * @return True, if CANopen SYNC message was just received or transmitted.
  */
-bool_t CO_process_SYNC_RPDO(
+bool_t CO_process_SYNC(
         CO_t                   *CO_this,
         uint32_t                timeDifference_us);
+#endif
 
+/**
+ * Process CANopen RPDO objects.
+ *
+ * Function must be called cyclically from real time thread with constant.
+ * interval (1ms typically). It processes receive PDO CANopen objects.
+ *
+ * @param CO This object.
+ * @param syncWas True, if CANopen SYNC message was just received or transmitted.
+ */
+void CO_process_RPDO(
+        CO_t                   *CO,
+        bool_t                  syncWas);
 
 /**
  * Process CANopen TPDO objects.

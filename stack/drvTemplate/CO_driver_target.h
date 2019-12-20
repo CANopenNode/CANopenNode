@@ -1,11 +1,12 @@
 /**
- * CAN module object for Linux socketCAN.
+ * CAN module object for generic microcontroller.
+ *
+ * This file is a template for other microcontrollers.
  *
  * @file        CO_driver_target.h
  * @ingroup     CO_driver
- * @author      Janez Paternoster, Martin Wagner
- * @copyright   2004 - 2015 Janez Paternoster, 2018 Neuberger Gebaeudeautomation GmbH
- *
+ * @author      Janez Paternoster
+ * @copyright   2004 - 2015 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -44,24 +45,19 @@
  * to do so, delete this exception statement from your version.
  */
 
-#ifndef CO_DRIVER_BASE_H
-#define CO_DRIVER_BASE_H
+
+#ifndef CO_DRIVER_TARGET_H
+#define CO_DRIVER_TARGET_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Include processor header file */
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for 'true', 'false' */
-#include <sys/time.h>       /* for 'struct timespec' */
-#include <endian.h>
-#include <pthread.h>
-#include <linux/can.h>
-#include <net/if.h>
 
-#include "CO_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 
 /**
  * Endianness.
@@ -69,20 +65,15 @@ extern "C" {
  * Depending on processor or compiler architecture, one of the two macros must
  * be defined: CO_LITTLE_ENDIAN or CO_BIG_ENDIAN. CANopen itself is little endian.
  */
-#ifdef __BYTE_ORDER
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    #define CO_LITTLE_ENDIAN
-#else
-    #define CO_BIG_ENDIAN
-#endif /* __BYTE_ORDER == __LITTLE_ENDIAN */
-#endif /* __BYTE_ORDER */
+#define CO_LITTLE_ENDIAN
+
 
 /**
  * @defgroup CO_driver Driver
  * @ingroup CO_CANopen
  * @{
  *
- * socketCAN specific code for CANopenNode.
+ * Microcontroller specific code for CANopenNode.
  *
  * This file contains type definitions, functions and macros for:
  *  - Basic data types.
@@ -188,19 +179,14 @@ extern "C" {
  * CO_SYNC_initCallback() function.
  * @{
  */
-
-/* unused */
 #define CO_LOCK_CAN_SEND()  /**< Lock critical section in CO_CANsend() */
 #define CO_UNLOCK_CAN_SEND()/**< Unlock critical section in CO_CANsend() */
 
-extern pthread_mutex_t CO_EMCY_mutex;
-static inline int CO_LOCK_EMCY()    { return pthread_mutex_lock(&CO_EMCY_mutex); }  /**< Lock critical section in CO_errorReport() or CO_errorReset() */
-static inline void CO_UNLOCK_EMCY() { (void)pthread_mutex_unlock(&CO_EMCY_mutex); } /**< Unlock critical section in CO_errorReport() or CO_errorReset() */
+#define CO_LOCK_EMCY()      /**< Lock critical section in CO_errorReport() or CO_errorReset() */
+#define CO_UNLOCK_EMCY()    /**< Unlock critical section in CO_errorReport() or CO_errorReset() */
 
-extern pthread_mutex_t CO_OD_mutex;
-static inline int CO_LOCK_OD()      { return pthread_mutex_lock(&CO_OD_mutex); }    /**< Lock critical section when accessing Object Dictionary */
-static inline void CO_UNLOCK_OD()   { (void)pthread_mutex_unlock(&CO_OD_mutex); }   /**< Unock critical section when accessing Object Dictionary */
-
+#define CO_LOCK_OD()        /**< Lock critical section when accessing Object Dictionary */
+#define CO_UNLOCK_OD()      /**< Unock critical section when accessing Object Dictionary */
 /** @} */
 
 /**
@@ -218,7 +204,7 @@ static inline void CO_UNLOCK_OD()   { (void)pthread_mutex_unlock(&CO_OD_mutex); 
  * @{
  */
 /** Memory barrier */
-#define CANrxMemoryBarrier() {__sync_synchronize();}
+#define CANrxMemoryBarrier()
 /** Check if new message has arrived */
 #define IS_CANrxNew(rxNew) ((uintptr_t)rxNew)
 /** Set new message flag */
@@ -244,58 +230,82 @@ typedef unsigned char           domain_t;   /**< domain_t */
 
 
 /**
- * Max COB ID for standard frame format
- */
-#define CO_CAN_MSG_SFF_MAX_COB_ID (1 << CAN_SFF_ID_BITS)
-
-/**
- * CAN receive message structure as aligned in socketCAN.
+ * CAN receive message structure as aligned in CAN module. It is different in
+ * different microcontrollers. It usually contains other variables.
  */
 typedef struct{
     /** CAN identifier. It must be read through CO_CANrxMsg_readIdent() function. */
     uint32_t            ident;
     uint8_t             DLC ;           /**< Length of CAN message */
-    uint8_t             padding[3];     /**< ensure alignment */
     uint8_t             data[8];        /**< 8 data bytes */
 }CO_CANrxMsg_t;
+
 
 /**
  * Received message object
  */
 typedef struct{
-    uint32_t            ident;          /**< Standard CAN Identifier (bits 0..10) + RTR (bit 11) */
-    uint32_t            mask;           /**< Standard Identifier mask with same alignment as ident */
+    uint16_t            ident;          /**< Standard CAN Identifier (bits 0..10) + RTR (bit 11) */
+    uint16_t            mask;           /**< Standard Identifier mask with same alignment as ident */
     void               *object;         /**< From CO_CANrxBufferInit() */
     void              (*pFunct)(void *object, const CO_CANrxMsg_t *message);  /**< From CO_CANrxBufferInit() */
-
-#ifdef CO_DRIVER_MULTI_INTERFACE
-    /** info about last received message */
-    void               *CANdriverState; /**< CAN Interface identifier */
-    struct timespec     timestamp;      /**< time of reception */
-#endif
 }CO_CANrx_t;
 
 
 /**
- * Transmit message object as aligned in socketCAN.
+ * Transmit message object.
  */
 typedef struct{
-    /** CAN identifier. It must be read through CO_CANrxMsg_readIdent() function. */
-    uint32_t            ident;
-    uint8_t             DLC ;           /**< Length of CAN message */
-    uint8_t             padding[3];     /**< ensure alignment */
+    uint32_t            ident;          /**< CAN identifier as aligned in CAN module */
+    uint8_t             DLC ;           /**< Length of CAN message. (DLC may also be part of ident) */
     uint8_t             data[8];        /**< 8 data bytes */
-    volatile bool_t     bufferFull;     /**< True if previous message is still in buffer (not used in this driver) */
+    volatile bool_t     bufferFull;     /**< True if previous message is still in buffer */
     /** Synchronous PDO messages has this flag set. It prevents them to be sent outside the synchronous window */
     volatile bool_t     syncFlag;
+}CO_CANtx_t;
 
-    /** info about transmit message */
-    void               *CANdriverState; /**< CAN Interface identifier to use */
-} CO_CANtx_t;
+
+/**
+ * CAN module object. It may be different in different microcontrollers.
+ */
+typedef struct{
+    void               *CANdriverState; /**< From CO_CANmodule_init() */
+    CO_CANrx_t         *rxArray;        /**< From CO_CANmodule_init() */
+    uint16_t            rxSize;         /**< From CO_CANmodule_init() */
+    CO_CANtx_t         *txArray;        /**< From CO_CANmodule_init() */
+    uint16_t            txSize;         /**< From CO_CANmodule_init() */
+    volatile bool_t     CANnormal;      /**< CAN module is in normal mode */
+    /** Value different than zero indicates, that CAN module hardware filters
+      * are used for CAN reception. If there is not enough hardware filters,
+      * they won't be used. In this case will be *all* received CAN messages
+      * processed by software. */
+    volatile bool_t     useCANrxFilters;
+    /** If flag is true, then message in transmitt buffer is synchronous PDO
+      * message, which will be aborted, if CO_clearPendingSyncPDOs() function
+      * will be called by application. This may be necessary if Synchronous
+      * window time was expired. */
+    volatile bool_t     bufferInhibitFlag;
+    /** Equal to 1, when the first transmitted message (bootup message) is in CAN TX buffers */
+    volatile bool_t     firstCANtxMessage;
+    /** Number of messages in transmit buffer, which are waiting to be copied to the CAN module */
+    volatile uint16_t   CANtxCount;
+    uint32_t            errOld;         /**< Previous state of CAN errors */
+    void               *em;             /**< Emergency object */
+}CO_CANmodule_t;
+
+
+/**
+ * Receives and transmits CAN messages.
+ *
+ * Function must be called directly from high priority CAN interrupt.
+ *
+ * @param CANmodule This object.
+ */
+void CO_CANinterrupt(CO_CANmodule_t *CANmodule);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 /** @} */
-#endif
+#endif /* CO_DRIVER_TARGET_H */
