@@ -337,7 +337,9 @@ CO_ReturnError_t CO_new(void)
                   + sizeof(CO_EM_t)
                   + sizeof(CO_EMpr_t)
                   + sizeof(CO_NMT_t)
+  #if CO_NO_SYNC == 1
                   + sizeof(CO_SYNC_t)
+  #endif
                   + sizeof(CO_TIME_t)
                   + sizeof(CO_RPDO_t) * CO_NO_RPDO
                   + sizeof(CO_TPDO_t) * CO_NO_TPDO
@@ -371,7 +373,9 @@ CO_ReturnError_t CO_new(void)
     if(CO->em                           == NULL) errCnt++;
     if(CO->emPr                         == NULL) errCnt++;
     if(CO->NMT                          == NULL) errCnt++;
+  #if CO_NO_SYNC == 1
     if(CO->SYNC                         == NULL) errCnt++;
+  #endif
     if(CO->TIME                     	== NULL) errCnt++;
     for(i=0; i<CO_NO_RPDO; i++){
         if(CO->RPDO[i]                  == NULL) errCnt++;
