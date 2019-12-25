@@ -908,7 +908,7 @@ bool_t CO_process_SYNC_RPDO(
 
 /******************************************************************************/
 void CO_process_RPDO(
-        CO_t                   *CO,
+        CO_t                   *CO_this,
         bool_t                  syncWas)
 {
     int16_t i;
