@@ -153,7 +153,7 @@ uint8_t CO_TIME_process(
         if(TIME->CANrxNew){
             TIME->timer = 0;
             ret = 1;
-            TIME->CANrxNew = false;
+            CLEAR_CANrxNew(TIME->CANrxNew);
         }
 		
         /* TIME producer */
