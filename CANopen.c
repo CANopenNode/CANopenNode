@@ -887,7 +887,7 @@ CO_NMT_reset_cmd_t CO_process(
 
 /******************************************************************************/
 #if CO_NO_SYNC == 1
-bool_t CO_process_SYNC_RPDO(
+bool_t CO_process_SYNC(
         CO_t                   *co,
         uint32_t                timeDifference_us)
 {
