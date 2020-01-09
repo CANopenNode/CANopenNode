@@ -166,52 +166,49 @@ File structure
    - **main.c** - Mainline and other threads - example template.
    - **application.h/.c** - Separate file with some functions, which are
      called from main.c. May be used for application specific code.
-   - **CO_OD.h/.c** - CANopen Object dictionary. Automatically generated file.
+   - **CO_OD.h/.c** - CANopen Object dictionary. Automatically generated files.
    - **IO.eds** - Standard CANopen EDS file, which may be used from CANopen
      configuration tool. Automatically generated file.
    - _ **project.xml** - XML file contains all data for CANopen Object dictionary.
      It is used by *Object dictionary editor* application, which generates other
-     files. *Object dictionary editor* is currently fully  functional, but old
-     web application. See http://sourceforge.net/p/canopennode/code_complete/.
+     files.
    - _ **project.html** - *Object dictionary editor* launcher.
 
-Microcontroller support
------------------------
 
-|                               | Status (date) | OD storage | Example |
-|-------------------------------|:-------------:|:----------:|---------|
-| drvTemplate                   | OK            | template   | [here](https://github.com/CANopenNode/CANopenNode) |
-| socketCAN (Linux)             | beta   (2016) | Yes        | [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) |
-| Microchip PIC32 (MPLABX)      | stable (2015) | Yes        | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| Microchip PIC24, 33 (MPLABX)  | stable (2015) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| Microchip dsPIC30F (MPLABX)   | beta   (2013) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| LPC1768 (MBED)                | beta   (2016) | no         | [exmachina](https://github.com/exmachina-dev/CANopenMbed) |
-| RTOS eCos                     | stable (2013) | Yes        | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| Atmel SAM3X                   | ?             | Yes        | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| ST STM32                      | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| NXP LPC177x_8x                | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| Freescale MCF5282             | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
+### Object dictionary editor
+Object Dictionary is one of the most important parts of CANopen. Its
+implementation in CANopenNode is quite outdated and there are efforts to
+rewrite it. Anyway, currently it is fully operational and works well.
+
+To customize the Object Dictionary it is necessary to use the
+external application. There are two:
+ - [libedssharp](https://github.com/robincornelius/libedssharp) -
+   recommended, can be used with mono.
+ - [Object_Dictionary_Editor](http://sourceforge.net/p/canopennode/code_complete/) -
+   originally part of CANopenNode. It is still operational, but requiers
+   very old version of Firefox to run.
 
 
-### Other known implementations with source code
- - AD ADSP-CM408 mixed signal controller Contributed by Analog devices, Inc. (dec 2014)
-   http://sourceforge.net/projects/canopennode-for-adsp-cm408f/
- - Discontinued implementations from earlier versions of CANopenNode
-   - Microchip PIC18F
-   - BECK IPC Embedded Web-Controller SC243
+Device support
+--------------
+CANopenNode can be implemented on many different devices. It is
+necessary to implement interface to specific hardware, so called 'driver'.
+Currently driver files are part of CANopenNode, but they will be split from
+it in the future.
+
+Most up to date information on device support can be found on
+[CANopenNode/wiki](https://github.com/CANopenNode/CANopenNode/wiki).
 
 
 ### Note for contributors
- - Implementations for some other microcontrollers may go into CANopenNode.
- - Each implementation should have a basic example, which should run on
-   implemented microcontroller.
- - Use drvTemplate for template. Another template may be PIC32 microcontroller,
-   code for it is most maintained.
- - Remove documentation comments from CO_driver.h (from drvTemplate). Make
-   only basic comments, same as in PIC32.
- - Keep styling in CO_driver.(ch) unchanged, so files are easy comparable.
- - In case of some (minor) changes in CANopenNode interface, change will
-   be updated for all microcontrollers.
+For the driver developers, who wish to share and cooperate, I recommend the following approach:
+1. Make own git repo for the Device specific demo project on the Github or somewhere.
+2. Add https://github.com/CANopenNode/CANopenNode into your project (or at side of your project).
+   For example, include it in your project as a git submodule: `git submodule add https://github.com/CANopenNode/CANopenNode`. 
+3. Add specific driver and other files.
+4. **Add a note** about your specific implementation here on [WIKI](https://github.com/CANopenNode/CANopenNode/wiki) with some basic description and status. Write a note, even it has an Alpha status.
+5. Make a demo folder, which contains project files, etc., necessary to run the demo.
+6. Write a good README.md file, where you describe your project, specify demo board, tools used, etc.
 
 
 History of the project
