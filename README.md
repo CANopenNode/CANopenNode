@@ -33,15 +33,18 @@ CANopen Features
  - Non-volatile storage.
  - LSS master and slave, LSS fastscan
 
+### RTR
+RTR (remote transmission request) is a feature of CAN bus. Usage of RTR
+is not recommended for CANopen and it is not implemented in CANopenNode.
+
 
 Usage of the CANopenNode
 ------------------------
 CANopenNode itself doesn't have complete working code for any microcontroller.
-It is only the library with the stack and drivers for different
-microcontrollers. It has example, which should compile on any system with
-template driver (drvTemplate), which actually doesn't access CAN hardware.
-CANopenNode should be used as a git submodule included in a project with
-specific hardware and specific application.
+It is only the library with the stack It has example, which should compile
+on any system with template driver (drvTemplate), which actually doesn't
+access CAN hardware. CANopenNode should be used as a git submodule included
+in a project with specific hardware and specific application.
 
 
 Documentation, support and contributions
@@ -204,9 +207,12 @@ Most up to date information on device support can be found on
 For the driver developers, who wish to share and cooperate, I recommend the following approach:
 1. Make own git repo for the Device specific demo project on the Github or somewhere.
 2. Add https://github.com/CANopenNode/CANopenNode into your project (or at side of your project).
-   For example, include it in your project as a git submodule: `git submodule add https://github.com/CANopenNode/CANopenNode`. 
+   For example, include it in your project as a git submodule:
+   `git submodule add https://github.com/CANopenNode/CANopenNode`
 3. Add specific driver and other files.
-4. **Add a note** about your specific implementation here on [WIKI](https://github.com/CANopenNode/CANopenNode/wiki) with some basic description and status. Write a note, even it has an Alpha status.
+4. **Add a note** about your specific implementation here on
+   [CANopenNode/wiki](https://github.com/CANopenNode/CANopenNode/wiki) with some
+   basic description and status. Write a note, even it has an Alpha status.
 5. Make a demo folder, which contains project files, etc., necessary to run the demo.
 6. Write a good README.md file, where you describe your project, specify demo board, tools used, etc.
 
