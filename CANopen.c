@@ -824,7 +824,11 @@ CO_NMT_reset_cmd_t CO_process(
             CO->NMT,
             timeDifference_ms,
             OD_producerHeartbeatTime,
+#if (CO_NO_NMT_MASTER == 1) && defined(OD_NMTStartup)
             OD_NMTStartup,
+#else
+			0U,
+#endif
             OD_errorRegister,
             OD_errorBehavior,
             timerNext_ms);
