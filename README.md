@@ -48,24 +48,26 @@ in a project with specific hardware and specific application.
 
 
 Documentation, support and contributions
--------------------------
-Code is documented in header files. Running
-[doxygen](http://www.stack.nl/~dimitri/doxygen/index.html) in project
-base folder will produce complete html documentation. Just open
-CANopenNode/doc/html/index.html in browser.
+----------------------------------------
+Code is documented in header files. Running [doxygen](http://www.doxygen.nl/)
+or `make doc` in project base folder will produce complete html documentation.
+Just open CANopenNode/doc/html/index.html in browser.
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
 
 Older and still active discussion group is on Sourceforge
 http://sourceforge.net/p/canopennode/discussion/387151/
 
-For some implementations of CANopenNode on real hardware see table below.
+For some implementations of CANopenNode on real hardware see
+[Device support](#device-support) section.
 [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) is nice
 implementation for Linux devices. It includes command line interface for
 master access of the CANopen network. There is also some Getting started.
 
 Contributions are welcome. Best way to contribute your code is to fork
-a project, modify it and then send a pull request.
+a project, modify it and then send a pull request. Some basic formatting
+rules should be followed: Linux style with indentation of 4 spaces. There
+is also a configuration file for `clang-format` tool.
 
 
 Flowchart of a typical CANopenNode implementation

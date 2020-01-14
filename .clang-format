@@ -1,0 +1,15 @@
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+BasedOnStyle: LLVM
+
+# indent 4 spaces
+IndentWidth: 4
+
+# break before function
+BreakBeforeBraces: Linux
+
+# arguments and parameters in same line or one line for each
+BinPackArguments: false
+BinPackParameters: false
+
+# keep up to two empty lines
+MaxEmptyLinesToKeep: 2
