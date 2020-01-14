@@ -219,7 +219,11 @@ typedef enum{
     CO_ERROR_TX_UNCONFIGURED    = -11,  /**< Transmit buffer was not confugured properly */
     CO_ERROR_PARAMETERS         = -12,  /**< Error in function function parameters */
     CO_ERROR_DATA_CORRUPT       = -13,  /**< Stored data are corrupt */
-    CO_ERROR_CRC                = -14   /**< CRC does not match */
+    CO_ERROR_CRC                = -14,  /**< CRC does not match */
+    CO_ERROR_TX_BUSY            = -15,  /**< Sending rejected because driver is busy. Try again */
+    CO_ERROR_WRONG_NMT_STATE    = -16,  /**< Command can't be processed in current state */
+    CO_ERROR_SYSCALL            = -17,  /**< Syscall failed */
+    CO_ERROR_INVALID_STATE      = -18   /**< Driver not ready */
 }CO_ReturnError_t;
 
 
