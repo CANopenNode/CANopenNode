@@ -804,6 +804,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanInitiate(
         case CO_LSSmaster_FS_MATCH:
             /* No scanning requested */
             return CO_LSSmaster_SCAN_FINISHED;
+        case CO_LSSmaster_FS_SKIP:
         default:
             return CO_LSSmaster_SCAN_FAILED;
     }
@@ -833,6 +834,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanWait(
         case CO_LSSmaster_FS_MATCH:
             /* No scanning requested */
             return CO_LSSmaster_SCAN_FINISHED;
+        case CO_LSSmaster_FS_SKIP:
         default:
             return CO_LSSmaster_SCAN_FAILED;
     }
@@ -890,6 +892,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyInitiate(
             /* ID given by user */
             LSSmaster->fsIdNumber = idNumberCheck;
             break;
+        case CO_LSSmaster_FS_SKIP:
         default:
             return CO_LSSmaster_SCAN_FAILED;
     }
@@ -1088,6 +1091,8 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
                     LSSmaster->fsState = CO_LSSmaster_FS_STATE_SCAN;
                 }
             }
+            break;
+        default:
             break;
     }
 

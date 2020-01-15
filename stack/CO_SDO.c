@@ -1172,8 +1172,8 @@ int8_t CO_SDO_process(
 
                 /* indicate data size, if known */
                 if(SDO->ODF_arg.dataLengthTotal != 0U){
-                    uint32_t len = SDO->ODF_arg.dataLengthTotal;
-                    CO_memcpySwap4(&SDO->CANtxBuff->data[4], &len);
+                    uint32_t dlentot = SDO->ODF_arg.dataLengthTotal;
+                    CO_memcpySwap4(&SDO->CANtxBuff->data[4], &dlentot);
                     SDO->CANtxBuff->data[0] = 0x41U;
                 }
                 else{
@@ -1285,8 +1285,8 @@ int8_t CO_SDO_process(
 
             /* indicate data size, if known */
             if(SDO->ODF_arg.dataLengthTotal != 0U){
-                uint32_t len = SDO->ODF_arg.dataLengthTotal;
-                CO_memcpySwap4(&SDO->CANtxBuff->data[4], &len);
+                uint32_t dlentot = SDO->ODF_arg.dataLengthTotal;
+                CO_memcpySwap4(&SDO->CANtxBuff->data[4], &dlentot);
                 SDO->CANtxBuff->data[0] = 0xC6U;
             }
             else{
@@ -1313,6 +1313,7 @@ int8_t CO_SDO_process(
             SDO->state = CO_SDO_ST_UPLOAD_BL_SUBBLOCK;
             /* continue in next case */
         }
+        // fallthrough
 
         case CO_SDO_ST_UPLOAD_BL_SUBBLOCK:{
             /* is block confirmation received */
@@ -1448,6 +1449,12 @@ int8_t CO_SDO_process(
             }
 
             SDO->state = CO_SDO_ST_IDLE;
+            break;
+        }
+        
+        case CO_SDO_ST_IDLE:
+        {
+            /* Nothing to do it seems */
             break;
         }
 

@@ -309,12 +309,12 @@ void CO_EM_process(
 
             /* write to 'pre-defined error field' (object dictionary, index 0x1003) */
             if(emPr->preDefErr){
-                uint8_t i;
+                uint8_t j;
 
                 if(emPr->preDefErrNoOfErrors < emPr->preDefErrSize)
                     emPr->preDefErrNoOfErrors++;
-                for(i=emPr->preDefErrNoOfErrors-1; i>0; i--)
-                    emPr->preDefErr[i] = emPr->preDefErr[i-1];
+                for(j=emPr->preDefErrNoOfErrors-1; j>0; j--)
+                    emPr->preDefErr[j] = emPr->preDefErr[j-1];
                 emPr->preDefErr[0] = preDEF;
             }
 
