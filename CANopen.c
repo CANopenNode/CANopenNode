@@ -99,7 +99,7 @@
     #define CO_RXCAN_CONS_HB  (CO_RXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  start index for Heartbeat Consumer messages */
     #define CO_RXCAN_LSS      (CO_RXCAN_CONS_HB+CO_NO_HB_CONS)        /*  index for LSS rx message */
     /* total number of received CAN messages */
-    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TIME+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS)
+    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TIME+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS+CO_NO_LSS_SERVER+CO_NO_LSS_CLIENT)
 
     #define CO_TXCAN_NMT       0                                      /*  index for NMT master message */
     #define CO_TXCAN_SYNC      CO_TXCAN_NMT+CO_NO_NMT_MASTER          /*  index for SYNC message */
