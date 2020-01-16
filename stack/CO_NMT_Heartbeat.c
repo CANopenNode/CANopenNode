@@ -225,9 +225,10 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         if(NMT->operatingState == CO_NMT_INITIALIZING){
             if(HBtime > NMT->firstHBTime) NMT->HBproducerTimer = HBtime - NMT->firstHBTime;
             else                          NMT->HBproducerTimer = 0;
-
-            if((NMTstartup & 0x04) == 0) NMT->operatingState = CO_NMT_OPERATIONAL;
-            else                         NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+            
+            /* NMT slave self starting */
+            if (NMTstartup == 0x00000008U) NMT->operatingState = CO_NMT_OPERATIONAL;
+            else                           NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
         }
     }
 
