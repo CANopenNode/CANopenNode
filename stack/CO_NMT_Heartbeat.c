@@ -4,43 +4,23 @@
  * @file        CO_NMT_Heartbeat.c
  * @ingroup     CO_NMT_Heartbeat
  * @author      Janez Paternoster
- * @copyright   2004 - 2013 Janez Paternoster
+ * @copyright   2004 - 2020 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
  * For more information on CANopen see <http://www.can-cia.org/>.
  *
- * CANopenNode is free and open source software: you can redistribute
- * it and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 2 of the
- * License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * Following clarification and special exception to the GNU General Public
- * License is included to the distribution terms of CANopenNode:
- *
- * Linking this library statically or dynamically with other modules is
- * making a combined work based on this library. Thus, the terms and
- * conditions of the GNU General Public License cover the whole combination.
- *
- * As a special exception, the copyright holders of this library give
- * you permission to link this library with independent modules to
- * produce an executable, regardless of the license terms of these
- * independent modules, and to copy and distribute the resulting
- * executable under terms of your choice, provided that you also meet,
- * for each linked independent module, the terms and conditions of the
- * license of that module. An independent module is a module which is
- * not derived from or based on this library. If you modify this
- * library, you may extend this exception to your version of the
- * library, but you are not obliged to do so. If you do not wish
- * to do so, delete this exception statement from your version.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 
@@ -85,6 +65,8 @@ static void CO_NMT_receive(void *object, const CO_CANrxMsg_t *msg){
                 break;
             case CO_NMT_RESET_COMMUNICATION:
                 NMT->resetCommand = CO_RESET_COMM;
+                break;
+            default:
                 break;
         }
 
@@ -188,6 +170,7 @@ void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
         case    4:  NMT->LEDdoubleFlash = -104; break;
         case -100:  NMT->LEDdoubleFlash =  100; break;
         case  104:  NMT->LEDdoubleFlash =  -20; break;
+        default: break;
     }
 
     switch(++NMT->LEDtripleFlash){
@@ -196,6 +179,7 @@ void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
         case  104:  NMT->LEDtripleFlash = -114; break;
         case -110:  NMT->LEDtripleFlash =  110; break;
         case  114:  NMT->LEDtripleFlash =  -20; break;
+        default: break;
     }
 
     switch(++NMT->LEDquadrupleFlash){
@@ -206,6 +190,7 @@ void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
         case  114:  NMT->LEDquadrupleFlash = -124; break;
         case -120:  NMT->LEDquadrupleFlash =  120; break;
         case  124:  NMT->LEDquadrupleFlash =  -20; break;
+        default: break;
     }
 }
 #endif /* CO_USE_LEDS */
@@ -240,9 +225,10 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         if(NMT->operatingState == CO_NMT_INITIALIZING){
             if(HBtime > NMT->firstHBTime) NMT->HBproducerTimer = HBtime - NMT->firstHBTime;
             else                          NMT->HBproducerTimer = 0;
-
-            if((NMTstartup & 0x04) == 0) NMT->operatingState = CO_NMT_OPERATIONAL;
-            else                         NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+            
+            /* NMT slave self starting */
+            if (NMTstartup == 0x00000008U) NMT->operatingState = CO_NMT_OPERATIONAL;
+            else                           NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
         }
     }
 
@@ -272,6 +258,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         case CO_NMT_STOPPED:          NMT->LEDgreenRun = NMT->LEDsingleFlash;   break;
         case CO_NMT_PRE_OPERATIONAL:  NMT->LEDgreenRun = NMT->LEDblinking;      break;
         case CO_NMT_OPERATIONAL:      NMT->LEDgreenRun = 1;                     break;
+        default: break;
     }
 
 

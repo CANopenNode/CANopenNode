@@ -33,36 +33,54 @@ CANopen Features
  - Non-volatile storage.
  - LSS master and slave, LSS fastscan
 
+### RTR
+RTR (remote transmission request) is a feature of CAN bus. Usage of RTR
+is not recommended for CANopen and it is not implemented in CANopenNode.
+
+### Self start
+Object **0x1F80** from Object Dictionary enables the NMT slaves to start
+automatically or allows it to start the whole network. It is specified in
+DSP302-2 standard. Standard allows two values for slaves for object 0x1F80:
+- Object 0x1F80, value = **0x8** - "NMT slave shall enter the NMT state
+  Operational after the NMT state Initialization autonomously (self starting)"
+- Object 0x1F80, value = **0x2** - "NMT slave shall execute the NMT service
+  start remote node with node-ID set to 0"
+
+Note: When node is stated (in NMT operational state), it is allowed to send or
+receive Process Data Objects (PDO). If Error Register (object 0x1001) is set,
+then NMT operational state is not allowed.
+
 
 Usage of the CANopenNode
 ------------------------
 CANopenNode itself doesn't have complete working code for any microcontroller.
-It is only the library with the stack and drivers for different
-microcontrollers. It has example, which should compile on any system with
-template driver (drvTemplate), which actually doesn't access CAN hardware.
-CANopenNode should be used as a git submodule included in a project with
-specific hardware and specific application.
+It is only the library with the stack It has example, which should compile
+on any system with template driver (drvTemplate), which actually doesn't
+access CAN hardware. CANopenNode should be used as a git submodule included
+in a project with specific hardware and specific application.
 
 
 Documentation, support and contributions
--------------------------
-Code is documented in header files. Running
-[doxygen](http://www.stack.nl/~dimitri/doxygen/index.html) in project
-base folder will produce complete html documentation. Just open
-CANopenNode/doc/html/index.html in browser.
+----------------------------------------
+Code is documented in header files. Running [doxygen](http://www.doxygen.nl/)
+or `make doc` in project base folder will produce complete html documentation.
+Just open CANopenNode/doc/html/index.html in browser.
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
 
 Older and still active discussion group is on Sourceforge
 http://sourceforge.net/p/canopennode/discussion/387151/
 
-For some implementations of CANopenNode on real hardware see table below.
+For some implementations of CANopenNode on real hardware see
+[Device support](#device-support) section.
 [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) is nice
 implementation for Linux devices. It includes command line interface for
 master access of the CANopen network. There is also some Getting started.
 
 Contributions are welcome. Best way to contribute your code is to fork
-a project, modify it and then send a pull request.
+a project, modify it and then send a pull request. Some basic formatting
+rules should be followed: Linux style with indentation of 4 spaces. There
+is also a configuration file for `clang-format` tool.
 
 
 Flowchart of a typical CANopenNode implementation
@@ -109,7 +127,7 @@ Flowchart of a typical CANopenNode implementation
              |   from any node in the|
              |   CANopen network.    |
               -----------------------
-              
+
               -----------------------
              | LSS client (optional) |
              |                       |
@@ -119,8 +137,8 @@ Flowchart of a typical CANopenNode implementation
              | - Can request node    |
              |   enumeration         |
               -----------------------
-              
-              
+
+
 ~~~
 
 
@@ -166,52 +184,52 @@ File structure
    - **main.c** - Mainline and other threads - example template.
    - **application.h/.c** - Separate file with some functions, which are
      called from main.c. May be used for application specific code.
-   - **CO_OD.h/.c** - CANopen Object dictionary. Automatically generated file.
+   - **CO_OD.h/.c** - CANopen Object dictionary. Automatically generated files.
    - **IO.eds** - Standard CANopen EDS file, which may be used from CANopen
      configuration tool. Automatically generated file.
    - _ **project.xml** - XML file contains all data for CANopen Object dictionary.
      It is used by *Object dictionary editor* application, which generates other
-     files. *Object dictionary editor* is currently fully  functional, but old
-     web application. See http://sourceforge.net/p/canopennode/code_complete/.
+     files.
    - _ **project.html** - *Object dictionary editor* launcher.
 
-Microcontroller support
------------------------
 
-|                               | Status (date) | OD storage | Example |
-|-------------------------------|:-------------:|:----------:|---------|
-| drvTemplate                   | OK            | template   | [here](https://github.com/CANopenNode/CANopenNode) |
-| socketCAN (Linux)             | beta   (2016) | Yes        | [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) |
-| Microchip PIC32 (MPLABX)      | stable (2015) | Yes        | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| Microchip PIC24, 33 (MPLABX)  | stable (2015) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| Microchip dsPIC30F (MPLABX)   | beta   (2013) | no         | [CANopenPIC](https://github.com/CANopenNode/CANopenPIC) |
-| LPC1768 (MBED)                | beta   (2016) | no         | [exmachina](https://github.com/exmachina-dev/CANopenMbed) |
-| RTOS eCos                     | stable (2013) | Yes        | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| Atmel SAM3X                   | ?             | Yes        | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| ST STM32                      | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| NXP LPC177x_8x                | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
-| Freescale MCF5282             | ?             | no         | [old repo](http://sourceforge.net/p/canopennode/code_complete/) |
+### Object dictionary editor
+Object Dictionary is one of the most important parts of CANopen. Its
+implementation in CANopenNode is quite outdated and there are efforts to
+rewrite it. Anyway, currently it is fully operational and works well.
+
+To customize the Object Dictionary it is necessary to use the
+external application. There are two:
+ - [libedssharp](https://github.com/robincornelius/libedssharp) -
+   recommended, can be used with mono.
+ - [Object_Dictionary_Editor](http://sourceforge.net/p/canopennode/code_complete/) -
+   originally part of CANopenNode. It is still operational, but requiers
+   very old version of Firefox to run.
 
 
-### Other known implementations with source code
- - AD ADSP-CM408 mixed signal controller Contributed by Analog devices, Inc. (dec 2014)
-   http://sourceforge.net/projects/canopennode-for-adsp-cm408f/
- - Discontinued implementations from earlier versions of CANopenNode
-   - Microchip PIC18F
-   - BECK IPC Embedded Web-Controller SC243
+Device support
+--------------
+CANopenNode can be implemented on many different devices. It is
+necessary to implement interface to specific hardware, so called 'driver'.
+Currently driver files are part of CANopenNode, but they will be split from
+it in the future.
+
+Most up to date information on device support can be found on
+[CANopenNode/wiki](https://github.com/CANopenNode/CANopenNode/wiki).
 
 
 ### Note for contributors
- - Implementations for some other microcontrollers may go into CANopenNode.
- - Each implementation should have a basic example, which should run on
-   implemented microcontroller.
- - Use drvTemplate for template. Another template may be PIC32 microcontroller,
-   code for it is most maintained.
- - Remove documentation comments from CO_driver.h (from drvTemplate). Make
-   only basic comments, same as in PIC32.
- - Keep styling in CO_driver.(ch) unchanged, so files are easy comparable.
- - In case of some (minor) changes in CANopenNode interface, change will
-   be updated for all microcontrollers.
+For the driver developers, who wish to share and cooperate, I recommend the following approach:
+1. Make own git repo for the Device specific demo project on the Github or somewhere.
+2. Add https://github.com/CANopenNode/CANopenNode into your project (or at side of your project).
+   For example, include it in your project as a git submodule:
+   `git submodule add https://github.com/CANopenNode/CANopenNode`
+3. Add specific driver and other files.
+4. **Add a note** about your specific implementation here on
+   [CANopenNode/wiki](https://github.com/CANopenNode/CANopenNode/wiki) with some
+   basic description and status. Write a note, even it has an Alpha status.
+5. Make a demo folder, which contains project files, etc., necessary to run the demo.
+6. Write a good README.md file, where you describe your project, specify demo board, tools used, etc.
 
 
 History of the project
@@ -224,40 +242,14 @@ For older history see http://sourceforge.net/p/canopennode/code_complete/
 
 License
 -------
-CANopenNode is distributed under the terms of the GNU General Public
-License version 2 with the classpath exception.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-CANopenNode is free and open source software: you can redistribute
-it and/or modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation, either version 2 of the
-License, or (at your option) any later version.
+http://www.apache.org/licenses/LICENSE-2.0
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see http://www.gnu.org/licenses/.
-
-### GPL linking exception
-CANopenNode can be easely used also in commercial embedded projects.
-Following clarification and special
-[linking exception to the GNU General Public License](https://en.wikipedia.org/wiki/GPL_linking_exception)
-is included to the distribution terms of CANopenNode:
-
-Linking this library statically or dynamically with other modules is
-making a combined work based on this library. Thus, the terms and
-conditions of the GNU General Public License cover the whole combination.
-
-As a special exception, the copyright holders of this library give
-you permission to link this library with independent modules to
-produce an executable, regardless of the license terms of these
-independent modules, and to copy and distribute the resulting
-executable under terms of your choice, provided that you also meet,
-for each linked independent module, the terms and conditions of the
-license of that module. An independent module is a module which is
-not derived from or based on this library. If you modify this
-library, you may extend this exception to your version of the
-library, but you are not obliged to do so. If you do not wish
-to do so, delete this exception statement from your version.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
