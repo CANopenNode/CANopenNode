@@ -120,6 +120,8 @@ typedef struct{
  * @param TIMECyclePeriod TIME period in ms (may also be used in consumer mode for timeout detection (1.5x period)).
  * @param CANdevRx CAN device for TIME reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
+ * @param CANdevTx CAN device for TIME transmission.
+ * @param CANdevTxIdx Index of transmit buffer in the above CAN device.
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */

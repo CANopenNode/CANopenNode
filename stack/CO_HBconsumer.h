@@ -249,7 +249,7 @@ CO_HBconsumer_state_t CO_HBconsumer_getState(
  *
  * @param HBcons This object.
  * @param idx object sub index
- * @param [out] #CO_NMT_internalState_t of this index
+ * @param [out] nmtState of this index
  * @retval 0 NMT state has been received and is valid
  * @retval -1 not valid
  */

@@ -412,7 +412,7 @@ void CO_EM_initCallback(
  * inside an ISR
  *
  * @param em This object.
- * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ * @param pFunctSignalRx Pointer to the callback function. Not called if NULL.
  */
 void CO_EM_initCallbackRx(
         CO_EM_t                *em,

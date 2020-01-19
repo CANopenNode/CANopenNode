@@ -51,12 +51,9 @@
 extern "C" {
 #endif
 
-#if CO_NO_LSS_SERVER == 1
-
 #include "CO_LSS.h"
 
 /**
- * @addtogroup CO_LSS
  * @defgroup CO_LSSslave LSS Slave
  * @ingroup CO_LSS
  * @{
@@ -76,8 +73,8 @@ extern "C" {
  * After CAN module start, the LSS server and NMT server are started and then
  * coexist alongside each other. To achieve this behaviour, the CANopen node
  * startup process has to be conrolled more detailled. Therefore, the function
- * CO_init() is split up into the functions #CO_new(), #CO_CANinit(), #CO_LSSinit()
- * and #CO_CANopenInit().
+ * CO_init() is split up into the functions CO_new(), CO_CANinit(), CO_LSSinit()
+ * and CO_CANopenInit().
  * Moreover, the LSS server needs to pause the NMT server initialization in case
  * no valid node ID is available at start up.
  *
@@ -429,21 +426,9 @@ void CO_LSSslave_initCfgStoreCallback(
         void                   *object,
         bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate));
 
-#else /* CO_NO_LSS_SERVER == 1 */
-
-/**
- * @addtogroup CO_LSS
- * @{
- * If you need documetation for LSS slave usage, add "CO_NO_LSS_SERVER=1" to doxygen
- * "PREDEFINED" variable.
- *
- */
-
-#endif /* CO_NO_LSS_SERVER == 1 */
-
+/** @} */ /*@defgroup CO_LSSslave*/
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /*CO_LSSslave_H*/

@@ -23,7 +23,10 @@
  * limitations under the License.
  */
 
-#include "CANopen.h"
+#include "CO_driver.h"
+#include "CO_SDO.h"
+#include "CO_Emergency.h"
+#include "CO_NMT_Heartbeat.h"
 #include "CO_HBconsumer.h"
 
 /*
@@ -33,16 +36,18 @@
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_HBcons_receive(void *object, const CO_CANrxMsg_t *msg){
+static void CO_HBcons_receive(void *object, void *msg){
     CO_HBconsNode_t *HBconsNode;
+    uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+    uint8_t *data = CO_CANrxMsg_readData(msg);
 
     HBconsNode = (CO_HBconsNode_t*) object; /* this is the correct pointer type of the first argument */
 
     /* verify message length */
-    if(msg->DLC == 1){
+    if(DLC == 1){
         /* copy data and set 'new message' flag. */
-        HBconsNode->NMTstate = (CO_NMT_internalState_t)msg->data[0];
-        SET_CANrxNew(HBconsNode->CANrxNew);
+        HBconsNode->NMTstate = (CO_NMT_internalState_t)data[0];
+        CO_CANrxNew_SET(HBconsNode->CANrxNew);
     }
 }
 
@@ -277,7 +282,7 @@ void CO_HBconsumer_process(
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
             if(monitoredNode->time > 0){/* is node monitored */
                 /* Verify if received message is heartbeat or bootup */
-                if(IS_CANrxNew(monitoredNode->CANrxNew)){
+                if(CO_CANrxNew_READ(monitoredNode->CANrxNew)){
                     if(monitoredNode->NMTstate == CO_NMT_INITIALIZING){
                         /* bootup message, call callback */
                         if (monitoredNode->pFunctSignalRemoteReset != NULL) {
@@ -296,7 +301,7 @@ void CO_HBconsumer_process(
                         monitoredNode->timeoutTimer = 0;  /* reset timer */
                         timeDifference_ms = 0;
                     }
-                    CLEAR_CANrxNew(monitoredNode->CANrxNew);
+                    CO_CANrxNew_CLEAR(monitoredNode->CANrxNew);
                 }
 
                 /* Verify timeout */
@@ -336,7 +341,7 @@ void CO_HBconsumer_process(
     else{ /* not in (pre)operational state */
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
             monitoredNode->NMTstate = CO_NMT_INITIALIZING;
-            CLEAR_CANrxNew(monitoredNode->CANrxNew);
+            CO_CANrxNew_CLEAR(monitoredNode->CANrxNew);
             if(monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED){
                 monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
             }

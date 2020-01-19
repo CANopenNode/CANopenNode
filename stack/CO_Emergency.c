@@ -27,7 +27,6 @@
 #include "CO_driver.h"
 #include "CO_SDO.h"
 #include "CO_Emergency.h"
-#include "CANopen.h"
 
 
 /*
@@ -37,20 +36,23 @@
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_EM_receive(void *object, const CO_CANrxMsg_t *msg){
+static void CO_EM_receive(void *object, void *msg) {
     CO_EM_t *em;
-    uint16_t errorCode;
-    uint32_t infoCode;
 
     em = (CO_EM_t*)object;
 
     if(em!=NULL && em->pFunctSignalRx!=NULL){
-        CO_memcpySwap2(&errorCode, &msg->data[0]);
-        CO_memcpySwap4(&infoCode, &msg->data[4]);
-        em->pFunctSignalRx(CO_CANrxMsg_readIdent(msg),
+        uint16_t ident = CO_CANrxMsg_readIdent(msg);
+        uint8_t *data = CO_CANrxMsg_readData(msg);
+        uint16_t errorCode;
+        uint32_t infoCode;
+
+        CO_memcpySwap2(&errorCode, &data[0]);
+        CO_memcpySwap4(&infoCode, &data[4]);
+        em->pFunctSignalRx(ident,
                            errorCode,
-                           msg->data[2],
-                           msg->data[3],
+                           data[2],
+                           data[3],
                            infoCode);
     }
 }

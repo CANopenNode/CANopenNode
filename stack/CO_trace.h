@@ -31,9 +31,8 @@
 extern "C" {
 #endif
 
-#include "CANopen.h"
-
-#if CO_NO_TRACE > 0
+#include "CO_driver.h"
+#include "CO_SDO.h"
 
 
 /**
@@ -121,7 +120,7 @@ typedef struct {
  * @param valueBuffer Memory block for storing value records.
  * @param bufferSize Size of the above buffers.
  * @param map Map to variable in Object Dictionary, which will be monitored. Same structure as in PDO.
- * @param Format Format of the plot. If first bit is 1, above variable is unsigned. For more info see Object Dictionary.
+ * @param format Format of the plot. If first bit is 1, above variable is unsigned. For more info see Object Dictionary.
  * @param trigger If different than zero, trigger time is recorded, when variable goes through threshold.
  * @param threshold Used with trigger.
  * @param value Pointer to variable, which will show last value of the variable.
@@ -163,8 +162,6 @@ void CO_trace_init(
  * @return 0 on success, -1 on error.
  */
 void CO_trace_process(CO_trace_t *trace, uint32_t timestamp);
-
-#endif /* CO_NO_TRACE */
 
 #ifdef __cplusplus
 }

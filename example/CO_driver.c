@@ -79,7 +79,7 @@ CO_ReturnError_t CO_CANmodule_init(
         rxArray[i].ident = 0U;
         rxArray[i].mask = 0xFFFFFFFFU;
         rxArray[i].object = NULL;
-        rxArray[i].pFunct = NULL;
+        rxArray[i].CANrx_callback = NULL;
     }
     for(i=0U; i<txSize; i++){
         txArray[i].bufferFull = false;
@@ -120,12 +120,6 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
 
 
 /******************************************************************************/
-uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg){
-    return (uint16_t) rxMsg->ident;
-}
-
-
-/******************************************************************************/
 CO_ReturnError_t CO_CANrxBufferInit(
         CO_CANmodule_t         *CANmodule,
         uint16_t                index,
@@ -133,17 +127,17 @@ CO_ReturnError_t CO_CANrxBufferInit(
         uint16_t                mask,
         bool_t                  rtr,
         void                   *object,
-        void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message))
+        void                  (*CANrx_callback)(void *object, void *message))
 {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
-    if((CANmodule!=NULL) && (object!=NULL) && (pFunct!=NULL) && (index < CANmodule->rxSize)){
+    if((CANmodule!=NULL) && (object!=NULL) && (CANrx_callback!=NULL) && (index < CANmodule->rxSize)){
         /* buffer, which will be configured */
         CO_CANrx_t *buffer = &CANmodule->rxArray[index];
 
         /* Configure object variables */
         buffer->object = object;
-        buffer->pFunct = pFunct;
+        buffer->CANrx_callback = CANrx_callback;
 
         /* CAN identifier and CAN mask, bit aligned with CAN module. Different on different microcontrollers. */
         buffer->ident = ident & 0x07FFU;
@@ -320,6 +314,12 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule){
 
 
 /******************************************************************************/
+typedef struct {
+    uint32_t ident;
+    uint8_t DLC;
+    uint8_t data[8];
+} CO_CANrxMsg_t;
+
 void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
 
     /* receive interrupt */
@@ -358,8 +358,8 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         }
 
         /* Call specific function, which will process the message */
-        if(msgMatched && (buffer != NULL) && (buffer->pFunct != NULL)){
-            buffer->pFunct(buffer->object, rcvMsg);
+        if(msgMatched && (buffer != NULL) && (buffer->CANrx_callback != NULL)){
+            buffer->CANrx_callback(buffer->object, (void*) rcvMsg);
         }
 
         /* Clear interrupt flag */

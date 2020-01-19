@@ -24,9 +24,6 @@
 
 
 #include "CO_trace.h"
-
-#if CO_NO_TRACE > 0
-
 #include <stdio.h>
 #include <inttypes.h>
 
@@ -503,5 +500,3 @@ void CO_trace_process(CO_trace_t *trace, uint32_t timestamp) {
         trace->lastTimeStamp = timestamp;
     }
 }
-
-#endif /* CO_NO_TRACE */

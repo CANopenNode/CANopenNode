@@ -36,16 +36,18 @@
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_NMT_receive(void *object, const CO_CANrxMsg_t *msg){
+static void CO_NMT_receive(void *object, void *msg){
     CO_NMT_t *NMT;
     uint8_t nodeId;
+    uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+    uint8_t *data = CO_CANrxMsg_readData(msg);
 
     NMT = (CO_NMT_t*)object;   /* this is the correct pointer type of the first argument */
 
-    nodeId = msg->data[1];
+    nodeId = data[1];
 
-    if((msg->DLC == 2) && ((nodeId == 0) || (nodeId == NMT->nodeId))){
-        uint8_t command = msg->data[0];
+    if((DLC == 2) && ((nodeId == 0) || (nodeId == NMT->nodeId))){
+        uint8_t command = data[0];
         uint8_t currentOperatingState = NMT->operatingState;
 
         switch(command){
