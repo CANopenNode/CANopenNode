@@ -137,10 +137,10 @@ uint8_t CO_TIME_process(
             TIME->timer = timerNew;
 
         /* was TIME just received */
-        if(TIME->CANrxNew){
+        if(CO_CANrxNew_READ(TIME->CANrxNew)){
             TIME->timer = 0;
             ret = 1;
-            CLEAR_CANrxNew(TIME->CANrxNew);
+            CO_CANrxNew_CLEAR(TIME->CANrxNew);
         }
 
         /* TIME producer */
