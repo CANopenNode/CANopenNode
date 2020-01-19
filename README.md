@@ -37,6 +37,19 @@ CANopen Features
 RTR (remote transmission request) is a feature of CAN bus. Usage of RTR
 is not recommended for CANopen and it is not implemented in CANopenNode.
 
+### Self start
+Object **0x1F80** from Object Dictionary enables the NMT slaves to start
+automatically or allows it to start the whole network. It is specified in
+DSP302-2 standard. Standard allows two values for slaves for object 0x1F80:
+- Object 0x1F80, value = **0x8** - "NMT slave shall enter the NMT state
+  Operational after the NMT state Initialization autonomously (self starting)"
+- Object 0x1F80, value = **0x2** - "NMT slave shall execute the NMT service
+  start remote node with node-ID set to 0"
+
+Note: When node is stated (in NMT operational state), it is allowed to send or
+receive Process Data Objects (PDO). If Error Register (object 0x1001) is set,
+then NMT operational state is not allowed.
+
 
 Usage of the CANopenNode
 ------------------------

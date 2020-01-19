@@ -546,7 +546,7 @@ bit 16-31: index from OD</description>
       <CANopenSubObject subIndex="07" name="mapped object 7" objectType="7" dataType="07" accessType="rw" PDOmapping="no" defaultValue="0x00000000"/>
       <CANopenSubObject subIndex="08" name="mapped object 8" objectType="7" dataType="07" accessType="rw" PDOmapping="no" defaultValue="0x00000000"/>
     </CANopenObject>
-    <CANopenObject index="1F80" name="NMT startup" objectType="7" memoryType="ROM" dataType="07" accessType="rw" PDOmapping="no" defaultValue="0x00000000">
+    <CANopenObject index="1F80" name="NMT startup" objectType="7" memoryType="ROM" dataType="07" accessType="rw" PDOmapping="no" defaultValue="0x00000008">
       <label lang="en">NMT Startup</label>
       <description lang="en">Only bit 2 is implemented.
 
@@ -794,7 +794,7 @@ Name - name of the trace as a string (informative).
 
 Color - color of the trace as a string (informative).
 
-Map - Map to variable in object dictionary, similar as PDO map(two bytes of index, one byte of subindex and 1 byte of bitlength. It's value will be copied to trace.value in case index and subindex are correct. If map index and subindex is zero, RPDO may be mapped to trace.value, for example. Valid values of map.bitlength is 08, 10 or 20 or 00, which indicates 8-bit, 16bit, 32-bit or default-size variable. Trace must be disabled, if mapping is written (Axis no set to 0). 
+Map - Map to variable in object dictionary, similar as PDO map(two bytes of index, one byte of subindex and 1 byte of bitlength. It's value will be copied to trace.value in case index and subindex are correct. If map index and subindex is zero, RPDO may be mapped to trace.value, for example. Valid values of map.bitlength is 08, 10 or 20 or 00, which indicates 8-bit, 16bit, 32-bit or default-size variable. Trace must be disabled, if mapping is written (Axis no set to 0).
 
 Format - If first bit is zero, then value is used as signed integer otherwise as unsigned integer. If format is 0 or 1, text points are generated for time and value: "123;321\n140;345\n..." If format is 2 or 3, binary data is generated: 4-byte timestamp and 4-byte value. If format is 4 or 5, SVG path is generated: "M123,321H140V345...".
 

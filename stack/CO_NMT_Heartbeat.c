@@ -68,6 +68,8 @@ static void CO_NMT_receive(void *object, void *msg){
             case CO_NMT_RESET_COMMUNICATION:
                 NMT->resetCommand = CO_RESET_COMM;
                 break;
+            default:
+                break;
         }
 
         if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
@@ -170,6 +172,7 @@ void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
         case    4:  NMT->LEDdoubleFlash = -104; break;
         case -100:  NMT->LEDdoubleFlash =  100; break;
         case  104:  NMT->LEDdoubleFlash =  -20; break;
+        default: break;
     }
 
     switch(++NMT->LEDtripleFlash){
@@ -178,6 +181,7 @@ void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
         case  104:  NMT->LEDtripleFlash = -114; break;
         case -110:  NMT->LEDtripleFlash =  110; break;
         case  114:  NMT->LEDtripleFlash =  -20; break;
+        default: break;
     }
 
     switch(++NMT->LEDquadrupleFlash){
@@ -188,6 +192,7 @@ void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
         case  114:  NMT->LEDquadrupleFlash = -124; break;
         case -120:  NMT->LEDquadrupleFlash =  120; break;
         case  124:  NMT->LEDquadrupleFlash =  -20; break;
+        default: break;
     }
 }
 #endif /* CO_USE_LEDS */
@@ -222,9 +227,10 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         if(NMT->operatingState == CO_NMT_INITIALIZING){
             if(HBtime > NMT->firstHBTime) NMT->HBproducerTimer = HBtime - NMT->firstHBTime;
             else                          NMT->HBproducerTimer = 0;
-
-            if((NMTstartup & 0x04) == 0) NMT->operatingState = CO_NMT_OPERATIONAL;
-            else                         NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+            
+            /* NMT slave self starting */
+            if (NMTstartup == 0x00000008U) NMT->operatingState = CO_NMT_OPERATIONAL;
+            else                           NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
         }
     }
 
@@ -254,6 +260,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         case CO_NMT_STOPPED:          NMT->LEDgreenRun = NMT->LEDsingleFlash;   break;
         case CO_NMT_PRE_OPERATIONAL:  NMT->LEDgreenRun = NMT->LEDblinking;      break;
         case CO_NMT_OPERATIONAL:      NMT->LEDgreenRun = 1;                     break;
+        default: break;
     }
 
 

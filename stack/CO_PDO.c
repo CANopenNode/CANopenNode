@@ -424,14 +424,16 @@ static CO_SDO_abortCode_t CO_ODF_RPDOcom(CO_ODF_arg_t *ODF_arg){
     /* Reading Object Dictionary variable */
     if(ODF_arg->reading){
         if(ODF_arg->subIndex == 1){
-            uint32_t *value = (uint32_t*) ODF_arg->data;
+            uint32_t value = CO_getUint32(ODF_arg->data);
 
             /* if default COB ID is used, write default value here */
-            if(((*value)&0xFFFF) == RPDO->defaultCOB_ID && RPDO->defaultCOB_ID)
-                *value += RPDO->nodeId;
+            if(((value)&0xFFFF) == RPDO->defaultCOB_ID && RPDO->defaultCOB_ID)
+                value += RPDO->nodeId;
 
             /* If PDO is not valid, set bit 31 */
-            if(!RPDO->valid) *value |= 0x80000000L;
+            if(!RPDO->valid) value |= 0x80000000L;
+
+            CO_setUint32(ODF_arg->data, value);
         }
         return CO_SDO_AB_NONE;
     }
@@ -443,24 +445,25 @@ static CO_SDO_abortCode_t CO_ODF_RPDOcom(CO_ODF_arg_t *ODF_arg){
         return CO_SDO_AB_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
 
     if(ODF_arg->subIndex == 1){   /* COB_ID */
-        uint32_t *value = (uint32_t*) ODF_arg->data;
+        uint32_t value = CO_getUint32(ODF_arg->data);
 
         /* bits 11...29 must be zero */
-        if(*value & 0x3FFF8000L)
+        if(value & 0x3FFF8000L)
             return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
 
         /* if default COB-ID is being written, write defaultCOB_ID without nodeId */
-        if(((*value)&0xFFFF) == (RPDO->defaultCOB_ID + RPDO->nodeId)){
-            *value &= 0xC0000000L;
-            *value += RPDO->defaultCOB_ID;
+        if(((value)&0xFFFF) == (RPDO->defaultCOB_ID + RPDO->nodeId)){
+            value &= 0xC0000000L;
+            value += RPDO->defaultCOB_ID;
+            CO_setUint32(ODF_arg->data, value);
         }
 
         /* if PDO is valid, bits 0..29 can not be changed */
-        if(RPDO->valid && ((*value ^ RPDO->RPDOCommPar->COB_IDUsedByRPDO) & 0x3FFFFFFFL))
+        if(RPDO->valid && ((value ^ RPDO->RPDOCommPar->COB_IDUsedByRPDO) & 0x3FFFFFFFL))
             return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
 
         /* configure RPDO */
-        CO_RPDOconfigCom(RPDO, *value);
+        CO_RPDOconfigCom(RPDO, value);
     }
     else if(ODF_arg->subIndex == 2){   /* Transmission_type */
         uint8_t *value = (uint8_t*) ODF_arg->data;
@@ -497,14 +500,16 @@ static CO_SDO_abortCode_t CO_ODF_TPDOcom(CO_ODF_arg_t *ODF_arg){
     /* Reading Object Dictionary variable */
     if(ODF_arg->reading){
         if(ODF_arg->subIndex == 1){   /* COB_ID */
-            uint32_t *value = (uint32_t*) ODF_arg->data;
+            uint32_t value = CO_getUint32(ODF_arg->data);
 
             /* if default COB ID is used, write default value here */
-            if(((*value)&0xFFFF) == TPDO->defaultCOB_ID && TPDO->defaultCOB_ID)
-                *value += TPDO->nodeId;
+            if(((value)&0xFFFF) == TPDO->defaultCOB_ID && TPDO->defaultCOB_ID)
+                value += TPDO->nodeId;
 
             /* If PDO is not valid, set bit 31 */
-            if(!TPDO->valid) *value |= 0x80000000L;
+            if(!TPDO->valid) value |= 0x80000000L;
+
+            CO_setUint32(ODF_arg->data, value);
         }
         return CO_SDO_AB_NONE;
     }
@@ -516,24 +521,26 @@ static CO_SDO_abortCode_t CO_ODF_TPDOcom(CO_ODF_arg_t *ODF_arg){
         return CO_SDO_AB_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
 
     if(ODF_arg->subIndex == 1){   /* COB_ID */
-        uint32_t *value = (uint32_t*) ODF_arg->data;
+        uint32_t value = CO_getUint32(ODF_arg->data);
 
         /* bits 11...29 must be zero */
-        if(*value & 0x3FFF8000L)
+        if(value & 0x3FFF8000L)
             return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
 
         /* if default COB-ID is being written, write defaultCOB_ID without nodeId */
-        if(((*value)&0xFFFF) == (TPDO->defaultCOB_ID + TPDO->nodeId)){
-            *value &= 0xC0000000L;
-            *value += TPDO->defaultCOB_ID;
+        if(((value)&0xFFFF) == (TPDO->defaultCOB_ID + TPDO->nodeId)){
+            value &= 0xC0000000L;
+            value += TPDO->defaultCOB_ID;
+
+            CO_setUint32(ODF_arg->data, value);
         }
 
         /* if PDO is valid, bits 0..29 can not be changed */
-        if(TPDO->valid && ((*value ^ TPDO->TPDOCommPar->COB_IDUsedByTPDO) & 0x3FFFFFFFL))
+        if(TPDO->valid && ((value ^ TPDO->TPDOCommPar->COB_IDUsedByTPDO) & 0x3FFFFFFFL))
             return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
 
         /* configure TPDO */
-        CO_TPDOconfigCom(TPDO, *value, TPDO->CANtxBuff->syncFlag);
+        CO_TPDOconfigCom(TPDO, value, TPDO->CANtxBuff->syncFlag);
         TPDO->syncCounter = 255;
     }
     else if(ODF_arg->subIndex == 2){   /* Transmission_type */
@@ -553,9 +560,9 @@ static CO_SDO_abortCode_t CO_ODF_TPDOcom(CO_ODF_arg_t *ODF_arg){
         TPDO->inhibitTimer = 0;
     }
     else if(ODF_arg->subIndex == 5){   /* Event_Timer */
-        uint16_t *value = (uint16_t*) ODF_arg->data;
+        uint16_t value = CO_getUint16(ODF_arg->data);
 
-        TPDO->eventTimer = ((uint32_t) *value) * 1000;
+        TPDO->eventTimer = ((uint32_t) value) * 1000;
     }
     else if(ODF_arg->subIndex == 6){   /* SYNC start value */
         uint8_t *value = (uint8_t*) ODF_arg->data;
@@ -615,7 +622,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOmap(CO_ODF_arg_t *ODF_arg){
 
     /* mappedObject */
     else{
-        uint32_t *value = (uint32_t*) ODF_arg->data;
+        uint32_t value = CO_getUint32(ODF_arg->data);
         uint8_t* pData;
         uint8_t length = 0;
         uint8_t dummy = 0;
@@ -627,7 +634,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOmap(CO_ODF_arg_t *ODF_arg){
         /* verify if mapping is correct */
         return CO_PDOfindMap(
                 RPDO->SDO,
-               *value,
+                value,
                 0,
                &pData,
                &length,
@@ -681,7 +688,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
 
     /* mappedObject */
     else{
-        uint32_t *value = (uint32_t*) ODF_arg->data;
+        uint32_t value = CO_getUint32(ODF_arg->data);
         uint8_t* pData;
         uint8_t length = 0;
         uint8_t dummy = 0;
@@ -693,7 +700,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
         /* verify if mapping is correct */
         return CO_PDOfindMap(
                 TPDO->SDO,
-               *value,
+                value,
                 1,
                &pData,
                &length,
@@ -826,14 +833,14 @@ uint8_t CO_TPDOisCOS(CO_TPDO_t *TPDO){
     ppODdataByte = &TPDO->mapPointer[TPDO->dataLength];
 
     switch(TPDO->dataLength){
-        case 8: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x80)) return 1;
-        case 7: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x40)) return 1;
-        case 6: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x20)) return 1;
-        case 5: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x10)) return 1;
-        case 4: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x08)) return 1;
-        case 3: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x04)) return 1;
-        case 2: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x02)) return 1;
-        case 1: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x01)) return 1;
+        case 8: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x80)) return 1; // fallthrough
+        case 7: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x40)) return 1; // fallthrough
+        case 6: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x20)) return 1; // fallthrough
+        case 5: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x10)) return 1; // fallthrough
+        case 4: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x08)) return 1; // fallthrough
+        case 3: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x04)) return 1; // fallthrough
+        case 2: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x02)) return 1; // fallthrough
+        case 1: if(*(--pPDOdataByte) != **(--ppODdataByte) && (TPDO->sendIfCOSFlags&0x01)) return 1; // fallthrough
     }
 
     return 0;

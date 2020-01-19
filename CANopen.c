@@ -99,7 +99,7 @@
     #define CO_RXCAN_CONS_HB  (CO_RXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  start index for Heartbeat Consumer messages */
     #define CO_RXCAN_LSS      (CO_RXCAN_CONS_HB+CO_NO_HB_CONS)        /*  index for LSS rx message */
     /* total number of received CAN messages */
-    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TIME+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS)
+    #define CO_RXCAN_NO_MSGS (1+CO_NO_SYNC+CO_NO_EMERGENCY+CO_NO_TIME+CO_NO_RPDO+CO_NO_SDO_SERVER+CO_NO_SDO_CLIENT+CO_NO_HB_CONS+CO_NO_LSS_SERVER+CO_NO_LSS_CLIENT)
 
     #define CO_TXCAN_NMT       0                                      /*  index for NMT master message */
     #define CO_TXCAN_SYNC      CO_TXCAN_NMT+CO_NO_NMT_MASTER          /*  index for SYNC message */
@@ -149,12 +149,39 @@
 #endif
 #endif
 
+/* These declarations here are needed in the case the switches for the project
+    change the visibility in the headers in a way that the compiler doesn't see an declaration anymore */
+
+#if CO_NO_LSS_SERVER == 0 /* LSS Server means LSS slave */
+
+CO_ReturnError_t CO_new(void);
+
+CO_ReturnError_t CO_CANinit(
+        void                   *CANdriverState,
+        uint16_t                bitRate);
+
+CO_ReturnError_t CO_LSSinit(
+        uint8_t                 nodeId,
+        uint16_t                bitRate);
+
+CO_ReturnError_t CO_CANopenInit(
+        uint8_t                 nodeId);
+
+#else /* CO_NO_LSS_SERVER == 0 */
+
+CO_ReturnError_t CO_init(
+        void                   *CANdriverState,
+        uint8_t                 nodeId,
+        uint16_t                bitRate);
+
+#endif /* CO_NO_LSS_SERVER == 0 */
+
 
 /* Helper function for NMT master *********************************************/
 #if CO_NO_NMT_MASTER == 1
     CO_CANtx_t *NMTM_txBuff = 0;
 
-    CO_ReturnError_t CO_sendNMTcommand(CO_t *CO, uint8_t command, uint8_t nodeID){
+    CO_ReturnError_t CO_sendNMTcommand(CO_t *co, uint8_t command, uint8_t nodeID){
         if(NMTM_txBuff == 0){
             /* error, CO_CANtxBufferInit() was not called for this buffer. */
             return CO_ERROR_TX_UNCONFIGURED; /* -11 */
@@ -162,30 +189,42 @@
         NMTM_txBuff->data[0] = command;
         NMTM_txBuff->data[1] = nodeID;
 
+        CO_ReturnError_t error = CO_ERROR_NO;
+
         /* Apply NMT command also to this node, if set so. */
-        if(nodeID == 0 || nodeID == CO->NMT->nodeId){
+        if(nodeID == 0 || nodeID == co->NMT->nodeId){
             switch(command){
                 case CO_NMT_ENTER_OPERATIONAL:
-                    if((*CO->NMT->emPr->errorRegister) == 0) {
-                        CO->NMT->operatingState = CO_NMT_OPERATIONAL;
+                    if((*co->NMT->emPr->errorRegister) == 0) {
+                        co->NMT->operatingState = CO_NMT_OPERATIONAL;
                     }
                     break;
                 case CO_NMT_ENTER_STOPPED:
-                    CO->NMT->operatingState = CO_NMT_STOPPED;
+                    co->NMT->operatingState = CO_NMT_STOPPED;
                     break;
                 case CO_NMT_ENTER_PRE_OPERATIONAL:
-                    CO->NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+                    co->NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
                     break;
                 case CO_NMT_RESET_NODE:
-                    CO->NMT->resetCommand = CO_RESET_APP;
+                    co->NMT->resetCommand = CO_RESET_APP;
                     break;
                 case CO_NMT_RESET_COMMUNICATION:
-                    CO->NMT->resetCommand = CO_RESET_COMM;
+                    co->NMT->resetCommand = CO_RESET_COMM;
                     break;
+                default:
+                    error = CO_ERROR_ILLEGAL_ARGUMENT;
+                    break;
+
             }
         }
 
-        return CO_CANsend(CO->CANmodule[0], NMTM_txBuff); /* 0 = success */
+        if(error == CO_ERROR_NO)
+            return CO_CANsend(co->CANmodule[0], NMTM_txBuff); /* 0 = success */
+        else
+        {
+            return error;
+        }
+
     }
 #endif
 
@@ -326,7 +365,7 @@ CO_ReturnError_t CO_new(void)
   #if CO_NO_SYNC == 1
                   + sizeof(CO_SYNC_t)
   #endif
-  #if CO_NO_TIME == 1 
+  #if CO_NO_TIME == 1
                   + sizeof(CO_TIME_t)
   #endif
                   + sizeof(CO_RPDO_t) * CO_NO_RPDO
@@ -364,7 +403,7 @@ CO_ReturnError_t CO_new(void)
   #if CO_NO_SYNC == 1
     if(CO->SYNC                         == NULL) errCnt++;
   #endif
-  #if CO_NO_TIME == 1 
+  #if CO_NO_TIME == 1
     if(CO->TIME                     	== NULL) errCnt++;
   #endif
     for(i=0; i<CO_NO_RPDO; i++){
@@ -775,7 +814,7 @@ void CO_delete(void *CANdriverState){
 
 /******************************************************************************/
 CO_NMT_reset_cmd_t CO_process(
-        CO_t                   *CO,
+        CO_t                   *co,
         uint16_t                timeDifference_ms,
         uint16_t               *timerNext_ms)
 {
@@ -786,14 +825,14 @@ CO_NMT_reset_cmd_t CO_process(
     static uint16_t ms50 = 0;
 #endif /* CO_USE_LEDS */
 
-    if(CO->NMT->operatingState == CO_NMT_PRE_OPERATIONAL || CO->NMT->operatingState == CO_NMT_OPERATIONAL)
+    if(co->NMT->operatingState == CO_NMT_PRE_OPERATIONAL || co->NMT->operatingState == CO_NMT_OPERATIONAL)
         NMTisPreOrOperational = true;
 
 #ifdef CO_USE_LEDS
     ms50 += timeDifference_ms;
     if(ms50 >= 50){
         ms50 -= 50;
-        CO_NMT_blinkingProcess50ms(CO->NMT);
+        CO_NMT_blinkingProcess50ms(co->NMT);
     }
 #endif /* CO_USE_LEDS */
     if(timerNext_ms != NULL){
@@ -805,7 +844,7 @@ CO_NMT_reset_cmd_t CO_process(
 
     for(i=0; i<CO_NO_SDO_SERVER; i++){
         CO_SDO_process(
-                CO->SDO[i],
+                co->SDO[i],
                 NMTisPreOrOperational,
                 timeDifference_ms,
                 1000,
@@ -813,7 +852,7 @@ CO_NMT_reset_cmd_t CO_process(
     }
 
     CO_EM_process(
-            CO->emPr,
+            co->emPr,
             NMTisPreOrOperational,
             timeDifference_ms * 10,
             OD_inhibitTimeEMCY,
@@ -821,7 +860,7 @@ CO_NMT_reset_cmd_t CO_process(
 
 
     reset = CO_NMT_process(
-            CO->NMT,
+            co->NMT,
             timeDifference_ms,
             OD_producerHeartbeatTime,
             OD_NMTStartup,
@@ -831,13 +870,13 @@ CO_NMT_reset_cmd_t CO_process(
 
 
     CO_HBconsumer_process(
-            CO->HBcons,
+            co->HBcons,
             NMTisPreOrOperational,
             timeDifference_ms);
 
 #if CO_NO_TIME == 1
     CO_TIME_process(
-            CO->TIME,
+            co->TIME,
             timeDifference_ms);
 #endif
 
@@ -848,17 +887,17 @@ CO_NMT_reset_cmd_t CO_process(
 /******************************************************************************/
 #if CO_NO_SYNC == 1
 bool_t CO_process_SYNC(
-        CO_t                   *CO,
+        CO_t                   *co,
         uint32_t                timeDifference_us)
 {
     bool_t syncWas = false;
 
-    switch(CO_SYNC_process(CO->SYNC, timeDifference_us, OD_synchronousWindowLength)){
+    switch(CO_SYNC_process(co->SYNC, timeDifference_us, OD_synchronousWindowLength)){
         case 1:     //immediately after the SYNC message
             syncWas = true;
             break;
         case 2:     //outside SYNC window
-            CO_CANclearPendingSyncPDOs(CO->CANmodule[0]);
+            CO_CANclearPendingSyncPDOs(co->CANmodule[0]);
             break;
     }
 
@@ -868,20 +907,20 @@ bool_t CO_process_SYNC(
 
 /******************************************************************************/
 void CO_process_RPDO(
-        CO_t                   *CO,
+        CO_t                   *co,
         bool_t                  syncWas)
 {
     int16_t i;
 
     for(i=0; i<CO_NO_RPDO; i++){
-        CO_RPDO_process(CO->RPDO[i], syncWas);
+        CO_RPDO_process(co->RPDO[i], syncWas);
     }
 }
 
 
 /******************************************************************************/
 void CO_process_TPDO(
-        CO_t                   *CO,
+        CO_t                   *co,
         bool_t                  syncWas,
         uint32_t                timeDifference_us)
 {
@@ -889,9 +928,8 @@ void CO_process_TPDO(
 
     /* Verify PDO Change Of State and process PDOs */
     for(i=0; i<CO_NO_TPDO; i++){
-        if(!CO->TPDO[i]->sendRequest)
-            CO->TPDO[i]->sendRequest = CO_TPDOisCOS(CO->TPDO[i]);
-
-        CO_TPDO_process(CO->TPDO[i], syncWas, timeDifference_us);
+        if(!co->TPDO[i]->sendRequest)
+            co->TPDO[i]->sendRequest = CO_TPDOisCOS(co->TPDO[i]);
+        CO_TPDO_process(co->TPDO[i], syncWas, timeDifference_us);
     }
 }
