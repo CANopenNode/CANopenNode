@@ -76,7 +76,7 @@ typedef struct {
 
 /* CAN module object */
 typedef struct {
-    void *CANdriverState;
+    void *CANptr;
     CO_CANrx_t *rxArray;
     uint16_t rxSize;
     CO_CANtx_t *txArray;
@@ -114,5 +114,4 @@ typedef struct {
 }
 #endif /*__cplusplus*/
 
-/** @} */
 #endif /* CO_DRIVER_TARGET */
