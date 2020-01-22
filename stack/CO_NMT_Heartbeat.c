@@ -73,7 +73,7 @@ static void CO_NMT_receive(void *object, void *msg){
         }
 
         if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
-            NMT->pFunctNMT(NMT->operatingState);
+            NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
         }
     }
 }
@@ -152,7 +152,7 @@ void CO_NMT_initCallback(
     if(NMT != NULL){
         NMT->pFunctNMT = pFunctNMT;
         if(NMT->pFunctNMT != NULL){
-            NMT->pFunctNMT(NMT->operatingState);
+            NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
         }
     }
 }
@@ -336,10 +336,10 @@ CO_NMT_reset_cmd_t CO_NMT_process(
     }
 
     if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
-        NMT->pFunctNMT(NMT->operatingState);
+        NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
     }
 
-    return NMT->resetCommand;
+    return (CO_NMT_reset_cmd_t) NMT->resetCommand;
 }
 
 
@@ -348,7 +348,7 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
         CO_NMT_t               *NMT)
 {
     if(NMT != NULL){
-        return NMT->operatingState;
+        return (CO_NMT_internalState_t) NMT->operatingState;
     }
     return CO_NMT_INITIALIZING;
 }

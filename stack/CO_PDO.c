@@ -617,7 +617,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOmap(CO_ODF_arg_t *ODF_arg){
             return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds PDO length. */
 
         /* configure mapping */
-        return CO_RPDOconfigMap(RPDO, *value);
+        return (CO_SDO_abortCode_t) CO_RPDOconfigMap(RPDO, *value);
     }
 
     /* mappedObject */
@@ -632,7 +632,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOmap(CO_ODF_arg_t *ODF_arg){
             return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
 
         /* verify if mapping is correct */
-        return CO_PDOfindMap(
+        return (CO_SDO_abortCode_t) CO_PDOfindMap(
                 RPDO->SDO,
                 value,
                 0,
@@ -683,7 +683,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
             return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds PDO length. */
 
         /* configure mapping */
-        return CO_TPDOconfigMap(TPDO, *value);
+        return (CO_SDO_abortCode_t) CO_TPDOconfigMap(TPDO, *value);
     }
 
     /* mappedObject */
@@ -698,7 +698,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
             return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
 
         /* verify if mapping is correct */
-        return CO_PDOfindMap(
+        return (CO_SDO_abortCode_t) CO_PDOfindMap(
                 TPDO->SDO,
                 value,
                 1,
