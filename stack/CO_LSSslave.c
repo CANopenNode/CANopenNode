@@ -341,7 +341,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
     LSSslave = (CO_LSSslave_t*)object;   /* this is the correct pointer type of the first argument */
 
     if(DLC == 8){
-        CO_LSS_cs_t cs = data[0];
+        CO_LSS_cs_t cs = (CO_LSS_cs_t) data[0];
 
         if (CO_LSS_CS_SERVICE_IS_SWITCH_GLOBAL(cs)) {
             CO_LSSslave_serviceSwitchStateGlobal(LSSslave, cs, msg);
