@@ -108,7 +108,9 @@ extern "C" {
  */
 /** CO_LITTLE_ENDIAN or CO_BIG_ENDIAN must be defined */
 #define CO_LITTLE_ENDIAN
-/** NULL, for general use */
+/** Enable LED blinking calculation, optional */
+#define CO_USE_LEDS
+/** NULL, for general usage */
 #define NULL (0)
 /** Logical true, for general use */
 #define true 1
@@ -367,7 +369,7 @@ typedef struct {
 #define CO_UNLOCK_OD()
 
 /** Check if new message has arrived */
-#define CO_CANrxNew_READ(rxNew) ((uintptr_t)rxNew)
+#define CO_CANrxNew_READ(rxNew) ((int *)rxNew)
 /** Set new message flag */
 #define CO_CANrxNew_SET(rxNew) { __sync_synchronize(); rxNew = (void *)1L; }
 /** Clear new message flag */

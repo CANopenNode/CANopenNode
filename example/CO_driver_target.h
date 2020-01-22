@@ -41,6 +41,7 @@ extern "C" {
 
 /* Basic definitions */
 #define CO_LITTLE_ENDIAN
+#define CO_USE_LEDS
 /* NULL is defined in stddef.h */
 /* true and false are defined in stdbool.h */
 /* int8_t to uint64_t are defined in stdint.h */
