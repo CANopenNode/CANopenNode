@@ -41,6 +41,7 @@ extern "C" {
 
 /* Basic definitions */
 #define CO_LITTLE_ENDIAN
+#define CO_USE_LEDS
 /* NULL is defined in stddef.h */
 /* true and false are defined in stdbool.h */
 /* int8_t to uint64_t are defined in stdint.h */
@@ -76,7 +77,7 @@ typedef struct {
 
 /* CAN module object */
 typedef struct {
-    void *CANdriverState;
+    void *CANptr;
     CO_CANrx_t *rxArray;
     uint16_t rxSize;
     CO_CANtx_t *txArray;
@@ -114,5 +115,4 @@ typedef struct {
 }
 #endif /*__cplusplus*/
 
-/** @} */
 #endif /* CO_DRIVER_TARGET */

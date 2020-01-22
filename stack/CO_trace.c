@@ -25,7 +25,9 @@
 
 #include "CO_trace.h"
 #include <stdio.h>
-#include <inttypes.h>
+#ifndef CO_OWN_INTTYPES
+#include <inttypes.h> /* for PRIu32("u" or "lu") and PRId32("d" or "ld") */
+#endif
 
 /* Different functions for processing value for different data types. */
 static int32_t getValueI8 (void *OD_variable) { return (int32_t) *((int8_t*)   OD_variable);}

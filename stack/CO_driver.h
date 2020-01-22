@@ -108,7 +108,9 @@ extern "C" {
  */
 /** CO_LITTLE_ENDIAN or CO_BIG_ENDIAN must be defined */
 #define CO_LITTLE_ENDIAN
-/** NULL, for general use */
+/** Enable LED blinking calculation, optional */
+#define CO_USE_LEDS
+/** NULL, for general usage */
 #define NULL (0)
 /** Logical true, for general use */
 #define true 1
@@ -288,7 +290,7 @@ typedef struct {
  * microcontrollers.
  */
 typedef struct {
-    void *CANdriverState;              /**< From CO_CANmodule_init() */
+    void *CANptr;                      /**< From CO_CANmodule_init() */
     CO_CANrx_t *rxArray;               /**< From CO_CANmodule_init() */
     uint16_t rxSize;                   /**< From CO_CANmodule_init() */
     CO_CANtx_t *txArray;               /**< From CO_CANmodule_init() */
@@ -367,7 +369,7 @@ typedef struct {
 #define CO_UNLOCK_OD()
 
 /** Check if new message has arrived */
-#define CO_CANrxNew_READ(rxNew) ((uintptr_t)rxNew)
+#define CO_CANrxNew_READ(rxNew) ((int *)rxNew)
 /** Set new message flag */
 #define CO_CANrxNew_SET(rxNew) { __sync_synchronize(); rxNew = (void *)1L; }
 /** Clear new message flag */
@@ -442,9 +444,9 @@ typedef enum {
 /**
  * Request CAN configuration (stopped) mode and *wait* untill it is set.
  *
- * @param CANdriverState User-provided CAN module structure.
+ * @param CANptr Pointer to CAN device
  */
-void CO_CANsetConfigurationMode(void *CANdriverState);
+void CO_CANsetConfigurationMode(void *CANptr);
 
 
 /**
@@ -462,7 +464,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  * be in Configuration Mode before.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdriverState User-provided CAN module structure..
+ * @param CANptr Pointer to CAN device.
  * @param rxArray Array for handling received CAN messages
  * @param rxSize Size of the above array. Must be equal to number of receiving
  * CAN objects.
@@ -475,7 +477,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  * Return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t *CANmodule,
-                                   void *CANdriverState,
+                                   void *CANptr,
                                    CO_CANrx_t rxArray[],
                                    uint16_t rxSize,
                                    CO_CANtx_t txArray[],
