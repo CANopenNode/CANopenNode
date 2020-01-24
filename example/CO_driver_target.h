@@ -26,10 +26,6 @@
 #ifndef CO_DRIVER_TARGET
 #define CO_DRIVER_TARGET
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* This file contains device and application specific definitions.
  * It is included from CO_driver.h, which contains documentation
  * for definitions below. */
@@ -38,6 +34,9 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Basic definitions */
 #define CO_LITTLE_ENDIAN
@@ -106,7 +105,7 @@ typedef struct {
 
 /* Synchronization between CAN receive and message processing threads. */
 #define CO_MemoryBarrier()
-#define CO_CANrxNew_READ(rxNew) ((uintptr_t)rxNew)
+#define CO_CANrxNew_READ(rxNew) ((bool_t)rxNew)
 #define CO_CANrxNew_SET(rxNew) {CO_MemoryBarrier(); rxNew = (void*)1L;}
 #define CO_CANrxNew_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = (void*)0L;}
 

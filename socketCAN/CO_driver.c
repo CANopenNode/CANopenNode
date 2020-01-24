@@ -272,7 +272,7 @@ CO_ReturnError_t CO_CANmodule_init(
         rxArray[i].ident = 0U;
         rxArray[i].mask = 0xFFFFFFFFU;
         rxArray[i].object = NULL;
-        rxArray[i].pFunct = NULL;
+        rxArray[i].CANrx_callback = NULL;
 #ifdef CO_DRIVER_MULTI_INTERFACE
         rxArray[i].CANbaseAddress = -1;
         rxArray[i].timestamp.tv_sec = 0;
@@ -469,10 +469,18 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
 
 
 /******************************************************************************/
-uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg)
-{
+static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg) {
+    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
     /* remove socketCAN flags */
-    return (uint16_t) (rxMsg->ident & CAN_SFF_MASK);
+    return (uint16_t) (rxMsgCasted->ident & CAN_SFF_MASK);
+}
+static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg) {
+    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
+    return (uint8_t) (rxMsgCasted->DLC);
+}
+static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
+    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
+    return (uint8_t *) (rxMsgCasted->data);
 }
 
 
@@ -484,7 +492,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
         uint32_t                mask,
         bool_t                  rtr,
         void                   *object,
-        void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message))
+        void                  (*CANrx_callback)(void *object, void *message))
 {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
@@ -513,7 +521,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
 
             /* Configure object variables */
             buffer->object = object;
-            buffer->pFunct = pFunct;
+            buffer->CANrx_callback = CANrx_callback;
 #ifdef CO_DRIVER_MULTI_INTERFACE
             buffer->CANbaseAddress = -1;
             buffer->timestamp.tv_nsec = 0;
@@ -704,6 +712,26 @@ static CO_ReturnError_t CO_CANCheckSendInterface(
 }
 
 
+/*
+ * The same as #CO_CANsend(), but ensures that there is enough space remaining
+ * in the driver for more important messages.
+ *
+ * The default threshold is 50%, or at least 1 message buffer. If sending
+ * would violate those limits, #CO_ERROR_TX_OVERFLOW is returned and the
+ * message will not be sent.
+ *
+ * (It is not in header, because usage of CO_CANCheckSend() is unclear.)
+ *
+ * @param CANmodule This object.
+ * @param buffer Pointer to transmit buffer, returned by CO_CANtxBufferInit().
+ * Data bytes must be written in buffer before function call.
+ *
+ * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_TX_OVERFLOW, CO_ERROR_TX_BUSY or
+ * CO_ERROR_TX_PDO_WINDOW (Synchronous TPDO is outside window).
+ */
+CO_ReturnError_t CO_CANCheckSend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
+
+
 /******************************************************************************/
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
 {
@@ -858,8 +886,8 @@ static int32_t CO_CANrxMsg(
     }
     if(msgMatched) {
         /* Call specific function, which will process the message */
-        if ((rcvMsgObj != NULL) && (rcvMsgObj->pFunct != NULL)){
-            rcvMsgObj->pFunct(rcvMsgObj->object, rcvMsg);
+        if ((rcvMsgObj != NULL) && (rcvMsgObj->CANrx_callback != NULL)){
+            rcvMsgObj->CANrx_callback(rcvMsgObj->object, (void *)rcvMsg);
         }
         /* return message */
         if (buffer != NULL) {
