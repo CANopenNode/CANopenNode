@@ -73,7 +73,7 @@ extern "C" {
  * socketCAN interface object
  */
 typedef struct {
-    void               *CANdriverState;   /**< CAN Interface identifier */
+    int32_t             CANbaseAddress;   /**< CAN Interface identifier */
     char                ifName[IFNAMSIZ]; /**< CAN Interface name */
     int                 fd;               /**< socketCAN file descriptor */
 #ifdef CO_DRIVER_ERROR_REPORTING
@@ -111,9 +111,9 @@ typedef struct{
 /**
  * Request CAN configuration (stopped) mode and *wait* until it is set.
  *
- * @param CANdriverState CAN module base address.
+ * @param CANptr CAN module base address.
  */
-void CO_CANsetConfigurationMode(void *CANdriverState);
+void CO_CANsetConfigurationMode(void *CANptr);
 
 
 /**
@@ -132,7 +132,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  * be in Configuration Mode before.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdriverState unused
+ * @param CANptr unused
  * @param rxArray Array for handling received CAN messages
  * @param rxSize Size of the above array. Must be equal to number of receiving CAN objects.
  * @param txArray Array for handling transmitting CAN messages
@@ -149,7 +149,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  * be in Configuration Mode before.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdriverState CAN module base address.
+ * @param CANptr CAN module base address.
  * @param rxArray Array for handling received CAN messages
  * @param rxSize Size of the above array. Must be equal to number of receiving CAN objects.
  * @param txArray Array for handling transmitting CAN messages
@@ -162,7 +162,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
 #endif
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdriverState,
+        void                   *CANptr,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -177,13 +177,13 @@ CO_ReturnError_t CO_CANmodule_init(
  * Function must be called after CO_CANmodule_init.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdriverState CAN module base address.
+ * @param CANbaseAddress CAN module base address.
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_SYSCALL or CO_ERROR_INVALID_STATE.
  */
 CO_ReturnError_t CO_CANmodule_addInterface(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdriverState);
+        int32_t                 CANbaseAddress);
 
 #endif
 
@@ -246,7 +246,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
  *
  * @param CANmodule This object.
  * @param ident 11-bit standard CAN Identifier.
- * @param [out] CANdriverStateRx message was received on this interface
+ * @param [out] CANbaseAddressRx message was received on this interface
  * @param [out] timestamp message was received at this time (system clock)
  *
  * @retval false message has never been received, therefore no base address
@@ -256,7 +256,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
 bool_t CO_CANrxBuffer_getInterface(
         CO_CANmodule_t         *CANmodule,
         uint32_t                ident,
-        void                  **CANdriverStateRx,
+        int32_t                *CANbaseAddressRx,
         struct timespec        *timestamp);
 
 #endif
@@ -294,19 +294,19 @@ CO_CANtx_t *CO_CANtxBufferInit(
  * It is in the responsibility of the user to ensure that the correct interface
  * is used. Some messages need to be transmitted on all interfaces.
  *
- * If given interface is unknown or NULL is used, a message is transmitted on
+ * If given interface is unknown or "-1" is used, a message is transmitted on
  * all available interfaces.
  *
  * @param CANmodule This object.
  * @param ident 11-bit standard CAN Identifier.
- * @param CANdriverStateTx use this interface. NULL = not specified
+ * @param CANbaseAddressTx use this interface. -1 = not specified
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_CANtxBuffer_setInterface(
         CO_CANmodule_t         *CANmodule,
         uint32_t                ident,
-        void                   *CANdriverStateTx);
+        int32_t                 CANbaseAddressTx);
 
 #endif
 

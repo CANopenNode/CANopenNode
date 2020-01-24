@@ -3,6 +3,7 @@
  *
  * This file is a template for other microcontrollers.
  *
+ * @file        CO_driver.c
  * @ingroup     CO_driver
  * @author      Janez Paternoster, Martin Wagner
  * @copyright   2004 - 2015 Janez Paternoster, 2017 - 2020 Neuberger Gebaeudeautomation GmbH
@@ -53,7 +54,7 @@ pthread_mutex_t CO_EMCY_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t CO_OD_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #ifndef CO_DRIVER_MULTI_INTERFACE
-static CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule, void *CANdriverState);
+static CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule, int32_t CANbaseAddress);
 #endif
 
 #ifdef CO_DRIVER_MULTI_INTERFACE
@@ -174,7 +175,7 @@ static CO_ReturnError_t setRxFilters(CO_CANmodule_t *CANmodule)
 
 
 /******************************************************************************/
-void CO_CANsetConfigurationMode(void *CANdriverState)
+void CO_CANsetConfigurationMode(void *CANptr)
 {
     /* Can't do anything because no object is provided */
 }
@@ -200,7 +201,7 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule)
 /******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdriverState,
+        void                   *CANptr,
         CO_CANrx_t              rxArray[],
         uint16_t                rxSize,
         CO_CANtx_t              txArray[],
@@ -273,7 +274,7 @@ CO_ReturnError_t CO_CANmodule_init(
         rxArray[i].object = NULL;
         rxArray[i].pFunct = NULL;
 #ifdef CO_DRIVER_MULTI_INTERFACE
-        rxArray[i].CANdriverState = NULL;
+        rxArray[i].CANbaseAddress = -1;
         rxArray[i].timestamp.tv_sec = 0;
         rxArray[i].timestamp.tv_nsec = 0;
 #endif
@@ -281,7 +282,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
 #ifndef CO_DRIVER_MULTI_INTERFACE
     /* add one interface */
-    ret = CO_CANmodule_addInterface(CANmodule, CANdriverState);
+    ret = CO_CANmodule_addInterface(CANmodule, (int32_t)CANptr);
     if (ret != CO_ERROR_NO) {
         CO_CANmodule_disable(CANmodule);
     }
@@ -298,7 +299,7 @@ static
 #endif
 CO_ReturnError_t CO_CANmodule_addInterface(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdriverState)
+        int32_t                 CANbaseAddress)
 {
     int32_t ret;
     int32_t tmp;
@@ -312,7 +313,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     can_err_mask_t err_mask;
 #endif
 
-    if (!CANmodule->CANnormal) {
+    if (CANmodule->CANnormal) {
         /* can't change config now! */
         return CO_ERROR_INVALID_STATE;
     }
@@ -327,8 +328,8 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     }
     interface = &CANmodule->CANinterfaces[CANmodule->CANinterfaceCount - 1];
 
-    interface->CANdriverState = CANdriverState;
-    ifName = if_indextoname((uintptr_t)interface->CANdriverState, interface->ifName);
+    interface->CANbaseAddress = CANbaseAddress;
+    ifName = if_indextoname(CANbaseAddress, interface->ifName);
     if (ifName == NULL) {
         log_printf(LOG_DEBUG, DBG_ERRNO, "if_indextoname()");
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -376,7 +377,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     /* bind socket */
     memset(&sockAddr, 0, sizeof(sockAddr));
     sockAddr.can_family = AF_CAN;
-    sockAddr.can_ifindex = (uintptr_t)interface->CANdriverState;
+    sockAddr.can_ifindex = CANbaseAddress;
     ret = bind(interface->fd, (struct sockaddr*)&sockAddr, sizeof(sockAddr));
     if(ret < 0){
         log_printf(LOG_ERR, CAN_BINDING_FAILED, interface->ifName);
@@ -514,7 +515,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
             buffer->object = object;
             buffer->pFunct = pFunct;
 #ifdef CO_DRIVER_MULTI_INTERFACE
-            buffer->CANdriverState = NULL;
+            buffer->CANbaseAddress = -1;
             buffer->timestamp.tv_nsec = 0;
             buffer->timestamp.tv_sec = 0;
 #endif
@@ -547,30 +548,35 @@ CO_ReturnError_t CO_CANrxBufferInit(
 bool_t CO_CANrxBuffer_getInterface(
         CO_CANmodule_t         *CANmodule,
         uint32_t                ident,
-        void                  **CANdriverStateRx,
+        int32_t                *CANbaseAddressRx,
         struct timespec        *timestamp)
 {
-    CO_CANrx_t *buffer;
+    if (CANmodule != NULL){
+        uint32_t index;
+        CO_CANrx_t *buffer;
 
-    if (CANmodule == NULL){
-        return false;
-    }
+        index = CO_CANgetIndexFromIdent(CANmodule->rxIdentToIndex, ident);
+        if ((index == CO_INVALID_COB_ID) || (index > CANmodule->rxSize)) {
+            return false;
+        }
+        buffer = &CANmodule->rxArray[index];
 
-    const uint32_t index = CO_CANgetIndexFromIdent(CANmodule->rxIdentToIndex, ident);
-    if ((index == CO_INVALID_COB_ID) || (index > CANmodule->rxSize)) {
-      return false;
-    }
-    buffer = &CANmodule->rxArray[index];
+        /* return values */
+        if (CANbaseAddressRx != NULL) {
+            *CANbaseAddressRx = buffer->CANbaseAddress;
+        }
+        if (timestamp != NULL) {
+            *timestamp = buffer->timestamp;
+        }
 
-    /* return values */
-    if (CANbaseAddressRx != NULL) {
-      *CANbaseAddressRx = buffer->CANbaseAddress;
+        if (buffer->CANbaseAddress >= 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
-    if (timestamp != NULL) {
-      *timestamp = buffer->timestamp;
-    }
-
-    return buffer->CANbaseAddress >= 0;
+    return false;
 }
 
 #endif
@@ -595,7 +601,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
        CO_CANsetIdentToIndex(CANmodule->txIdentToIndex, index, ident, buffer->ident);
 #endif
 
-        buffer->CANdriverState = NULL;
+        buffer->CANbaseAddress = -1;
 
         /* CAN identifier and rtr */
         buffer->ident = ident & CAN_SFF_MASK;
@@ -616,7 +622,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
 CO_ReturnError_t CO_CANtxBuffer_setInterface(
         CO_CANmodule_t         *CANmodule,
         uint32_t                ident,
-        void                   *CANdriverStateTx)
+        int32_t                 CANbaseAddressTx)
 {
     if (CANmodule != NULL) {
         uint32_t index;
@@ -625,7 +631,7 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(
         if ((index == CO_INVALID_COB_ID) || (index > CANmodule->txSize)) {
             return CO_ERROR_PARAMETERS;
         }
-        CANmodule->txArray[index].CANdriverState = CANdriverStateTx;
+        CANmodule->txArray[index].CANbaseAddress = CANbaseAddressTx;
 
         return CO_ERROR_NO;
     }
@@ -726,8 +732,8 @@ CO_ReturnError_t CO_CANCheckSend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     for (i = 0; i < CANmodule->CANinterfaceCount; i++) {
         CO_CANinterface_t *interface = &CANmodule->CANinterfaces[i];
 
-        if ((buffer->CANdriverState == NULL) ||
-            buffer->CANdriverState == interface->CANdriverState) {
+        if (buffer->CANbaseAddress < 0 ||
+            buffer->CANbaseAddress == interface->CANbaseAddress) {
 
             CO_ReturnError_t tmp;
 
@@ -873,7 +879,7 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
 {
     int32_t retval;
     int32_t ret;
-    void *CANdriverState __attribute__((unused));
+    int32_t CANbaseAddress __attribute__((unused));
     CO_ReturnError_t err;
     CO_CANinterface_t *interface = NULL;
     struct epoll_event ev[1];
@@ -933,7 +939,7 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
 
                     if (ev[0].data.fd == interface->fd) {
                         /* get interface handle */
-                        CANdriverState = interface->CANdriverState;
+                        CANbaseAddress = interface->CANbaseAddress;
                         /* get message */
                         err = CO_CANread(CANmodule, interface, &msg, &timestamp);
                         if (err != CO_ERROR_NO) {
@@ -972,7 +978,7 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
 #ifdef CO_DRIVER_MULTI_INTERFACE
                 /* Store message info */
                 CANmodule->rxArray[msgIndex].timestamp = timestamp;
-                CANmodule->rxArray[msgIndex].CANdriverState = CANdriverState;
+                CANmodule->rxArray[msgIndex].CANbaseAddress = CANbaseAddress;
 #endif
             }
             retval = msgIndex;
