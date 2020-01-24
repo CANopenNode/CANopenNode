@@ -194,7 +194,9 @@ void CANrx_callback(void *object, void *rxMsg);
  * @param rxMsg Pointer to received message
  * @return 11-bit CAN standard identifier.
  */
-static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg);
+static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg) {
+    return 0;
+}
 
 /**
  * CANrx_callback() can read Data Length Code from received CAN message
@@ -204,7 +206,9 @@ static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg);
  * @param rxMsg Pointer to received message
  * @return data length in bytes (0 to 8)
  */
-static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg);
+static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg) {
+    return 0;
+}
 
 /**
  * CANrx_callback() can read pointer to data from received CAN message
@@ -214,7 +218,9 @@ static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg);
  * @param rxMsg Pointer to received message
  * @return pointer to data buffer
  */
-static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg);
+static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
+    return NULL;
+}
 
 /**
  * Configuration object for CAN received message for specific \ref CO_obj
@@ -369,11 +375,11 @@ typedef struct {
 #define CO_UNLOCK_OD()
 
 /** Check if new message has arrived */
-#define CO_CANrxNew_READ(rxNew) ((bool_t)rxNew)
+#define CO_CANrxNew_READ(rxNew) ((rxNew) != NULL)
 /** Set new message flag */
 #define CO_CANrxNew_SET(rxNew) { __sync_synchronize(); rxNew = (void *)1L; }
 /** Clear new message flag */
-#define CO_CANrxNew_CLEAR(rxNew) { __sync_synchronize(); rxNew = (void *)0L; }
+#define CO_CANrxNew_CLEAR(rxNew) { __sync_synchronize(); rxNew = NULL; }
 
 /** @} */
 #endif /* CO_DOXYGEN */
@@ -595,6 +601,6 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* CO_DRIVER_H */

@@ -115,9 +115,20 @@ typedef struct {
 } CO_CANrxMsg_t;
 
 /* Access to received CAN message */
-static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg);
-static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg);
-static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg);
+static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg) {
+    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
+    return (uint16_t) (rxMsgCasted->ident & CAN_SFF_MASK);
+}
+static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg) {
+    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
+    return (uint8_t) (rxMsgCasted->DLC);
+}
+static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
+    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
+    return (uint8_t *) (rxMsgCasted->data);
+}
+
+
 
 /* Received message object */
 typedef struct {
@@ -138,6 +149,7 @@ typedef struct {
     uint8_t DLC;
     uint8_t padding[3];     /* ensure alignment */
     uint8_t data[8];
+    volatile bool_t bufferFull; /* not used */
     volatile bool_t syncFlag;
     /* info about transmit message */
     int32_t CANbaseAddress; /* CAN Interface identifier to use */
@@ -189,19 +201,27 @@ typedef struct {
 
 /* (un)lock critical section in CO_errorReport() or CO_errorReset() */
 extern pthread_mutex_t CO_EMCY_mutex;
-static inline int CO_LOCK_EMCY()    { return pthread_mutex_lock(&CO_EMCY_mutex); }
-static inline void CO_UNLOCK_EMCY() { (void)pthread_mutex_unlock(&CO_EMCY_mutex); }
+static inline int CO_LOCK_EMCY() {
+    return pthread_mutex_lock(&CO_EMCY_mutex);
+}
+static inline void CO_UNLOCK_EMCY() {
+    (void)pthread_mutex_unlock(&CO_EMCY_mutex);
+}
 
 /* (un)lock critical section when accessing Object Dictionary */
 extern pthread_mutex_t CO_OD_mutex;
-static inline int CO_LOCK_OD()      { return pthread_mutex_lock(&CO_OD_mutex); }
-static inline void CO_UNLOCK_OD()   { (void)pthread_mutex_unlock(&CO_OD_mutex); }
+static inline int CO_LOCK_OD() {
+    return pthread_mutex_lock(&CO_OD_mutex);
+}
+static inline void CO_UNLOCK_OD() {
+    (void)pthread_mutex_unlock(&CO_OD_mutex);
+}
 
 /* Synchronization between CAN receive and message processing threads. */
 #define CO_MemoryBarrier() {__sync_synchronize();}
-#define CO_CANrxNew_READ(rxNew) ((bool_t)rxNew)
+#define CO_CANrxNew_READ(rxNew) ((rxNew) != NULL)
 #define CO_CANrxNew_SET(rxNew) {CO_MemoryBarrier(); rxNew = (void*)1L;}
-#define CO_CANrxNew_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = (void*)0L;}
+#define CO_CANrxNew_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = NULL;}
 
 
 #ifdef CO_DRIVER_MULTI_INTERFACE
@@ -282,6 +302,6 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule,
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* CO_DRIVER_TARGET */

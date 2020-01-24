@@ -282,7 +282,8 @@ CO_ReturnError_t CO_CANmodule_init(
 
 #ifndef CO_DRIVER_MULTI_INTERFACE
     /* add one interface */
-    ret = CO_CANmodule_addInterface(CANmodule, (int32_t)CANptr);
+    intptr_t CANaddr = (intptr_t)CANptr;
+    ret = CO_CANmodule_addInterface(CANmodule, (int32_t)CANaddr);
     if (ret != CO_ERROR_NO) {
         CO_CANmodule_disable(CANmodule);
     }
@@ -469,27 +470,11 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
 
 
 /******************************************************************************/
-static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg) {
-    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
-    /* remove socketCAN flags */
-    return (uint16_t) (rxMsgCasted->ident & CAN_SFF_MASK);
-}
-static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg) {
-    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
-    return (uint8_t) (rxMsgCasted->DLC);
-}
-static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
-    CO_CANrxMsg_t *rxMsgCasted = (CO_CANrxMsg_t *)rxMsg;
-    return (uint8_t *) (rxMsgCasted->data);
-}
-
-
-/******************************************************************************/
 CO_ReturnError_t CO_CANrxBufferInit(
         CO_CANmodule_t         *CANmodule,
-        uint32_t                index,
-        uint32_t                ident,
-        uint32_t                mask,
+        uint16_t                index,
+        uint16_t                ident,
+        uint16_t                mask,
         bool_t                  rtr,
         void                   *object,
         void                  (*CANrx_callback)(void *object, void *message))
@@ -593,8 +578,8 @@ bool_t CO_CANrxBuffer_getInterface(
 /******************************************************************************/
 CO_CANtx_t *CO_CANtxBufferInit(
         CO_CANmodule_t         *CANmodule,
-        uint32_t                index,
-        uint32_t                ident,
+        uint16_t                index,
+        uint16_t                ident,
         bool_t                  rtr,
         uint8_t                 noOfBytes,
         bool_t                  syncFlag)

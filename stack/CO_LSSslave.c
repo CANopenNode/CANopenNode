@@ -104,7 +104,7 @@ static void CO_LSSslave_serviceSwitchStateSelective(
 static void CO_LSSslave_serviceConfig(
     CO_LSSslave_t *LSSslave,
     CO_LSS_cs_t service,
-    const void *msg)
+    void *msg)
 {
     uint8_t nid;
     uint8_t tableSelector;

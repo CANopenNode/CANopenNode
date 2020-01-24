@@ -71,6 +71,7 @@ static void CO_HBcons_monitoredNodeConfig(
     monitoredNode->time = time;
     monitoredNode->NMTstate = CO_NMT_INITIALIZING;
     monitoredNode->HBstate = CO_HBconsumer_UNCONFIGURED;
+    CO_CANrxNew_CLEAR(monitoredNode->CANrxNew);
 
     /* is channel used */
     if(monitoredNode->nodeId && monitoredNode->time){

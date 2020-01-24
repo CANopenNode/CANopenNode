@@ -28,11 +28,11 @@
 #ifndef CO_ERROR_H
 #define CO_ERROR_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "CO_driver_base.h"
 
 /**
  * driver interface state
@@ -75,7 +75,7 @@ typedef struct {
 
   uint32_t            noackCounter;
 
-  volatile bool_t     listenOnly;     /**< set to listen only mode */
+  volatile unsigned char listenOnly;  /**< set to listen only mode */
   struct timespec     timestamp;      /**< listen only mode started at this time */
 } CO_CANinterfaceErrorhandler_t;
 
