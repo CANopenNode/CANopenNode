@@ -326,7 +326,7 @@ uint8_t CO_SYNC_process(
                 SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
                 SYNC->CANtxBuff->data[0] = SYNC->counter;
                 CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
-                diff = 0;
+                diff = SYNC->periodTime;
             }else{
                 /* Calculate when next SYNC needs to be sent */
                 diff = SYNC->periodTime - SYNC->timer;
