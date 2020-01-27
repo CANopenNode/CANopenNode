@@ -37,7 +37,7 @@
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
+static void CO_SYNC_receive(void *object, void *msg) {
     CO_SYNC_t *SYNC;
     uint8_t operState;
 
@@ -45,24 +45,27 @@ static void CO_SYNC_receive(void *object, const CO_CANrxMsg_t *msg){
     operState = *SYNC->operatingState;
 
     if((operState == CO_NMT_OPERATIONAL) || (operState == CO_NMT_PRE_OPERATIONAL)){
+        uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+
         if(SYNC->counterOverflowValue == 0){
-            if(msg->DLC == 0U){
-                SET_CANrxNew(SYNC->CANrxNew);
+            if(DLC == 0U){
+                CO_CANrxNew_SET(SYNC->CANrxNew);
             }
             else{
-                SYNC->receiveError = (uint16_t)msg->DLC | 0x0100U;
+                SYNC->receiveError = (uint16_t)DLC | 0x0100U;
             }
         }
         else{
-            if(msg->DLC == 1U){
-                SYNC->counter = msg->data[0];
-                SET_CANrxNew(SYNC->CANrxNew);
+            if(DLC == 1U){
+                uint8_t *data = CO_CANrxMsg_readData(msg);
+                SYNC->counter = data[0];
+                CO_CANrxNew_SET(SYNC->CANrxNew);
             }
             else{
-                SYNC->receiveError = (uint16_t)msg->DLC | 0x0200U;
+                SYNC->receiveError = (uint16_t)DLC | 0x0200U;
             }
         }
-        if(IS_CANrxNew(SYNC->CANrxNew)) {
+        if(CO_CANrxNew_READ(SYNC->CANrxNew)) {
             SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
         }
     }
@@ -252,7 +255,7 @@ CO_ReturnError_t CO_SYNC_init(
 
     SYNC->curentSyncTimeIsInsideWindow = true;
 
-    CLEAR_CANrxNew(SYNC->CANrxNew);
+    CO_CANrxNew_CLEAR(SYNC->CANrxNew);
     SYNC->CANrxToggle = false;
     SYNC->timer = 0;
     SYNC->counter = 0;
@@ -310,10 +313,10 @@ uint8_t CO_SYNC_process(
         if(timerNew > SYNC->timer) SYNC->timer = timerNew;
 
         /* was SYNC just received */
-        if(IS_CANrxNew(SYNC->CANrxNew)){
+        if(CO_CANrxNew_READ(SYNC->CANrxNew)){
             SYNC->timer = 0;
             ret = 1;
-            CLEAR_CANrxNew(SYNC->CANrxNew);
+            CO_CANrxNew_CLEAR(SYNC->CANrxNew);
         }
 
         /* SYNC producer */
@@ -364,7 +367,7 @@ uint8_t CO_SYNC_process(
             CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
     }
     else {
-        CLEAR_CANrxNew(SYNC->CANrxNew);
+        CO_CANrxNew_CLEAR(SYNC->CANrxNew);
     }
 
     /* verify error from receive function */

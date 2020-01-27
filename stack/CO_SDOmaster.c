@@ -95,31 +95,33 @@
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_SDOclient_receive(void *object, const CO_CANrxMsg_t *msg){
+static void CO_SDOclient_receive(void *object, void *msg){
     CO_SDOclient_t *SDO_C;
+    uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+    uint8_t *data = CO_CANrxMsg_readData(msg);
 
     SDO_C = (CO_SDOclient_t*)object;    /* this is the correct pointer type of the first argument */
 
     /* verify message length and message overflow (previous message was not processed yet) */
-    if((msg->DLC == 8U) && (!IS_CANrxNew(SDO_C->CANrxNew)) && (SDO_C->state != SDO_STATE_NOTDEFINED)){
+    if((DLC == 8U) && (!CO_CANrxNew_READ(SDO_C->CANrxNew)) && (SDO_C->state != SDO_STATE_NOTDEFINED)){
         if(SDO_C->state != SDO_STATE_BLOCKUPLOAD_INPROGRES) {
             /* copy data and set 'new message' flag */
-            SDO_C->CANrxData[0] = msg->data[0];
-            SDO_C->CANrxData[1] = msg->data[1];
-            SDO_C->CANrxData[2] = msg->data[2];
-            SDO_C->CANrxData[3] = msg->data[3];
-            SDO_C->CANrxData[4] = msg->data[4];
-            SDO_C->CANrxData[5] = msg->data[5];
-            SDO_C->CANrxData[6] = msg->data[6];
-            SDO_C->CANrxData[7] = msg->data[7];
+            SDO_C->CANrxData[0] = data[0];
+            SDO_C->CANrxData[1] = data[1];
+            SDO_C->CANrxData[2] = data[2];
+            SDO_C->CANrxData[3] = data[3];
+            SDO_C->CANrxData[4] = data[4];
+            SDO_C->CANrxData[5] = data[5];
+            SDO_C->CANrxData[6] = data[6];
+            SDO_C->CANrxData[7] = data[7];
 
-            SET_CANrxNew(SDO_C->CANrxNew);
+            CO_CANrxNew_SET(SDO_C->CANrxNew);
         }
         else {
             /* block upload, copy data directly */
             uint8_t seqno;
 
-            SDO_C->CANrxData[0] = msg->data[0];
+            SDO_C->CANrxData[0] = data[0];
             seqno = SDO_C->CANrxData[0] & 0x7f;
             SDO_C->timeoutTimer = 0;
             SDO_C->timeoutTimerBLOCK = 0;
@@ -133,11 +135,11 @@ static void CO_SDOclient_receive(void *object, const CO_CANrxMsg_t *msg){
 
                 /* copy data */
                 for(i=1; i<8; i++) {
-                    SDO_C->buffer[SDO_C->dataSizeTransfered++] = msg->data[i];
+                    SDO_C->buffer[SDO_C->dataSizeTransfered++] = data[i];
                     if(SDO_C->dataSizeTransfered >= SDO_C->bufferSize) {
                         /* buffer full, break reception */
                         SDO_C->state = SDO_STATE_BLOCKUPLOAD_SUB_END;
-                        SET_CANrxNew(SDO_C->CANrxNew);
+                        CO_CANrxNew_SET(SDO_C->CANrxNew);
                         break;
                     }
                 }
@@ -145,7 +147,7 @@ static void CO_SDOclient_receive(void *object, const CO_CANrxMsg_t *msg){
                 /* break reception if last segment or block sequence is too large */
                 if(((SDO_C->CANrxData[0] & 0x80U) == 0x80U) || (SDO_C->block_seqno >= SDO_C->block_blksize)) {
                     SDO_C->state = SDO_STATE_BLOCKUPLOAD_SUB_END;
-                    SET_CANrxNew(SDO_C->CANrxNew);
+                    CO_CANrxNew_SET(SDO_C->CANrxNew);
                 }
             }
             else if((seqno == SDO_C->block_seqno) || (SDO_C->block_seqno == 0U)){
@@ -154,12 +156,12 @@ static void CO_SDOclient_receive(void *object, const CO_CANrxMsg_t *msg){
             else {
                 /* seqno is totally wrong, break reception. */
                 SDO_C->state = SDO_STATE_BLOCKUPLOAD_SUB_END;
-                SET_CANrxNew(SDO_C->CANrxNew);
+                CO_CANrxNew_SET(SDO_C->CANrxNew);
             }
         }
 
         /* Optional signal to RTOS, which can resume task, which handles SDO client. */
-        if(IS_CANrxNew(SDO_C->CANrxNew) && SDO_C->pFunctSignal != NULL) {
+        if(CO_CANrxNew_READ(SDO_C->CANrxNew) && SDO_C->pFunctSignal != NULL) {
             SDO_C->pFunctSignal();
         }
     }
@@ -184,7 +186,7 @@ CO_ReturnError_t CO_SDOclient_init(
 
     /* Configure object variables */
     SDO_C->state = SDO_STATE_NOTDEFINED;
-    CLEAR_CANrxNew(SDO_C->CANrxNew);
+    CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
 
     SDO_C->pst    = 21; /*  block transfer */
     SDO_C->block_size_max = 127; /*  block transfer */
@@ -239,7 +241,7 @@ CO_SDOclient_return_t CO_SDOclient_setup(
 
     /* Configure object variables */
     SDO_C->state = SDO_STATE_NOTDEFINED;
-    CLEAR_CANrxNew(SDO_C->CANrxNew);
+    CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
 
     /* setup Object Dictionary variables */
     if((COB_IDClientToServer & 0x80000000L) != 0 || (COB_IDServerToClient & 0x80000000L) != 0 || nodeIDOfTheSDOServer == 0){
@@ -301,7 +303,7 @@ static void CO_SDOclient_abort(CO_SDOclient_t *SDO_C, uint32_t code){
     CO_memcpySwap4(&SDO_C->CANtxBuff->data[4], &code);
     CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
     SDO_C->state = SDO_STATE_NOTDEFINED;
-    CLEAR_CANrxNew(SDO_C->CANrxNew);
+    CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
 }
 
 
@@ -396,7 +398,7 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
     }
 
     /* empty receive buffer, reset timeout timer and send message */
-    CLEAR_CANrxNew(SDO_C->CANrxNew);
+    CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
     SDO_C->timeoutTimer = 0;
     CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
 
@@ -424,7 +426,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
     /* if nodeIDOfTheSDOServer == node-ID of this node, then exchange data with this node */
     if(SDO_C->SDO && SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId){
         SDO_C->state = SDO_STATE_NOTDEFINED;
-        CLEAR_CANrxNew(SDO_C->CANrxNew);
+        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
 
         /* If SDO server is busy return error */
         if(SDO_C->SDO->state != 0){
@@ -451,14 +453,14 @@ CO_SDOclient_return_t CO_SDOclientDownload(
 
 
 /*  RX data ****************************************************************************************** */
-    if(IS_CANrxNew(SDO_C->CANrxNew)){
+    if(CO_CANrxNew_READ(SDO_C->CANrxNew)){
         uint8_t SCS = SDO_C->CANrxData[0]>>5;    /* Client command specifier */
 
         /* ABORT */
         if (SDO_C->CANrxData[0] == (SCS_ABORT<<5)){
             SDO_C->state = SDO_STATE_NOTDEFINED;
             CO_memcpySwap4(pSDOabortCode , &SDO_C->CANrxData[4]);
-            CLEAR_CANrxNew(SDO_C->CANrxNew);
+            CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
             return CO_SDOcli_endedWithServerAbort;
         }
 
@@ -470,7 +472,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
                     if(SDO_C->bufferSize <= 4){
                         /* expedited transfer */
                         SDO_C->state = SDO_STATE_NOTDEFINED;
-                        CLEAR_CANrxNew(SDO_C->CANrxNew);
+                        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
                         return CO_SDOcli_ok_communicationEnd;
                     }
                     else{
@@ -505,7 +507,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
                     /* is end of transfer? */
                     if(SDO_C->bufferOffset == SDO_C->bufferSize){
                         SDO_C->state = SDO_STATE_NOTDEFINED;
-                        CLEAR_CANrxNew(SDO_C->CANrxNew);
+                        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
                         return CO_SDOcli_ok_communicationEnd;
                     }
                     SDO_C->state = SDO_STATE_DOWNLOAD_REQUEST;
@@ -591,7 +593,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
                     /*  SDO block download successfully transferred */
                     SDO_C->state = SDO_STATE_NOTDEFINED;
                     SDO_C->timeoutTimer = 0;
-                    CLEAR_CANrxNew(SDO_C->CANrxNew);
+                    CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
                     return CO_SDOcli_ok_communicationEnd;
                 }
                 else{
@@ -608,7 +610,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
             }
         }
         SDO_C->timeoutTimer = 0;
-        CLEAR_CANrxNew(SDO_C->CANrxNew);
+        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
     }
 
 /*  TMO *********************************************************************************************** */
@@ -801,7 +803,7 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
     }
 
     /* empty receive buffer, reset timeout timer and send message */
-    CLEAR_CANrxNew(SDO_C->CANrxNew);
+    CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
     SDO_C->timeoutTimer = 0;
     SDO_C->timeoutTimerBLOCK =0;
     CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
@@ -833,7 +835,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
     /* if nodeIDOfTheSDOServer == node-ID of this node, then exchange data with this node */
     if(SDO_C->SDO && SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId){
         SDO_C->state = SDO_STATE_NOTDEFINED;
-        CLEAR_CANrxNew(SDO_C->CANrxNew);
+        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
 
         /* If SDO server is busy return error */
         if(SDO_C->SDO->state != 0){
@@ -872,13 +874,13 @@ CO_SDOclient_return_t CO_SDOclientUpload(
 
 
 /*  RX data ******************************************************************************** */
-    if(IS_CANrxNew(SDO_C->CANrxNew)){
+    if(CO_CANrxNew_READ(SDO_C->CANrxNew)){
         uint8_t SCS = SDO_C->CANrxData[0]>>5;    /* Client command specifier */
 
         /*  ABORT */
         if (SDO_C->CANrxData[0] == (SCS_ABORT<<5)){
             SDO_C->state = SDO_STATE_NOTDEFINED;
-            CLEAR_CANrxNew(SDO_C->CANrxNew);
+            CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
             CO_memcpySwap4(pSDOabortCode , &SDO_C->CANrxData[4]);
             return CO_SDOcli_endedWithServerAbort;
         }
@@ -901,7 +903,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
                         /* copy data */
                         while(size--) SDO_C->buffer[size] = SDO_C->CANrxData[4+size];
                         SDO_C->state = SDO_STATE_NOTDEFINED;
-                        CLEAR_CANrxNew(SDO_C->CANrxNew);
+                        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
 
                         return CO_SDOcli_ok_communicationEnd;
                     }
@@ -946,7 +948,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
                     if(SDO_C->CANrxData[0] & 0x01){
                         *pDataSize = SDO_C->bufferOffset;
                         SDO_C->state = SDO_STATE_NOTDEFINED;
-                        CLEAR_CANrxNew(SDO_C->CANrxNew);
+                        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
                         return CO_SDOcli_ok_communicationEnd;
                     }
                     /* set state */
@@ -1013,7 +1015,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
                         /* copy data */
                         while(size--) SDO_C->buffer[size] = SDO_C->CANrxData[4+size];
                         SDO_C->state = SDO_STATE_NOTDEFINED;
-                        CLEAR_CANrxNew(SDO_C->CANrxNew);
+                        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
 
                         return CO_SDOcli_ok_communicationEnd;
                     }
@@ -1101,7 +1103,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
             }
         }
         SDO_C->timeoutTimer = 0;
-        CLEAR_CANrxNew(SDO_C->CANrxNew);
+        CO_CANrxNew_CLEAR(SDO_C->CANrxNew);
     }
 
 /*  TMO *************************************************************************************************** */

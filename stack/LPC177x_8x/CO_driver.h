@@ -3,7 +3,7 @@
  *
  * This file is a template for other microcontrollers.
  *
- * @file        CO_driver_target.h
+ * @file        CO_driver.h
  * @author      Janez Paternoster
  * @author      Amit H
  * @copyright   2004 - 2014 Janez Paternoster
@@ -46,8 +46,11 @@
  */
 
 
-#ifndef CO_DRIVER_TARGET_H
-#define CO_DRIVER_TARGET_H
+#ifndef CO_DRIVER_H
+#define CO_DRIVER_H
+
+
+/* For documentation see file drvTemplate/CO_driver.h */
 
 
 #include "FreeRTOS.h"
@@ -57,48 +60,65 @@
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 
 
-/* Endianness */
-#define CO_LITTLE_ENDIAN
-
 /* CAN module base address */
-#define ADDR_CAN1               0
-#define ADDR_CAN2               1
+    #define ADDR_CAN1               0
+    #define ADDR_CAN2               1
 
 
-#define CAN_NODE_ID_0_PORT      1
-#define CAN_NODE_ID_0_PIN       23
-#define CAN_NODE_ID_1_PORT      1
-#define CAN_NODE_ID_1_PIN       24
-#define CAN_NODE_ID_2_PORT      1
-#define CAN_NODE_ID_2_PIN       25
-#define CAN_NODE_ID_3_PORT      1
-#define CAN_NODE_ID_3_PIN       26
-#define CAN_NODE_ID_4_PORT      1
-#define CAN_NODE_ID_4_PIN       28
+    #define CAN_NODE_ID_0_PORT      1
+    #define CAN_NODE_ID_0_PIN       23
+    #define CAN_NODE_ID_1_PORT      1
+    #define CAN_NODE_ID_1_PIN       24
+    #define CAN_NODE_ID_2_PORT      1
+    #define CAN_NODE_ID_2_PIN       25
+    #define CAN_NODE_ID_3_PORT      1
+    #define CAN_NODE_ID_3_PIN       26
+    #define CAN_NODE_ID_4_PORT      1
+    #define CAN_NODE_ID_4_PIN       28
 
-#define CAN_RUN_LED_PORT        1
-#define CAN_RUN_LED_PIN         20
+    #define CAN_RUN_LED_PORT        1
+    #define CAN_RUN_LED_PIN         20
 
 
 /* Critical sections */
-#define CO_LOCK_CAN_SEND()      taskENTER_CRITICAL()
-#define CO_UNLOCK_CAN_SEND()    taskEXIT_CRITICAL()
+    #define CO_LOCK_CAN_SEND()      taskENTER_CRITICAL()
+    #define CO_UNLOCK_CAN_SEND()    taskEXIT_CRITICAL()
 
-#define CO_LOCK_EMCY()          taskENTER_CRITICAL()
-#define CO_UNLOCK_EMCY()        taskEXIT_CRITICAL()
+    #define CO_LOCK_EMCY()          taskENTER_CRITICAL()
+    #define CO_UNLOCK_EMCY()        taskEXIT_CRITICAL()
 
-#define CO_LOCK_OD()            taskENTER_CRITICAL()
-#define CO_UNLOCK_OD()          taskEXIT_CRITICAL()
+    #define CO_LOCK_OD()            taskENTER_CRITICAL()
+    #define CO_UNLOCK_OD()          taskEXIT_CRITICAL()
 
 
 /* Data types */
-/* int8_t to uint64_t are defined in stdint.h */
-typedef unsigned char           bool_t;
-typedef float                   float32_t;
-typedef long double             float64_t;
-typedef char                    char_t;
-typedef unsigned char           oChar_t;
-typedef unsigned char           domain_t;
+    /* int8_t to uint64_t are defined in stdint.h */
+    typedef unsigned char           bool_t;
+    typedef float                   float32_t;
+    typedef long double             float64_t;
+    typedef char                    char_t;
+    typedef unsigned char           oChar_t;
+    typedef unsigned char           domain_t;
+
+
+/* Return values */
+typedef enum{
+    CO_ERROR_NO                 = 0,
+    CO_ERROR_ILLEGAL_ARGUMENT   = -1,
+    CO_ERROR_OUT_OF_MEMORY      = -2,
+    CO_ERROR_TIMEOUT            = -3,
+    CO_ERROR_ILLEGAL_BAUDRATE   = -4,
+    CO_ERROR_RX_OVERFLOW        = -5,
+    CO_ERROR_RX_PDO_OVERFLOW    = -6,
+    CO_ERROR_RX_MSG_LENGTH      = -7,
+    CO_ERROR_RX_PDO_LENGTH      = -8,
+    CO_ERROR_TX_OVERFLOW        = -9,
+    CO_ERROR_TX_PDO_WINDOW      = -10,
+    CO_ERROR_TX_UNCONFIGURED    = -11,
+    CO_ERROR_PARAMETERS         = -12,
+    CO_ERROR_DATA_CORRUPT       = -13,
+    CO_ERROR_CRC                = -14
+}CO_ReturnError_t;
 
 
 /* CAN receive message structure as aligned in CAN module. */
@@ -147,8 +167,70 @@ typedef struct{
     void               *em;
 }CO_CANmodule_t;
 
+
+/* Endianes */
+#define CO_LITTLE_ENDIAN
+
+
+/* Request CAN configuration or normal mode */
+void CO_CANsetConfigurationMode(void *CANdriverState);
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
+
+
+/* Initialize CAN module object. */
+CO_ReturnError_t CO_CANmodule_init(
+        CO_CANmodule_t         *CANmodule,
+        void                   *CANdriverState,
+        CO_CANrx_t              rxArray[],
+        uint16_t                rxSize,
+        CO_CANtx_t              txArray[],
+        uint16_t                txSize,
+        uint16_t                CANbitRate);
+
+
+/* Switch off CANmodule. */
+void CO_CANmodule_disable(CO_CANmodule_t *CANmodule);
+
+
+/* Read CAN identifier */
+uint16_t CO_CANrxMsg_readIdent(const CO_CANrxMsg_t *rxMsg);
+
+
+/* Configure CAN message receive buffer. */
+CO_ReturnError_t CO_CANrxBufferInit(
+        CO_CANmodule_t         *CANmodule,
+        uint16_t                index,
+        uint16_t                ident,
+        uint16_t                mask,
+        bool_t                  rtr,
+        void                   *object,
+        void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message));
+
+
+/* Configure CAN message transmit buffer. */
+CO_CANtx_t *CO_CANtxBufferInit(
+        CO_CANmodule_t         *CANmodule,
+        uint16_t                index,
+        uint16_t                ident,
+        bool_t                  rtr,
+        uint8_t                 noOfBytes,
+        bool_t                  syncFlag);
+
+
+/* Send CAN message. */
+CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
+
+
+/* Clear all synchronous TPDOs from CAN module transmit buffers. */
+void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
+
+
+/* Verify all errors of CAN module. */
+void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
+
+
 /* CAN interrupt receives and transmits CAN messages. */
 void CO_CANinterrupt(CO_CANmodule_t *CANmodule);
 
 
-#endif /* CO_DRIVER_TARGET_H */
+#endif

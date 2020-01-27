@@ -36,16 +36,18 @@
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_NMT_receive(void *object, const CO_CANrxMsg_t *msg){
+static void CO_NMT_receive(void *object, void *msg){
     CO_NMT_t *NMT;
     uint8_t nodeId;
+    uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+    uint8_t *data = CO_CANrxMsg_readData(msg);
 
     NMT = (CO_NMT_t*)object;   /* this is the correct pointer type of the first argument */
 
-    nodeId = msg->data[1];
+    nodeId = data[1];
 
-    if((msg->DLC == 2) && ((nodeId == 0) || (nodeId == NMT->nodeId))){
-        uint8_t command = msg->data[0];
+    if((DLC == 2) && ((nodeId == 0) || (nodeId == NMT->nodeId))){
+        uint8_t command = data[0];
         uint8_t currentOperatingState = NMT->operatingState;
 
         switch(command){
@@ -71,7 +73,7 @@ static void CO_NMT_receive(void *object, const CO_CANrxMsg_t *msg){
         }
 
         if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
-            NMT->pFunctNMT(NMT->operatingState);
+            NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
         }
     }
 }
@@ -150,7 +152,7 @@ void CO_NMT_initCallback(
     if(NMT != NULL){
         NMT->pFunctNMT = pFunctNMT;
         if(NMT->pFunctNMT != NULL){
-            NMT->pFunctNMT(NMT->operatingState);
+            NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
         }
     }
 }
@@ -334,10 +336,10 @@ CO_NMT_reset_cmd_t CO_NMT_process(
     }
 
     if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
-        NMT->pFunctNMT(NMT->operatingState);
+        NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
     }
 
-    return NMT->resetCommand;
+    return (CO_NMT_reset_cmd_t) NMT->resetCommand;
 }
 
 
@@ -346,7 +348,7 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
         CO_NMT_t               *NMT)
 {
     if(NMT != NULL){
-        return NMT->operatingState;
+        return (CO_NMT_internalState_t) NMT->operatingState;
     }
     return CO_NMT_INITIALIZING;
 }

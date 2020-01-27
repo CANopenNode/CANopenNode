@@ -40,40 +40,42 @@
  * If new message arrives and previous message wasn't processed yet, then
  * previous message will be lost and overwritten by new message. That's OK with PDOs.
  */
-static void CO_PDO_receive(void *object, const CO_CANrxMsg_t *msg){
+static void CO_PDO_receive(void *object, void *msg){
     CO_RPDO_t *RPDO;
+    uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+    uint8_t *data = CO_CANrxMsg_readData(msg);
 
     RPDO = (CO_RPDO_t*)object;   /* this is the correct pointer type of the first argument */
 
     if( (RPDO->valid) &&
         (*RPDO->operatingState == CO_NMT_OPERATIONAL) &&
-        (msg->DLC >= RPDO->dataLength))
+        (DLC >= RPDO->dataLength))
     {
         if(RPDO->SYNC && RPDO->synchronous && RPDO->SYNC->CANrxToggle) {
             /* copy data into second buffer and set 'new message' flag */
-            RPDO->CANrxData[1][0] = msg->data[0];
-            RPDO->CANrxData[1][1] = msg->data[1];
-            RPDO->CANrxData[1][2] = msg->data[2];
-            RPDO->CANrxData[1][3] = msg->data[3];
-            RPDO->CANrxData[1][4] = msg->data[4];
-            RPDO->CANrxData[1][5] = msg->data[5];
-            RPDO->CANrxData[1][6] = msg->data[6];
-            RPDO->CANrxData[1][7] = msg->data[7];
+            RPDO->CANrxData[1][0] = data[0];
+            RPDO->CANrxData[1][1] = data[1];
+            RPDO->CANrxData[1][2] = data[2];
+            RPDO->CANrxData[1][3] = data[3];
+            RPDO->CANrxData[1][4] = data[4];
+            RPDO->CANrxData[1][5] = data[5];
+            RPDO->CANrxData[1][6] = data[6];
+            RPDO->CANrxData[1][7] = data[7];
 
-            SET_CANrxNew(RPDO->CANrxNew[1]);
+            CO_CANrxNew_SET(RPDO->CANrxNew[1]);
         }
         else {
             /* copy data into default buffer and set 'new message' flag */
-            RPDO->CANrxData[0][0] = msg->data[0];
-            RPDO->CANrxData[0][1] = msg->data[1];
-            RPDO->CANrxData[0][2] = msg->data[2];
-            RPDO->CANrxData[0][3] = msg->data[3];
-            RPDO->CANrxData[0][4] = msg->data[4];
-            RPDO->CANrxData[0][5] = msg->data[5];
-            RPDO->CANrxData[0][6] = msg->data[6];
-            RPDO->CANrxData[0][7] = msg->data[7];
+            RPDO->CANrxData[0][0] = data[0];
+            RPDO->CANrxData[0][1] = data[1];
+            RPDO->CANrxData[0][2] = data[2];
+            RPDO->CANrxData[0][3] = data[3];
+            RPDO->CANrxData[0][4] = data[4];
+            RPDO->CANrxData[0][5] = data[5];
+            RPDO->CANrxData[0][6] = data[6];
+            RPDO->CANrxData[0][7] = data[7];
 
-            SET_CANrxNew(RPDO->CANrxNew[0]);
+            CO_CANrxNew_SET(RPDO->CANrxNew[0]);
         }
     }
 }
@@ -108,8 +110,8 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
     else{
         ID = 0;
         RPDO->valid = false;
-        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
-        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
+        CO_CANrxNew_CLEAR(RPDO->CANrxNew[0]);
+        CO_CANrxNew_CLEAR(RPDO->CANrxNew[1]);
     }
     r = CO_CANrxBufferInit(
             RPDO->CANdevRx,         /* CAN device */
@@ -121,8 +123,8 @@ static void CO_RPDOconfigCom(CO_RPDO_t* RPDO, uint32_t COB_IDUsedByRPDO){
             CO_PDO_receive);        /* this function will process received message */
     if(r != CO_ERROR_NO){
         RPDO->valid = false;
-        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
-        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
+        CO_CANrxNew_CLEAR(RPDO->CANrxNew[0]);
+        CO_CANrxNew_CLEAR(RPDO->CANrxNew[1]);
     }
 }
 
@@ -475,7 +477,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOcom(CO_ODF_arg_t *ODF_arg){
 
         /* Remove old message from second buffer. */
         if(RPDO->synchronous != synchronousPrev) {
-            CLEAR_CANrxNew(RPDO->CANrxNew[1]);
+            CO_CANrxNew_CLEAR(RPDO->CANrxNew[1]);
         }
     }
 
@@ -615,7 +617,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOmap(CO_ODF_arg_t *ODF_arg){
             return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds PDO length. */
 
         /* configure mapping */
-        return CO_RPDOconfigMap(RPDO, *value);
+        return (CO_SDO_abortCode_t) CO_RPDOconfigMap(RPDO, *value);
     }
 
     /* mappedObject */
@@ -630,7 +632,7 @@ static CO_SDO_abortCode_t CO_ODF_RPDOmap(CO_ODF_arg_t *ODF_arg){
             return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
 
         /* verify if mapping is correct */
-        return CO_PDOfindMap(
+        return (CO_SDO_abortCode_t) CO_PDOfindMap(
                 RPDO->SDO,
                 value,
                 0,
@@ -681,7 +683,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
             return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds PDO length. */
 
         /* configure mapping */
-        return CO_TPDOconfigMap(TPDO, *value);
+        return (CO_SDO_abortCode_t) CO_TPDOconfigMap(TPDO, *value);
     }
 
     /* mappedObject */
@@ -696,7 +698,7 @@ static CO_SDO_abortCode_t CO_ODF_TPDOmap(CO_ODF_arg_t *ODF_arg){
             return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
 
         /* verify if mapping is correct */
-        return CO_PDOfindMap(
+        return (CO_SDO_abortCode_t) CO_PDOfindMap(
                 TPDO->SDO,
                 value,
                 1,
@@ -749,8 +751,8 @@ CO_ReturnError_t CO_RPDO_init(
     CO_OD_configure(SDO, idx_RPDOMapPar, CO_ODF_RPDOmap, (void*)RPDO, 0, 0);
 
     /* configure communication and mapping */
-    CLEAR_CANrxNew(RPDO->CANrxNew[0]);
-    CLEAR_CANrxNew(RPDO->CANrxNew[1]);
+    CO_CANrxNew_CLEAR(RPDO->CANrxNew[0]);
+    CO_CANrxNew_CLEAR(RPDO->CANrxNew[1]);
     RPDO->CANdevRx = CANdevRx;
     RPDO->CANdevRxIdx = CANdevRxIdx;
 
@@ -899,8 +901,8 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 
     if(!RPDO->valid || !(*RPDO->operatingState == CO_NMT_OPERATIONAL))
     {
-        CLEAR_CANrxNew(RPDO->CANrxNew[0]);
-        CLEAR_CANrxNew(RPDO->CANrxNew[1]);
+        CO_CANrxNew_CLEAR(RPDO->CANrxNew[0]);
+        CO_CANrxNew_CLEAR(RPDO->CANrxNew[1]);
     }
     else if(!RPDO->synchronous || syncWas)
     {
@@ -915,7 +917,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
             bufNo = 1;
         }
 
-        while(IS_CANrxNew(RPDO->CANrxNew[bufNo])){
+        while(CO_CANrxNew_READ(RPDO->CANrxNew[bufNo])){
             int16_t i;
             uint8_t* pPDOdataByte;
             uint8_t** ppODdataByte;
@@ -926,7 +928,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas){
 
             /* Copy data to Object dictionary. If between the copy operation CANrxNew
              * is set to true by receive thread, then copy the latest data again. */
-            CLEAR_CANrxNew(RPDO->CANrxNew[bufNo]);
+            CO_CANrxNew_CLEAR(RPDO->CANrxNew[bufNo]);
             for(; i>0; i--) {
                 **(ppODdataByte++) = *(pPDOdataByte++);
             }

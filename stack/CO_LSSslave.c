@@ -24,10 +24,9 @@
  * limitations under the License.
  */
 
-#include "CANopen.h"
+#include "CO_driver.h"
+#include "CO_SDO.h" /* for helper functions */
 #include "CO_LSSslave.h"
-
-#if CO_NO_LSS_SERVER == 1
 
 /*
  * Helper function - Handle service "switch state global"
@@ -35,9 +34,10 @@
 static void CO_LSSslave_serviceSwitchStateGlobal(
     CO_LSSslave_t *LSSslave,
     CO_LSS_cs_t service,
-    const CO_CANrxMsg_t *msg)
+    void *msg)
 {
-    uint8_t mode = msg->data[1];
+    uint8_t *data = CO_CANrxMsg_readData(msg);
+    uint8_t mode = data[1];
 
     switch (mode) {
         case CO_LSS_STATE_WAITING:
@@ -58,10 +58,11 @@ static void CO_LSSslave_serviceSwitchStateGlobal(
 static void CO_LSSslave_serviceSwitchStateSelective(
     CO_LSSslave_t *LSSslave,
     CO_LSS_cs_t service,
-    const CO_CANrxMsg_t *msg)
+    void *msg)
 {
     uint32_t value;
-    CO_memcpySwap4(&value, &msg->data[1]);
+    uint8_t *data = CO_CANrxMsg_readData(msg);
+    CO_memcpySwap4(&value, &data[1]);
 
     if(LSSslave->lssState != CO_LSS_STATE_WAITING) {
         return;
@@ -103,20 +104,23 @@ static void CO_LSSslave_serviceSwitchStateSelective(
 static void CO_LSSslave_serviceConfig(
     CO_LSSslave_t *LSSslave,
     CO_LSS_cs_t service,
-    const CO_CANrxMsg_t *msg)
+    void *msg)
 {
     uint8_t nid;
     uint8_t tableSelector;
     uint8_t tableIndex;
     uint8_t errorCode;
+    uint8_t *data;
 
     if(LSSslave->lssState != CO_LSS_STATE_CONFIGURATION) {
         return;
     }
 
+    data = CO_CANrxMsg_readData(msg);
+
     switch (service) {
         case CO_LSS_CFG_NODE_ID:
-            nid = msg->data[1];
+            nid = data[1];
             errorCode = CO_LSS_CFG_NODE_ID_OK;
 
             if (CO_LSS_NODE_ID_VALID(nid)) {
@@ -139,8 +143,8 @@ static void CO_LSSslave_serviceConfig(
                 break;
             }
 
-            tableSelector = msg->data[1];
-            tableIndex = msg->data[2];
+            tableSelector = data[1];
+            tableIndex = data[2];
             errorCode = CO_LSS_CFG_BIT_TIMING_OK;
 
             if (tableSelector==0 && CO_LSS_BIT_TIMING_VALID(tableIndex)) {
@@ -176,7 +180,7 @@ static void CO_LSSslave_serviceConfig(
             /* notify application */
             if (LSSslave->pFunctLSSactivateBitRate != NULL) {
               uint16_t delay;
-              CO_memcpySwap2(&delay, &msg->data[1]);
+              CO_memcpySwap2(&delay, &data[1]);
               LSSslave->pFunctLSSactivateBitRate(
                   LSSslave->functLSSactivateBitRateObject, delay);
             }
@@ -216,7 +220,7 @@ static void CO_LSSslave_serviceConfig(
 static void CO_LSSslave_serviceInquire(
     CO_LSSslave_t *LSSslave,
     CO_LSS_cs_t service,
-    const CO_CANrxMsg_t *msg)
+    void *msg)
 {
     uint32_t value;
 
@@ -256,13 +260,14 @@ static void CO_LSSslave_serviceInquire(
 static void CO_LSSslave_serviceIdent(
     CO_LSSslave_t *LSSslave,
     CO_LSS_cs_t service,
-    const CO_CANrxMsg_t *msg)
+    void *msg)
 {
     uint32_t idNumber;
     uint8_t bitCheck;
     uint8_t lssSub;
     uint8_t lssNext;
     bool_t ack;
+    uint8_t *data = CO_CANrxMsg_readData(msg);
 
     if (LSSslave->lssState != CO_LSS_STATE_WAITING) {
         /* fastscan is only allowed in waiting state */
@@ -278,10 +283,10 @@ static void CO_LSSslave_serviceIdent(
         return;
     }
 
-    CO_memcpySwap4(&idNumber, &msg->data[1]);
-    bitCheck = msg->data[5];
-    lssSub = msg->data[6];
-    lssNext = msg->data[7];
+    CO_memcpySwap4(&idNumber, &data[1]);
+    bitCheck = data[5];
+    lssSub = data[6];
+    lssNext = data[7];
 
     if (!CO_LSS_FASTSCAN_BITCHECK_VALID(bitCheck) ||
         !CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(lssSub) ||
@@ -327,14 +332,16 @@ static void CO_LSSslave_serviceIdent(
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_LSSslave_receive(void *object, const CO_CANrxMsg_t *msg)
+static void CO_LSSslave_receive(void *object, void *msg)
 {
     CO_LSSslave_t *LSSslave;
+    uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+    uint8_t *data = CO_CANrxMsg_readData(msg);
 
     LSSslave = (CO_LSSslave_t*)object;   /* this is the correct pointer type of the first argument */
 
-    if(msg->DLC == 8){
-        CO_LSS_cs_t cs = msg->data[0];
+    if(DLC == 8){
+        CO_LSS_cs_t cs = (CO_LSS_cs_t) data[0];
 
         if (CO_LSS_CS_SERVICE_IS_SWITCH_GLOBAL(cs)) {
             CO_LSSslave_serviceSwitchStateGlobal(LSSslave, cs, msg);
@@ -524,6 +531,3 @@ bool_t CO_LSSslave_LEDprocess(
     }
     return false;
 }
-
-
-#endif

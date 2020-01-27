@@ -1,7 +1,7 @@
 /*
  * CAN module object for eCos RTOS CAN layer
  *
- * @file        CO_driver_target.h
+ * @file        CO_driver.h
  * @author      Uwe Kindler
  * @copyright   2013 Uwe Kindler
  *
@@ -43,8 +43,8 @@
  */
 
 
-#ifndef CO_DRIVER_TARGET_H
-#define CO_DRIVER_TARGET_H
+#ifndef CO_DRIVER_H
+#define CO_DRIVER_H
 
 
 /* For documentation see file drvTemplate/CO_driver.h */
@@ -58,10 +58,6 @@
 #include <cyg/io/io.h>
 #include <cyg/kernel/kapi.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
 
 //===========================================================================
 //                              CONFIGURATION
@@ -90,40 +86,60 @@ extern "C"
 /* CAN module base address */
 // we don't really care about the addresses here because the eCos port
 // uses I/O handles for accessing its CAN devices
-#define ADDR_CAN1               0
-#define ADDR_CAN2               1
+    #define ADDR_CAN1               0
+    #define ADDR_CAN2               1
 
 
 /* Critical sections */
 // shared data is accessed only from thread level code (not from ISR or DSR)
 // so we simply do a scheduler lock here to prevent access from different
 // threads
-#define CO_LOCK_CAN_SEND()      cyg_scheduler_lock()
-#define CO_UNLOCK_CAN_SEND()    cyg_scheduler_unlock()
+    #define CO_LOCK_CAN_SEND()      cyg_scheduler_lock()
+    #define CO_UNLOCK_CAN_SEND()    cyg_scheduler_unlock()
 
-#define CO_LOCK_EMCY()          cyg_scheduler_lock()
-#define CO_UNLOCK_EMCY()        cyg_scheduler_unlock()
+    #define CO_LOCK_EMCY()          cyg_scheduler_lock()
+    #define CO_UNLOCK_EMCY()        cyg_scheduler_unlock()
 
-#define CO_LOCK_OD()            cyg_scheduler_lock()
-#define CO_UNLOCK_OD()          cyg_scheduler_unlock()
+    #define CO_LOCK_OD()            cyg_scheduler_lock()
+    #define CO_UNLOCK_OD()          cyg_scheduler_unlock()
 
 
 
 /* Data types */
-typedef unsigned char           bool_t;
-typedef cyg_uint8               uint8_t;
-typedef cyg_uint16              uint16_t;
-typedef cyg_uint32              uint32_t;
-typedef cyg_uint64              uint64_t;
-typedef cyg_int8                int8_t;
-typedef cyg_int16               int16_t;
-typedef cyg_int32               int32_t;
-typedef cyg_int64               int64_t;
-typedef float                   float32_t;
-typedef long double             float64_t;
-typedef char                    char_t;
-typedef unsigned char           oChar_t;
-typedef unsigned char           domain_t;
+    typedef unsigned char           bool_t;
+    typedef cyg_uint8               uint8_t;
+    typedef cyg_uint16              uint16_t;
+    typedef cyg_uint32              uint32_t;
+    typedef cyg_uint64              uint64_t;
+    typedef cyg_int8                int8_t;
+    typedef cyg_int16               int16_t;
+    typedef cyg_int32               int32_t;
+    typedef cyg_int64               int64_t;
+    typedef float                   float32_t;
+    typedef long double             float64_t;
+    typedef char                    char_t;
+    typedef unsigned char           oChar_t;
+    typedef unsigned char           domain_t;
+
+
+/* Return values */
+typedef enum{
+    CO_ERROR_NO                 = 0,
+    CO_ERROR_ILLEGAL_ARGUMENT   = -1,
+    CO_ERROR_OUT_OF_MEMORY      = -2,
+    CO_ERROR_TIMEOUT            = -3,
+    CO_ERROR_ILLEGAL_BAUDRATE   = -4,
+    CO_ERROR_RX_OVERFLOW        = -5,
+    CO_ERROR_RX_PDO_OVERFLOW    = -6,
+    CO_ERROR_RX_MSG_LENGTH      = -7,
+    CO_ERROR_RX_PDO_LENGTH      = -8,
+    CO_ERROR_TX_OVERFLOW        = -9,
+    CO_ERROR_TX_PDO_WINDOW      = -10,
+    CO_ERROR_TX_UNCONFIGURED    = -11,
+    CO_ERROR_PARAMETERS         = -12,
+    CO_ERROR_DATA_CORRUPT       = -13,
+    CO_ERROR_CRC                = -14
+}CO_ReturnError_t;
 
 
 /* CAN receive message structure as aligned in CAN module. */
@@ -174,6 +190,68 @@ typedef struct{
 }CO_CANmodule_t;
 
 #ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/* Request CAN configuration or normal mode */
+void CO_CANsetConfigurationMode(void *CANdriverState);
+void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
+
+
+/* Initialize CAN module object. */
+int16_t CO_CANmodule_init(
+        CO_CANmodule_t         *CANmodule,
+        void                   *CANdriverState,
+        CO_CANrx_t             *rxArray,
+        uint16_t                rxSize,
+        CO_CANtx_t             *txArray,
+        uint16_t                txSize,
+        uint16_t                CANbitRate);
+
+
+/* Switch off CANmodule. */
+void CO_CANmodule_disable(CO_CANmodule_t *CANmodule);
+
+
+/* Read CAN identifier */
+uint16_t CO_CANrxMsg_readIdent(CO_CANrxMsg_t *rxMsg);
+
+
+/* Configure CAN message receive buffer. */
+int16_t CO_CANrxBufferInit(
+        CO_CANmodule_t         *CANmodule,
+        uint16_t                index,
+        uint16_t                ident,
+        uint16_t                mask,
+        uint8_t                 rtr,
+        void                   *object,
+        void                  (*pFunct)(void *object, const CO_CANrxMsg_t *message));
+
+
+/* Configure CAN message transmit buffer. */
+CO_CANtx_t *CO_CANtxBufferInit(
+        CO_CANmodule_t         *CANmodule,
+        uint16_t                index,
+        uint16_t                ident,
+        uint8_t                 rtr,
+        uint8_t                 noOfBytes,
+        uint8_t                 syncFlag);
+
+
+/* Send CAN message. */
+int16_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
+
+
+/* Clear all synchronous TPDOs from CAN module transmit buffers. */
+void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
+
+
+/* Verify all errors of CAN module. */
+void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
+
+
+#ifdef __cplusplus
 } //extern "C"
-#endif /* __cplusplus */
-#endif /* CO_DRIVER_TARGET_H */
+#endif
+#endif

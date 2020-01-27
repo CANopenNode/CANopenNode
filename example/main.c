@@ -119,7 +119,7 @@ int main (void){
 
 
 /* timer thread executes in constant intervals ********************************/
-static void tmrTask_thread(void){
+void tmrTask_thread(void){
 
     for(;;) {
 
@@ -150,10 +150,8 @@ static void tmrTask_thread(void){
 }
 
 
-/* CAN interrupt function *****************************************************/
+/* CAN interrupt function executes on received CAN message ********************/
 void /* interrupt */ CO_CAN1InterruptHandler(void){
-    CO_CANinterrupt(CO->CANmodule[0]);
-
 
     /* clear interrupt flag */
 }

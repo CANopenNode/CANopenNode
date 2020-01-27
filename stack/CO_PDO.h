@@ -234,6 +234,7 @@ typedef struct{
  * @param RPDO This object will be initialized.
  * @param em Emergency object.
  * @param SDO SDO server object.
+ * @param SYNC SYNC object.
  * @param operatingState Pointer to variable indicating CANopen device NMT internal state.
  * @param nodeId CANopen Node ID of this device. If default COB_ID is used, value will be added.
  * @param defaultCOB_ID Default COB ID for this PDO (without NodeId).
@@ -280,6 +281,7 @@ CO_ReturnError_t CO_RPDO_init(
  * @param TPDO This object will be initialized.
  * @param em Emergency object.
  * @param SDO SDO object.
+ * @param SYNC SYNC object.
  * @param operatingState Pointer to variable indicating CANopen device NMT internal state.
  * @param nodeId CANopen Node ID of this device. If default COB_ID is used, value will be added.
  * @param defaultCOB_ID Default COB ID for this PDO (without NodeId).
@@ -370,7 +372,6 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas);
  * CO_TPDOisCOS() must be called before.
  *
  * @param TPDO This object.
- * @param SYNC SYNC object. Ignored if NULL.
  * @param syncWas True, if CANopen SYNC message was just received or transmitted.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param timerNext_us Return value - info to OS - see CO_process_SYNC_PDO().

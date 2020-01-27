@@ -65,8 +65,6 @@ extern "C" {
  * For CAN identifiers see #CO_Default_CAN_ID_t
  */
 
-#if CO_NO_LSS_CLIENT == 1 || CO_NO_LSS_SERVER == 1
-
 /**
  * LSS protocol command specifiers
  *
@@ -243,11 +241,9 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
       a1.identity.serialNumber == a2.identity.serialNumber &&       \
       a1.identity.vendorID == a2.identity.vendorID)
 
-#endif /* CO_NO_LSS_CLIENT == 1 || CO_NO_LSS_SERVER == 1 */
-
+/** @} */ /*@defgroup CO_LSS*/
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /*CO_LSS_H*/

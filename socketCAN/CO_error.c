@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <linux/can/error.h>
 
+#include "CO_driver.h"
 #include "CO_error.h"
 
 

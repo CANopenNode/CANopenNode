@@ -23,7 +23,11 @@
  * limitations under the License.
  */
 
-#include "CANopen.h"
+#include "CO_driver.h"
+#include "CO_SDO.h"
+#include "CO_Emergency.h"
+#include "CO_NMT_Heartbeat.h"
+#include "CO_TIME.h"
 
 /*
  * Read received message from CAN module.
@@ -31,20 +35,23 @@
  * Function will be called (by CAN receive interrupt) every time, when CAN
  * message with correct identifier will be received.
  */
-static void CO_TIME_receive(void *object, const CO_CANrxMsg_t *msg){
+static void CO_TIME_receive(void *object, void *msg){
     CO_TIME_t *TIME;
     uint8_t operState;
+    uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+    uint8_t *data = CO_CANrxMsg_readData(msg);
 
     TIME = (CO_TIME_t*)object;   /* this is the correct pointer type of the first argument */
     operState = *TIME->operatingState;
 
+
     if((operState == CO_NMT_OPERATIONAL) || (operState == CO_NMT_PRE_OPERATIONAL)){
-        SET_CANrxNew(TIME->CANrxNew);
         // Process Time from msg buffer
-        CO_memcpy((uint8_t*)&TIME->Time.ullValue, msg->data, msg->DLC);
+        CO_memcpy((uint8_t*)&TIME->Time.ullValue, data, DLC);
+        CO_CANrxNew_SET(TIME->CANrxNew);
     }
     else{
-        TIME->receiveError = (uint16_t)msg->DLC;
+        TIME->receiveError = (uint16_t)DLC;
     }
 }
 
@@ -78,7 +85,7 @@ CO_ReturnError_t CO_TIME_init(
     if(TIME->periodTimeoutTime < TIMECyclePeriod)
         TIME->periodTimeoutTime = 0xFFFFFFFFL;
 
-    CLEAR_CANrxNew(TIME->CANrxNew);
+    CO_CANrxNew_CLEAR(TIME->CANrxNew);
     TIME->timer = 0;
     TIME->receiveError = 0U;
 
@@ -130,10 +137,10 @@ uint8_t CO_TIME_process(
             TIME->timer = timerNew;
 
         /* was TIME just received */
-        if(TIME->CANrxNew){
+        if(CO_CANrxNew_READ(TIME->CANrxNew)){
             TIME->timer = 0;
             ret = 1;
-            CLEAR_CANrxNew(TIME->CANrxNew);
+            CO_CANrxNew_CLEAR(TIME->CANrxNew);
         }
 
         /* TIME producer */
@@ -152,7 +159,7 @@ uint8_t CO_TIME_process(
             CO_errorReport(TIME->em, CO_EM_TIME_TIMEOUT, CO_EMC_COMMUNICATION, TIME->timer);
     }
     else {
-        CLEAR_CANrxNew(TIME->CANrxNew);
+        CO_CANrxNew_CLEAR(TIME->CANrxNew);
     }
 
     /* verify error from receive function */
