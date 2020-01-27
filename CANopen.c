@@ -835,12 +835,6 @@ CO_NMT_reset_cmd_t CO_process(
         CO_NMT_blinkingProcess50ms(co->NMT);
     }
 #endif /* CO_USE_LEDS */
-    if(timerNext_ms != NULL){
-        if(*timerNext_ms > 50){
-            *timerNext_ms = 50;
-        }
-    }
-
 
     for(i=0; i<CO_NO_SDO_SERVER; i++){
         CO_SDO_process(
