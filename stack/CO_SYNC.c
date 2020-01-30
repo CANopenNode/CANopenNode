@@ -301,7 +301,8 @@ CO_ReturnError_t CO_SYNC_init(
 uint8_t CO_SYNC_process(
         CO_SYNC_t              *SYNC,
         uint32_t                timeDifference_us,
-        uint32_t                ObjDict_synchronousWindowLength)
+        uint32_t                ObjDict_synchronousWindowLength,
+        uint32_t               *timerNext_us)
 {
     uint8_t ret = 0;
     uint32_t timerNew;
@@ -320,6 +321,7 @@ uint8_t CO_SYNC_process(
 
         /* SYNC producer */
         if(SYNC->isProducer && SYNC->periodTime){
+            uint32_t diff;
             if(SYNC->timer >= SYNC->periodTime){
                 if(++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
                 SYNC->timer = 0;
@@ -327,6 +329,16 @@ uint8_t CO_SYNC_process(
                 SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
                 SYNC->CANtxBuff->data[0] = SYNC->counter;
                 CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
+                diff = SYNC->periodTime;
+            }else{
+                /* Calculate when next SYNC needs to be sent */
+                diff = SYNC->periodTime - SYNC->timer;
+            }
+            /* Set lower timerNext_us if necessary. */
+            if(timerNext_us != NULL){
+                if(*timerNext_us > diff){
+                    *timerNext_us = diff;
+                }
             }
         }
 
@@ -340,6 +352,10 @@ uint8_t CO_SYNC_process(
             }
             else{
                 SYNC->curentSyncTimeIsInsideWindow = true;
+                /* Immediately continue while inside the window */
+                if(timerNext_us != NULL){
+                    *timerNext_us = 0;
+                }
             }
         }
         else{
