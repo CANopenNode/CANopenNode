@@ -841,7 +841,6 @@ CO_NMT_reset_cmd_t CO_process(
         }
     }
 
-
     for(i=0; i<CO_NO_SDO_SERVER; i++){
         CO_SDO_process(
                 co->SDO[i],
@@ -892,7 +891,7 @@ bool_t CO_process_SYNC(
 {
     bool_t syncWas = false;
 
-    switch(CO_SYNC_process(co->SYNC, timeDifference_us, OD_synchronousWindowLength)){
+    switch(CO_SYNC_process(co->SYNC, timeDifference_us, OD_synchronousWindowLength, NULL)){
         case 1:     //immediately after the SYNC message
             syncWas = true;
             break;
@@ -930,6 +929,39 @@ void CO_process_TPDO(
     for(i=0; i<CO_NO_TPDO; i++){
         if(!co->TPDO[i]->sendRequest)
             co->TPDO[i]->sendRequest = CO_TPDOisCOS(co->TPDO[i]);
-        CO_TPDO_process(co->TPDO[i], syncWas, timeDifference_us);
+        CO_TPDO_process(co->TPDO[i], syncWas, timeDifference_us, NULL);
     }
+}
+
+
+/******************************************************************************/
+bool_t CO_process_SYNC_PDO(
+        CO_t                   *CO,
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us)
+{
+    int16_t i;
+    bool_t syncWas = false;
+
+    switch(CO_SYNC_process(CO->SYNC, timeDifference_us, OD_synchronousWindowLength, timerNext_us)){
+        case 1:     //immediately after the SYNC message
+            syncWas = true;
+            break;
+        case 2:     //outside SYNC window
+            CO_CANclearPendingSyncPDOs(CO->CANmodule[0]);
+            break;
+    }
+
+    /* Process RPDOs */
+    for(i=0; i<CO_NO_RPDO; i++){
+        CO_RPDO_process(CO->RPDO[i], syncWas);
+    }
+
+    /* Verify PDO Change Of State and process TPDOs */
+    for(i=0; i<CO_NO_TPDO; i++){
+        if(!CO->TPDO[i]->sendRequest) CO->TPDO[i]->sendRequest = CO_TPDOisCOS(CO->TPDO[i]);
+        CO_TPDO_process(CO->TPDO[i], syncWas, timeDifference_us, timerNext_us);
+    }
+
+    return syncWas;
 }

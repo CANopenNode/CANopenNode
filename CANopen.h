@@ -60,7 +60,6 @@ extern "C" {
     #include "CO_LSSmaster.h"
 #endif
 
-
 /*
  * CANopen stack object combines pointers to all CANopen objects.
  */
@@ -261,6 +260,29 @@ void CO_process_TPDO(
         CO_t                   *co,
         bool_t                  syncWas,
         uint32_t                timeDifference_us);
+
+
+/**
+ * Process CANopen SYNC and PDO objects.
+ *
+ * Function must be called cyclically from real time thread with constant.
+ * interval (1ms typically). It processes SYNC and PDO CANopen objects.
+ *
+ * @param CO This object.
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param timerNext_us Return value - info to OS - maximum delay after function
+ *        should be called next time in [microseconds]. Value can be used for OS
+ *        sleep time. Initial value must be set to something, 1000us typically.
+ *        Output will be equal or lower to initial value. If there is new object
+ *        to process, delay should be suspended and this function should be
+ *        called immediately. Parameter is ignored if NULL.
+ *
+ * @return True, if CANopen SYNC message was just received or transmitted.
+ */
+bool_t CO_process_SYNC_PDO(
+        CO_t                   *CO,
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us);
 
 #ifdef __cplusplus
 }
