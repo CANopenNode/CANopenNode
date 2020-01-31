@@ -363,8 +363,17 @@ uint8_t CO_SYNC_process(
         }
 
         /* Verify timeout of SYNC */
-        if(SYNC->periodTime && SYNC->timer > SYNC->periodTimeoutTime && *SYNC->operatingState == CO_NMT_OPERATIONAL)
-            CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
+        if(SYNC->periodTime && *SYNC->operatingState == CO_NMT_OPERATIONAL) {
+            if(SYNC->timer > SYNC->periodTimeoutTime) {
+                CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
+            }
+            else if(timerNext_us != NULL) {
+                uint32_t diff = SYNC->periodTimeoutTime - SYNC->timer;
+                if(*timerNext_us > diff){
+                    *timerNext_us = diff;
+                }
+            }
+        }
     }
     else {
         CO_CANrxNew_CLEAR(SYNC->CANrxNew);
