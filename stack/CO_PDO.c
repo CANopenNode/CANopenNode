@@ -992,8 +992,8 @@ void CO_TPDO_process(
                 }
             }
             if(timerNext_us != NULL){
-                if(TPDO->TPDOCommPar->inhibitTime && *timerNext_us > TPDO->inhibitTimer){
-                    *timerNext_us = TPDO->inhibitTimer + 1; /* Schedule for just beyond inhibit window */
+                if(TPDO->sendRequest && *timerNext_us > TPDO->inhibitTimer){
+                    *timerNext_us = TPDO->inhibitTimer; /* Schedule for just beyond inhibit window */
                 }else if(TPDO->TPDOCommPar->eventTimer && *timerNext_us > TPDO->eventTimer){
                     *timerNext_us = TPDO->eventTimer; /* Schedule for next maximum event time */
                 }

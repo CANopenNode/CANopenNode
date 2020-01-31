@@ -262,6 +262,7 @@ void CO_process_TPDO(
         uint32_t                timeDifference_us);
 
 
+#if CO_NO_SYNC == 1
 /**
  * Process CANopen SYNC and PDO objects.
  *
@@ -280,9 +281,10 @@ void CO_process_TPDO(
  * @return True, if CANopen SYNC message was just received or transmitted.
  */
 bool_t CO_process_SYNC_PDO(
-        CO_t                   *CO,
+        CO_t                   *co,
         uint32_t                timeDifference_us,
         uint32_t               *timerNext_us);
+#endif
 
 #ifdef __cplusplus
 }
