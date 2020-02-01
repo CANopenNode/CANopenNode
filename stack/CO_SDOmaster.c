@@ -630,6 +630,9 @@ CO_SDOclient_return_t CO_SDOclientDownload(
 
     CO_SDOTxBufferClear(SDO_C);
     switch (SDO_C->state){
+        uint16_t i, j;
+        uint16_t tmp16;
+
         /*  ABORT */
         case SDO_STATE_ABORT:{
             SDO_C->state = SDO_STATE_NOTDEFINED;
@@ -639,7 +642,6 @@ CO_SDOclient_return_t CO_SDOclientDownload(
         }
             /*  SEGMENTED */
         case SDO_STATE_DOWNLOAD_REQUEST:{
-            uint16_t i, j;
             /* calculate length to be sent */
             j = SDO_C->bufferSize - SDO_C->bufferOffset;
             if(j > 7) j = 7;
@@ -674,7 +676,6 @@ CO_SDOclient_return_t CO_SDOclientDownload(
             /*  set data */
             SDO_C->block_noData = 0;
 
-            uint8_t i;
             for(i = 1; i < 8; i++){
                 if(SDO_C->bufferOffset < SDO_C->bufferSize){
                     SDO_C->CANtxBuff->data[i] = *(SDO_C->buffer + SDO_C->bufferOffset);
@@ -702,8 +703,6 @@ CO_SDOclient_return_t CO_SDOclientDownload(
 
         case SDO_STATE_BLOCKDOWNLOAD_CRC:{
             SDO_C->CANtxBuff->data[0] = (CCS_DOWNLOAD_BLOCK<<5) | (SDO_C->block_noData << 2) | 0x01;
-
-            uint16_t tmp16;
 
             tmp16 = crc16_ccitt((unsigned char *)SDO_C->buffer, (unsigned int)SDO_C->bufferSize, 0);
 
