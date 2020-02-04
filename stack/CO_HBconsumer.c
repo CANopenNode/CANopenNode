@@ -47,7 +47,7 @@ static void CO_HBcons_receive(void *object, void *msg){
     if(DLC == 1){
         /* copy data and set 'new message' flag. */
         HBconsNode->NMTstate = (CO_NMT_internalState_t)data[0];
-        CO_CANrxNew_SET(HBconsNode->CANrxNew);
+        CO_FLAG_SET(HBconsNode->CANrxNew);
     }
 }
 
@@ -164,7 +164,7 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
         monitoredNode->nodeId = nodeId;
         monitoredNode->time_us = (int32_t)consumerTime_ms * 1000;
         monitoredNode->NMTstate = CO_NMT_INITIALIZING;
-        CO_CANrxNew_CLEAR(monitoredNode->CANrxNew);
+        CO_FLAG_CLEAR(monitoredNode->CANrxNew);
 
         /* is channel used */
         if (monitoredNode->nodeId && monitoredNode->time_us) {
@@ -270,7 +270,7 @@ void CO_HBconsumer_process(
                 continue;
             }
             /* Verify if received message is heartbeat or bootup */
-            if (CO_CANrxNew_READ(monitoredNode->CANrxNew)) {
+            if (CO_FLAG_READ(monitoredNode->CANrxNew)) {
                 if (monitoredNode->NMTstate == CO_NMT_INITIALIZING) {
                     /* bootup message, call callback */
                     if (monitoredNode->pFunctSignalRemoteReset != NULL) {
@@ -299,7 +299,7 @@ void CO_HBconsumer_process(
                     monitoredNode->timeoutTimer = 0;
                     timeDifference_us_copy = 0;
                 }
-                CO_CANrxNew_CLEAR(monitoredNode->CANrxNew);
+                CO_FLAG_CLEAR(monitoredNode->CANrxNew);
             }
 
             /* Verify timeout */
@@ -342,7 +342,7 @@ void CO_HBconsumer_process(
         /* (pre)operational state changed, clear variables */
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++) {
             monitoredNode->NMTstate = CO_NMT_INITIALIZING;
-            CO_CANrxNew_CLEAR(monitoredNode->CANrxNew);
+            CO_FLAG_CLEAR(monitoredNode->CANrxNew);
             if (monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) {
                 monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
             }

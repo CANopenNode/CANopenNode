@@ -48,7 +48,7 @@ static void CO_TIME_receive(void *object, void *msg){
     if((operState == CO_NMT_OPERATIONAL) || (operState == CO_NMT_PRE_OPERATIONAL)){
         // Process Time from msg buffer
         CO_memcpy((uint8_t*)&TIME->Time.ullValue, data, DLC);
-        CO_CANrxNew_SET(TIME->CANrxNew);
+        CO_FLAG_SET(TIME->CANrxNew);
     }
     else{
         TIME->receiveError = (uint16_t)DLC;
@@ -85,7 +85,7 @@ CO_ReturnError_t CO_TIME_init(
     if(TIME->periodTimeoutTime < TIMECyclePeriod)
         TIME->periodTimeoutTime = 0xFFFFFFFFL;
 
-    CO_CANrxNew_CLEAR(TIME->CANrxNew);
+    CO_FLAG_CLEAR(TIME->CANrxNew);
     TIME->timer = 0;
     TIME->receiveError = 0U;
 
@@ -138,10 +138,10 @@ uint8_t CO_TIME_process(
             TIME->timer = timerNew;
 
         /* was TIME just received */
-        if(CO_CANrxNew_READ(TIME->CANrxNew)){
+        if(CO_FLAG_READ(TIME->CANrxNew)){
             TIME->timer = 0;
             ret = 1;
-            CO_CANrxNew_CLEAR(TIME->CANrxNew);
+            CO_FLAG_CLEAR(TIME->CANrxNew);
         }
 
         /* TIME producer */
@@ -160,7 +160,7 @@ uint8_t CO_TIME_process(
             CO_errorReport(TIME->em, CO_EM_TIME_TIMEOUT, CO_EMC_COMMUNICATION, TIME->timer);
     }
     else {
-        CO_CANrxNew_CLEAR(TIME->CANrxNew);
+        CO_FLAG_CLEAR(TIME->CANrxNew);
     }
 
     /* verify error from receive function */

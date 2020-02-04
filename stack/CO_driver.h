@@ -375,11 +375,11 @@ typedef struct {
 #define CO_UNLOCK_OD()
 
 /** Check if new message has arrived */
-#define CO_CANrxNew_READ(rxNew) ((rxNew) != NULL)
+#define CO_FLAG_READ(rxNew) ((rxNew) != NULL)
 /** Set new message flag */
-#define CO_CANrxNew_SET(rxNew) { __sync_synchronize(); rxNew = (void *)1L; }
+#define CO_FLAG_SET(rxNew) { __sync_synchronize(); rxNew = (void *)1L; }
 /** Clear new message flag */
-#define CO_CANrxNew_CLEAR(rxNew) { __sync_synchronize(); rxNew = NULL; }
+#define CO_FLAG_CLEAR(rxNew) { __sync_synchronize(); rxNew = NULL; }
 
 /** @} */
 #endif /* CO_DOXYGEN */

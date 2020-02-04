@@ -105,9 +105,9 @@ typedef struct {
 
 /* Synchronization between CAN receive and message processing threads. */
 #define CO_MemoryBarrier()
-#define CO_CANrxNew_READ(rxNew) ((rxNew) != NULL)
-#define CO_CANrxNew_SET(rxNew) {CO_MemoryBarrier(); rxNew = (void*)1L;}
-#define CO_CANrxNew_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = NULL;}
+#define CO_FLAG_READ(rxNew) ((rxNew) != NULL)
+#define CO_FLAG_SET(rxNew) {CO_MemoryBarrier(); rxNew = (void*)1L;}
+#define CO_FLAG_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = NULL;}
 
 
 #ifdef __cplusplus
