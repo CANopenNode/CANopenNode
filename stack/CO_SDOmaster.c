@@ -330,6 +330,7 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
         uint8_t                 subIndex,
         uint8_t                *dataTx,
         uint32_t                dataSize,
+        uint16_t                SDOtimeoutTime_ms,
         uint8_t                 blockEnable)
 {
     /* verify parameters */
@@ -340,6 +341,8 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
     /* save parameters */
     SDO_C->buffer = dataTx;
     SDO_C->bufferSize = dataSize;
+    SDO_C->SDOtimeoutTimeHalf_us = (uint32_t)SDOtimeoutTime_ms * 500;
+    SDO_C->SDOtimeoutTime_us = SDO_C->SDOtimeoutTimeHalf_us * 2;
 
     SDO_C->state = SDO_STATE_DOWNLOAD_INITIATE;
 
@@ -409,9 +412,9 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
 /******************************************************************************/
 CO_SDOclient_return_t CO_SDOclientDownload(
         CO_SDOclient_t         *SDO_C,
-        uint16_t                timeDifference_ms,
-        uint16_t                SDOtimeoutTime,
-        uint32_t               *pSDOabortCode)
+        uint32_t                timeDifference_us,
+        uint32_t               *pSDOabortCode,
+        uint32_t               *timerNext_us)
 {
     CO_SDOclient_return_t ret = CO_SDOcli_waitingServerResponse;
 
@@ -614,13 +617,22 @@ CO_SDOclient_return_t CO_SDOclientDownload(
     }
 
 /*  TMO *********************************************************************************************** */
-    if(SDO_C->timeoutTimer < SDOtimeoutTime){
-        SDO_C->timeoutTimer += timeDifference_ms;
+    if (SDO_C->timeoutTimer < SDO_C->SDOtimeoutTime_us) {
+        SDO_C->timeoutTimer += timeDifference_us;
     }
-    if(SDO_C->timeoutTimer >= SDOtimeoutTime){ /*  communication TMO */
+
+    /*  communication TMO */
+    if (SDO_C->timeoutTimer >= SDO_C->SDOtimeoutTime_us) {
         *pSDOabortCode = CO_SDO_AB_TIMEOUT;
         CO_SDOclient_abort(SDO_C, *pSDOabortCode);
         return CO_SDOcli_endedWithTimeout;
+    }
+    else if (timerNext_us != NULL) {
+        /* check again after inhibit time elapsed */
+        uint32_t diff = SDO_C->SDOtimeoutTime_us - SDO_C->timeoutTimer;
+        if (*timerNext_us > diff) {
+            *timerNext_us = diff;
+        }
     }
 
 /*  TX data ******************************************************************************************* */
@@ -670,9 +682,6 @@ CO_SDOclient_return_t CO_SDOclientDownload(
             SDO_C->block_seqno += 1;
             SDO_C->CANtxBuff->data[0] = SDO_C->block_seqno;
 
-            if(SDO_C->block_seqno >= SDO_C->block_blksize){
-                SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_BLOCK_ACK;
-            }
             /*  set data */
             SDO_C->block_noData = 0;
 
@@ -692,6 +701,13 @@ CO_SDOclient_return_t CO_SDOclientDownload(
                 SDO_C->CANtxBuff->data[0] |= 0x80;
                 SDO_C->block_blksize = SDO_C->block_seqno;
                 SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_BLOCK_ACK;
+            }
+            else if (SDO_C->block_seqno >= SDO_C->block_blksize) {
+                SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_BLOCK_ACK;
+            }
+            else if (timerNext_us != NULL) {
+                /* Set timerNext_us to 0 to inform OS to call this function again without delay. */
+                *timerNext_us = 0;
             }
 
             /*  tx data */
@@ -742,6 +758,7 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
         uint8_t                 subIndex,
         uint8_t                *dataRx,
         uint32_t                dataRxSize,
+        uint16_t                SDOtimeoutTime_ms,
         uint8_t                 blockEnable)
 {
     /* verify parameters */
@@ -752,6 +769,8 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
     /* save parameters */
     SDO_C->buffer = dataRx;
     SDO_C->bufferSize = dataRxSize;
+    SDO_C->SDOtimeoutTimeHalf_us = (uint32_t)SDOtimeoutTime_ms * 500;
+    SDO_C->SDOtimeoutTime_us = SDO_C->SDOtimeoutTimeHalf_us * 2;
 
     /* prepare CAN tx message */
     CO_SDOTxBufferClear(SDO_C);
@@ -814,10 +833,10 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
 /******************************************************************************/
 CO_SDOclient_return_t CO_SDOclientUpload(
         CO_SDOclient_t         *SDO_C,
-        uint16_t                timeDifference_ms,
-        uint16_t                SDOtimeoutTime,
+        uint32_t                timeDifference_us,
         uint32_t               *pDataSize,
-        uint32_t               *pSDOabortCode)
+        uint32_t               *pSDOabortCode,
+        uint32_t               *timerNext_us)
 {
     uint16_t indexTmp;
     uint32_t tmp32;
@@ -1106,18 +1125,36 @@ CO_SDOclient_return_t CO_SDOclientUpload(
     }
 
 /*  TMO *************************************************************************************************** */
-    if(SDO_C->timeoutTimer < SDOtimeoutTime){
-        SDO_C->timeoutTimer += timeDifference_ms;
+    if (SDO_C->timeoutTimer < SDO_C->SDOtimeoutTime_us) {
+        SDO_C->timeoutTimer += timeDifference_us;
         if (SDO_C->state == SDO_STATE_BLOCKUPLOAD_INPROGRES)
-            SDO_C->timeoutTimerBLOCK += timeDifference_ms;
+            SDO_C->timeoutTimerBLOCK += timeDifference_us;
     }
-    if(SDO_C->timeoutTimer >= SDOtimeoutTime){ /*  communication TMO */
+
+    /*  communication TMO */
+    if (SDO_C->timeoutTimer >= SDO_C->SDOtimeoutTime_us) {
         *pSDOabortCode = CO_SDO_AB_TIMEOUT;
         CO_SDOclient_abort(SDO_C, *pSDOabortCode);
         return CO_SDOcli_endedWithTimeout;
     }
-    if(SDO_C->timeoutTimerBLOCK >= (SDOtimeoutTime/2)){ /*  block TMO */
+    else if (timerNext_us != NULL) {
+        /* check again after inhibit time elapsed */
+        uint32_t diff = SDO_C->SDOtimeoutTime_us - SDO_C->timeoutTimer;
+        if (*timerNext_us > diff) {
+            *timerNext_us = diff;
+        }
+    }
+
+    /*  block TMO */
+    if (SDO_C->timeoutTimerBLOCK >= SDO_C->SDOtimeoutTimeHalf_us) {
         SDO_C->state = SDO_STATE_BLOCKUPLOAD_BLOCK_ACK;
+    }
+    else if (timerNext_us != NULL) {
+        /* check again after inhibit time elapsed */
+        uint32_t diff = SDO_C->SDOtimeoutTimeHalf_us - SDO_C->timeoutTimerBLOCK;
+        if (*timerNext_us > diff) {
+            *timerNext_us = diff;
+        }
     }
 
 

@@ -125,13 +125,14 @@ CO_ReturnError_t CO_TIME_init(
 /******************************************************************************/
 uint8_t CO_TIME_process(
         CO_TIME_t              *TIME,
-        uint32_t                timeDifference_ms)
+        uint32_t                timeDifference_us)
 {
     uint8_t ret = 0;
     uint32_t timerNew;
 
     if(*TIME->operatingState == CO_NMT_OPERATIONAL || *TIME->operatingState == CO_NMT_PRE_OPERATIONAL){
         /* update TIME timer, no overflow */
+        uint32_t timeDifference_ms = (timeDifference_us+500) / 1000; //this should be optimized
         timerNew = TIME->timer + timeDifference_ms;
         if(timerNew > TIME->timer)
             TIME->timer = timerNew;

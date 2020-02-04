@@ -84,7 +84,7 @@ CO_ReturnError_t CO_NMT_init(
         CO_NMT_t               *NMT,
         CO_EMpr_t              *emPr,
         uint8_t                 nodeId,
-        uint16_t                firstHBTime,
+        uint16_t                firstHBTime_ms,
         CO_CANmodule_t         *NMT_CANdev,
         uint16_t                NMT_rxIdx,
         uint16_t                CANidRxNMT,
@@ -97,26 +97,25 @@ CO_ReturnError_t CO_NMT_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    /* blinking bytes */
+    /* blinking bytes and LEDS */
 #ifdef CO_USE_LEDS
+    NMT->LEDtimer               = 0;
     NMT->LEDflickering          = 0;
     NMT->LEDblinking            = 0;
     NMT->LEDsingleFlash         = 0;
     NMT->LEDdoubleFlash         = 0;
     NMT->LEDtripleFlash         = 0;
     NMT->LEDquadrupleFlash      = 0;
+    NMT->LEDgreenRun            = -1;
+    NMT->LEDredError            = 1;
 #endif /* CO_USE_LEDS */
 
     /* Configure object variables */
     NMT->operatingState         = CO_NMT_INITIALIZING;
-#ifdef CO_USE_LEDS
-    NMT->LEDgreenRun            = -1;
-    NMT->LEDredError            = 1;
-#endif /* CO_USE_LEDS */
     NMT->nodeId                 = nodeId;
-    NMT->firstHBTime            = firstHBTime;
+    NMT->firstHBTime            = (int32_t)firstHBTime_ms * 1000;
     NMT->resetCommand           = 0;
-    NMT->HBproducerTimer        = 0xFFFF;
+    NMT->HBproducerTimer        = 0;
     NMT->emPr                   = emPr;
     NMT->pFunctNMT              = NULL;
 
@@ -159,63 +158,24 @@ void CO_NMT_initCallback(
 
 
 /******************************************************************************/
-#ifdef CO_USE_LEDS
-void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT){
-
-    if(++NMT->LEDflickering >= 1) NMT->LEDflickering = -1;
-
-    if(++NMT->LEDblinking >= 4) NMT->LEDblinking = -4;
-
-    if(++NMT->LEDsingleFlash >= 4) NMT->LEDsingleFlash = -20;
-
-    switch(++NMT->LEDdoubleFlash){
-        case    4:  NMT->LEDdoubleFlash = -104; break;
-        case -100:  NMT->LEDdoubleFlash =  100; break;
-        case  104:  NMT->LEDdoubleFlash =  -20; break;
-        default: break;
-    }
-
-    switch(++NMT->LEDtripleFlash){
-        case    4:  NMT->LEDtripleFlash = -104; break;
-        case -100:  NMT->LEDtripleFlash =  100; break;
-        case  104:  NMT->LEDtripleFlash = -114; break;
-        case -110:  NMT->LEDtripleFlash =  110; break;
-        case  114:  NMT->LEDtripleFlash =  -20; break;
-        default: break;
-    }
-
-    switch(++NMT->LEDquadrupleFlash){
-        case    4:  NMT->LEDquadrupleFlash = -104; break;
-        case -100:  NMT->LEDquadrupleFlash =  100; break;
-        case  104:  NMT->LEDquadrupleFlash = -114; break;
-        case -110:  NMT->LEDquadrupleFlash =  110; break;
-        case  114:  NMT->LEDquadrupleFlash = -124; break;
-        case -120:  NMT->LEDquadrupleFlash =  120; break;
-        case  124:  NMT->LEDquadrupleFlash =  -20; break;
-        default: break;
-    }
-}
-#endif /* CO_USE_LEDS */
-
-
-/******************************************************************************/
 CO_NMT_reset_cmd_t CO_NMT_process(
         CO_NMT_t               *NMT,
-        uint16_t                timeDifference_ms,
-        uint16_t                HBtime,
+        uint32_t                timeDifference_us,
+        uint16_t                HBtime_ms,
         uint32_t                NMTstartup,
         uint8_t                 errorRegister,
         const uint8_t           errorBehavior[],
-        uint16_t               *timerNext_ms)
+        uint32_t               *timerNext_us)
 {
     uint8_t CANpassive;
 
     uint8_t currentOperatingState = NMT->operatingState;
+    uint32_t HBtime = (uint32_t)HBtime_ms * 1000;
 
-    NMT->HBproducerTimer += timeDifference_ms;
+    NMT->HBproducerTimer += timeDifference_us;
 
     /* Heartbeat producer message & Bootup message */
-    if((HBtime != 0 && NMT->HBproducerTimer >= HBtime) || NMT->operatingState == CO_NMT_INITIALIZING){
+    if ((HBtime != 0 && NMT->HBproducerTimer >= HBtime) || NMT->operatingState == CO_NMT_INITIALIZING) {
 
         /* Start from the beginning. If OS is slow, time sliding may occur. However, heartbeat is
          * not for synchronization, it is for health report. */
@@ -224,26 +184,15 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         NMT->HB_TXbuff->data[0] = NMT->operatingState;
         CO_CANsend(NMT->HB_CANdev, NMT->HB_TXbuff);
 
-        if(NMT->operatingState == CO_NMT_INITIALIZING){
-            if(HBtime > NMT->firstHBTime) NMT->HBproducerTimer = HBtime - NMT->firstHBTime;
-            else                          NMT->HBproducerTimer = 0;
-            
+        if (NMT->operatingState == CO_NMT_INITIALIZING) {
+            /* After bootup messages send first heartbeat earlier */
+            if (HBtime > NMT->firstHBTime) {
+                NMT->HBproducerTimer = HBtime - NMT->firstHBTime;
+            }
+
             /* NMT slave self starting */
             if (NMTstartup == 0x00000008U) NMT->operatingState = CO_NMT_OPERATIONAL;
             else                           NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
-        }
-    }
-
-
-    /* Calculate, when next Heartbeat needs to be send and lower timerNext_ms if necessary. */
-    if(HBtime != 0 && timerNext_ms != NULL){
-        if(NMT->HBproducerTimer < HBtime){
-            uint16_t diff = HBtime - NMT->HBproducerTimer;
-            if(*timerNext_ms > diff){
-                *timerNext_ms = diff;
-            }
-        }else{
-            *timerNext_ms = 0;
         }
     }
 
@@ -255,6 +204,51 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 
 
 #ifdef CO_USE_LEDS
+    NMT->LEDtimer += timeDifference_us;
+    if (NMT->LEDtimer >= 50000) {
+        NMT->LEDtimer -= 50000;
+
+        if (timerNext_us != NULL) {
+            uint32_t diff = 50000 - NMT->LEDtimer;
+            if (*timerNext_us > diff) {
+                *timerNext_us = diff;
+            }
+        }
+
+        if (++NMT->LEDflickering >= 1) NMT->LEDflickering = -1;
+
+        if (++NMT->LEDblinking >= 4) NMT->LEDblinking = -4;
+
+        if (++NMT->LEDsingleFlash >= 4) NMT->LEDsingleFlash = -20;
+
+        switch (++NMT->LEDdoubleFlash) {
+            case    4: NMT->LEDdoubleFlash = -104; break;
+            case -100: NMT->LEDdoubleFlash =  100; break;
+            case  104: NMT->LEDdoubleFlash =  -20; break;
+            default: break;
+        }
+
+        switch (++NMT->LEDtripleFlash) {
+            case    4: NMT->LEDtripleFlash = -104; break;
+            case -100: NMT->LEDtripleFlash =  100; break;
+            case  104: NMT->LEDtripleFlash = -114; break;
+            case -110: NMT->LEDtripleFlash =  110; break;
+            case  114: NMT->LEDtripleFlash =  -20; break;
+            default: break;
+        }
+
+        switch (++NMT->LEDquadrupleFlash) {
+            case    4: NMT->LEDquadrupleFlash = -104; break;
+            case -100: NMT->LEDquadrupleFlash =  100; break;
+            case  104: NMT->LEDquadrupleFlash = -114; break;
+            case -110: NMT->LEDquadrupleFlash =  110; break;
+            case  114: NMT->LEDquadrupleFlash = -124; break;
+            case -120: NMT->LEDquadrupleFlash =  120; break;
+            case  124: NMT->LEDquadrupleFlash =  -20; break;
+            default: break;
+        }
+    }
+
     /* CANopen green RUN LED (DR 303-3) */
     switch(NMT->operatingState){
         case CO_NMT_STOPPED:          NMT->LEDgreenRun = NMT->LEDsingleFlash;   break;
@@ -335,8 +329,26 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         }
     }
 
-    if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
-        NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
+    if (currentOperatingState != NMT->operatingState) {
+        if (NMT->pFunctNMT != NULL) {
+            NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
+        }
+        /* execute next CANopen processing immediately */
+        if (timerNext_us != NULL) {
+            *timerNext_us = 0;
+        }
+    }
+
+    /* Calculate, when next Heartbeat needs to be send and lower timerNext_us if necessary. */
+    if (HBtime != 0 && timerNext_us != NULL) {
+        if (NMT->HBproducerTimer < HBtime) {
+            uint32_t diff = HBtime - NMT->HBproducerTimer;
+            if (*timerNext_us > diff) {
+                *timerNext_us = diff;
+            }
+        } else {
+            *timerNext_us = 0;
+        }
     }
 
     return (CO_NMT_reset_cmd_t) NMT->resetCommand;
@@ -352,4 +364,3 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
     }
     return CO_NMT_INITIALIZING;
 }
-

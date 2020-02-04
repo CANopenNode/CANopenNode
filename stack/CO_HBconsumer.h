@@ -68,8 +68,8 @@ typedef struct{
     uint8_t                 nodeId;       /**< Node Id of the monitored node */
     CO_NMT_internalState_t  NMTstate;     /**< Of the remote node (Heartbeat payload) */
     CO_HBconsumer_state_t   HBstate;      /**< Current heartbeat state */
-    uint16_t                timeoutTimer; /**< Time since last heartbeat received */
-    uint16_t                time;         /**< Consumer heartbeat time from OD */
+    uint32_t                timeoutTimer; /**< Time since last heartbeat received */
+    uint32_t                time_us;      /**< Consumer heartbeat time from OD */
     volatile void          *CANrxNew;     /**< Indication if new Heartbeat message received from the CAN bus */
     /** Callback for heartbeat state change to active event */
     void                  (*pFunctSignalHbStarted)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initTimeoutCallback() or NULL */
@@ -94,9 +94,13 @@ typedef struct{
     const uint32_t     *HBconsTime;       /**< From CO_HBconsumer_init() */
     CO_HBconsNode_t    *monitoredNodes;   /**< From CO_HBconsumer_init() */
     uint8_t             numberOfMonitoredNodes; /**< From CO_HBconsumer_init() */
+    /** True, if all monitored nodes are active or no node is
+        monitored. Can be read by the application */
+    bool_t              allMonitoredActive;
     /** True, if all monitored nodes are NMT operational or no node is
         monitored. Can be read by the application */
     uint8_t             allMonitoredOperational;
+    bool_t              NMTisPreOrOperationalPrev; /**< previous state of var */
     CO_CANmodule_t     *CANdevRx;         /**< From CO_HBconsumer_init() */
     uint16_t            CANdevRxIdxStart; /**< From CO_HBconsumer_init() */
 }CO_HBconsumer_t;
@@ -142,14 +146,14 @@ CO_ReturnError_t CO_HBconsumer_init(
  * @param HBcons This object.
  * @param idx index of the node in HBcons object
  * @param nodeId see OD 0x1016 description
- * @param consumerTime see OD 0x1016 description
+ * @param consumerTime in milliseconds. see OD 0x1016 description
  * @return
  */
 CO_ReturnError_t CO_HBconsumer_initEntry(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx,
         uint8_t                 nodeId,
-        uint16_t                consumerTime);
+        uint16_t                consumerTime_ms);
 
 /**
  * Initialize Heartbeat consumer started callback function.
@@ -213,12 +217,14 @@ void CO_HBconsumer_initCallbackRemoteReset(
  *
  * @param HBcons This object.
  * @param NMTisPreOrOperational True if this node is NMT_PRE_OPERATIONAL or NMT_OPERATIONAL.
- * @param timeDifference_ms Time difference from previous function call in [milliseconds].
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param timerNext_us [out] info to OS - see CO_process().
  */
 void CO_HBconsumer_process(
         CO_HBconsumer_t        *HBcons,
         bool_t                  NMTisPreOrOperational,
-        uint16_t                timeDifference_ms);
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us);
 
 /**
  * Get the heartbeat producer object index by node ID

@@ -112,10 +112,14 @@ typedef struct{
     uint32_t            dataSize;
     /** Data length transferred in block transfer */
     uint32_t            dataSizeTransfered;
+    /** Maximum timeout time between request and response in microseconds. */
+    uint32_t            SDOtimeoutTime_us;
+    /** Half of maximum timeout time between request and response. */
+    uint32_t            SDOtimeoutTimeHalf_us;
     /** Timeout timer for SDO communication */
-    uint16_t            timeoutTimer;
+    uint32_t            timeoutTimer;
     /** Timeout timer for SDO block transfer */
-    uint16_t            timeoutTimerBLOCK;
+    uint32_t            timeoutTimerBLOCK;
     /** Index of current object in Object Dictionary */
     uint16_t            index;
     /** Subindex of current object in Object Dictionary */
@@ -246,6 +250,7 @@ CO_SDOclient_return_t CO_SDOclient_setup(
  * format, because CANopen itself uses little-endian. Take care,
  * when using processors with big-endian.
  * @param dataSize Size of data in dataTx.
+ * @param SDOtimeoutTime_ms Timeout time for SDO communication in milliseconds.
  * @param blockEnable Try to initiate block transfer.
  *
  * @return #CO_SDOclient_return_t
@@ -256,6 +261,7 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
         uint8_t                 subIndex,
         uint8_t                *dataTx,
         uint32_t                dataSize,
+        uint16_t                SDOtimeoutTime_ms,
         uint8_t                 blockEnable);
 
 
@@ -267,18 +273,18 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
  * Function is non-blocking.
  *
  * @param SDO_C This object.
- * @param timeDifference_ms Time difference from previous function call in [milliseconds].
- * @param SDOtimeoutTime Timeout time for SDO communication in milliseconds.
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param pSDOabortCode Pointer to external variable written by this function
  * in case of error in communication.
+ * @param timerNext_us [out] info to OS - see CO_process().
  *
  * @return #CO_SDOclient_return_t
  */
 CO_SDOclient_return_t CO_SDOclientDownload(
         CO_SDOclient_t         *SDO_C,
-        uint16_t                timeDifference_ms,
-        uint16_t                SDOtimeoutTime,
-        uint32_t               *pSDOabortCode);
+        uint32_t                timeDifference_us,
+        uint32_t               *pSDOabortCode,
+        uint32_t               *timerNext_us);
 
 
 /**
@@ -296,6 +302,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
  * in little-endian format, because CANopen itself uses
  * little-endian. Take care, when using processors with big-endian.
  * @param dataRxSize Size of dataRx.
+ * @param SDOtimeoutTime_ms Timeout time for SDO communication in milliseconds.
  * @param blockEnable Try to initiate block transfer.
  *
  * @return #CO_SDOclient_return_t
@@ -306,6 +313,7 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
         uint8_t                 subIndex,
         uint8_t                *dataRx,
         uint32_t                dataRxSize,
+        uint16_t                SDOtimeoutTime_ms,
         uint8_t                 blockEnable);
 
 
@@ -317,21 +325,21 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
  * Function is non-blocking.
  *
  * @param SDO_C This object.
- * @param timeDifference_ms Time difference from previous function call in [milliseconds].
- * @param SDOtimeoutTime Timeout time for SDO communication in milliseconds.
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param pDataSize pointer to external variable, where size of received
  * data will be written.
  * @param pSDOabortCode Pointer to external variable written by this function
  * in case of error in communication.
+ * @param timerNext_us [out] info to OS - see CO_process().
  *
  * @return #CO_SDOclient_return_t
  */
 CO_SDOclient_return_t CO_SDOclientUpload(
         CO_SDOclient_t         *SDO_C,
-        uint16_t                timeDifference_ms,
-        uint16_t                SDOtimeoutTime,
+        uint32_t                timeDifference_us,
         uint32_t               *pDataSize,
-        uint32_t               *pSDOabortCode);
+        uint32_t               *pSDOabortCode,
+        uint32_t               *timerNext_us);
 
 
 /**

@@ -1,7 +1,5 @@
 /**
- * CAN module object for Linux socketCAN.
- *
- * This file is a template for other microcontrollers.
+ * Notify pipe for Linux threads.
  *
  * @file        CO_notify_pipe.h
  * @ingroup     CO_driver

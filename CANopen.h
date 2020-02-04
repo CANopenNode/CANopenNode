@@ -200,10 +200,10 @@ void CO_delete(void *CANptr);
  * objects.
  *
  * @param co CANopen object.
- * @param timeDifference_ms Time difference from previous function call in [milliseconds].
- * @param timerNext_ms Return value - info to OS - maximum delay after function
- *        should be called next time in [milliseconds]. Value can be used for OS
- *        sleep time. Initial value must be set to something, 50ms typically.
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param timerNext_us [out] info to OS - maximum delay after function
+ *        should be called next time in [microseconds]. Value can be used for OS
+ *        sleep time. Initial value must be set to something, 50000us typically.
  *        Output will be equal or lower to initial value. If there is new object
  *        to process, delay should be suspended and this function should be
  *        called immediately. Parameter is ignored if NULL.
@@ -212,8 +212,8 @@ void CO_delete(void *CANptr);
  */
 CO_NMT_reset_cmd_t CO_process(
         CO_t                   *co,
-        uint16_t                timeDifference_ms,
-        uint16_t               *timerNext_ms);
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us);
 
 
 #if CO_NO_SYNC == 1
@@ -271,7 +271,7 @@ void CO_process_TPDO(
  *
  * @param CO This object.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
- * @param timerNext_us Return value - info to OS - maximum delay after function
+ * @param timerNext_us [out] info to OS - maximum delay after function
  *        should be called next time in [microseconds]. Value can be used for OS
  *        sleep time. Initial value must be set to something, 1000us typically.
  *        Output will be equal or lower to initial value. If there is new object

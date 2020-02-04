@@ -339,7 +339,7 @@ typedef struct{
     uint32_t           *preDefErr;      /**< From CO_EM_init() */
     uint8_t             preDefErrSize;  /**< From CO_EM_init() */
     uint8_t             preDefErrNoOfErrors;/**< Number of active errors in preDefErr */
-    uint16_t            inhibitEmTimer; /**< Internal timer for emergency message */
+    uint32_t            inhibitEmTimer; /**< Internal timer for emergency message */
     CO_EM_t            *em;             /**< CO_EM_t sub object is included here */
     CO_CANmodule_t     *CANdev;         /**< From CO_EM_init() */
     CO_CANtx_t         *CANtxBuff;      /**< CAN transmit buffer */
@@ -432,16 +432,16 @@ void CO_EM_initCallbackRx(
  *
  * @param emPr This object.
  * @param NMTisPreOrOperational True if this node is NMT_PRE_OPERATIONAL or NMT_OPERATIONAL.
- * @param timeDifference_100us Time difference from previous function call in [100 * microseconds].
- * @param emInhTime _Inhibit time EMCY_ (object dictionary, index 0x1015).
- * @param timerNext_ms Return value - info to OS - see CO_process().
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param emInhTime _Inhibit time EMCY_ in [100*us] (object dictionary, index 0x1015).
+ * @param timerNext_us [out] info to OS - see CO_process().
  */
 void CO_EM_process(
         CO_EMpr_t              *emPr,
         bool_t                  NMTisPreOrOperational,
-        uint16_t                timeDifference_100us,
+        uint32_t                timeDifference_us,
         uint16_t                emInhTime,
-        uint16_t               *timerNext_ms);
+        uint32_t               *timerNext_us);
 
 
 #endif

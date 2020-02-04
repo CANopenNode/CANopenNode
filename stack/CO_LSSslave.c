@@ -498,17 +498,17 @@ CO_LSS_state_t CO_LSSslave_getState(
 /******************************************************************************/
 bool_t CO_LSSslave_LEDprocess(
         CO_LSSslave_t          *LSSslave,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         bool_t *LEDon)
 {
-    static uint16_t ms50 = 0;
+    static uint32_t ms50 = 0;
     static int8_t flash1, flash2;
 
     if (LSSslave == NULL || LEDon == NULL)
         return false;
-    ms50 += timeDifference_ms;
-    if(ms50 >= 50) {
-        ms50 -= 50;
+    ms50 += timeDifference_us;
+    if(ms50 >= 50000) {
+        ms50 -= 50000;
         /* 4 cycles on, 50 cycles off */
         if(++flash1 >= 4) flash1 = -50;
 

@@ -613,8 +613,10 @@ typedef struct{
     CO_SDO_state_t      state;
     /** Toggle bit in segmented transfer or block sequence in block transfer */
     uint8_t             sequence;
+    /** Maximum timeout time between request and response in microseconds. */
+    uint32_t            SDOtimeoutTime_us;
     /** Timeout timer for SDO communication */
-    uint16_t            timeoutTimer;
+    uint32_t            timeoutTimer;
     /** Number of segments per block with 1 <= blksize <= 127 */
     uint8_t             blksize;
     /** True, if CRC calculation by block transfer is enabled */
@@ -753,6 +755,7 @@ void CO_memcpySwap8(void* dest, const void* src);
  * @param ODExtensions Pointer to the externally defined array of the same size
  * as ODSize.
  * @param nodeId CANopen Node ID of this device.
+ * @param SDOtimeoutTime_ms Timeout time for SDO communication in milliseconds.
  * @param CANdevRx CAN device for SDO server reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param CANdevTx CAN device for SDO server transmission.
@@ -770,6 +773,7 @@ CO_ReturnError_t CO_SDO_init(
         uint16_t                ODSize,
         CO_OD_extension_t       ODExtensions[],
         uint8_t                 nodeId,
+        uint16_t                SDOtimeoutTime_ms,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdx,
         CO_CANmodule_t         *CANdevTx,
@@ -799,9 +803,8 @@ void CO_SDO_initCallback(
  * @param SDO This object.
  * @param NMTisPreOrOperational Different than zero, if #CO_NMT_internalState_t is
  * NMT_PRE_OPERATIONAL or NMT_OPERATIONAL.
- * @param timeDifference_ms Time difference from previous function call in [milliseconds].
- * @param SDOtimeoutTime Timeout time for SDO communication in milliseconds.
- * @param timerNext_ms Return value - info to OS - see CO_process().
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param timerNext_us [out] info to OS - see CO_process().
  *
  * @return 0: SDO server is idle.
  * @return 1: SDO server is in transfer state.
@@ -810,9 +813,8 @@ void CO_SDO_initCallback(
 int8_t CO_SDO_process(
         CO_SDO_t               *SDO,
         bool_t                  NMTisPreOrOperational,
-        uint16_t                timeDifference_ms,
-        uint16_t                SDOtimeoutTime,
-        uint16_t               *timerNext_ms);
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us);
 
 
 /**

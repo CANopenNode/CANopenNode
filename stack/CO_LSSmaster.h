@@ -105,11 +105,11 @@ typedef enum {
  * LSS master object.
  */
 typedef struct{
-    uint16_t         timeout;          /**< LSS response timeout in ms */
+    uint16_t         timeout_us;       /**< LSS response timeout in us */
 
     uint8_t          state;            /**< Node is currently selected */
     uint8_t          command;          /**< Active command */
-    uint16_t         timeoutTimer;     /**< Timeout timer for LSS communication */
+    uint32_t         timeoutTimer;     /**< Timeout timer for LSS communication */
 
     uint8_t          fsState;          /**< Current state of fastscan master state machine */
     uint8_t          fsLssSub;         /**< Current state of node state machine */
@@ -212,15 +212,15 @@ void CO_LSSmaster_initCallback(
  * @remark Only one selection can be active at any time.
  *
  * @param LSSmaster This object.
- * @param timeDifference_ms Time difference from previous function call in
- * [milliseconds]. Zero when request is started.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds]. Zero when request is started.
  * @param lssAddress LSS target address. If NULL, all nodes are selected
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
 CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         CO_LSS_address_t       *lssAddress);
 
 
@@ -251,8 +251,8 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateDeselect(
  * Function is non-blocking.
  *
  * @param LSSmaster This object.
- * @param timeDifference_ms Time difference from previous function call in
- * [milliseconds]. Zero when request is started.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds]. Zero when request is started.
  * @param bit new bit rate
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT,
@@ -260,7 +260,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateDeselect(
  */
 CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         uint16_t                bit);
 
 
@@ -275,8 +275,8 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
  * Function is non-blocking.
  *
  * @param LSSmaster This object.
- * @param timeDifference_ms Time difference from previous function call in
- * [milliseconds]. Zero when request is started.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds]. Zero when request is started.
  * @param nodeId new node ID. Special value #CO_LSS_NODE_ID_ASSIGNMENT can be
  * used to invalidate node ID.
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
@@ -285,7 +285,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
  */
 CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         uint8_t                 nodeId);
 
 
@@ -301,15 +301,15 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
  * Function is non-blocking.
  *
  * @param LSSmaster This object.
- * @param timeDifference_ms Time difference from previous function call in
- * [milliseconds]. Zero when request is started.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds]. Zero when request is started.
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT,
  * #CO_LSSmaster_OK_MANUFACTURER, #CO_LSSmaster_OK_ILLEGAL_ARGUMENT
  */
 CO_LSSmaster_return_t CO_LSSmaster_configureStore(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms);
+        uint32_t                timeDifference_us);
 
 
 /**
@@ -348,15 +348,15 @@ CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(
  * Function is non-blocking.
  *
  * @param LSSmaster This object.
- * @param timeDifference_ms Time difference from previous function call in
- * [milliseconds]. Zero when request is started.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds]. Zero when request is started.
  * @param lssAddress [out] read result when function returns successfully
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
 CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         CO_LSS_address_t       *lssAddress);
 
 
@@ -371,15 +371,15 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
  * Function is non-blocking.
  *
  * @param LSSmaster This object.
- * @param timeDifference_ms Time difference from previous function call in
- * [milliseconds]. Zero when request is started.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds]. Zero when request is started.
  * @param nodeId [out] read result when function returns successfully
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
 CO_LSSmaster_return_t CO_LSSmaster_InquireNodeId(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         uint8_t                *nodeId);
 
 
@@ -448,8 +448,8 @@ fastscan.scan[CO_LSS_FASTSCAN_SERIAL] = CO_LSSmaster_FS_SCAN;
  * Function is non-blocking.
  *
  * @param LSSmaster This object.
- * @param timeDifference_ms Time difference from previous function call in
- * [milliseconds]. Zero when request is started.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds]. Zero when request is started.
  * @param fastscan struct according to #CO_LSSmaster_fastscan_t.
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_SCAN_FINISHED, #CO_LSSmaster_SCAN_NOACK,
@@ -457,7 +457,7 @@ fastscan.scan[CO_LSS_FASTSCAN_SERIAL] = CO_LSSmaster_FS_SCAN;
  */
 CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
         CO_LSSmaster_t                  *LSSmaster,
-        uint16_t                         timeDifference_ms,
+        uint32_t                         timeDifference_us,
         CO_LSSmaster_fastscan_t         *fastscan);
 
 /** @} */ /*@defgroup CO_LSSmaster*/

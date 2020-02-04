@@ -1,7 +1,5 @@
 /*
- * CAN module object for Linux socketCAN.
- *
- * This file is a template for other microcontrollers.
+ * Linux socketCAN interface for CANopenNode.
  *
  * @file        CO_driver.c
  * @ingroup     CO_driver

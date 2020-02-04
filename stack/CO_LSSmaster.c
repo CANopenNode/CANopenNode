@@ -112,12 +112,12 @@ static void CO_LSSmaster_receive(void *object, void *msg)
  */
 static CO_LSSmaster_return_t CO_LSSmaster_check_timeout(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms)
+        uint32_t                timeDifference_us)
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_WAIT_SLAVE;
 
-    LSSmaster->timeoutTimer += timeDifference_ms;
-    if (LSSmaster->timeoutTimer >= LSSmaster->timeout) {
+    LSSmaster->timeoutTimer += timeDifference_us;
+    if (LSSmaster->timeoutTimer >= LSSmaster->timeout_us) {
         LSSmaster->timeoutTimer = 0;
         ret = CO_LSSmaster_TIMEOUT;
     }
@@ -142,7 +142,7 @@ CO_ReturnError_t CO_LSSmaster_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    LSSmaster->timeout = timeout_ms;
+    LSSmaster->timeout_us = (uint32_t)timeout_ms * 1000;
     LSSmaster->state = CO_LSSmaster_STATE_WAITING;
     LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     LSSmaster->timeoutTimer = 0;
@@ -181,7 +181,7 @@ void CO_LSSmaster_changeTimeout(
         uint16_t                timeout_ms)
 {
     if (LSSmaster != NULL) {
-        LSSmaster->timeout = timeout_ms;
+        LSSmaster->timeout_us = (uint32_t)timeout_ms * 1000;
     }
 }
 
@@ -251,7 +251,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectInitiate(
  */
 static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectWait(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms)
+        uint32_t                timeDifference_us)
 {
     CO_LSSmaster_return_t ret;
 
@@ -264,11 +264,11 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectWait(
             ret = CO_LSSmaster_OK;
         }
         else {
-            ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+            ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
         }
     }
     else {
-        ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+        ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
     }
 
     return ret;
@@ -277,7 +277,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectWait(
 /******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         CO_LSS_address_t       *lssAddress)
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
@@ -294,7 +294,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
     }
     /* Wait for confirmation */
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_SWITCH_STATE) {
-        ret = CO_LSSmaster_switchStateSelectWait(LSSmaster, timeDifference_ms);
+        ret = CO_LSSmaster_switchStateSelectWait(LSSmaster, timeDifference_us);
     }
 
     if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
@@ -360,7 +360,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateDeselect(
  */
 static CO_LSSmaster_return_t CO_LSSmaster_configureCheckWait(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         uint8_t                 csWait)
 {
     CO_LSSmaster_return_t ret;
@@ -382,11 +382,11 @@ static CO_LSSmaster_return_t CO_LSSmaster_configureCheckWait(
             }
         }
         else {
-            ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+            ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
         }
     }
     else {
-        ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+        ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
     }
 
     if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
@@ -400,7 +400,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_configureCheckWait(
 /******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         uint16_t                bit)
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
@@ -442,7 +442,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
     /* Wait for confirmation */
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_CFG_BIT_TIMING) {
 
-        ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_ms,
+        ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_CFG_BIT_TIMING);
     }
 
@@ -457,7 +457,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
 /******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         uint8_t                 nodeId)
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
@@ -487,7 +487,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
     /* Wait for confirmation */
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_CFG_NODE_ID) {
 
-        ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_ms,
+        ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_CFG_NODE_ID);
     }
 
@@ -502,7 +502,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
 /******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_configureStore(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms)
+        uint32_t                timeDifference_us)
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
 
@@ -527,7 +527,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureStore(
     /* Wait for confirmation */
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_CFG_STORE) {
 
-        ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_ms,
+        ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_CFG_STORE);
     }
 
@@ -588,7 +588,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_inquireInitiate(
  */
 static CO_LSSmaster_return_t CO_LSSmaster_inquireCheckWait(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         uint8_t                 csWait,
         uint32_t               *value)
 {
@@ -603,11 +603,11 @@ static CO_LSSmaster_return_t CO_LSSmaster_inquireCheckWait(
             ret = CO_LSSmaster_OK;
         }
         else {
-            ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+            ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
         }
     }
     else {
-        ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+        ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
     }
 
     return ret;
@@ -616,7 +616,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_inquireCheckWait(
 /******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         CO_LSS_address_t       *lssAddress)
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
@@ -629,7 +629,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     /* Check for reply */
     if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_VENDOR) {
 
-        ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
+        ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_INQUIRE_VENDOR, &lssAddress->identity.vendorID);
         if (ret == CO_LSSmaster_OK) {
             /* Start next request */
@@ -639,7 +639,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     }
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_PRODUCT) {
 
-        ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
+        ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_INQUIRE_PRODUCT, &lssAddress->identity.productCode);
         if (ret == CO_LSSmaster_OK) {
             /* Start next request */
@@ -649,7 +649,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     }
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_REV) {
 
-        ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
+        ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_INQUIRE_REV, &lssAddress->identity.revisionNumber);
         if (ret == CO_LSSmaster_OK) {
             /* Start next request */
@@ -659,7 +659,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     }
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_SERIAL) {
 
-        ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
+        ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_INQUIRE_SERIAL, &lssAddress->identity.serialNumber);
     }
     /* Check for next request */
@@ -703,7 +703,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
 /******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_InquireNodeId(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms,
+        uint32_t                timeDifference_us,
         uint8_t                *nodeId)
 {
   CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
@@ -726,7 +726,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireNodeId(
   else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_NODE_ID) {
       uint32_t tmp = 0;
 
-      ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_ms,
+      ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_us,
               CO_LSS_INQUIRE_NODE_ID, &tmp);
 
       *nodeId = tmp & 0xff;
@@ -765,11 +765,11 @@ static void CO_LSSmaster_FsSendMsg(
  */
 static CO_LSSmaster_return_t CO_LSSmaster_FsCheckWait(
         CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeDifference_ms)
+        uint32_t                timeDifference_us)
 {
     CO_LSSmaster_return_t ret;
 
-    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
     if (ret == CO_LSSmaster_TIMEOUT) {
         ret = CO_LSSmaster_SCAN_NOACK;
 
@@ -792,7 +792,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsCheckWait(
  */
 static CO_LSSmaster_return_t CO_LSSmaster_FsScanInitiate(
         CO_LSSmaster_t                  *LSSmaster,
-        uint16_t                         timeDifference_ms,
+        uint32_t                         timeDifference_us,
         CO_LSSmaster_scantype_t          scan,
         CO_LSS_fastscan_lss_sub_next     lssSub)
 {
@@ -824,7 +824,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanInitiate(
  */
 static CO_LSSmaster_return_t CO_LSSmaster_FsScanWait(
         CO_LSSmaster_t                  *LSSmaster,
-        uint16_t                         timeDifference_ms,
+        uint32_t                         timeDifference_us,
         CO_LSSmaster_scantype_t          scan)
 {
     CO_LSSmaster_return_t ret;
@@ -840,7 +840,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanWait(
             return CO_LSSmaster_SCAN_FAILED;
     }
 
-    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
     if (ret == CO_LSSmaster_TIMEOUT) {
 
         ret = CO_LSSmaster_WAIT_SLAVE;
@@ -880,7 +880,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanWait(
  */
 static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyInitiate(
         CO_LSSmaster_t                  *LSSmaster,
-        uint16_t                         timeDifference_ms,
+        uint32_t                         timeDifference_us,
         CO_LSSmaster_scantype_t          scan,
         uint32_t                         idNumberCheck,
         CO_LSS_fastscan_lss_sub_next     lssNext)
@@ -913,7 +913,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyInitiate(
  */
 static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyWait(
         CO_LSSmaster_t                  *LSSmaster,
-        uint16_t                         timeDifference_ms,
+        uint32_t                         timeDifference_us,
         CO_LSSmaster_scantype_t          scan,
         uint32_t                        *idNumberRet)
 {
@@ -923,7 +923,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyWait(
         return CO_LSSmaster_SCAN_FAILED;
     }
 
-    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_ms);
+    ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
     if (ret == CO_LSSmaster_TIMEOUT) {
 
         *idNumberRet = 0;
@@ -970,7 +970,7 @@ static CO_LSS_fastscan_lss_sub_next CO_LSSmaster_FsSearchNext(
 /******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
         CO_LSSmaster_t          *LSSmaster,
-        uint16_t                 timeDifference_ms,
+        uint32_t                 timeDifference_us,
         CO_LSSmaster_fastscan_t *fastscan)
 {
     uint8_t i;
@@ -1036,12 +1036,12 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
      * and the correspondign error is returned. */
     switch (LSSmaster->fsState) {
         case CO_LSSmaster_FS_STATE_CHECK:
-            ret = CO_LSSmaster_FsCheckWait(LSSmaster, timeDifference_ms);
+            ret = CO_LSSmaster_FsCheckWait(LSSmaster, timeDifference_us);
             if (ret == CO_LSSmaster_SCAN_FINISHED) {
                 CO_memset((uint8_t*)&fastscan->found, 0, sizeof(fastscan->found));
 
                 /* start scanning procedure by triggering vendor ID scan */
-                CO_LSSmaster_FsScanInitiate(LSSmaster, timeDifference_ms,
+                CO_LSSmaster_FsScanInitiate(LSSmaster, timeDifference_us,
                       fastscan->scan[CO_LSS_FASTSCAN_VENDOR_ID],
                       CO_LSS_FASTSCAN_VENDOR_ID);
                 ret = CO_LSSmaster_WAIT_SLAVE;
@@ -1050,14 +1050,14 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
             }
             break;
         case CO_LSSmaster_FS_STATE_SCAN:
-            ret = CO_LSSmaster_FsScanWait(LSSmaster, timeDifference_ms,
+            ret = CO_LSSmaster_FsScanWait(LSSmaster, timeDifference_us,
                       fastscan->scan[LSSmaster->fsLssSub]);
             if (ret == CO_LSSmaster_SCAN_FINISHED) {
                 /* scanning finished, initiate verifcation. The verification
                  * message also contains the node state machine "switch to
                  * next state" request */
                 next = CO_LSSmaster_FsSearchNext(LSSmaster, fastscan);
-                ret = CO_LSSmaster_FsVerifyInitiate(LSSmaster, timeDifference_ms,
+                ret = CO_LSSmaster_FsVerifyInitiate(LSSmaster, timeDifference_us,
                           fastscan->scan[LSSmaster->fsLssSub],
                           fastscan->match.addr[LSSmaster->fsLssSub], next);
 
@@ -1065,7 +1065,7 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
             }
             break;
         case CO_LSSmaster_FS_STATE_VERIFY:
-            ret = CO_LSSmaster_FsVerifyWait(LSSmaster, timeDifference_ms,
+            ret = CO_LSSmaster_FsVerifyWait(LSSmaster, timeDifference_us,
                       fastscan->scan[LSSmaster->fsLssSub],
                       &fastscan->found.addr[LSSmaster->fsLssSub]);
             if (ret == CO_LSSmaster_SCAN_FINISHED) {
@@ -1082,7 +1082,7 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
                 else {
                     /* initiate scan for next part of LSS address */
                     ret = CO_LSSmaster_FsScanInitiate(LSSmaster,
-                              timeDifference_ms, fastscan->scan[next], next);
+                              timeDifference_us, fastscan->scan[next], next);
                     if (ret == CO_LSSmaster_SCAN_FINISHED) {
                         /* Scanning is not requested. Initiate verification
                          * step in next function call */

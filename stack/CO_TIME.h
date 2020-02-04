@@ -143,14 +143,14 @@ CO_ReturnError_t CO_TIME_init(
  * Function must be called cyclically.
  *
  * @param TIME This object.
- * @param timeDifference_ms Time difference from previous function call in [milliseconds].
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
  *
  * @return 0: No special meaning.
  * @return 1: New TIME message recently received (consumer) / transmited (producer).
  */
 uint8_t CO_TIME_process(
         CO_TIME_t              *TIME,
-        uint32_t                timeDifference_ms);
+        uint32_t                timeDifference_us);
 
 #ifdef __cplusplus
 }

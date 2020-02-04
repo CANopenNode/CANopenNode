@@ -129,8 +129,8 @@ typedef enum{
  * @ref CO_NMT_statusLEDdiodes. Object is initialized by CO_NMT_init().
  */
 typedef struct{
-    uint8_t             operatingState; /**< See @ref CO_NMT_internalState_t */
 #ifdef CO_USE_LEDS
+    uint32_t            LEDtimer;       /**< 50ms led timer */
     int8_t              LEDflickering;  /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDblinking;    /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDsingleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
@@ -141,10 +141,11 @@ typedef struct{
     int8_t              LEDredError;    /**< See @ref CO_NMT_statusLEDdiodes */
 #endif /* CO_USE_LEDS */
 
+    uint8_t             operatingState; /**< See @ref CO_NMT_internalState_t */
     uint8_t             resetCommand;   /**< If different than zero, device will reset */
     uint8_t             nodeId;         /**< CANopen Node ID of this device */
-    uint16_t            HBproducerTimer;/**< Internal timer for HB producer */
-    uint16_t            firstHBTime;    /**< From CO_NMT_init() */
+    uint32_t            HBproducerTimer;/**< Internal timer for HB producer */
+    uint32_t            firstHBTime;    /**< From CO_NMT_init() */
     CO_EMpr_t          *emPr;           /**< From CO_NMT_init() */
     CO_CANmodule_t     *HB_CANdev;      /**< From CO_NMT_init() */
     void              (*pFunctNMT)(CO_NMT_internalState_t state); /**< From CO_NMT_initCallback() or NULL */
@@ -176,7 +177,7 @@ CO_ReturnError_t CO_NMT_init(
         CO_NMT_t               *NMT,
         CO_EMpr_t              *emPr,
         uint8_t                 nodeId,
-        uint16_t                firstHBTime,
+        uint16_t                firstHBTime_ms,
         CO_CANmodule_t         *NMT_CANdev,
         uint16_t                NMT_rxIdx,
         uint16_t                CANidRxNMT,
@@ -204,42 +205,30 @@ void CO_NMT_initCallback(
 
 
 /**
- * Calculate blinking bytes.
- *
- * Function must be called cyclically every 50 milliseconds. See @ref CO_NMT_statusLEDdiodes.
- *
- * @param NMT NMT object.
- */
-#ifdef CO_USE_LEDS
-void CO_NMT_blinkingProcess50ms(CO_NMT_t *NMT);
-#endif /* CO_USE_LEDS */
-
-
-/**
  * Process received NMT and produce Heartbeat messages.
  *
  * Function must be called cyclically.
  *
  * @param NMT This object.
- * @param timeDifference_ms Time difference from previous function call in [milliseconds].
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param HBtime _Producer Heartbeat time_ (object dictionary, index 0x1017).
  * @param NMTstartup _NMT startup behavior_ (object dictionary, index 0x1F80).
  * @param errorRegister _Error register_ (object dictionary, index 0x1001).
  * @param errorBehavior pointer to _Error behavior_ array (object dictionary, index 0x1029).
  *        Object controls, if device should leave NMT operational state.
  *        Length of array must be 6. If pointer is NULL, no calculation is made.
- * @param timerNext_ms Return value - info to OS - see CO_process().
+ * @param timerNext_us [out] info to OS - see CO_process().
  *
  * @return #CO_NMT_reset_cmd_t
  */
 CO_NMT_reset_cmd_t CO_NMT_process(
         CO_NMT_t               *NMT,
-        uint16_t                timeDifference_ms,
-        uint16_t                HBtime,
+        uint32_t                timeDifference_us,
+        uint16_t                HBtime_ms,
         uint32_t                NMTstartup,
         uint8_t                 errorRegister,
         const uint8_t           errorBehavior[],
-        uint16_t               *timerNext_ms);
+        uint32_t               *timerNext_us);
 
 
 /**

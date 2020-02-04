@@ -232,15 +232,16 @@ void CO_EM_initCallbackRx(
 void CO_EM_process(
         CO_EMpr_t              *emPr,
         bool_t                  NMTisPreOrOperational,
-        uint16_t                timeDifference_100us,
-        uint16_t                emInhTime,
-        uint16_t               *timerNext_ms)
+        uint32_t                timeDifference_us,
+        uint16_t                emInhTime_100us,
+        uint32_t               *timerNext_us)
 {
 
     CO_EM_t *em = emPr->em;
     uint8_t errorRegister;
     uint8_t errorMask;
     uint8_t i;
+    uint32_t emInhTime_us = (uint32_t)emInhTime_100us * 100;
 
     /* verify errors from driver and other */
     CO_CANverifyErrors(emPr->CANdev);
@@ -270,8 +271,8 @@ void CO_EM_process(
     *emPr->errorRegister = (*emPr->errorRegister & errorMask) | errorRegister;
 
     /* inhibit time */
-    if(emPr->inhibitEmTimer < emInhTime){
-        emPr->inhibitEmTimer += timeDifference_100us;
+    if (emPr->inhibitEmTimer < emInhTime_us) {
+        emPr->inhibitEmTimer += timeDifference_us;
     }
 
     /* send Emergency message. */
@@ -282,7 +283,7 @@ void CO_EM_process(
         uint32_t preDEF;    /* preDefinedErrorField */
         uint16_t diff;
 
-        if (emPr->inhibitEmTimer >= emInhTime) {
+        if (emPr->inhibitEmTimer >= emInhTime_us) {
             /* inhibit time elapsed, send message */
 
             /* add error register */
@@ -323,11 +324,12 @@ void CO_EM_process(
             /* send CAN message */
             CO_CANsend(emPr->CANdev, emPr->CANtxBuff);
         }
-
-        /* check again after inhibit time elapsed */
-        diff = (emInhTime + 9) / 10; /* time difference in ms, always round up */
-        if (timerNext_ms != NULL && *timerNext_ms > diff) {
-            *timerNext_ms = diff;
+        else if (timerNext_us != NULL) {
+            /* check again after inhibit time elapsed */
+            diff = emInhTime_us - emPr->inhibitEmTimer;
+            if (*timerNext_us > diff) {
+                *timerNext_us = diff;
+            }
         }
     }
 

@@ -281,6 +281,7 @@ CO_ReturnError_t CO_SDO_init(
         uint16_t                ODSize,
         CO_OD_extension_t      *ODExtensions,
         uint8_t                 nodeId,
+        uint16_t                SDOtimeoutTime_ms,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdx,
         CO_CANmodule_t         *CANdevTx,
@@ -317,6 +318,7 @@ CO_ReturnError_t CO_SDO_init(
 
     /* Configure object variables */
     SDO->nodeId = nodeId;
+    SDO->SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 1000;
     SDO->state = CO_SDO_ST_IDLE;
     CO_CANrxNew_CLEAR(SDO->CANrxNew);
     SDO->pFunctSignal = NULL;
@@ -768,9 +770,8 @@ static void CO_SDO_abort(CO_SDO_t *SDO, uint32_t code){
 int8_t CO_SDO_process(
         CO_SDO_t               *SDO,
         bool_t                  NMTisPreOrOperational,
-        uint16_t                timeDifference_ms,
-        uint16_t                SDOtimeoutTime,
-        uint16_t               *timerNext_ms)
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us)
 {
     CO_SDO_state_t state = CO_SDO_ST_IDLE;
     bool_t timeoutSubblockDownolad = false;
@@ -867,10 +868,10 @@ int8_t CO_SDO_process(
     }
 
     /* verify SDO timeout */
-    if(SDO->timeoutTimer < SDOtimeoutTime){
-        SDO->timeoutTimer += timeDifference_ms;
+    if (SDO->timeoutTimer < SDO->SDOtimeoutTime_us) {
+        SDO->timeoutTimer += timeDifference_us;
     }
-    if(SDO->timeoutTimer >= SDOtimeoutTime){
+    if (SDO->timeoutTimer >= SDO->SDOtimeoutTime_us) {
         if((SDO->state == CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK) && (SDO->sequence != 0) && (!SDO->CANtxBuff->bufferFull)){
             timeoutSubblockDownolad = true;
             state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
@@ -1434,9 +1435,9 @@ int8_t CO_SDO_process(
             /* send response */
             CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
 
-            /* Set timerNext_ms to 0 to inform OS to call this function again without delay. */
-            if(timerNext_ms != NULL){
-                *timerNext_ms = 0;
+            /* Set timerNext_us to 0 to inform OS to call this function again without delay. */
+            if (timerNext_us != NULL) {
+                *timerNext_us = 0;
             }
 
             /* don't call CO_CANrxNew_CLEAR, so return directly */
@@ -1453,7 +1454,7 @@ int8_t CO_SDO_process(
             SDO->state = CO_SDO_ST_IDLE;
             break;
         }
-        
+
         case CO_SDO_ST_IDLE:
         {
             /* Nothing to do it seems */

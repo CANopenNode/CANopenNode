@@ -525,6 +525,7 @@ CO_ReturnError_t CO_CANopenInit(
                 CO_OD_NoOfElements,
                 CO_SDO_ODExtensions,
                 nodeId,
+                1000,
                 CO->CANmodule[0],
                 CO_RXCAN_SDO_SRV+i,
                 CO->CANmodule[0],
@@ -815,63 +816,52 @@ void CO_delete(void *CANptr){
 /******************************************************************************/
 CO_NMT_reset_cmd_t CO_process(
         CO_t                   *co,
-        uint16_t                timeDifference_ms,
-        uint16_t               *timerNext_ms)
+        uint32_t                timeDifference_us,
+        uint32_t               *timerNext_us)
 {
     uint8_t i;
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
-#ifdef CO_USE_LEDS
-    static uint16_t ms50 = 0;
-#endif /* CO_USE_LEDS */
 
     if(co->NMT->operatingState == CO_NMT_PRE_OPERATIONAL || co->NMT->operatingState == CO_NMT_OPERATIONAL)
         NMTisPreOrOperational = true;
-
-#ifdef CO_USE_LEDS
-    ms50 += timeDifference_ms;
-    if(ms50 >= 50){
-        ms50 -= 50;
-        CO_NMT_blinkingProcess50ms(co->NMT);
-    }
-#endif /* CO_USE_LEDS */
 
     for(i=0; i<CO_NO_SDO_SERVER; i++){
         CO_SDO_process(
                 co->SDO[i],
                 NMTisPreOrOperational,
-                timeDifference_ms,
-                1000,
-                timerNext_ms);
+                timeDifference_us,
+                timerNext_us);
     }
 
     CO_EM_process(
             co->emPr,
             NMTisPreOrOperational,
-            timeDifference_ms * 10,
+            timeDifference_us,
             OD_inhibitTimeEMCY,
-            timerNext_ms);
+            timerNext_us);
 
 
     reset = CO_NMT_process(
             co->NMT,
-            timeDifference_ms,
+            timeDifference_us,
             OD_producerHeartbeatTime,
             OD_NMTStartup,
             OD_errorRegister,
             OD_errorBehavior,
-            timerNext_ms);
+            timerNext_us);
 
 
     CO_HBconsumer_process(
             co->HBcons,
             NMTisPreOrOperational,
-            timeDifference_ms);
+            timeDifference_us,
+            timerNext_us);
 
 #if CO_NO_TIME == 1
     CO_TIME_process(
             co->TIME,
-            timeDifference_ms);
+            timeDifference_us);
 #endif
 
     return reset;
