@@ -6,7 +6,7 @@
  * Object Dictionary Editor is currently an older, but functional web
  * application. For more info see See 'Object_Dictionary_Editor/about.html' in
  * <http://sourceforge.net/p/canopennode/code_complete/ci/master/tree/>
- * For more information on CANopen Object Dictionary see <CO_SDO.h>.
+ * For more information on CANopen Object Dictionary see <CO_SDOserver.h>.
  *
  * @file        CO_OD.c
  * @author      Janez Paternoster
@@ -32,7 +32,7 @@
 
 #include "CO_driver.h"
 #include "CO_OD.h"
-#include "CO_SDO.h"
+#include "CO_SDOserver.h"
 
 
 /*******************************************************************************

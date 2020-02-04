@@ -144,46 +144,25 @@ Flowchart of a typical CANopenNode implementation
 
 File structure
 --------------
- - **CANopen.h/.c** - Initialization and processing of CANopen objects. Most
-   usual implementation of CANopen device.
- - **stack** - Directory with all CANopen objects in separate files.
-   - **CO_Emergency.h/.c** - CANopen Emergency object.
-   - **CO_NMT_Heartbeat.h/.c** - CANopen Network slave and Heartbeat producer object.
-   - **CO_HBconsumer.h/.c** - CANopen Heartbeat consumer object.
-   - **CO_LSS.h** - CANopen LSS common. This is common to LSS master and slave.
-   - **CO_LSSmaster.h/.c** - CANopen LSS master functionality.
-   - **CO_LSSslave.h/.c** - CANopen LSS slave functionality.
-   - **CO_SYNC.h/.c** - CANopen SYNC producer and consumer object.
-   - **CO_TIME.h/.c** - CANopen TIME protocol object.
-   - **CO_SDO.h/.c** - CANopen SDO server object. It serves data from Object dictionary.
-   - **CO_PDO.h/.c** - CANopen PDO object. It configures, receives and transmits CANopen process data.
-   - **CO_SDOmaster.h/.c** - CANopen SDO client object (master functionality).
-   - **CO_trace.h/.c** - Trace object with timestamp for monitoring variables from Object Dictionary (optional).
-   - **crc16-ccitt.h/.c** - CRC calculation object.
-   - **drvTemplate** - Directory with microcontroller specific files. In this
-     case it is template for new implementations. It is also documented, other
-     directories are not.
-     - **CO_driver.h/.c** - Microcontroller specific objects for CAN module.
-     - **eeprom.h/.c** - Functions for storage of Object dictionary, optional.
-     - **helpers.h/.c** - Some optional files with specific helper functions.
-   - **socketCAN** - Directory for Linux socketCAN interface.
-   - **PIC32** - Directory for PIC32 devices from Microchip.
-   - **PIC24_dsPIC33** - Directory for PIC24 and dsPIC33 devices from Microchip.
-   - **dsPIC30F** - Directory for dsPIC30F devices from Microchip.
-   - **eCos** - Directory for all devices supported by eCos RTOS.
-   - **SAM3X** - Directory for SAM3X ARM Cortex M3 devices with ASF library from Atmel.
-   - **STM32** - Directory for STM32 ARM devices from ST.
-   - **LPC177x_8x** - Directory for LPC177x (Cortex M3) devices with FreeRTOS from NXP.
-   - **MCF5282** - Directory for MCF5282 (ColdFire V2) device from Freescale.
- - **codingStyle** - Description of the coding style.
- - **Doxyfile** - Configuration file for the documentation generator *doxygen*.
- - **Makefile** - Basic makefile.
- - **LICENSE** - License.
- - **README.md** - This file.
- - **example** - Directory with basic example.
+ - **301/** - CANopen application layer and communication profile.
+   - **CO_driver.h** - Interface between CAN hardware and CANopenNode.
+   - **CO_Emergency.h/.c** - CANopen Emergency protocol.
+   - **CO_HBconsumer.h/.c** - CANopen Heartbeat consumer protocol.
+   - **CO_NMT_Heartbeat.h/.c** - CANopen Network management and Heartbeat producer protocol.
+   - **CO_PDO.h/.c** - CANopen Process Data Object protocol.
+   - **CO_SDOclient.h/.c** - CANopen Service Data Object - client protocol (master functionality).
+   - **CO_SDOserver.h/.c** - CANopen Service Data Object - server protocol.
+   - **CO_SYNC.h/.c** - CANopen Synchronisation protocol (producer and consumer).
+   - **CO_TIME.h/.c** - CANopen Time-stamp protocol.
+   - **crc16-ccitt.h/.c** - Calculation of CRC 16 CCITT polynomial.
+ - **305/** - CANopen layer setting services (LSS) and protocols.
+   - **CO_LSS.h** - CANopen Layer Setting Services protocol (common).
+   - **CO_LSSmaster.h/.c** - CANopen Layer Setting Service - master protocol.
+   - **CO_LSSslave.h/.c** - CANopen Layer Setting Service - slave protocol.
+ - **extra/**
+   - **CO_trace.h/.c** - CANopen trace object for recording variables over time.
+ - **example/** - Directory with basic example.
    - **main.c** - Mainline and other threads - example template.
-   - **application.h/.c** - Separate file with some functions, which are
-     called from main.c. May be used for application specific code.
    - **CO_OD.h/.c** - CANopen Object dictionary. Automatically generated files.
    - **IO.eds** - Standard CANopen EDS file, which may be used from CANopen
      configuration tool. Automatically generated file.
@@ -191,6 +170,20 @@ File structure
      It is used by *Object dictionary editor* application, which generates other
      files.
    - _ **project.html** - *Object dictionary editor* launcher.
+ - **socketCAN/** - Directory for Linux socketCAN interface.
+   - **CO_driver_target.h** - Linux socketCAN specific definitions for CANopenNode.
+   - **CO_driver.c** - Interface between Linux socketCAN and CANopenNode.
+   - **CO_error.h/.c** - Linux socketCAN Error handling object.
+   - **CO_Linux_threads.h/.c** - Helper functions for implementing CANopen threads in Linux.
+   - **CO_notify_pipe.h/.c** - Notify pipe for Linux threads.
+   - **CO_OD_storage.h/.c** - Object Dictionary storage object for Linux SocketCAN.
+ - **CANopen.h/.c** - Initialization and processing of CANopen objects.
+ - **codingStyle** - Example of the coding style.
+ - **.clang-format** - Definition file for the coding style.
+ - **Doxyfile** - Configuration file for the documentation generator *doxygen*.
+ - **Makefile** - Basic makefile.
+ - **LICENSE** - License.
+ - **README.md** - This file.
 
 
 ### Object dictionary editor
@@ -232,12 +225,31 @@ For the driver developers, who wish to share and cooperate, I recommend the foll
 6. Write a good README.md file, where you describe your project, specify demo board, tools used, etc.
 
 
-History of the project
-----------------------
-Project was initially hosted on http://sourceforge.net/projects/canopennode/
-It started in 2004 with PIC18F microcontrollers from Microchip.
-Fresh, cleaned repository of CANopenNode stack started on 25.7.2015.
-For older history see http://sourceforge.net/p/canopennode/code_complete/
+Change Log
+----------
+- [Unreleased split-driver](https://github.com/CANopenNode/CANopenNode/tree/split-driver): [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/master...split-driver)
+  - All drivers removed from this project, except Neuberger-socketCAN for Linux.
+  - Driver interface clarified, common CO_driver.h, specific CO_driver_target.h.
+  - Directory structure rearranged.
+  - Time base is now microsecond in all functions.
+  - All CANopen objects calculates next timer info for OS.
+  - Heartbeat consumer optimized and fixed.
+  - Basic Linux socketCAN example.
+- [Unreleased master](https://github.com/CANopenNode/CANopenNode): [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v1.2...master)
+  - License changed to Apache 2.0.
+  - CANopen TIME protocol added.
+  - Various fixes.
+- **[v1.2](https://github.com/CANopenNode/CANopenNode/tree/v1.2)** - 2019-10-08: [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v1.1...v1.2)
+  - CANopen LSS master/slave protocol added for configuration for bitrate and node ID.
+  - Memory barrier implemented for setting/clearing flags for CAN received message.
+  - Neuberger-socketCAN driver added.
+  - Emergency consumer added with callbacks. Emergency revised.
+  - Heartbeat consumer revised, callbacks added.
+- **[v1.1](https://github.com/CANopenNode/CANopenNode/tree/v1.1)** - 2019-10-08: Bugfixes. [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v1.0...v1.1)
+- **[v1.0](https://github.com/CANopenNode/CANopenNode/tree/v1.0)** - 2017-08-01: Stable. [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v0.5...v1.0)
+- **[v0.5](https://github.com/CANopenNode/CANopenNode/tree/v0.5)** - 2015-10-20: Git repository started on GitHub.
+- **[v0.4](https://sourceforge.net/p/canopennode/code_complete/ci/master/tree/)** - 2012-02-26: Git repository started on Sourceforge.
+- **[v0.1](https://sourceforge.net/projects/canopennode/files/canopennode/CANopenNode-0.80/)** - 2004-06-29: First edition of CANopenNode on SourceForge.
 
 
 License

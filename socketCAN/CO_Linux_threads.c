@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "CO_driver.h"
+#include "301/CO_driver.h"
 #include "CANopen.h"
 
 /* Helper function - get monotonic clock time in ms */

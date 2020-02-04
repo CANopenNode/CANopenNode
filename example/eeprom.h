@@ -35,7 +35,7 @@ extern "C" {
 
 /**
  * @defgroup CO_eeprom Nonvolatile storage
- * @ingroup CO_CANopen
+ * @ingroup CO_CANopen_extra
  * @{
  *
  * Storage of nonvolatile CANopen variables into the eeprom.

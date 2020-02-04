@@ -23,11 +23,11 @@
  */
 
 
-#include "CO_driver.h"
-#include "CO_SDO.h"
-#include "CO_Emergency.h"
+#include "301/CO_driver.h"
+#include "301/CO_SDOserver.h"
+#include "301/CO_Emergency.h"
+#include "301/crc16-ccitt.h"
 #include "CO_OD_storage.h"
-#include "crc16-ccitt.h"
 
 #include <stdio.h>
 #include <string.h>     /* for memcpy */

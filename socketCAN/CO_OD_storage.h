@@ -27,8 +27,8 @@
 #define CO_OD_STORAGE_H
 
 
-#include "CO_driver.h"
-#include "CO_SDO.h"
+#include "301/CO_driver.h"
+#include "301/CO_SDOserver.h"
 
 #include <stdio.h>
 

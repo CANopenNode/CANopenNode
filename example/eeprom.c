@@ -26,17 +26,17 @@
  */
 
 
-#include "CO_driver.h"
-#include "CO_SDO.h"
-#include "CO_Emergency.h"
+#include "301/CO_driver.h"
+#include "301/CO_SDOserver.h"
+#include "301/CO_Emergency.h"
+#include "301/crc16-ccitt.h"
 #include "eeprom.h"
-#include "crc16-ccitt.h"
 
 
 /**
  * OD function for accessing _Store parameters_ (index 0x1010) from SDO server.
  *
- * For more information see file CO_SDO.h.
+ * For more information see file CO_SDOserver.h.
  */
 static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg);
 static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg){
@@ -73,7 +73,7 @@ static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg){
 /**
  * OD function for accessing _Restore default parameters_ (index 0x1011) from SDO server.
  *
- * For more information see file CO_SDO.h.
+ * For more information see file CO_SDOserver.h.
  */
 static CO_SDO_abortCode_t CO_ODF_1011(CO_ODF_arg_t *ODF_arg);
 static CO_SDO_abortCode_t CO_ODF_1011(CO_ODF_arg_t *ODF_arg){

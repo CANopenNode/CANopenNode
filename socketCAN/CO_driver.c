@@ -34,7 +34,7 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 
-#include "CO_driver.h"
+#include "301/CO_driver.h"
 
 #if defined CO_DRIVER_ERROR_REPORTING && __has_include("syslog/log.h")
   #include "syslog/log.h"
@@ -43,8 +43,8 @@
   #define log_printf(macropar_prio, macropar_message, ...)
 #endif
 
-#if __has_include("CO_Emergency.h")
-  #include "CO_Emergency.h"
+#if __has_include("301/CO_Emergency.h")
+  #include "301/CO_Emergency.h"
   #define USE_EMERGENCY_OBJECT
 #endif
 
