@@ -85,15 +85,19 @@ CO_ReturnError_t CO_NMT_init(
         CO_EMpr_t              *emPr,
         uint8_t                 nodeId,
         uint16_t                firstHBTime_ms,
-        CO_CANmodule_t         *NMT_CANdev,
+        CO_CANmodule_t         *NMT_CANdevRx,
         uint16_t                NMT_rxIdx,
         uint16_t                CANidRxNMT,
-        CO_CANmodule_t         *HB_CANdev,
+        CO_CANmodule_t         *NMT_CANdevTx,
+        uint16_t                NMT_txIdx,
+        uint16_t                CANidTxNMT,
+        CO_CANmodule_t         *HB_CANdevTx,
         uint16_t                HB_txIdx,
         uint16_t                CANidTxHB)
 {
     /* verify arguments */
-    if(NMT==NULL || emPr==NULL || NMT_CANdev==NULL || HB_CANdev==NULL){
+    if (NMT == NULL || emPr == NULL || NMT_CANdevRx == NULL ||
+        NMT_CANdevTx == NULL || HB_CANdevTx == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -121,7 +125,7 @@ CO_ReturnError_t CO_NMT_init(
 
     /* configure NMT CAN reception */
     CO_CANrxBufferInit(
-            NMT_CANdev,         /* CAN device */
+            NMT_CANdevRx,       /* CAN device */
             NMT_rxIdx,          /* rx buffer index */
             CANidRxNMT,         /* CAN identifier */
             0x7FF,              /* mask */
@@ -129,10 +133,20 @@ CO_ReturnError_t CO_NMT_init(
             (void*)NMT,         /* object passed to receive function */
             CO_NMT_receive);    /* this function will process received message */
 
+    /* configure NMT CAN transmission */
+    NMT->NMT_CANdevTx = NMT_CANdevTx;
+    NMT->NMT_TXbuff = CO_CANtxBufferInit(
+            NMT_CANdevTx,       /* CAN device */
+            NMT_txIdx,          /* index of specific buffer inside CAN module */
+            CANidTxNMT,         /* CAN identifier */
+            0,                  /* rtr */
+            2,                  /* number of data bytes */
+            0);                 /* synchronous message flag bit */
+
     /* configure HB CAN transmission */
-    NMT->HB_CANdev = HB_CANdev;
+    NMT->HB_CANdevTx = HB_CANdevTx;
     NMT->HB_TXbuff = CO_CANtxBufferInit(
-            HB_CANdev,          /* CAN device */
+            HB_CANdevTx,        /* CAN device */
             HB_txIdx,           /* index of specific buffer inside CAN module */
             CANidTxHB,          /* CAN identifier */
             0,                  /* rtr */
@@ -182,7 +196,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         NMT->HBproducerTimer = 0;
 
         NMT->HB_TXbuff->data[0] = NMT->operatingState;
-        CO_CANsend(NMT->HB_CANdev, NMT->HB_TXbuff);
+        CO_CANsend(NMT->HB_CANdevTx, NMT->HB_TXbuff);
 
         if (NMT->operatingState == CO_NMT_INITIALIZING) {
             /* After bootup messages send first heartbeat earlier */
@@ -363,4 +377,53 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
         return (CO_NMT_internalState_t) NMT->operatingState;
     }
     return CO_NMT_INITIALIZING;
+}
+
+
+/******************************************************************************/
+CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
+                                    CO_NMT_command_t command,
+                                    uint8_t nodeID)
+{
+    CO_ReturnError_t error = CO_ERROR_NO;
+
+    /* verify arguments */
+    if (NMT == NULL) {
+        error = CO_ERROR_TX_UNCONFIGURED;
+    }
+
+    /* Apply NMT command also to this node, if set so. */
+    if (error == CO_ERROR_NO && (nodeID == 0 || nodeID == NMT->nodeId)) {
+        switch (command) {
+        case CO_NMT_ENTER_OPERATIONAL:
+            if ((*NMT->emPr->errorRegister) == 0) {
+                NMT->operatingState = CO_NMT_OPERATIONAL;
+            }
+            break;
+        case CO_NMT_ENTER_STOPPED:
+            NMT->operatingState = CO_NMT_STOPPED;
+            break;
+        case CO_NMT_ENTER_PRE_OPERATIONAL:
+            NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
+            break;
+        case CO_NMT_RESET_NODE:
+            NMT->resetCommand = CO_RESET_APP;
+            break;
+        case CO_NMT_RESET_COMMUNICATION:
+            NMT->resetCommand = CO_RESET_COMM;
+            break;
+        default:
+            error = CO_ERROR_ILLEGAL_ARGUMENT;
+            break;
+        }
+    }
+
+    /* Send NMT master message. */
+    if (error == CO_ERROR_NO) {
+        NMT->NMT_TXbuff->data[0] = command;
+        NMT->NMT_TXbuff->data[1] = nodeID;
+        error = CO_CANsend(NMT->NMT_CANdevTx, NMT->NMT_TXbuff);
+    }
+
+    return error;
 }

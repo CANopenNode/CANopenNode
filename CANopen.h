@@ -115,73 +115,106 @@ extern "C" {
 #if CO_NO_SDO_CLIENT != 0
     #include "301/CO_SDOclient.h"
 #endif
-#if CO_NO_TRACE > 0
-    #include "extra/CO_trace.h"
-#endif
-#if CO_NO_LSS_SERVER == 1
+#if CO_NO_LSS_SLAVE != 0
     #include "305/CO_LSSslave.h"
 #endif
-#if CO_NO_LSS_CLIENT == 1
+#if CO_NO_LSS_MASTER != 0
     #include "305/CO_LSSmaster.h"
+#endif
+#if CO_NO_TRACE != 0
+    #include "extra/CO_trace.h"
 #endif
     #include "CO_OD.h"
 
+
+#ifdef CO_DOXYGEN
 /**
- * CANopen object combines pointers to all CANopen objects.
+ * @defgroup CO_NO_OBJ Number of CANopenNode communication objects.
+ *
+ * Definitions specify, which and how many CANopenNode communication objects
+ * will be used in current configuration. Usage of some objects is mandatory and
+ * is fixed. Others are defined in CO_OD.h.
+ * @{
  */
-typedef struct{
-    CO_CANmodule_t     *CANmodule[1];   /**< CAN module objects */
-    CO_SDO_t           *SDO[CO_NO_SDO_SERVER]; /**< SDO object */
-    CO_EM_t            *em;             /**< Emergency report object */
-    CO_EMpr_t          *emPr;           /**< Emergency process object */
-    CO_NMT_t           *NMT;            /**< NMT object */
-    CO_SYNC_t          *SYNC;           /**< SYNC object */
-    CO_TIME_t          *TIME;           /**< TIME object */
-    CO_RPDO_t          *RPDO[CO_NO_RPDO];/**< RPDO objects */
-    CO_TPDO_t          *TPDO[CO_NO_TPDO];/**< TPDO objects */
-    CO_HBconsumer_t    *HBcons;         /**<  Heartbeat consumer object*/
+/* Definitions valid only for documentation. */
+/** Number of NMT objects, fixed to 1 (slave(CANrx) + master(CANtx)) */
+#define CO_NO_NMT (1)
+/** Number of SYNC objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
+#define CO_NO_SYNC (0...1)
+/** Number of Emergency objects, fixed to 1 (consumer(CANrx) +
+ * producer(CANtx)) */
+#define CO_NO_EMERGENCY (1)
+/** Number of Time-stamp objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
+#define CO_NO_TIME (0...1)
+/** Number of RPDO objects, 1 to 512 consumers (CANrx) */
+#define CO_NO_RPDO (1...512)
+/** Number of TPDO objects, 1 to 512 producers (CANtx) */
+#define CO_NO_TPDO (1...512)
+/** Number of SDO server objects, from 1 to 128 (CANrx + CANtx) */
+#define CO_NO_SDO_SERVER (1...128)
+/** Number of SDO client objects, from 0 to 128 (CANrx + CANtx) */
+#define CO_NO_SDO_CLIENT (0...128)
+/** Number of HB producer objects, fixed to 1 producer(CANtx) */
+#define CO_NO_HB_PROD (1)
+/** Number of HB consumer objects, from 0 to 127 consumers(CANrx) */
+#define CO_NO_HB_CONS (0...127)
+/** Number of LSS slave objects, 0 or 1 (CANrx + CANtx) */
+#define CO_NO_LSS_SLAVE (0...1)
+/** Number of LSS master objects, 0 or 1 (CANrx + CANtx) */
+#define CO_NO_LSS_MASTER) (0...1)
+/** Number of Trace objects, 0 to many */
+#define CO_NO_TRACE) (0...)
+/** @} */
+#else  /* CO_DOXYGEN */
+
+/* Valid Definitions for program. */
+#define CO_NO_NMT     1             /* NMT master/slave count (fixed) */
+#define CO_NO_HB_PROD 1             /* Heartbeat producer count (fixed) */
+#ifdef ODL_consumerHeartbeatTime_arrayLength
+    #define CO_NO_HB_CONS ODL_consumerHeartbeatTime_arrayLength
+#else
+    #define CO_NO_HB_CONS 0
+#endif
+#endif /* CO_DOXYGEN */
+
+
+/**
+ * CANopen object with pointers to all CANopenNode objects.
+ */
+typedef struct {
+    CO_CANmodule_t *CANmodule[1];    /**< CAN module objects */
+    CO_SDO_t *SDO[CO_NO_SDO_SERVER]; /**< SDO object */
+    CO_EM_t *em;                     /**< Emergency report object */
+    CO_EMpr_t *emPr;                 /**< Emergency process object */
+    CO_NMT_t *NMT;                   /**< NMT object */
+    CO_SYNC_t *SYNC;                 /**< SYNC object */
+    CO_TIME_t *TIME;                 /**< TIME object */
+    CO_RPDO_t *RPDO[CO_NO_RPDO];     /**< RPDO objects */
+    CO_TPDO_t *TPDO[CO_NO_TPDO];     /**< TPDO objects */
+    CO_HBconsumer_t *HBcons;         /**< Heartbeat consumer object*/
+#if CO_NO_SDO_CLIENT != 0
+    CO_SDOclient_t *SDOclient[CO_NO_SDO_CLIENT]; /**< SDO client object */
+#endif
 #if CO_NO_LSS_SERVER == 1
-    CO_LSSslave_t      *LSSslave;       /**< LSS server/slave object */
+    CO_LSSslave_t *LSSslave;         /**< LSS slave object */
 #endif
 #if CO_NO_LSS_CLIENT == 1
-    CO_LSSmaster_t     *LSSmaster;      /**< LSS master/client object */
-#endif
-#if CO_NO_SDO_CLIENT != 0
-    CO_SDOclient_t     *SDOclient[CO_NO_SDO_CLIENT]; /**< SDO client object */
+    CO_LSSmaster_t *LSSmaster;       /**< LSS master object */
 #endif
 #if CO_NO_TRACE > 0
-    CO_trace_t         *trace[CO_NO_TRACE]; /**< Trace object for monitoring variables */
+    CO_trace_t *trace[CO_NO_TRACE]; /**< Trace object for recording variables */
 #endif
-}CO_t;
+} CO_t;
 
 
 /** CANopen object */
-    extern CO_t *CO;
+extern CO_t *CO;
 
 
-/**
- * Function CO_sendNMTcommand() is simple function, which sends CANopen message.
- * This part of code is an example of custom definition of simple CANopen
- * object. Follow the code in CANopen.c file. If macro CO_NO_NMT_MASTER is 1,
- * function CO_sendNMTcommand can be used to send NMT master message.
- *
- * @param co CANopen object.
- * @param command NMT command.
- * @param nodeID Node ID.
- *
- * @return 0: Operation completed successfully.
- * @return other: same as CO_CANsend().
- */
-#if CO_NO_NMT_MASTER == 1
-    CO_ReturnError_t CO_sendNMTcommand(CO_t *co, uint8_t command, uint8_t nodeID);
-#endif
-
-
-#if CO_NO_LSS_SERVER == 1
 /**
  * Allocate and initialize memory for CANopen object
  *
- * Function must be called in the communication reset section.
+ * Function must be called the first time, after program starts.
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_OUT_OF_MEMORY
@@ -190,73 +223,54 @@ CO_ReturnError_t CO_new(void);
 
 
 /**
+ * Delete CANopen object and free memory. Must be called at program exit.
+ *
+ * @param CANptr Pointer to the user-defined CAN base structure, passed to
+ *               CO_CANmodule_init().
+ */
+void CO_delete(void *CANptr);
+
+
+/**
  * Initialize CAN driver
  *
  * Function must be called in the communication reset section.
  *
- * @param CANptr Pointer to the CAN module, passed to CO_CANmodule_init().
+ * @param CANptr Pointer to the user-defined CAN base structure, passed to
+ *               CO_CANmodule_init().
  * @param bitRate CAN bit rate.
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_ILLEGAL_BAUDRATE, CO_ERROR_OUT_OF_MEMORY
  */
-CO_ReturnError_t CO_CANinit(
-        void                   *CANptr,
-        uint16_t                bitRate);
+CO_ReturnError_t CO_CANinit(void *CANptr,
+                            uint16_t bitRate);
 
 
+#if CO_NO_LSS_SERVER == 1
 /**
  * Initialize CANopen LSS slave
  *
  * Function must be called in the communication reset section.
  *
- * @param nodeId Node ID of the CANopen device (1 ... 127) or CO_LSS_NODE_ID_ASSIGNMENT
+ * @param nodeId Node ID of the CANopen device (1 ... 127) or
+ *               CO_LSS_NODE_ID_ASSIGNMENT
  * @param bitRate CAN bit rate.
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
  */
-CO_ReturnError_t CO_LSSinit(
-        uint8_t                 nodeId,
-        uint16_t                bitRate);
-
-
-/**
- * Initialize CANopenNode.
- *
- * Function must be called in the communication reset section.
- *
- * @param nodeId Node ID of the CANopen device (1 ... 127).
- * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
- */
-CO_ReturnError_t CO_CANopenInit(
-        uint8_t                 nodeId);
-
-
-#else /* CO_NO_LSS_SERVER == 1 */
-/**
- * Initialize CANopenNode.
- *
- * Function must be called in the communication reset section.
- *
- * @param CANptr Pointer to the user-defined CAN base structure, passed to CO_CANmodule_init().
- * @param nodeId Node ID of the CANopen device (1 ... 127).
- * @param bitRate CAN bit rate.
- *
- * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
- * CO_ERROR_OUT_OF_MEMORY, CO_ERROR_ILLEGAL_BAUDRATE
- */
-CO_ReturnError_t CO_init(
-        void                   *CANptr,
-        uint8_t                 nodeId,
-        uint16_t                bitRate);
-
+CO_ReturnError_t CO_LSSinit(uint8_t nodeId,
+                            uint16_t bitRate);
 #endif /* CO_NO_LSS_SERVER == 1 */
 
 
 /**
- * Delete CANopen object and free memory. Must be called at program exit.
+ * Initialize CANopenNode.
  *
- * @param CANptr Pointer to the user-defined CAN base structure, passed to CO_CANmodule_init().
+ * Function must be called in the communication reset section.
+ *
+ * @param nodeId Node ID of the CANopen device (1 ... 127).
+ * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
  */
-void CO_delete(void *CANptr);
+CO_ReturnError_t CO_CANopenInit(uint8_t nodeId);
 
 
 /**
@@ -266,7 +280,8 @@ void CO_delete(void *CANptr);
  * objects.
  *
  * @param co CANopen object.
- * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param timeDifference_us Time difference from previous function call in
+ *                          microseconds.
  * @param timerNext_us [out] info to OS - maximum delay after function
  *        should be called next time in [microseconds]. Value can be used for OS
  *        sleep time. Initial value must be set to something, 50000us typically.
@@ -276,10 +291,9 @@ void CO_delete(void *CANptr);
  *
  * @return #CO_NMT_reset_cmd_t from CO_NMT_process().
  */
-CO_NMT_reset_cmd_t CO_process(
-        CO_t                   *co,
-        uint32_t                timeDifference_us,
-        uint32_t               *timerNext_us);
+CO_NMT_reset_cmd_t CO_process(CO_t *co,
+                              uint32_t timeDifference_us,
+                              uint32_t *timerNext_us);
 
 
 #if CO_NO_SYNC == 1
@@ -290,14 +304,17 @@ CO_NMT_reset_cmd_t CO_process(
  * interval (1ms typically). It processes SYNC CANopen objects.
  *
  * @param co CANopen object.
- * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param timeDifference_us Time difference from previous function call in
+ * microseconds.
+ * @param timerNext_us [out] info to OS - see CO_process().
  *
  * @return True, if CANopen SYNC message was just received or transmitted.
  */
-bool_t CO_process_SYNC(
-        CO_t                   *co,
-        uint32_t                timeDifference_us);
+bool_t CO_process_SYNC(CO_t *co,
+                       uint32_t timeDifference_us,
+                       uint32_t *timerNext_us);
 #endif
+
 
 /**
  * Process CANopen RPDO objects.
@@ -306,11 +323,11 @@ bool_t CO_process_SYNC(
  * interval (1ms typically). It processes receive PDO CANopen objects.
  *
  * @param co CANopen object.
- * @param syncWas True, if CANopen SYNC message was just received or transmitted.
+ * @param syncWas True, if CANopen SYNC message was just received or
+ * transmitted.
  */
-void CO_process_RPDO(
-        CO_t                   *co,
-        bool_t                  syncWas);
+void CO_process_RPDO(CO_t *co, bool_t syncWas);
+
 
 /**
  * Process CANopen TPDO objects.
@@ -319,42 +336,22 @@ void CO_process_RPDO(
  * interval (1ms typically). It processes transmit PDO CANopen objects.
  *
  * @param co CANopen object.
- * @param syncWas True, if CANopen SYNC message was just received or transmitted.
- * @param timeDifference_us Time difference from previous function call in [microseconds].
+ * @param syncWas True, if CANopen SYNC message was just received or
+ * transmitted.
+ * @param timeDifference_us Time difference from previous function call in
+ * microseconds.
+ * @param timerNext_us [out] info to OS - see CO_process().
  */
-void CO_process_TPDO(
-        CO_t                   *co,
-        bool_t                  syncWas,
-        uint32_t                timeDifference_us);
+void CO_process_TPDO(CO_t *co,
+                     bool_t syncWas,
+                     uint32_t timeDifference_us,
+                     uint32_t *timerNext_us);
 
 
-#if CO_NO_SYNC == 1
-/**
- * Process CANopen SYNC and PDO objects.
- *
- * Function must be called cyclically from real time thread with constant.
- * interval (1ms typically). It processes SYNC and PDO CANopen objects.
- *
- * @param co This object.
- * @param timeDifference_us Time difference from previous function call in [microseconds].
- * @param timerNext_us [out] info to OS - maximum delay after function
- *        should be called next time in [microseconds]. Value can be used for OS
- *        sleep time. Initial value must be set to something, 1000us typically.
- *        Output will be equal or lower to initial value. If there is new object
- *        to process, delay should be suspended and this function should be
- *        called immediately. Parameter is ignored if NULL.
- *
- * @return True, if CANopen SYNC message was just received or transmitted.
- */
-bool_t CO_process_SYNC_PDO(
-        CO_t                   *co,
-        uint32_t                timeDifference_us,
-        uint32_t               *timerNext_us);
-#endif
+/** @} */
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
-/** @} */
 #endif /* CANopen_H */

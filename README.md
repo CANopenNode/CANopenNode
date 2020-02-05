@@ -230,10 +230,9 @@ Change Log
 - [Unreleased split-driver](https://github.com/CANopenNode/CANopenNode/tree/split-driver): [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/master...split-driver)
   - All drivers removed from this project, except Neuberger-socketCAN for Linux.
   - Driver interface clarified, common CO_driver.h, specific CO_driver_target.h.
-  - Directory structure rearranged.
-  - Time base is now microsecond in all functions.
-  - All CANopen objects calculates next timer info for OS.
-  - Heartbeat consumer optimized and fixed.
+  - Directory structure rearranged. Change of the project files will be necessary.
+  - Time base is now microsecond in all functions. All CANopen objects calculates next timer info for OS. CANopen.h/.c files revised. Compare the example/main.c file to view some differences in interface.
+  - Heartbeat consumer optimized and fixed. CO_NMT_sendCommand() master function moved from CANopen.c into CO_NMT_Heartbeat.c.
   - Basic Linux socketCAN example.
 - [Unreleased master](https://github.com/CANopenNode/CANopenNode): [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v1.2...master)
   - License changed to Apache 2.0.

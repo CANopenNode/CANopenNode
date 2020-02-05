@@ -147,9 +147,11 @@ typedef struct{
     uint32_t            HBproducerTimer;/**< Internal timer for HB producer */
     uint32_t            firstHBTime;    /**< From CO_NMT_init() */
     CO_EMpr_t          *emPr;           /**< From CO_NMT_init() */
-    CO_CANmodule_t     *HB_CANdev;      /**< From CO_NMT_init() */
+    CO_CANmodule_t     *NMT_CANdevTx;   /**< From CO_NMT_init() */
+    CO_CANtx_t         *NMT_TXbuff;     /**< CAN transmit buffer for NMT master message */
+    CO_CANmodule_t     *HB_CANdevTx;    /**< From CO_NMT_init() */
+    CO_CANtx_t         *HB_TXbuff;      /**< CAN transmit buffer for heartbeat message */
     void              (*pFunctNMT)(CO_NMT_internalState_t state); /**< From CO_NMT_initCallback() or NULL */
-    CO_CANtx_t         *HB_TXbuff;      /**< CAN transmit buffer */
 }CO_NMT_t;
 
 
@@ -164,10 +166,13 @@ typedef struct{
  * @param firstHBTime_ms Time between bootup and first heartbeat message in milliseconds.
  * If firstHBTime is greater than _Producer Heartbeat time_
  * (object dictionary, index 0x1017), latter is used instead.
- * @param NMT_CANdev CAN device for NMT reception.
+ * @param NMT_CANdevRx CAN device for NMT reception.
  * @param NMT_rxIdx Index of receive buffer in above CAN device.
- * @param CANidRxNMT CAN identifier for NMT message.
- * @param HB_CANdev CAN device for HB transmission.
+ * @param CANidRxNMT CAN identifier for NMT receive message.
+ * @param NMT_CANdevTx CAN device for NMT master transmission.
+ * @param NMT_txIdx Index of transmit buffer in above CAN device.
+ * @param CANidTxNMT CAN identifier for NMT transmit message.
+ * @param HB_CANdevTx CAN device for HB transmission.
  * @param HB_txIdx Index of transmit buffer in the above CAN device.
  * @param CANidTxHB CAN identifier for HB message.
  *
@@ -178,10 +183,13 @@ CO_ReturnError_t CO_NMT_init(
         CO_EMpr_t              *emPr,
         uint8_t                 nodeId,
         uint16_t                firstHBTime_ms,
-        CO_CANmodule_t         *NMT_CANdev,
+        CO_CANmodule_t         *NMT_CANdevRx,
         uint16_t                NMT_rxIdx,
         uint16_t                CANidRxNMT,
-        CO_CANmodule_t         *HB_CANdev,
+        CO_CANmodule_t         *NMT_CANdevTx,
+        uint16_t                NMT_txIdx,
+        uint16_t                CANidTxNMT,
+        CO_CANmodule_t         *HB_CANdevTx,
         uint16_t                HB_txIdx,
         uint16_t                CANidTxHB);
 
@@ -242,9 +250,29 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
         CO_NMT_t               *NMT);
 
 
+/**
+ * Send NMT master command.
+ *
+ * This functionality can only be used from NMT master. There is one exception
+ * where application from slave node may send NMT master command: If CANopen
+ * object 0x1F80 has value of **0x2**, then NMT slave shall execute the NMT
+ * service start remote node (CO_NMT_ENTER_OPERATIONAL) with nodeID set to 0.
+ *
+ * @param NMT This object.
+ * @param command NMT command from CO_NMT_command_t.
+ * @param nodeID Node ID of the remote node. 0 for all nodes including self.
+ *
+ * @return 0: Operation completed successfully.
+ * @return other: same as CO_CANsend().
+ */
+CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
+                                    CO_NMT_command_t command,
+                                    uint8_t nodeID);
+
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
 #endif

@@ -32,7 +32,7 @@
 #define INCREMENT_1MS(var)  (var++)         /* Increment 1ms variable in tmrTask */
 
 /**
- * User-defined CAN base structure, passed as argument to CO_init.
+ * User-defined CAN base structure, passed as argument to CO_CANinit.
  */
 struct CANbase {
     uintptr_t baseAddress;  /**< Base address of the CAN module */
@@ -44,10 +44,17 @@ struct CANbase {
 
 /* main ***********************************************************************/
 int main (void){
+    CO_ReturnError_t err;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
 
     /* Configure microcontroller. */
 
+
+    /* Allocate memory */
+    err = CO_new();
+    if (err != CO_ERROR_NO) {
+        while(1);
+    }
 
     /* initialize EEPROM */
 
@@ -58,7 +65,6 @@ int main (void){
 
     while(reset != CO_RESET_APP){
 /* CANopen communication reset - initialize CANopen objects *******************/
-        CO_ReturnError_t err;
         uint16_t timer1msPrevious;
 
         /* disable CAN and CAN interrupts */
@@ -67,12 +73,14 @@ int main (void){
         };
 
         /* initialize CANopen */
-        err = CO_init(&canBase, 10/* NodeID */, 125 /* bit rate */);
+        err = CO_CANinit(&canBase, 125 /* bit rate */);
+        if (err == CO_ERROR_NO) {
+            err = CO_CANopenInit(10/* NodeID */);
+        }
         if(err != CO_ERROR_NO){
             while(1);
             /* CO_errorReport(CO->em, CO_EM_MEMORY_ALLOCATION_ERROR, CO_EMC_SOFTWARE_INTERNAL, err); */
         }
-
 
         /* Configure Timer interrupt function for execution every 1 millisecond */
 
@@ -96,7 +104,7 @@ int main (void){
 
 
             /* CANopen process */
-            reset = CO_process(CO, timer1msDiff, NULL);
+            reset = CO_process(CO, timer1msDiff*1000, NULL);
 
             /* Nonblocking application code may go here. */
 
@@ -131,7 +139,7 @@ void tmrTask_thread(void){
             bool_t syncWas;
 
             /* Process Sync */
-            syncWas = CO_process_SYNC(CO, TMR_TASK_INTERVAL);
+            syncWas = CO_process_SYNC(CO, TMR_TASK_INTERVAL, NULL);
 
             /* Read inputs */
             CO_process_RPDO(CO, syncWas);
@@ -139,7 +147,7 @@ void tmrTask_thread(void){
             /* Further I/O or nonblocking application code may go here. */
 
             /* Write outputs */
-            CO_process_TPDO(CO, syncWas, TMR_TASK_INTERVAL);
+            CO_process_TPDO(CO, syncWas, TMR_TASK_INTERVAL, NULL);
 
             /* verify timer overflow */
             if(0) {
