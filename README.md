@@ -54,8 +54,8 @@ then NMT operational state is not allowed.
 Usage of the CANopenNode
 ------------------------
 CANopenNode itself doesn't have complete working code for any microcontroller.
-It is only the library with the stack It has example, which should compile
-on any system with template driver (drvTemplate), which actually doesn't
+It is only the library with the stack. It has example, which should compile
+on any system with blank template driver, which actually doesn't
 access CAN hardware. CANopenNode should be used as a git submodule included
 in a project with specific hardware and specific application.
 
@@ -64,7 +64,7 @@ Documentation, support and contributions
 ----------------------------------------
 Code is documented in header files. Running [doxygen](http://www.doxygen.nl/)
 or `make doc` in project base folder will produce complete html documentation.
-Just open CANopenNode/doc/html/index.html in browser.
+Just open CANopenNode/doc/html/index.html in the browser.
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
 
@@ -137,8 +137,6 @@ Flowchart of a typical CANopenNode implementation
              | - Can request node    |
              |   enumeration         |
               -----------------------
-
-
 ~~~
 
 
@@ -202,10 +200,10 @@ external application. There are two:
 
 Device support
 --------------
-CANopenNode can be implemented on many different devices. It is
-necessary to implement interface to specific hardware, so called 'driver'.
-Currently driver files are part of CANopenNode, but they will be split from
-it in the future.
+CANopenNode can be implemented on many different devices. It is necessary
+to implement interface to specific hardware. Interface to Linux socketCAN is
+part of this projects, while interfaces to other controllers are separate
+projects. There are interfaces to: Zephyr RTOS, PIC, Mbed-os RTOS + STM32, etc.
 
 Most up to date information on device support can be found on
 [CANopenNode/wiki](https://github.com/CANopenNode/CANopenNode/wiki).

@@ -104,7 +104,7 @@ int main (void){
 
 
             /* CANopen process */
-            reset = CO_process(CO, timer1msDiff*1000, NULL);
+            reset = CO_process(CO, (uint32_t)timer1msDiff*1000, NULL);
 
             /* Nonblocking application code may go here. */
 

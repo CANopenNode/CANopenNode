@@ -269,7 +269,7 @@ void CO_delete(void *CANptr) {
 
     CO_CANsetConfigurationMode(CANptr);
 
-    /* If CANopen was initialized before, return. */
+    /* If CANopen isn't initialized, return. */
     if (CO == NULL) {
         return;
     }
