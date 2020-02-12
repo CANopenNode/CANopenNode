@@ -1,7 +1,7 @@
 /**
  * CANopen Time-stamp protocol.
  *
- * @file        CO_TIME.c
+ * @file        CO_TIME.h
  * @ingroup     CO_TIME
  * @author      Julien PEYREGNE
  * @copyright   2019 - 2020 Janez Paternoster
@@ -152,9 +152,10 @@ uint8_t CO_TIME_process(
         CO_TIME_t              *TIME,
         uint32_t                timeDifference_us);
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
 #endif

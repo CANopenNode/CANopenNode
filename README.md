@@ -1,7 +1,7 @@
 CANopenNode
 ===========
 
-CANopenNode is free and open source CANopen Stack.
+CANopenNode is free and open source CANopen protocol stack.
 
 CANopen is the internationally standardized (EN 50325-4)
 ([CiA301](http://can-cia.org/standardization/technical-documents))
@@ -10,12 +10,10 @@ information on CANopen see http://www.can-cia.org/
 
 CANopenNode is written in ANSI C in object-oriented way. It runs on
 different microcontrollers, as standalone application or with RTOS.
-Stack includes master functionalities. For Linux implementation with
-CANopen master functionalities see
-https://github.com/CANopenNode/CANopenSocket.
+Linux implementation with CANopen master functionalities is included.
 
 Variables (communication, device, custom) are ordered in CANopen Object
-Dictionary and are accessible from both: C code and from CAN network.
+Dictionary and are accessible from both: C code and from CANopen network.
 
 CANopenNode homepage is https://github.com/CANopenNode/CANopenNode
 
@@ -51,19 +49,13 @@ receive Process Data Objects (PDO). If Error Register (object 0x1001) is set,
 then NMT operational state is not allowed.
 
 
-Usage of the CANopenNode
-------------------------
-CANopenNode itself doesn't have complete working code for any microcontroller.
-It is only the library with the stack. It has example, which should compile
-on any system with blank template driver, which actually doesn't
-access CAN hardware. CANopenNode should be used as a git submodule included
-in a project with specific hardware and specific application.
-
-
 Documentation, support and contributions
 ----------------------------------------
+Documentation with [Getting started](doc/gettingStarted.md),
+[LSS usage](doc/LSSusage.md) and [Trace usage](doc/traceUsage.md) is in `doc`
+directory.
 Code is documented in header files. Running [doxygen](http://www.doxygen.nl/)
-or `make doc` in project base folder will produce complete html documentation.
+or `make doc` in project base directory will produce complete html documentation.
 Just open CANopenNode/doc/html/index.html in the browser.
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
@@ -71,16 +63,11 @@ Report issues on https://github.com/CANopenNode/CANopenNode/issues
 Older and still active discussion group is on Sourceforge
 http://sourceforge.net/p/canopennode/discussion/387151/
 
-For some implementations of CANopenNode on real hardware see
-[Device support](#device-support) section.
-[CANopenSocket](https://github.com/CANopenNode/CANopenSocket) is nice
-implementation for Linux devices. It includes command line interface for
-master access of the CANopen network. There is also some Getting started.
-
 Contributions are welcome. Best way to contribute your code is to fork
 a project, modify it and then send a pull request. Some basic formatting
 rules should be followed: Linux style with indentation of 4 spaces. There
-is also a configuration file for `clang-format` tool.
+is also a `codingStyle` file with example and a configuration file for
+`clang-format` tool.
 
 
 Flowchart of a typical CANopenNode implementation
@@ -110,9 +97,9 @@ Flowchart of a typical CANopenNode implementation
 |   data to target      |  | - Copy inputs (RPDOs, |  |    - Emergency,       |
 |   CANopen objects.    |  |   HW) to Object Dict. |  |    - Network state,   |
 |                       |  | - May call application|  |    - Heartbeat.       |
-|                       |  |   for some processing.|  | - May cyclically call |
-|                       |  | - Copy variables from |  |   application code.   |
-|                       |  |   Object Dictionary to|  |                       |
+|                       |  |   for some processing.|  |    - LSS slave        |
+|                       |  | - Copy variables from |  | - May cyclically call |
+|                       |  |   Object Dictionary to|  |   application code.   |
 |                       |  |   outputs (TPDOs, HW).|  |                       |
  -----------------------    -----------------------    -----------------------
 
@@ -129,7 +116,7 @@ Flowchart of a typical CANopenNode implementation
               -----------------------
 
               -----------------------
-             | LSS client (optional) |
+             | LSS Master (optional) |
              |                       |
              | - Can be called by    |
              |   external application|
@@ -175,6 +162,12 @@ File structure
    - **CO_Linux_threads.h/.c** - Helper functions for implementing CANopen threads in Linux.
    - **CO_notify_pipe.h/.c** - Notify pipe for Linux threads.
    - **CO_OD_storage.h/.c** - Object Dictionary storage object for Linux SocketCAN.
+ - **doc/** - Directory with documentation
+   - **CHANGELOG.md** - Change Log file.
+   - **deviceSupport.md** - Information about supported devices.
+   - **gettingStarted.md, LSSusage.md, traceUsage.md** - Getting started and usage.
+   - **index.html** - Soft link to html/index.html.
+   - **html** - Directory with documentation - must be generated by Doxygen.
  - **CANopen.h/.c** - Initialization and processing of CANopen objects.
  - **codingStyle** - Example of the coding style.
  - **.clang-format** - Definition file for the coding style.
@@ -184,69 +177,36 @@ File structure
  - **README.md** - This file.
 
 
-### Object dictionary editor
+Object dictionary editor
+------------------------
 Object Dictionary is one of the most important parts of CANopen. Its
 implementation in CANopenNode is quite outdated and there are efforts to
 rewrite it. Anyway, currently it is fully operational and works well.
 
-To customize the Object Dictionary it is necessary to use the
-external application. There are two:
- - [libedssharp](https://github.com/robincornelius/libedssharp) -
-   recommended, can be used with mono.
- - [Object_Dictionary_Editor](http://sourceforge.net/p/canopennode/code_complete/) -
-   originally part of CANopenNode. It is still operational, but requiers
-   very old version of Firefox to run.
+To customize the Object Dictionary it is necessary to use external application:
+[libedssharp](https://github.com/robincornelius/libedssharp). It can be used in
+Windows or Linux with Mono.
+
+Please note: since rearrangement in directory structure it is necessary to
+manually update CO_OD.c file - it must include: `301/CO_driver.h`, `CO_OD.h` and
+`301/CO_SDOserver.h`.
 
 
 Device support
 --------------
-CANopenNode can be implemented on many different devices. It is necessary
-to implement interface to specific hardware. Interface to Linux socketCAN is
-part of this projects, while interfaces to other controllers are separate
-projects. There are interfaces to: Zephyr RTOS, PIC, Mbed-os RTOS + STM32, etc.
+CANopenNode can run on many different devices. Each device (or microcontroller)
+must have own interface to CANopenNode. CANopenNode can run with or without
+operating system.
 
-Most up to date information on device support can be found on
-[CANopenNode/wiki](https://github.com/CANopenNode/CANopenNode/wiki).
-
-
-### Note for contributors
-For the driver developers, who wish to share and cooperate, I recommend the following approach:
-1. Make own git repo for the Device specific demo project on the Github or somewhere.
-2. Add https://github.com/CANopenNode/CANopenNode into your project (or at side of your project).
-   For example, include it in your project as a git submodule:
-   `git submodule add https://github.com/CANopenNode/CANopenNode`
-3. Add specific driver and other files.
-4. **Add a note** about your specific implementation here on
-   [CANopenNode/wiki](https://github.com/CANopenNode/CANopenNode/wiki) with some
-   basic description and status. Write a note, even it has an Alpha status.
-5. Make a demo folder, which contains project files, etc., necessary to run the demo.
-6. Write a good README.md file, where you describe your project, specify demo board, tools used, etc.
+It is not practical to have all device interfaces in a single project. For that
+reason CANopenNode project only includes interface to Linux socketCAN.
+Interfaces to other microcontrollers are in separate projects. See
+[deviceSupport.md](doc/deviceSupport.md) for list of known device interfaces.
 
 
 Change Log
 ----------
-- [Unreleased split-driver](https://github.com/CANopenNode/CANopenNode/tree/split-driver): [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/master...split-driver)
-  - All drivers removed from this project, except Neuberger-socketCAN for Linux.
-  - Driver interface clarified, common CO_driver.h, specific CO_driver_target.h.
-  - Directory structure rearranged. Change of the project files will be necessary.
-  - Time base is now microsecond in all functions. All CANopen objects calculates next timer info for OS. CANopen.h/.c files revised. Compare the example/main.c file to view some differences in interface.
-  - Heartbeat consumer optimized and fixed. CO_NMT_sendCommand() master function moved from CANopen.c into CO_NMT_Heartbeat.c.
-  - Basic Linux socketCAN example.
-- [Unreleased master](https://github.com/CANopenNode/CANopenNode): [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v1.2...master)
-  - License changed to Apache 2.0.
-  - CANopen TIME protocol added.
-  - Various fixes.
-- **[v1.2](https://github.com/CANopenNode/CANopenNode/tree/v1.2)** - 2019-10-08: [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v1.1...v1.2)
-  - CANopen LSS master/slave protocol added for configuration for bitrate and node ID.
-  - Memory barrier implemented for setting/clearing flags for CAN received message.
-  - Neuberger-socketCAN driver added.
-  - Emergency consumer added with callbacks. Emergency revised.
-  - Heartbeat consumer revised, callbacks added.
-- **[v1.1](https://github.com/CANopenNode/CANopenNode/tree/v1.1)** - 2019-10-08: Bugfixes. [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v1.0...v1.1)
-- **[v1.0](https://github.com/CANopenNode/CANopenNode/tree/v1.0)** - 2017-08-01: Stable. [Full Changelog](https://github.com/CANopenNode/CANopenNode/compare/v0.5...v1.0)
-- **[v0.5](https://github.com/CANopenNode/CANopenNode/tree/v0.5)** - 2015-10-20: Git repository started on GitHub.
-- **[v0.4](https://sourceforge.net/p/canopennode/code_complete/ci/master/tree/)** - 2012-02-26: Git repository started on Sourceforge.
-- **[v0.1](https://sourceforge.net/projects/canopennode/files/canopennode/CANopenNode-0.80/)** - 2004-06-29: First edition of CANopenNode on SourceForge.
+See [CHANGELOG.md](doc/CHANGELOG.md)
 
 
 License
