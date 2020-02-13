@@ -115,10 +115,10 @@ extern "C" {
 #if CO_NO_SDO_CLIENT != 0
     #include "301/CO_SDOclient.h"
 #endif
-#if CO_NO_LSS_SLAVE != 0
+#if CO_NO_LSS_SERVER != 0
     #include "305/CO_LSSslave.h"
 #endif
-#if CO_NO_LSS_MASTER != 0
+#if CO_NO_LSS_CLIENT != 0
     #include "305/CO_LSSmaster.h"
 #endif
 #if CO_NO_TRACE != 0
@@ -159,11 +159,11 @@ extern "C" {
 /** Number of HB consumer objects, from 0 to 127 consumers(CANrx) */
 #define CO_NO_HB_CONS (0...127)
 /** Number of LSS slave objects, 0 or 1 (CANrx + CANtx) */
-#define CO_NO_LSS_SLAVE (0...1)
+#define CO_NO_LSS_SERVER (0...1)
 /** Number of LSS master objects, 0 or 1 (CANrx + CANtx) */
-#define CO_NO_LSS_MASTER) (0...1)
+#define CO_NO_LSS_CLIENT (0...1)
 /** Number of Trace objects, 0 to many */
-#define CO_NO_TRACE) (0...)
+#define CO_NO_TRACE (0...)
 /** @} */
 #else  /* CO_DOXYGEN */
 
