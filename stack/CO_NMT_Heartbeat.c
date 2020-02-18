@@ -335,7 +335,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 
     if(NMTstartup & 0x00000005U){
         /* if errors are cleared enter operational state. */
-        if(!OD_errorRegister && (NMT->operatingState == CO_NMT_PRE_OPERATIONAL)){
+        if(!errorRegister && (NMT->operatingState == CO_NMT_PRE_OPERATIONAL)){
             NMT->operatingState = CO_NMT_OPERATIONAL;
         }
     }
