@@ -505,11 +505,11 @@ typedef struct {
  * See CO_OD_entry_t.
  */
 typedef struct{
-    /** See #CO_SDO_OD_attributes_t */
-    void               *pData;
-    /** Length of variable in bytes. If object type is Domain, length is zero */
-    uint16_t            attribute;
     /** Pointer to data. If object type is Domain, pData is null */
+    void               *pData;
+    /** See #CO_SDO_OD_attributes_t */
+    uint16_t            attribute;
+    /** Length of variable in bytes. If object type is Domain, length is zero */
     uint16_t            length;
 }CO_OD_entryRecord_t;
 

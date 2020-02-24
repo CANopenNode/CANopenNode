@@ -201,7 +201,7 @@ void CO_HBconsumer_initCallbackHeartbeatStarted(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return;
     }
 
@@ -220,7 +220,7 @@ void CO_HBconsumer_initCallbackTimeout(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return;
     }
 
@@ -239,7 +239,7 @@ void CO_HBconsumer_initCallbackRemoteReset(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return;
     }
 
@@ -397,7 +397,7 @@ CO_HBconsumer_state_t CO_HBconsumer_getState(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return CO_HBconsumer_UNCONFIGURED;
     }
 
@@ -413,7 +413,7 @@ int8_t CO_HBconsumer_getNmtState(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || nmtState==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || nmtState==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return -1;
     }
     *nmtState = CO_NMT_INITIALIZING;
