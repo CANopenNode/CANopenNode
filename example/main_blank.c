@@ -31,12 +31,6 @@
 #define TMR_TASK_INTERVAL   (1000)          /* Interval of tmrTask thread in microseconds */
 #define INCREMENT_1MS(var)  (var++)         /* Increment 1ms variable in tmrTask */
 
-/**
- * User-defined CAN base structure, passed as argument to CO_CANinit.
- */
-struct CANbase {
-    uintptr_t baseAddress;  /**< Base address of the CAN module */
-};
 
 /* Global variables and objects */
     volatile uint16_t   CO_timer1ms = 0U;   /* variable increments each millisecond */
@@ -68,14 +62,11 @@ int main (void){
         uint16_t timer1msPrevious;
 
         /* disable CAN and CAN interrupts */
-        struct CANbase canBase = {
-            .baseAddress = 0u,  /* CAN module address */
-        };
 
         /* initialize CANopen */
-        err = CO_CANinit(&canBase, 125 /* bit rate */);
+        err = CO_CANinit(NULL /* CAN module address */, 125 /* bit rate */);
         if (err == CO_ERROR_NO) {
-            err = CO_CANopenInit(10/* NodeID */);
+            err = CO_CANopenInit(10 /* NodeID */);
         }
         if(err != CO_ERROR_NO){
             while(1);

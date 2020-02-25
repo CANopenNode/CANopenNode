@@ -55,7 +55,7 @@ Documentation with [Getting started](doc/gettingStarted.md),
 [LSS usage](doc/LSSusage.md) and [Trace usage](doc/traceUsage.md) is in `doc`
 directory.
 Code is documented in header files. Running [doxygen](http://www.doxygen.nl/)
-or `make doc` in project base directory will produce complete html documentation.
+in project base directory will produce complete html documentation.
 Just open CANopenNode/doc/html/index.html in the browser.
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
@@ -146,9 +146,12 @@ File structure
    - **CO_LSSslave.h/.c** - CANopen Layer Setting Service - slave protocol.
  - **extra/**
    - **CO_trace.h/.c** - CANopen trace object for recording variables over time.
- - **example/** - Directory with basic example.
-   - **main.c** - Mainline and other threads - example template.
+ - **example/** - Directory with basic example, should compile on any system.
+   - **CO_driver_target.h** - Example hardware definitions for CANopenNode.
+   - **CO_driver_blank.c** - Example blank interface for CANopenNode.
    - **CO_OD.h/.c** - CANopen Object dictionary. Automatically generated files.
+   - **main_blank.c** - Mainline and other threads - example template.
+   - **Makefile** - Makefile for example.
    - **IO.eds** - Standard CANopen EDS file, which may be used from CANopen
      configuration tool. Automatically generated file.
    - _ **project.xml** - XML file contains all data for CANopen Object dictionary.
@@ -162,6 +165,7 @@ File structure
    - **CO_Linux_threads.h/.c** - Helper functions for implementing CANopen threads in Linux.
    - **CO_notify_pipe.h/.c** - Notify pipe for Linux threads.
    - **CO_OD_storage.h/.c** - Object Dictionary storage object for Linux SocketCAN.
+   - **main.c** - Mainline for socketCAN
  - **doc/** - Directory with documentation
    - **CHANGELOG.md** - Change Log file.
    - **deviceSupport.md** - Information about supported devices.
@@ -172,7 +176,6 @@ File structure
  - **codingStyle** - Example of the coding style.
  - **.clang-format** - Definition file for the coding style.
  - **Doxyfile** - Configuration file for the documentation generator *doxygen*.
- - **Makefile** - Basic makefile.
  - **LICENSE** - License.
  - **README.md** - This file.
 

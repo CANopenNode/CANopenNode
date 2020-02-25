@@ -19,6 +19,7 @@ Change Log
 - It is necessary to manually update CO_OD.c file - it must include: `301/CO_driver.h`, `CO_OD.h` and `301/CO_SDOserver.h`.
 ### Fixed
 - Bugfix in `CO_HBconsumer_process()`: argument `timeDifference_us` was set to 0 inside for loop, fixed now.
+- BUG in CO_HBconsumer.c #168
 ### Added
 - Documentation added to `doc` directory: CHANGELOG.md, deviceSupport.md, gettingStarted.md, LSSusage.md and traceUsage.md.
 - All CANopen objects calculates next timer info for OS.
