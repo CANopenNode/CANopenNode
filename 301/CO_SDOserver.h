@@ -630,7 +630,9 @@ typedef struct{
     /** Variable indicates, if new SDO message received from CAN bus */
     volatile void      *CANrxNew;
     /** From CO_SDO_initCallback() or NULL */
-    void              (*pFunctSignal)(void);
+    void              (*pFunctSignal)(void *object);
+    /** From CO_SDO_initCallback() or NULL */
+    void               *functSignalObject;
     /** From CO_SDO_init() */
     CO_CANmodule_t     *CANdevTx;
     /** CAN transmit buffer inside CANdev for CAN tx message */
@@ -788,11 +790,13 @@ CO_ReturnError_t CO_SDO_init(
  * which processes mainline CANopen functions.
  *
  * @param SDO This object.
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
 void CO_SDO_initCallback(
         CO_SDO_t               *SDO,
-        void                  (*pFunctSignal)(void));
+        void                   *object,
+        void                  (*pFunctSignal)(void *object));
 
 
 /**

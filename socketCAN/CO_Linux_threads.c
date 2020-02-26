@@ -44,45 +44,18 @@ static uint64_t CO_LinuxThreads_clock_gettime_ms(void)
 static struct
 {
   uint64_t  start;                  /* time value CO_process() was called last time in ms */
-  void    (*pFunct)(void* object);  /* Callback function */
-  void     *object;
 } threadMain;
-
-/**
- * This function notifies the user application after an event happened
- *
- * This is necessary because not all stack callbacks support object pointers.
- * It is not used for those callbacks that have this pointer!
- */
-static void threadMain_resumeCallback(void)
-{
-  if (threadMain.pFunct != NULL) {
-    threadMain.pFunct(threadMain.object);
-  }
-}
 
 void threadMain_init(void (*callback)(void*), void *object)
 {
   threadMain.start = CO_LinuxThreads_clock_gettime_ms();
-  threadMain.pFunct = callback;
-  threadMain.object = object;
 
-  CO_SDO_initCallback(CO->SDO[0], threadMain_resumeCallback);
-  CO_EM_initCallback(CO->em, threadMain_resumeCallback);
-#if CO_NO_LSS_CLIENT == 1
-  CO_LSSmaster_initCallback(CO->LSSmaster, threadMain.object, threadMain.pFunct);
-#endif
-#if CO_NO_SDO_CLIENT != 0
-  for (int i = 0; i < CO_NO_SDO_CLIENT; i++) {
-    CO_SDOclient_initCallback(CO->SDOclient[i], threadMain_resumeCallback);
-  }
-#endif
+  CO_CANopenInitCallback(object, callback);
 }
 
 void threadMain_close(void)
 {
-  threadMain.pFunct = NULL;
-  threadMain.object = NULL;
+  CO_CANopenInitCallback(NULL, NULL);
 }
 
 void threadMain_process(CO_NMT_reset_cmd_t *reset)

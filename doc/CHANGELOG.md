@@ -17,6 +17,7 @@ Change Log
 - Rename in CO_driver_target.h: `IS_CANrxNew` -> `CO_FLAG_READ`, `SET_CANrxNew` -> `CO_FLAG_SET`, `CLEAR_CANrxNew` -> `CO_FLAG_CLEAR`
 - CO_driver.h file, function `CO_CANrxBufferInit()`, last argument (callback) changed from `(*pFunct)(void *object, const CO_CANrxMsg_t *message)` to `void (*CANrx_callback)(void *object, void *message)`. New functions are defined in `CO_driver_target.h` file: `CO_CANrxMsg_readIdent()`, `CO_CANrxMsg_readDLC()` and `CO_CANrxMsg_readData()`.
 - It is necessary to manually update CO_OD.c file - it must include: `301/CO_driver.h`, `CO_OD.h` and `301/CO_SDOserver.h`.
+- Added `void *object` argument CO_*_initCallback() functions. Added CO_CANopenInitCallback() into CANopen.h/.c.
 ### Fixed
 - Bugfix in `CO_HBconsumer_process()`: argument `timeDifference_us` was set to 0 inside for loop, fixed now.
 - BUG in CO_HBconsumer.c #168

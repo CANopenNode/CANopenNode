@@ -274,6 +274,21 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId);
 
 
 /**
+ * Initialize callback functions.
+ *
+ * Function initializes optional callback functions, which executes after
+ * internal state of some CANopen object changes. For example, after CAN message
+ * is received or error condition is changed. Function may wake up external
+ * task, which processes mainline CANopen functions.
+ *
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_CANopenInitCallback(void *object,
+                            void (*pFunctSignal)(void *object));
+
+
+/**
  * Process CANopen objects.
  *
  * Function must be called cyclically. It processes all "asynchronous" CANopen

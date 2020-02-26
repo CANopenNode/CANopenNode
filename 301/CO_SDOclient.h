@@ -134,7 +134,9 @@ typedef struct{
     /** 8 data bytes of the received message */
     uint8_t             CANrxData[8];
     /** From CO_SDOclient_initCallback() or NULL */
-    void              (*pFunctSignal)(void);
+    void              (*pFunctSignal)(void *object);
+    /** From CO_SDOclient_initCallback() or NULL */
+    void               *functSignalObject;
     /** From CO_SDOclient_init() */
     CO_CANmodule_t     *CANdevTx;
     /** CAN transmit buffer inside CANdevTx for CAN tx message */
@@ -200,11 +202,13 @@ CO_ReturnError_t CO_SDOclient_init(
  * which processes mainline CANopen functions.
  *
  * @param SDOclient This object.
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
 void CO_SDOclient_initCallback(
         CO_SDOclient_t         *SDOclient,
-        void                  (*pFunctSignal)(void));
+        void                   *object,
+        void                  (*pFunctSignal)(void *object));
 
 
 /**

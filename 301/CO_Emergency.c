@@ -160,6 +160,7 @@ CO_ReturnError_t CO_EM_init(
     em->bufFull                 = 0U;
     em->wrongErrorReport        = 0U;
     em->pFunctSignal            = NULL;
+    em->functSignalObject       = NULL;
     em->pFunctSignalRx          = NULL;
     emPr->em                    = em;
     emPr->errorRegister         = errorRegister;
@@ -205,9 +206,11 @@ CO_ReturnError_t CO_EM_init(
 /******************************************************************************/
 void CO_EM_initCallback(
         CO_EM_t                *em,
-        void                  (*pFunctSignal)(void))
+        void                   *object,
+        void                  (*pFunctSignal)(void *object))
 {
     if(em != NULL){
+        em->functSignalObject = object;
         em->pFunctSignal = pFunctSignal;
     }
 }
@@ -391,7 +394,7 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
 
             /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
             if(em->pFunctSignal != NULL) {
-                em->pFunctSignal();
+                em->pFunctSignal(em->functSignalObject);
             }
         }
     }
@@ -450,7 +453,7 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
 
             /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
             if(em->pFunctSignal != NULL) {
-                em->pFunctSignal();
+                em->pFunctSignal(em->functSignalObject);
             }
         }
     }
