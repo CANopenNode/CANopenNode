@@ -87,18 +87,18 @@ void threadMain_close(void)
 
 void threadMain_process(CO_NMT_reset_cmd_t *reset)
 {
-  uint16_t finished;
+  uint32_t finished;
   uint16_t diff;
   uint64_t now;
 
   now = CO_LinuxThreads_clock_gettime_ms();
   diff = (uint16_t)(now - threadMain.start);
 
-  /* we use timerNext_ms in CO_process() as indication if processing is
+  /* we use timerNext_us in CO_process() as indication if processing is
    * finished. We ignore any calculated values for maximum delay times. */
   do {
     finished = 1;
-    *reset = CO_process(CO, diff, &finished);
+    *reset = CO_process(CO, (uint32_t)diff*1000, &finished);
     diff = 0;
   } while ((*reset == CO_RESET_NOT) && (finished == 0));
 
@@ -150,13 +150,13 @@ void CANrx_threadTmr_process(void)
 
         for (i = 0; i <= missed; i++) {
           /* Process Sync */
-          syncWas = CO_process_SYNC(CO, threadRT.us_interval);
+          syncWas = CO_process_SYNC(CO, threadRT.us_interval, NULL);
 
           /* Read inputs */
           CO_process_RPDO(CO, syncWas);
 
           /* Write outputs */
-          CO_process_TPDO(CO, syncWas, threadRT.us_interval);
+          CO_process_TPDO(CO, syncWas, threadRT.us_interval, NULL);
         }
       }
 

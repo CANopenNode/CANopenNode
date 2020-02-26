@@ -26,9 +26,7 @@
 
 #include "CANopen.h"
 #include "CO_OD_storage.h"
-#include "CO_Linux_tasks.h"
-#include "CO_time.h"
-#include "application.h"
+#include "CO_Linux_threads.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -41,25 +39,40 @@
 #include <linux/reboot.h>
 #include <sys/reboot.h>
 
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_USE_APPLICATION
+/* Call external application functions. */
+#include "application.h"
+#endif
+
+#if CO_NO_TRACE > 0
+#include "CO_time_trace.h"
+#endif
+
+#ifdef CO_USE_309
+/* Use DS309-3 standard - ASCII command interface to CANopen: NMT + LSS master, SDO client */
 #include "CO_command.h"
+#endif
+
+#ifdef CO_MULTI_THREAD
+/* Use two nonblocking threads: fast rt-thread for CAN reception + PDO + SYNC
+ * processing and slow mainline for other processing. */
 #include <pthread.h>
 #endif
 
 
 #define NSEC_PER_SEC            (1000000000)    /* The number of nanoseconds per second. */
 #define NSEC_PER_MSEC           (1000000)       /* The number of nanoseconds per millisecond. */
-#define TMR_TASK_INTERVAL_NS    (1000000)       /* Interval of taskTmr in nanoseconds */
-#define TMR_TASK_OVERFLOW_US    (5000)          /* Overflow detect limit for taskTmr in microseconds */
-#define INCREMENT_1MS(var)      (var++)         /* Increment 1ms variable in taskTmr */
+#define TMR_THREAD_INTERVAL_NS  (1000000)       /* Interval of threadTmr in nanoseconds */
+#define TMR_THREAD_OVERFLOW_US  (5000)          /* Overflow detect limit for threadTmr in microseconds */
+#define INCREMENT_1MS(var)      (var++)         /* Increment 1ms variable in threadTmr */
 
 
 /* Global variable increments each millisecond. */
 volatile uint16_t           CO_timer1ms = 0U;
 
+#ifdef CO_MULTI_THREAD
 /* Mutex is locked, when CAN is not valid (configuration state). May be used
  *  from other threads. RT threads may use CO->CANmodule[0]->CANnormal instead. */
-#ifndef CO_SINGLE_THREAD
 pthread_mutex_t             CO_CAN_VALID_mtx = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
@@ -70,12 +83,15 @@ static CO_OD_storage_t      odStor;             /* Object Dictionary storage obj
 static CO_OD_storage_t      odStorAuto;         /* Object Dictionary storage object for CO_OD_EEPROM */
 static char                *odStorFile_rom    = "od_storage";       /* Name of the file */
 static char                *odStorFile_eeprom = "od_storage_auto";  /* Name of the file */
-static CO_time_t            CO_time;            /* Object for current time */
+#ifdef CO_USE_309
 static in_port_t            CO_command_socket_tcp_port = 60000; /* default port when used in tcp gateway mode */
-
+#endif
+#if CO_NO_TRACE > 0
+static CO_time_t            CO_time;            /* Object for current time */
+#endif
 
 /* Realtime thread */
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_MULTI_THREAD
 static void*                rt_thread(void* arg);
 static pthread_t            rt_thread_id;
 static int                  rt_thread_epoll_fd;
@@ -110,12 +126,12 @@ fprintf(stderr,
 "Options:\n"
 "  -i <Node ID>        CANopen Node-id (1..127). If not specified, value from\n"
 "                      Object dictionary (0x2101) is used.\n"
-"  -p <RT priority>    Realtime priority of RT task (RT disabled by default).\n"
+"  -p <RT priority>    Realtime priority of RT thread (RT disabled by default).\n"
 "  -r                  Enable reboot on CANopen NMT reset_node command. \n"
 "  -s <ODstorage file> Set Filename for OD storage ('od_storage' is default).\n"
 "  -a <ODstorageAuto>  Set Filename for automatic storage variables from\n"
 "                      Object dictionary. ('od_storage_auto' is default).\n");
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_USE_309
 fprintf(stderr,
 "  -c <Socket path>    Enable command interface for master functionality. \n"
 "                      If socket path is specified as empty string \"\",\n"
@@ -141,8 +157,9 @@ fprintf(stderr,
 /******************************************************************************/
 int main (int argc, char *argv[]) {
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
+    CO_ReturnError_t err;
     CO_ReturnError_t odStorStatus_rom, odStorStatus_eeprom;
-    int CANdevice0Index = 0;
+    intptr_t CANdevice0Index = 0;
     int opt;
     bool_t firstRun = true;
 
@@ -150,7 +167,7 @@ int main (int argc, char *argv[]) {
     bool_t nodeIdFromArgs = false;  /* True, if program arguments are used for CANopen Node Id */
     int nodeId = -1;                /* Use value from Object Dictionary or set to 1..127 by arguments */
     bool_t rebootEnable = false;    /* Configurable by arguments */
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_USE_309
     typedef enum CMD_MODE {CMD_NONE, CMD_LOCAL, CMD_REMOTE} cmdMode_t;
     cmdMode_t commandEnable = CMD_NONE;   /* Configurable by arguments */
 #endif
@@ -170,7 +187,7 @@ int main (int argc, char *argv[]) {
                 break;
             case 'p': rtPriority = strtol(optarg, NULL, 0); break;
             case 'r': rebootEnable = true;                  break;
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_USE_309
             case 'c':
                 /* In case of empty string keep default name, just enable interface. */
                 if(strlen(optarg) != 0) {
@@ -227,6 +244,14 @@ int main (int argc, char *argv[]) {
     printf("%s - starting CANopen device with Node ID %d(0x%02X)", argv[0], nodeId, nodeId);
 
 
+    /* Allocate memory for CANopen objects */
+    err = CO_new();
+    if (err != CO_ERROR_NO) {
+        fprintf(stderr, "Program init - %s - CO_new() failed.\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+
     /* Verify, if OD structures have proper alignment of initial values */
     if(CO_OD_RAM.FirstWord != CO_OD_RAM.LastWord) {
         fprintf(stderr, "Program init - %s - Error in CO_OD_RAM.\n", argv[0]);
@@ -259,12 +284,11 @@ int main (int argc, char *argv[]) {
 
     while(reset != CO_RESET_APP && reset != CO_RESET_QUIT && CO_endProgram == 0) {
 /* CANopen communication reset - initialize CANopen objects *******************/
-        CO_ReturnError_t err;
 
         printf("%s - communication reset ...\n", argv[0]);
 
 
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_MULTI_THREAD
         /* Wait other threads (command interface). */
         pthread_mutex_lock(&CO_CAN_VALID_mtx);
 #endif
@@ -278,7 +302,7 @@ int main (int argc, char *argv[]) {
 
 
         /* Enter CAN configuration. */
-        CO_CANsetConfigurationMode(CANdevice0Index);
+        CO_CANsetConfigurationMode((void *)CANdevice0Index);
 
 
         /* initialize CANopen */
@@ -286,7 +310,12 @@ int main (int argc, char *argv[]) {
             /* use value from Object dictionary, if not set by program arguments */
             nodeId = OD_CANNodeID;
         }
-        err = CO_init(CANdevice0Index, nodeId, 0);
+
+        err = CO_CANinit((void *)CANdevice0Index, 0 /* bit rate not used */);
+        if (err == CO_ERROR_NO) {
+            err = CO_CANopenInit(nodeId);
+        }
+
         if(err != CO_ERROR_NO) {
             char s[120];
             snprintf(s, 120, "Communication reset - CANopen initialization failed, err=%d", err);
@@ -305,15 +334,16 @@ int main (int argc, char *argv[]) {
         }
 
 
-        /* Configure callback functions for task control */
-        CO_EM_initCallback(CO->em, taskMain_cbSignal);
-        CO_SDO_initCallback(CO->SDO[0], taskMain_cbSignal);
-        CO_SDOclient_initCallback(CO->SDOclient, taskMain_cbSignal);
+        /* Configure callback functions for thread control */
+//        CO_EM_initCallback(CO->em, threadMain_cbSignal);
+//        CO_SDO_initCallback(CO->SDO[0], threadMain_cbSignal);
+//        CO_SDOclient_initCallback(CO->SDOclient, threadMain_cbSignal);
 
 
+#if CO_NO_TRACE > 0
         /* Initialize time */
         CO_time_init(&CO_time, CO->SDO[0], &OD_time.epochTimeBaseMs, &OD_time.epochTimeOffsetMs, 0x2130);
-
+#endif
 
         /* First time only initialization. */
         if(firstRun) {
@@ -325,33 +355,19 @@ int main (int argc, char *argv[]) {
                 CO_errExit("Program init - epoll_create mainline failed");
 
             /* Init mainline */
-            taskMain_init(mainline_epoll_fd, &OD_performance[ODA_performance_mainCycleMaxTime]);
+            threadMain_init(mainline_epoll_fd, &OD_performance[ODA_performance_mainCycleMaxTime]);
 
 
-#ifdef CO_SINGLE_THREAD
-            /* Init taskRT */
-            CANrx_taskTmr_init(mainline_epoll_fd, TMR_TASK_INTERVAL_NS, &OD_performance[ODA_performance_timerCycleMaxTime]);
-
-            OD_performance[ODA_performance_timerCycleTime] = TMR_TASK_INTERVAL_NS/1000; /* informative */
-
-            /* Set priority for mainline */
-            if(rtPriority > 0) {
-                struct sched_param param;
-
-                param.sched_priority = rtPriority;
-                if(sched_setscheduler(0, SCHED_FIFO, &param) != 0)
-                    CO_errExit("Program init - mainline set scheduler failed");
-            }
-#else
+#ifdef CO_MULTI_THREAD
             /* Configure epoll for rt_thread */
             rt_thread_epoll_fd = epoll_create(2);
             if(rt_thread_epoll_fd == -1)
                 CO_errExit("Program init - epoll_create rt_thread failed");
 
-            /* Init taskRT */
-            CANrx_taskTmr_init(rt_thread_epoll_fd, TMR_TASK_INTERVAL_NS, &OD_performance[ODA_performance_timerCycleMaxTime]);
+            /* Init threadRT */
+            CANrx_threadTmr_init(rt_thread_epoll_fd, TMR_THREAD_INTERVAL_NS, &OD_performance[ODA_performance_timerCycleMaxTime]);
 
-            OD_performance[ODA_performance_timerCycleTime] = TMR_TASK_INTERVAL_NS/1000; /* informative */
+            OD_performance[ODA_performance_timerCycleTime] = TMR_THREAD_INTERVAL_NS/1000; /* informative */
 
             /* Create rt_thread */
             if(pthread_create(&rt_thread_id, NULL, rt_thread, NULL) != 0)
@@ -365,9 +381,23 @@ int main (int argc, char *argv[]) {
                 if(pthread_setschedparam(rt_thread_id, SCHED_FIFO, &param) != 0)
                     CO_errExit("Program init - rt_thread set scheduler failed");
             }
+#else
+            /* Init threadRT */
+            CANrx_threadTmr_init(mainline_epoll_fd, TMR_THREAD_INTERVAL_NS, &OD_performance[ODA_performance_timerCycleMaxTime]);
+
+            OD_performance[ODA_performance_timerCycleTime] = TMR_THREAD_INTERVAL_NS/1000; /* informative */
+
+            /* Set priority for mainline */
+            if(rtPriority > 0) {
+                struct sched_param param;
+
+                param.sched_priority = rtPriority;
+                if(sched_setscheduler(0, SCHED_FIFO, &param) != 0)
+                    CO_errExit("Program init - mainline set scheduler failed");
+            }
 #endif
 
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_USE_309
             /* Initialize socket command interface */
             switch(commandEnable) {
               case CMD_LOCAL:
@@ -387,18 +417,23 @@ int main (int argc, char *argv[]) {
             }
 #endif
 
+#ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
             app_programStart();
+#endif
         }
 
 
+#ifdef CO_USE_APPLICATION
         /* Execute optional additional application code */
         app_communicationReset();
+#endif
 
 
         /* start CAN */
         CO_CANsetNormalMode(CO->CANmodule[0]);
-#ifndef CO_SINGLE_THREAD
+
+#ifdef CO_MULTI_THREAD
         pthread_mutex_unlock(&CO_CAN_VALID_mtx);
 #endif
 
@@ -421,18 +456,18 @@ int main (int argc, char *argv[]) {
                 }
             }
 
-#ifdef CO_SINGLE_THREAD
-            else if(CANrx_taskTmr_process(ev.data.fd)) {
+#ifndef CO_MULTI_THREAD
+            else if(CANrx_threadTmr_process(ev.data.fd)) {
                 /* code was processed in the above function. Additional code process below */
                 INCREMENT_1MS(CO_timer1ms);
                 /* Detect timer large overflow */
-                if(OD_performance[ODA_performance_timerCycleMaxTime] > TMR_TASK_OVERFLOW_US && rtPriority > 0) {
+                if(OD_performance[ODA_performance_timerCycleMaxTime] > TMR_THREAD_OVERFLOW_US && rtPriority > 0) {
                     CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0x22400000L | OD_performance[ODA_performance_timerCycleMaxTime]);
                 }
             }
 #endif
 
-            else if(taskMain_process(ev.data.fd, &reset, CO_timer1ms)) {
+            else if(threadMain_process(ev.data.fd, &reset, CO_timer1ms)) {
                 uint16_t timer1msDiff;
                 static uint16_t tmr1msPrev = 0;
 
@@ -442,8 +477,10 @@ int main (int argc, char *argv[]) {
 
                 /* code was processed in the above function. Additional code process below */
 
+#ifdef CO_USE_APPLICATION
                 /* Execute optional additional application code */
                 app_programAsync(timer1msDiff);
+#endif
 
                 CO_OD_storage_autoSave(&odStorAuto, CO_timer1ms, 60000);
             }
@@ -458,7 +495,7 @@ int main (int argc, char *argv[]) {
 
 /* program exit ***************************************************************/
     /* join threads */
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_USE_309
     switch (commandEnable)
     {
       case CMD_LOCAL:
@@ -475,23 +512,25 @@ int main (int argc, char *argv[]) {
 #endif
 
     CO_endProgram = 1;
-#ifndef CO_SINGLE_THREAD
+#ifdef CO_MULTI_THREAD
     if(pthread_join(rt_thread_id, NULL) != 0) {
         CO_errExit("Program end - pthread_join failed");
     }
 #endif
 
+#ifdef CO_USE_APPLICATION
     /* Execute optional additional application code */
     app_programEnd();
+#endif
 
     /* Store CO_OD_EEPROM */
     CO_OD_storage_autoSave(&odStorAuto, 0, 0);
     CO_OD_storage_autoSaveClose(&odStorAuto);
 
     /* delete objects from memory */
-    CANrx_taskTmr_close();
-    taskMain_close();
-    CO_delete(CANdevice0Index);
+    CANrx_threadTmr_close();
+    threadMain_close();
+    CO_delete((void *)CANdevice0Index);
 
     printf("%s on %s (nodeId=0x%02X) - finished.\n\n", argv[0], CANdevice, nodeId);
 
@@ -507,8 +546,8 @@ int main (int argc, char *argv[]) {
 }
 
 
-#ifndef CO_SINGLE_THREAD
-/* Realtime thread for CAN receive and taskTmr ********************************/
+#ifdef CO_MULTI_THREAD
+/* Realtime thread for CAN receive and threadTmr ******************************/
 static void* rt_thread(void* arg) {
 
     /* Endless loop */
@@ -524,25 +563,27 @@ static void* rt_thread(void* arg) {
             }
         }
 
-        else if(CANrx_taskTmr_process(ev.data.fd)) {
+        else if(CANrx_threadTmr_process(ev.data.fd)) {
             int i;
 
             /* code was processed in the above function. Additional code process below */
             INCREMENT_1MS(CO_timer1ms);
 
+#if CO_NO_TRACE > 0
             /* Monitor variables with trace objects */
             CO_time_process(&CO_time);
-#if CO_NO_TRACE > 0
             for(i=0; i<OD_traceEnable && i<CO_NO_TRACE; i++) {
                 CO_trace_process(CO->trace[i], *CO_time.epochTimeOffsetMs);
             }
 #endif
 
+#ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
             app_program1ms();
+#endif
 
             /* Detect timer large overflow */
-            if(OD_performance[ODA_performance_timerCycleMaxTime] > TMR_TASK_OVERFLOW_US && rtPriority > 0 && CO->CANmodule[0]->CANnormal) {
+            if(OD_performance[ODA_performance_timerCycleMaxTime] > TMR_THREAD_OVERFLOW_US && rtPriority > 0 && CO->CANmodule[0]->CANnormal) {
                 CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0x22400000L | OD_performance[ODA_performance_timerCycleMaxTime]);
             }
         }
@@ -555,4 +596,4 @@ static void* rt_thread(void* arg) {
 
     return NULL;
 }
-#endif
+#endif /* CO_MULTI_THREAD */

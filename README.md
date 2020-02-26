@@ -166,6 +166,7 @@ File structure
    - **CO_notify_pipe.h/.c** - Notify pipe for Linux threads.
    - **CO_OD_storage.h/.c** - Object Dictionary storage object for Linux SocketCAN.
    - **main.c** - Mainline for socketCAN
+   - **Makefile** - Makefile for socketCAN.
  - **doc/** - Directory with documentation
    - **CHANGELOG.md** - Change Log file.
    - **deviceSupport.md** - Information about supported devices.
