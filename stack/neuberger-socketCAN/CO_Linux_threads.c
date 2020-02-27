@@ -149,9 +149,13 @@ void CANrx_threadTmr_process(void)
       if(CO->CANmodule[0]->CANnormal) {
 
         for (i = 0; i <= missed; i++) {
+
+#if CO_NO_SYNC == 1
           /* Process Sync */
           syncWas = CO_process_SYNC(CO, threadRT.us_interval);
-
+#else
+          syncWas = false;
+#endif
           /* Read inputs */
           CO_process_RPDO(CO, syncWas);
 
