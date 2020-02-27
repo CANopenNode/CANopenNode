@@ -194,7 +194,7 @@ void CO_CANerror_init(
     }
 
     CANerrorhandler->fd = fd;
-    CANerrorhandler->ifName = ifName;
+    memcpy(CANerrorhandler->ifName, ifName, sizeof(CANerrorhandler->ifName));
     CANerrorhandler->noackCounter = 0;
     CANerrorhandler->listenOnly = false;
     CANerrorhandler->timestamp.tv_sec = 0;

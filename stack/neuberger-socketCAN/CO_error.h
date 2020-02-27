@@ -71,7 +71,7 @@ typedef enum {
  */
 typedef struct {
   int                 fd;             /**< interface FD */
-  const char         *ifName;         /**< interface name as string */
+  char                ifName[IFNAMSIZ]; /**< interface name as string */
 
   uint32_t            noackCounter;
 
