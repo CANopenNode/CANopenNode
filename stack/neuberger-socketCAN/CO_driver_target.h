@@ -134,7 +134,7 @@ typedef struct{
  * be in Configuration Mode before.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdriverState CAN module base address.
+ * @param CANdriverState CAN module interface index (return value if_nametoindex(), NO pointer!).
  * @param rxArray Array for handling received CAN messages
  * @param rxSize Size of the above array. Must be equal to number of receiving CAN objects.
  * @param txArray Array for handling transmitting CAN messages
@@ -162,7 +162,7 @@ CO_ReturnError_t CO_CANmodule_init(
  * Function must be called after CO_CANmodule_init.
  *
  * @param CANmodule This object will be initialized.
- * @param CANdriverState CAN module base address.
+ * @param CANdriverState CAN module interface index (return value if_nametoindex(), NO pointer!).
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_SYSCALL or CO_ERROR_INVALID_STATE.
  */
