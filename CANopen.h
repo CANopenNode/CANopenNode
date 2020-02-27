@@ -282,12 +282,17 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId);
  * @param co CANopen object.
  * @param timeDifference_us Time difference from previous function call in
  *                          microseconds.
- * @param timerNext_us [out] info to OS - maximum delay after function
+ * @param timerNext_us [out] info to OS - maximum delay time after this function
  *        should be called next time in [microseconds]. Value can be used for OS
- *        sleep time. Initial value must be set to something, 50000us typically.
- *        Output will be equal or lower to initial value. If there is new object
- *        to process, delay should be suspended and this function should be
- *        called immediately. Parameter is ignored if NULL.
+ *        sleep time. Initial value must be set to maximum interval time.
+ *        Output will be equal or lower to initial value. Calculation is based
+ *        on various timers which expire in known time. Parameter should be
+ *        used in combination with callbacks configured with
+ *        CO_EM_initCallback() and CO_SDO_initCallback(). Those callbacks should
+ *        also trigger calling of CO_process() function.
+ *
+ *        This is experimental feature and can be used for energy saving in case
+ *        of low traffic on CAN bus. Parameter is ignored if NULL.
  *
  * @return #CO_NMT_reset_cmd_t from CO_NMT_process().
  */

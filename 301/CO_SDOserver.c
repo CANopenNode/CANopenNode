@@ -1438,9 +1438,12 @@ int8_t CO_SDO_process(
             /* send response */
             CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
 
-            /* Set timerNext_us to 0 to inform OS to call this function again without delay. */
+            /* Inform OS to call this function again without delay. */
             if (timerNext_us != NULL) {
                 *timerNext_us = 0;
+            }
+            if (SDO->pFunctSignal != NULL) {
+                SDO->pFunctSignal(SDO->functSignalObject);
             }
 
             /* don't call CO_FLAG_CLEAR, so return directly */

@@ -390,9 +390,11 @@ CO_ReturnError_t CO_EM_init(
 /**
  * Initialize Emergency callback function.
  *
- * Function initializes optional callback function, which executes after
- * error condition is changed. Function may wake up external task,
- * which processes mainline CANopen functions.
+ * Function initializes optional callback function, which should immediately
+ * start processing of CO_EM_process() function.
+ * Callback is called from CO_errorReport() or CO_errorReset() function. Those
+ * functions are fast and may be called from any thread. Callback should
+ * immediately start mainline thread, which calls CO_EM_process() function.
  *
  * @param em This object.
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL

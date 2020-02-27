@@ -708,9 +708,14 @@ CO_SDOclient_return_t CO_SDOclientDownload(
             else if (SDO_C->block_seqno >= SDO_C->block_blksize) {
                 SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_BLOCK_ACK;
             }
-            else if (timerNext_us != NULL) {
-                /* Set timerNext_us to 0 to inform OS to call this function again without delay. */
-                *timerNext_us = 0;
+            else {
+                /* Inform OS to call this function again without delay. */
+                if (timerNext_us != NULL) {
+                    *timerNext_us = 0;
+                }
+                if (SDO_C->pFunctSignal != NULL) {
+                    SDO_C->pFunctSignal(SDO_C->functSignalObject);
+                }
             }
 
             /*  tx data */

@@ -96,7 +96,7 @@ static void CO_LSSmaster_receive(void *object, void *msg)
 
         CO_FLAG_SET(LSSmaster->CANrxNew);
 
-        /* Optional signal to RTOS, which can resume task, which handles SDO client. */
+        /* Optional signal to RTOS, which can resume task, which handles further processing. */
         if(LSSmaster->pFunctSignal != NULL) {
             LSSmaster->pFunctSignal(LSSmaster->functSignalObject);
         }

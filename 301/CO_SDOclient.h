@@ -195,11 +195,13 @@ CO_ReturnError_t CO_SDOclient_init(
 
 
 /**
- * Initialize SDOclientRx callback function.
+ * Initialize SDOclient callback function.
  *
- * Function initializes optional callback function, which is called after new
- * message is received from the CAN bus. Function may wake up external task,
- * which processes mainline CANopen functions.
+ * Function initializes optional callback function, which should immediately
+ * start processing of CO_SDOclientDownload() or CO_SDOclientUpload() function.
+ * Callback is called after SDOclient message is received from the CAN bus or
+ * when new call without delay is necessary (exchange data with own SDO server
+ * or SDO block transfer is in progress).
  *
  * @param SDOclient This object.
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL

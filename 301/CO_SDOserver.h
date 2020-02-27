@@ -785,9 +785,10 @@ CO_ReturnError_t CO_SDO_init(
 /**
  * Initialize SDOrx callback function.
  *
- * Function initializes optional callback function, which is called after new
- * message is received from the CAN bus. Function may wake up external task,
- * which processes mainline CANopen functions.
+ * Function initializes optional callback function, which should immediately
+ * start processing of CO_SDO_process() function.
+ * Callback is called after SDOserver message is received from the CAN bus or
+ * when new call without delay is necessary (SDO block transfer is in progress).
  *
  * @param SDO This object.
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL

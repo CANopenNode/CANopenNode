@@ -187,9 +187,10 @@ void CO_LSSmaster_changeTimeout(
 /**
  * Initialize LSSmasterRx callback function.
  *
- * Function initializes optional callback function, which is called after new
- * message is received from the CAN bus. Function may wake up external task,
- * which processes mainline CANopen functions.
+ * Function initializes optional callback function, which should immediately
+ * start further LSS processing. Callback is called after LSS message is
+ * received from the CAN bus. It should signal the RTOS to resume corresponding
+ * task.
  *
  * @param LSSmaster This object.
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
