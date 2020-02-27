@@ -316,7 +316,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     can_err_mask_t err_mask;
 #endif
 
-    if (!CANmodule->CANnormal) {
+    if (CANmodule->CANnormal != false) {
         /* can't change config now! */
         return CO_ERROR_INVALID_STATE;
     }
