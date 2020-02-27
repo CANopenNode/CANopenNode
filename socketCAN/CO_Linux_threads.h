@@ -2,9 +2,10 @@
  * Helper functions for implementing CANopen threads in Linux.
  *
  * @file        CO_Linux_threads.h
- * @ingroup     CO_driver
- * @author      Janez Paternoster, Martin Wagner
- * @copyright   2004 - 2015 Janez Paternoster, 2018 - 2020 Neuberger Gebaeudeautomation GmbH
+ * @author      Janez Paternoster
+ * @author      Martin Wagner
+ * @copyright   2004 - 2015 Janez Paternoster
+ * @copyright   2018 - 2020 Neuberger Gebaeudeautomation GmbH
  *
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
@@ -24,19 +25,19 @@
  * limitations under the License.
  */
 
-#ifndef CO_LINUX_TASKS_H
-#define CO_LINUX_TASKS_H
+#ifndef CO_LINUX_THREADS_H
+#define CO_LINUX_THREADS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* This driver is loosely based upon the CO socketCAN driver
- * The "threads" inside this driver do not fork threads themselve, but require
+/*
+ * The "threads" specified here do not fork threads themselves, but require
  * that two threads are provided by the calling application.
  *
- * Like the CO socketCAN driver implementation, this driver uses the global CO
- * object and has one thread-local struct for variables. */
+ * It uses the global CO object and has one thread-local struct for variables.
+ */
 
 /**
  * Initialize mainline thread.
@@ -78,10 +79,10 @@ extern void threadMain_process(CO_NMT_reset_cmd_t *reset);
  * @remark If realtime is required, this thread must be registred as such in the Linux
  * kernel.
  *
- * @param interval Interval of periodic timer in ms, recommended value for
- *                 realtime response: 1ms
+ * @param interval Interval of periodic timer in microseconds, recommended value
+ *                 for realtime response: 1000 us
  */
-extern void CANrx_threadTmr_init(uint16_t interval);
+extern void CANrx_threadTmr_init(uint32_t interval_us);
 
 /**
  * Terminate realtime thread.
@@ -100,4 +101,4 @@ extern void CANrx_threadTmr_process();
 }
 #endif /*__cplusplus*/
 
-#endif
+#endif /* CO_LINUX_THREADS_H */

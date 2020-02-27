@@ -18,13 +18,16 @@ Change Log
 - CO_driver.h file, function `CO_CANrxBufferInit()`, last argument (callback) changed from `(*pFunct)(void *object, const CO_CANrxMsg_t *message)` to `void (*CANrx_callback)(void *object, void *message)`. New functions are defined in `CO_driver_target.h` file: `CO_CANrxMsg_readIdent()`, `CO_CANrxMsg_readDLC()` and `CO_CANrxMsg_readData()`.
 - It is necessary to manually update CO_OD.c file - it must include: `301/CO_driver.h`, `CO_OD.h` and `301/CO_SDOserver.h`.
 - Added `void *object` argument CO_*_initCallback() functions. Added CO_CANopenInitCallback() into CANopen.h/.c.
+### Changed SocketCAN
+- ./stack/socketCAN removed from the project, ./stack/Neuberger-socketCAN moved to ./socketCAN
+- driver API updated
+- CO_Linux_threads.h, function `void CANrx_threadTmr_init(uint16_t interval_in_milliseconds (changed to) uint32_t interval_in_microseconds)`
 ### Fixed
 - Bugfix in `CO_HBconsumer_process()`: argument `timeDifference_us` was set to 0 inside for loop, fixed now.
 - BUG in CO_HBconsumer.c #168
 ### Added
 - Documentation added to `doc` directory: CHANGELOG.md, deviceSupport.md, gettingStarted.md, LSSusage.md and traceUsage.md.
-- All CANopen objects calculates next timer info for OS.
-- Basic Linux socketCAN example.
+- All CANopen objects calculates next timer info for OS. Useful for energy saving.
 
 [Unreleased master]
 -------------------

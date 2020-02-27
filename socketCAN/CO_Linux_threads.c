@@ -2,9 +2,10 @@
  * Helper functions for implementing CANopen threads in Linux
  *
  * @file        Linux_threads.c
- * @ingroup     CO_driver
- * @author      Janez Paternoster, Martin Wagner
- * @copyright   2004 - 2015 Janez Paternoster, 2017 - 2020 Neuberger Gebaeudeautomation GmbH
+ * @author      Janez Paternoster
+ * @author      Martin Wagner
+ * @copyright   2004 - 2015 Janez Paternoster
+ * @copyright   2018 - 2020 Neuberger Gebaeudeautomation GmbH
  *
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
@@ -27,28 +28,28 @@
 #include <sys/timerfd.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 
-#include "301/CO_driver.h"
 #include "CANopen.h"
 
-/* Helper function - get monotonic clock time in ms */
-static uint64_t CO_LinuxThreads_clock_gettime_ms(void)
+/* Helper function - get monotonic clock time in microseconds */
+static uint64_t CO_LinuxThreads_clock_gettime_us(void)
 {
   struct timespec ts;
 
   (void)clock_gettime(CLOCK_MONOTONIC, &ts);
-  return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+  return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
 }
 
-/* Mainline thread (threadMain) ***************************************************/
+/* Mainline thread (threadMain) ***********************************************/
 static struct
 {
-  uint64_t  start;                  /* time value CO_process() was called last time in ms */
+  uint64_t start;   /* time value CO_process() was called last time in us */
 } threadMain;
 
 void threadMain_init(void (*callback)(void*), void *object)
 {
-  threadMain.start = CO_LinuxThreads_clock_gettime_ms();
+  threadMain.start = CO_LinuxThreads_clock_gettime_us();
 
   CO_CANopenInitCallback(object, callback);
 }
@@ -61,17 +62,17 @@ void threadMain_close(void)
 void threadMain_process(CO_NMT_reset_cmd_t *reset)
 {
   uint32_t finished;
-  uint16_t diff;
+  uint32_t diff;
   uint64_t now;
 
-  now = CO_LinuxThreads_clock_gettime_ms();
-  diff = (uint16_t)(now - threadMain.start);
+  now = CO_LinuxThreads_clock_gettime_us();
+  diff = (uint32_t)(now - threadMain.start);
 
   /* we use timerNext_us in CO_process() as indication if processing is
    * finished. We ignore any calculated values for maximum delay times. */
   do {
     finished = 1;
-    *reset = CO_process(CO, (uint32_t)diff*1000, &finished);
+    *reset = CO_process(CO, diff, &finished);
     diff = 0;
   } while ((*reset == CO_RESET_NOT) && (finished == 0));
 
@@ -79,22 +80,22 @@ void threadMain_process(CO_NMT_reset_cmd_t *reset)
   threadMain.start = now;
 }
 
-/* Realtime thread (threadRT) *****************************************************/
+/* Realtime thread (threadRT) *************************************************/
 static struct {
   uint32_t us_interval;         /* configured interval in us */
   int interval_fd;              /* timer fd */
 } threadRT;
 
-void CANrx_threadTmr_init(uint16_t interval)
+void CANrx_threadTmr_init(uint32_t interval_us)
 {
   struct itimerspec itval;
 
-  threadRT.us_interval = interval * 1000;
+  threadRT.us_interval = interval_us;
   /* set up non-blocking interval timer */
   threadRT.interval_fd = timerfd_create(CLOCK_MONOTONIC, 0);
   (void)fcntl(threadRT.interval_fd, F_SETFL, O_NONBLOCK);
   itval.it_interval.tv_sec = 0;
-  itval.it_interval.tv_nsec = interval * 1000000;
+  itval.it_interval.tv_nsec = interval_us * 1000;
   itval.it_value = itval.it_interval;
   (void)timerfd_settime(threadRT.interval_fd, 0, &itval, NULL);
 }
