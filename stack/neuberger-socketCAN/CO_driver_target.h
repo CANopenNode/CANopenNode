@@ -73,7 +73,7 @@ extern "C" {
  * socketCAN interface object
  */
 typedef struct {
-    void               *CANdriverState;   /**< CAN Interface identifier */
+    const void         *CANdriverState;   /**< CAN Interface identifier */
     char                ifName[IFNAMSIZ]; /**< CAN Interface name */
     int                 fd;               /**< socketCAN file descriptor */
 #ifdef CO_DRIVER_ERROR_REPORTING
@@ -168,7 +168,7 @@ CO_ReturnError_t CO_CANmodule_init(
  */
 CO_ReturnError_t CO_CANmodule_addInterface(
         CO_CANmodule_t         *CANmodule,
-        void                   *CANdriverState);
+        const void             *CANdriverState);
 
 #endif /* CO_DRIVER_MULTI_INTERFACE */
 
@@ -225,7 +225,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
 bool_t CO_CANrxBuffer_getInterface(
         CO_CANmodule_t         *CANmodule,
         uint16_t                ident,
-        void                  **CANdriverStateRx,
+        const void            **const CANdriverStateRx,
         struct timespec        *timestamp);
 
 /**
@@ -246,7 +246,7 @@ bool_t CO_CANrxBuffer_getInterface(
 CO_ReturnError_t CO_CANtxBuffer_setInterface(
         CO_CANmodule_t         *CANmodule,
         uint16_t                ident,
-        void                   *CANdriverStateTx);
+        const void             *CANdriverStateTx);
 
 #endif /* CO_DRIVER_MULTI_INTERFACE */
 
