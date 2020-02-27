@@ -627,23 +627,6 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 
 
 /******************************************************************************/
-void CO_CANopenInitCallback(void *object,
-                            void (*pFunctSignal)(void *object))
-{
-    CO_SDO_initCallback(CO->SDO[0], object, pFunctSignal);
-    CO_EM_initCallback(CO->em, object, pFunctSignal);
-#if CO_NO_SDO_CLIENT != 0
-    for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
-        CO_SDOclient_initCallback(CO->SDOclient[i], object, pFunctSignal);
-    }
-#endif
-#if CO_NO_LSS_CLIENT == 1
-    CO_LSSmaster_initCallback(CO->LSSmaster, object, pFunctSignal);
-#endif
-}
-
-
-/******************************************************************************/
 CO_NMT_reset_cmd_t CO_process(CO_t *co,
                               uint32_t timeDifference_us,
                               uint32_t *timerNext_us)

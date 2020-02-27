@@ -51,12 +51,14 @@ void threadMain_init(void (*callback)(void*), void *object)
 {
   threadMain.start = CO_LinuxThreads_clock_gettime_us();
 
-  CO_CANopenInitCallback(object, callback);
+  CO_SDO_initCallback(CO->SDO[0], object, callback);
+  CO_EM_initCallback(CO->em, object, callback);
 }
 
 void threadMain_close(void)
 {
-  CO_CANopenInitCallback(NULL, NULL);
+  CO_SDO_initCallback(CO->SDO[0], NULL, NULL);
+  CO_EM_initCallback(CO->em, NULL, NULL);
 }
 
 void threadMain_process(CO_NMT_reset_cmd_t *reset)
