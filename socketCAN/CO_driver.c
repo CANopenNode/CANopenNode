@@ -35,22 +35,13 @@
 #include <sys/epoll.h>
 
 #include "301/CO_driver.h"
-
-#if defined CO_DRIVER_ERROR_REPORTING
-  #if __has_include("syslog1/log.h")
-    #include "syslog/log.h"
-    #include "msgs.h"
-  #else
-    #include "CO_msgs.h"
-  #endif
-#else
-  #define log_printf(macropar_prio, macropar_message, ...)
-#endif
+#include "CO_error.h"
 
 #if __has_include("301/CO_Emergency.h")
   #include "301/CO_Emergency.h"
   #define USE_EMERGENCY_OBJECT
 #endif
+
 
 pthread_mutex_t CO_EMCY_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t CO_OD_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -58,6 +49,7 @@ pthread_mutex_t CO_OD_mutex = PTHREAD_MUTEX_INITIALIZER;
 #ifndef CO_DRIVER_MULTI_INTERFACE
 static CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule, const void *CANptr);
 #endif
+
 
 #ifdef CO_DRIVER_MULTI_INTERFACE
 
@@ -106,10 +98,10 @@ static uint32_t CO_CANgetIndexFromIdent(
     return lookup[ident];
 }
 
-#endif
+#endif /* CO_DRIVER_MULTI_INTERFACE */
 
 
-/** Disable socketCAN rx *****************************************************/
+/** Disable socketCAN rx ******************************************************/
 static CO_ReturnError_t disableRx(CO_CANmodule_t *CANmodule)
 {
     int ret;
@@ -131,6 +123,7 @@ static CO_ReturnError_t disableRx(CO_CANmodule_t *CANmodule)
 
     return retval;
 }
+
 
 /** Set up or update socketCAN rx filters *************************************/
 static CO_ReturnError_t setRxFilters(CO_CANmodule_t *CANmodule)
@@ -403,7 +396,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
         log_printf(LOG_DEBUG, DBG_ERRNO, "setsockopt(can err)");
         return CO_ERROR_SYSCALL;
     }
-#endif
+#endif /* CO_DRIVER_ERROR_REPORTING */
 
     /* Add socket to epoll */
     ev.events = EPOLLIN;
@@ -572,7 +565,7 @@ bool_t CO_CANrxBuffer_getInterface(
     }
 }
 
-#endif
+#endif /* CO_DRIVER_MULTI_INTERFACE */
 
 
 /******************************************************************************/
@@ -631,7 +624,7 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(
     return CO_ERROR_PARAMETERS;
 }
 
-#endif
+#endif /* CO_DRIVER_MULTI_INTERFACE */
 
 /******************************************************************************/
 static CO_ReturnError_t CO_CANCheckSendInterface(
@@ -779,6 +772,7 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule)
    * Therefore, error counter evaluation is included in rx function.*/
 }
 
+
 /******************************************************************************/
 static CO_ReturnError_t CO_CANread(
         CO_CANmodule_t         *CANmodule,
@@ -843,6 +837,7 @@ static CO_ReturnError_t CO_CANread(
     return CO_ERROR_NO;
 }
 
+
 static int32_t CO_CANrxMsg(
         CO_CANmodule_t        *CANmodule,
         struct can_frame      *msg,
@@ -886,6 +881,7 @@ static int32_t CO_CANrxMsg(
 
     return retval;
 }
+
 
 /******************************************************************************/
 int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buffer)

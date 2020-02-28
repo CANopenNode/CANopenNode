@@ -7,10 +7,6 @@
 
 #include "CO_notify_pipe.h"
 
-struct CO_NotifyPipe {
-    int m_receiveFd;
-    int m_sendFd;
-};
 
 CO_NotifyPipe_t *CO_NotifyPipeCreate(void)
 {
@@ -30,6 +26,7 @@ CO_NotifyPipe_t *CO_NotifyPipeCreate(void)
     fcntl(p->m_sendFd,F_SETFL,O_NONBLOCK);
     return p;
 }
+
 
 void CO_NotifyPipeFree(CO_NotifyPipe_t *p)
 {

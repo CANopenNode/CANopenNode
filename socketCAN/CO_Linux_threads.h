@@ -2,6 +2,7 @@
  * Helper functions for implementing CANopen threads in Linux.
  *
  * @file        CO_Linux_threads.h
+ * @ingroup     CO_socketCAN
  * @author      Janez Paternoster
  * @author      Martin Wagner
  * @copyright   2004 - 2015 Janez Paternoster
@@ -32,10 +33,17 @@
 extern "C" {
 #endif
 
-/*
+/**
+ * @defgroup CO_socketCAN socketCAN
+ * @{
+ *
+ * Linux specific interface to CANopenNode
+ *
+ * CANopenNode runs in two threads: timer based realtime thread for CAN receive,
+ * SYNC and PDO and mainline thread for other processing.
+ *
  * The "threads" specified here do not fork threads themselves, but require
  * that two threads are provided by the calling application.
- *
  * It uses the global CO object and has one thread-local struct for variables.
  */
 
@@ -79,8 +87,8 @@ extern void threadMain_process(CO_NMT_reset_cmd_t *reset);
  * @remark If realtime is required, this thread must be registred as such in the Linux
  * kernel.
  *
- * @param interval Interval of periodic timer in microseconds, recommended value
- *                 for realtime response: 1000 us
+ * @param interval_us Interval of periodic timer in microseconds, recommended
+ *                    value for realtime response: 1000 us
  */
 extern void CANrx_threadTmr_init(uint32_t interval_us);
 
@@ -96,6 +104,8 @@ extern void CANrx_threadTmr_close(void);
  * some event happens or a timer runs out.
  */
 extern void CANrx_threadTmr_process();
+
+/** @} */
 
 #ifdef __cplusplus
 }

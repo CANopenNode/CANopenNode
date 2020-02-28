@@ -2,6 +2,7 @@
  * CANopen Object Dictionary storage object for Linux SocketCAN.
  *
  * @file        CO_OD_storage.h
+ * @ingroup     CO_socketCAN
  * @author      Janez Paternoster
  * @copyright   2015 - 2020 Janez Paternoster
  *
@@ -32,14 +33,27 @@
 
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* For documentation see file drvTemplate/CO_OD_storage.h */
+/**
+ * @defgroup CO_OD_storage OD_storage
+ * @ingroup CO_socketCAN
+ * @{
+ *
+ * Object Dictionary storage implementation for CANopenNode on Linux
+ */
 
 
 /**
- * Callbacks for using inside @ref CO_OD_configure() function (for OD objects 1010 and 1011).
+ * Callback for use inside @ref CO_OD_configure() function for OD object 1010
  */
 CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg);
+
+/**
+ * Callback for use inside @ref CO_OD_configure() function for OD object 1011
+ */
 CO_SDO_abortCode_t CO_ODF_1011(CO_ODF_arg_t *ODF_arg);
 
 
@@ -148,4 +162,10 @@ CO_ReturnError_t CO_OD_storage_autoSave(
  */
 void CO_OD_storage_autoSaveClose(CO_OD_storage_t *odStor);
 
-#endif
+/** @} */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* CO_OD_STORAGE_H */

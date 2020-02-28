@@ -1,8 +1,8 @@
 /**
- * CAN module object for Linux socketCAN Error handling.
+ * CANopenNode Linux socketCAN Error handling.
  *
  * @file        CO_error.h
- * @ingroup     CO_driver
+ * @ingroup     CO_socketCAN
  * @author      Martin Wagner
  * @copyright   2018 - 2020 Neuberger Gebaeudeautomation GmbH
  *
@@ -30,9 +30,45 @@
 
 #include <stdint.h>
 
+#if __has_include("CO_error_custom.h")
+    #include "CO_error_custom.h"
+#else
+    #include "CO_error_msgs.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @defgroup CO_socketCAN_ERROR socketCAN_ERROR
+ * @ingroup CO_socketCAN
+ * @{
+ *
+ * CANopen Errors and logging of messages
+ */
+
+/**
+ * Message logging function.
+ *
+ * Default usage is to print messages into system log with syslog() call. By
+ * default system stores messages in /var/log/syslog file.
+ * Log can optionally be configured before, for example to filter out less
+ * critical errors than LOG_NOTICE, specify program name, print also process PID
+ * and print also to standard error, use:
+ * @code
+ * setlogmask (LOG_UPTO (LOG_NOTICE));
+ * openlog ("exampleprog", LOG_PID | LOG_PERROR);
+ * @endcode
+ *
+ * @param priority one of LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING,
+ *                 LOG_NOTICE, LOG_INFO, LOG_DEBUG
+ * @param format format string as in printf
+ */
+#ifdef CO_DOXYGEN
+void log_printf(int priority, const char *format, ...);
+#endif
+
 
 /**
  * driver interface state
@@ -75,9 +111,10 @@ typedef struct {
 
   uint32_t            noackCounter;
 
-  volatile bool_t     listenOnly;     /**< set to listen only mode */
+  volatile unsigned char listenOnly;  /**< set to listen only mode */
   struct timespec     timestamp;      /**< listen only mode started at this time */
 } CO_CANinterfaceErrorhandler_t;
+
 
 /**
  * Initialize CAN error handler
@@ -93,6 +130,7 @@ void CO_CANerror_init(
         int                                fd,
         const char                        *ifname);
 
+
 /**
  * Reset CAN error handler
  *
@@ -100,6 +138,7 @@ void CO_CANerror_init(
  */
 void CO_CANerror_disable(
         CO_CANinterfaceErrorhandler_t     *CANerrorhandler);
+
 
 /**
  * Message received event
@@ -123,6 +162,7 @@ void CO_CANerror_rxMsg(
 CO_CANinterfaceState_t CO_CANerror_txMsg(
         CO_CANinterfaceErrorhandler_t     *CANerrorhandler);
 
+
 /**
  * Error message received event
  *
@@ -137,9 +177,10 @@ CO_CANinterfaceState_t CO_CANerror_rxMsgError(
         const struct can_frame            *msg);
 
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* CO_ERROR_H */

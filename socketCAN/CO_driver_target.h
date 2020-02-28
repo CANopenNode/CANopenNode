@@ -149,9 +149,8 @@ typedef struct {
     uint8_t padding[3];     /* ensure alignment */
     uint8_t data[8];
     volatile bool_t bufferFull; /* not used */
-    volatile bool_t syncFlag;
-    /* info about transmit message */
-    int32_t CANbaseAddress; /* CAN Interface identifier to use */
+    volatile bool_t syncFlag;   /* info about transmit message */
+    const void *CANptr;         /* CAN Interface identifier to use */
 } CO_CANtx_t;
 
 
@@ -160,7 +159,7 @@ typedef struct {
 
 /* socketCAN interface object */
 typedef struct {
-    int32_t CANbaseAddress;     /* CAN Interface identifier */
+    const void *CANptr;         /* CAN Interface identifier */
     char ifName[IFNAMSIZ];      /* CAN Interface name */
     int fd;                     /* socketCAN file descriptor */
 #ifdef CO_DRIVER_ERROR_REPORTING

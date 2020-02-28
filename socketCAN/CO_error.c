@@ -2,7 +2,6 @@
  * CAN module object for Linux socketCAN Error handling.
  *
  * @file        CO_error.c
- * @ingroup     CO_driver
  * @author      Martin Wagner
  * @copyright   2018 - 2020 Neuberger Gebaeudeautomation GmbH
  *
@@ -31,17 +30,6 @@
 
 #include "301/CO_driver.h"
 #include "CO_error.h"
-
-#if defined CO_DRIVER_ERROR_REPORTING
-  #if __has_include("syslog/log.h")
-    #include "syslog/log.h"
-    #include "msgs.h"
-  #else
-    #include "CO_msgs.h"
-  #endif
-#else
-  #define log_printf(macropar_prio, macropar_message, ...)
-#endif
 
 
 /**

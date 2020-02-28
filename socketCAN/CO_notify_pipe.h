@@ -2,7 +2,7 @@
  * Notify pipe for Linux threads.
  *
  * @file        CO_notify_pipe.h
- * @ingroup     CO_driver
+ * @ingroup     CO_socketCAN
  * @author      Martin Wagner
  * @copyright   2017 - 2020 Neuberger Gebaeudeautomation GmbH
  *
@@ -33,21 +33,26 @@ extern "C" {
 
 /**
  * @defgroup CO_pipe Pipe
- * @ingroup CO_driver
+ * @ingroup CO_socketCAN
  * @{
  *
  * This is needed to wake up the can socket when blocking in select
  */
 
 /**
- * Object
+ * Notify pipe object
  */
-typedef struct CO_NotifyPipe CO_NotifyPipe_t;
+typedef struct {
+    int m_receiveFd;    /**< File descriptor for receive */
+    int m_sendFd;       /**< File descriptor for send */
+} CO_NotifyPipe_t;
+
 
 /**
  * Create Pipe
  *
- * @return != null if successfully created
+ * @return pointer to CO_NotifyPipe_t object if successfully created or
+ * NULL on failure.
  */
 CO_NotifyPipe_t *CO_NotifyPipeCreate(void);
 
@@ -79,7 +84,3 @@ void CO_NotifyPipeSend(CO_NotifyPipe_t *p);
 #endif /*__cplusplus*/
 
 #endif /* CO_NOTIFY_PIPE_H_ */
-
-/**
-* @} @}
-**/

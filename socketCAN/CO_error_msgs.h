@@ -1,10 +1,7 @@
-/**
- * CAN module object for Linux socketCAN.
+/*
+ * Definitions for CANopenNode Linux socketCAN Error handling.
  *
- * This file is a template for other microcontrollers.
- *
- * @file        CO_msgs.h
- * @ingroup     CO_driver
+ * @file        CO_Error_msgs.h
  * @author      Martin Wagner
  * @copyright   2020 Neuberger Gebaeudeautomation GmbH
  *
@@ -27,30 +24,23 @@
  */
 
 
-#ifndef CO_MSGS_H
-#define CO_MSGS_H
-
-#include <stdio.h>
-#include <syslog.h>
-#include "CO_msgs.h"
+#ifndef CO_ERROR_MSGS_H
+#define CO_ERROR_MSGS_H
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
+
 
 /*
- * message printing function
+ * Message logging function.
  */
+#ifndef log_printf
+#include <syslog.h>
+
 #define log_printf(macropar_prio, macropar_message, ...) \
-  if (macropar_prio < LOG_DEBUG) { \
-    printf(macropar_message, ##__VA_ARGS__); \
-  }
-
-/*
- * message logging function. You need to open the log previous to this.
- */
-//#define log_printf(macropar_prio, macropar_message, ...) syslog(macropar_prio, macropar_message, ##__VA_ARGS__);
-
+        syslog(macropar_prio, macropar_message, ##__VA_ARGS__)
+#endif
 
 
 /*
@@ -74,8 +64,9 @@ extern "C" {
 #define CAN_RX_LEVEL_WARNING      "CAN Interface \"%s\" reached Rx Warning Level"
 #define CAN_TX_LEVEL_WARNING      "CAN Interface \"%s\" reached Tx Warning Level"
 
+
 /*
- * Debug
+ * Message definitions for debugging
  */
 #define DBG_ERRNO                 "(%s) OS error \"%s\" in %s", __func__, strerror(errno)
 #define DBG_CAN_TX_FAILED         "(%s) Transmitting CAN msg OID 0x%08x failed(%s)", __func__
@@ -91,5 +82,4 @@ extern "C" {
 }
 #endif /* __cplusplus */
 
-/** @} */
-#endif
+#endif /* CO_ERROR_MSGS_H */
