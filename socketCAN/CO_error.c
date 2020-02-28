@@ -32,10 +32,13 @@
 #include "301/CO_driver.h"
 #include "CO_error.h"
 
-
-#if defined CO_DRIVER_ERROR_REPORTING && __has_include("syslog/log.h")
-  #include "syslog/log.h"
-  #include "msgs.h"
+#if defined CO_DRIVER_ERROR_REPORTING
+  #if __has_include("syslog/log.h")
+    #include "syslog/log.h"
+    #include "msgs.h"
+  #else
+    #include "CO_msgs.h"
+  #endif
 #else
   #define log_printf(macropar_prio, macropar_message, ...)
 #endif
@@ -192,7 +195,7 @@ void CO_CANerror_init(
     }
 
     CANerrorhandler->fd = fd;
-    CANerrorhandler->ifName = ifName;
+    memcpy(CANerrorhandler->ifName, ifName, sizeof(CANerrorhandler->ifName));
     CANerrorhandler->noackCounter = 0;
     CANerrorhandler->listenOnly = false;
     CANerrorhandler->timestamp.tv_sec = 0;

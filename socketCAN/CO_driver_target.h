@@ -129,7 +129,6 @@ static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
 }
 
 
-
 /* Received message object */
 typedef struct {
     uint32_t ident;
@@ -138,7 +137,7 @@ typedef struct {
     void (*CANrx_callback)(void *object, void *message);
 #ifdef CO_DRIVER_MULTI_INTERFACE
     /* info about last received message */
-    int32_t             CANbaseAddress; /* CAN Interface identifier */
+    const void         *CANptr;         /* CAN Interface identifier */
     struct timespec     timestamp;      /* time of reception */
 #endif
 } CO_CANrx_t;
@@ -231,12 +230,12 @@ static inline void CO_UNLOCK_OD() {
  * Function must be called after CO_CANmodule_init.
  *
  * @param CANmodule This object will be initialized.
- * @param CANbaseAddress CAN module base address.
+ * @param CANptr CAN module interface index (return value if_nametoindex(), NO pointer!).
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_SYSCALL or CO_ERROR_INVALID_STATE.
  */
 CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
-                                           int32_t CANbaseAddress);
+                                           const void *CANptr);
 
 /*
  * Check on which interface the last message for one message buffer was received
@@ -246,7 +245,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
  *
  * @param CANmodule This object.
  * @param ident 11-bit standard CAN Identifier.
- * @param [out] CANbaseAddressRx message was received on this interface
+ * @param [out] CANptrRx message was received on this interface
  * @param [out] timestamp message was received at this time (system clock)
  *
  * @retval false message has never been received, therefore no base address
@@ -254,8 +253,8 @@ CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
  * @retval true base address and timestamp are valid
  */
 bool_t CO_CANrxBuffer_getInterface(CO_CANmodule_t *CANmodule,
-                                   uint32_t ident,
-                                   int32_t *CANbaseAddressRx,
+                                   uint16_t ident,
+                                   const void **const CANptrRx,
                                    struct timespec *timestamp);
 
 /*
@@ -264,26 +263,26 @@ bool_t CO_CANrxBuffer_getInterface(CO_CANmodule_t *CANmodule,
  * It is in the responsibility of the user to ensure that the correct interface
  * is used. Some messages need to be transmitted on all interfaces.
  *
- * If given interface is unknown or "-1" is used, a message is transmitted on
+ * If given interface is unknown or NULL is used, a message is transmitted on
  * all available interfaces.
  *
  * @param CANmodule This object.
  * @param ident 11-bit standard CAN Identifier.
- * @param CANbaseAddressTx use this interface. -1 = not specified
+ * @param CANptrTx use this interface. NULL = not specified
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_CANtxBuffer_setInterface(CO_CANmodule_t *CANmodule,
-                                             uint32_t ident,
-                                             int32_t CANbaseAddressTx);
-#endif
+                                             uint16_t ident,
+                                             const void *CANptrTx);
+#endif /* CO_DRIVER_MULTI_INTERFACE */
 
 
 /*
  * Functions receives CAN messages. It is blocking.
  *
  * This function can be used in two ways
- * - automatic mode (call callback that is set by CO_CANrxBufferInit() function)
+ * - automatic mode (call callback that is set by #CO_CANrxBufferInit() function)
  * - manual mode (evaluate message filters, return received message)
  *
  * Both modes can be combined.

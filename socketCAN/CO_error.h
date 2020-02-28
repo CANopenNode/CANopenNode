@@ -71,11 +71,11 @@ typedef enum {
  */
 typedef struct {
   int                 fd;             /**< interface FD */
-  const char         *ifName;         /**< interface name as string */
+  char                ifName[IFNAMSIZ]; /**< interface name as string */
 
   uint32_t            noackCounter;
 
-  volatile unsigned char listenOnly;  /**< set to listen only mode */
+  volatile bool_t     listenOnly;     /**< set to listen only mode */
   struct timespec     timestamp;      /**< listen only mode started at this time */
 } CO_CANinterfaceErrorhandler_t;
 
