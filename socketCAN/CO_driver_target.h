@@ -1,7 +1,8 @@
-/*
+/**
  * Linux socketCAN specific definitions for CANopenNode.
  *
  * @file        CO_driver_target.h
+ * @ingroup     CO_socketCAN_driver_target
  * @author      Janez Paternoster
  * @author      Martin Wagner
  * @copyright   2004 - 2020 Janez Paternoster
@@ -25,15 +26,41 @@
  */
 
 
+/* This file contains device and application specific definitions.
+ * It is included from CO_driver.h, which contains documentation
+ * for common definitions below. */
+
 #ifndef CO_DRIVER_TARGET
 #define CO_DRIVER_TARGET
 
-/* This file contains device and application specific definitions.
- * It is included from CO_driver.h, which contains documentation
- * for definitions below. */
+#include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <endian.h>
+#include <pthread.h>
+#include <linux/can.h>
+#include <net/if.h>
 
-/*
- * @name multi interface support
+#if __has_include("CO_driver_custom.h")
+    #include "CO_driver_custom.h"
+#endif
+#include "CO_notify_pipe.h"
+#include "CO_error.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @defgroup CO_socketCAN_driver_target CO_driver_target.h
+ * @ingroup CO_socketCAN
+ * @{
+ *
+ * Linux socketCAN specific @ref CO_driver definitions for CANopenNode.
+ */
+
+/**
+ * Multi interface support
  *
  * Enable this to use interface combining at driver level. This
  * adds functions to broadcast/selective transmit messages on the
@@ -51,40 +78,32 @@
  * This is not intended to realize interface redundancy!!!
  */
 /* #define CO_DRIVER_MULTI_INTERFACE */
+#ifdef CO_DOXYGEN
+#define CO_DRIVER_MULTI_INTERFACE
+#endif
 
-/*
- * @name CAN bus error reporting
+/**
+ * CAN bus error reporting
  *
  * CO_DRIVER_ERROR_REPORTING enabled adds support for socketCAN error detection
  * and handling functions inside the driver. This is needed when you have
  * CANopen with "0" connected nodes as a use case, as this is normally
  * forbidden in CAN.
  *
- * you need to enable error reporting in your kernel driver using
- * "ip link set canX type can berr-reporting on". Of course, the kernel
- * driver for your hardware needs this functionality to be implemented...
+ * you need to enable error reporting in your kernel driver using:
+ * @code{.sh}
+ * ip link set canX type can berr-reporting on
+ * @endcode
+ * Of course, the kernel driver for your hardware needs this functionality to be
+ * implemented...
  */
-#ifndef CO_DRIVER_ERROR_REPORTING_DISABLE
+/* #define CO_DRIVER_ERROR_REPORTING */
+#ifdef CO_DOXYGEN
 #define CO_DRIVER_ERROR_REPORTING
 #endif
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <sys/time.h>
-#include <endian.h>
-#include <pthread.h>
-#include <linux/can.h>
-#include <net/if.h>
-
-#include "CO_notify_pipe.h"
-#ifdef CO_DRIVER_ERROR_REPORTING
-    #include "CO_error.h"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* skip this section for Doxygen, because it is documented in CO_driver.h */
+#ifndef CO_DOXYGEN
 
 /* Basic definitions */
 #ifdef __BYTE_ORDER
@@ -135,11 +154,9 @@ typedef struct {
     uint32_t mask;
     void *object;
     void (*CANrx_callback)(void *object, void *message);
-#ifdef CO_DRIVER_MULTI_INTERFACE
-    /* info about last received message */
-    const void         *CANptr;         /* CAN Interface identifier */
-    struct timespec     timestamp;      /* time of reception */
-#endif
+    const void         *CANptr;         /* CAN Interface identifier from last
+                                           message */
+    struct timespec     timestamp;      /* time of reception of last message */
 } CO_CANrx_t;
 
 /* Transmit message object as aligned in socketCAN. */
@@ -182,7 +199,8 @@ typedef struct {
     volatile bool_t CANnormal;
     void *em;
     CO_NotifyPipe_t *pipe;      /* Notification Pipe */
-    int fdEpoll;                /* epoll FD */
+    int fdEpoll;                /* epoll FD for pipe, CANrx sockets in all
+                                   interfaces and fdTimerRead */
     int fdTimerRead;            /* timer handle from CANrxWait() */
 #ifdef CO_DRIVER_MULTI_INTERFACE
     /* Lookup tables Cob ID to rx/tx array index.
@@ -221,9 +239,11 @@ static inline void CO_UNLOCK_OD() {
 #define CO_FLAG_SET(rxNew) {CO_MemoryBarrier(); rxNew = (void*)1L;}
 #define CO_FLAG_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = NULL;}
 
+#endif /* CO_DOXYGEN */
+
 
 #ifdef CO_DRIVER_MULTI_INTERFACE
-/*
+/**
  * Add socketCAN interface to can driver
  *
  * Function must be called after CO_CANmodule_init.
@@ -236,7 +256,7 @@ static inline void CO_UNLOCK_OD() {
 CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
                                            const void *CANptr);
 
-/*
+/**
  * Check on which interface the last message for one message buffer was received
  *
  * It is in the responsibility of the user to check that this information is
@@ -256,7 +276,7 @@ bool_t CO_CANrxBuffer_getInterface(CO_CANmodule_t *CANmodule,
                                    const void **const CANptrRx,
                                    struct timespec *timestamp);
 
-/*
+/**
  * Set which interface should be used for message buffer transmission
  *
  * It is in the responsibility of the user to ensure that the correct interface
@@ -277,26 +297,33 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(CO_CANmodule_t *CANmodule,
 #endif /* CO_DRIVER_MULTI_INTERFACE */
 
 
-/*
- * Functions receives CAN messages. It is blocking.
+/**
+ * Functions receives CAN messages (blocking)
  *
- * This function can be used in two ways
- * - automatic mode (call callback that is set by #CO_CANrxBufferInit() function)
- * - manual mode (evaluate message filters, return received message)
+ * This function waits for received CAN message, CAN error frame, notification
+ * pipe or fdTimer expiration. In case of CAN message it searches _rxArray_ from
+ * CO_CANmodule_t and if matched it calls the corresponding CANrx_callback,
+ * optionally copies received CAN message to _buffer_ and returns index of
+ * matched _rxArray_.
  *
- * Both modes can be combined.
+ * This function can be used in two ways, which can be combined:
+ * - automatic mode: If CANrx_callback is specified for matched _rxArray_, then
+ *   calls its callback.
+ * - manual mode: evaluate message filters, return received message
  *
  * @param CANmodule This object.
- * @param fdTimer file descriptor with activated timeout. fd is not read after
- *                expiring! -1 if not used.
- * @param buffer [out] storage for received message or _NULL_
- * @retval >= 0 index of received message in array set by #CO_CANmodule_init()
- *         _rxArray_, copy available in _buffer_
- * @retval -1 no message received
+ * @param fdTimer File descriptor with activated timeout. If set to -1, then
+ *                timer will not be used. File descriptor must be read
+ *                externally if retval == -1! Read must be nonblocking and
+ *                provides number of timer expirations since last read.
+ * @param [out] buffer Storage for received message or _NULL_ if not used.
+ * @retval >= 0 index of received message in array from CO_CANmodule_t
+ *              _rxArray_, copy of CAN message is available in _buffer_.
+ * @retval -1 no message received (timer expired or notification pipe or error)
  */
-int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule,
-                     int fdTimer,
-                     CO_CANrxMsg_t *buffer);
+int32_t CO_CANrxWait(CO_CANmodule_t* CANmodule, int fdTimer, CO_CANrxMsg_t* buffer);
+
+/** @} */
 
 #ifdef __cplusplus
 }

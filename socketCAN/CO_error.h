@@ -2,7 +2,7 @@
  * CANopenNode Linux socketCAN Error handling.
  *
  * @file        CO_error.h
- * @ingroup     CO_socketCAN
+ * @ingroup     CO_socketCAN_ERROR
  * @author      Martin Wagner
  * @copyright   2018 - 2020 Neuberger Gebaeudeautomation GmbH
  *
@@ -41,11 +41,11 @@ extern "C" {
 #endif
 
 /**
- * @defgroup CO_socketCAN_ERROR socketCAN_ERROR
+ * @defgroup CO_socketCAN_ERROR CAN errors & Log
  * @ingroup CO_socketCAN
  * @{
  *
- * CANopen Errors and logging of messages
+ * CANopen Errors and System message log
  */
 
 /**
@@ -108,9 +108,7 @@ typedef enum {
 typedef struct {
   int                 fd;             /**< interface FD */
   char                ifName[IFNAMSIZ]; /**< interface name as string */
-
-  uint32_t            noackCounter;
-
+  uint32_t            noackCounter;   /**< counts no ACK on CAN transmission */
   volatile unsigned char listenOnly;  /**< set to listen only mode */
   struct timespec     timestamp;      /**< listen only mode started at this time */
 } CO_CANinterfaceErrorhandler_t;
@@ -143,7 +141,8 @@ void CO_CANerror_disable(
 /**
  * Message received event
  *
- * when a message is received at least one other CAN module is connected
+ * When a message is received at least one other CAN module is connected.
+ * Function clears listenOnly and noackCounter error flags.
  *
  * @param CANerrorhandler CAN error object.
  */
@@ -154,7 +153,7 @@ void CO_CANerror_rxMsg(
 /**
  * Check if interface is ready for message transmission
  *
- * message musn't be transmitted if not ready
+ * Message mustn't be transmitted if not ready.
  *
  * @param CANerrorhandler CAN error object.
  * @return CO_INTERFACE_ACTIVE message transmission ready
@@ -166,7 +165,7 @@ CO_CANinterfaceState_t CO_CANerror_txMsg(
 /**
  * Error message received event
  *
- * this handles all received error messages
+ * This handles all received error messages.
  *
  * @param CANerrorhandler CAN error object.
  * @param msg received error message

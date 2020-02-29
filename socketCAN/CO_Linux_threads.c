@@ -111,9 +111,9 @@ void CANrx_threadTmr_close(void)
 void CANrx_threadTmr_process(void)
 {
   int32_t result;
-  int32_t i;
+  uint64_t i;
   bool_t syncWas;
-  unsigned long long missed;
+  uint64_t missed;
 
   result = CO_CANrxWait(CO->CANmodule[0], threadRT.interval_fd, NULL);
   if (result < 0) {

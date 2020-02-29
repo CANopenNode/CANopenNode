@@ -2,7 +2,7 @@
  * Notify pipe for Linux threads.
  *
  * @file        CO_notify_pipe.h
- * @ingroup     CO_socketCAN
+ * @ingroup     CO_socketCAN_notify_pipe
  * @author      Martin Wagner
  * @copyright   2017 - 2020 Neuberger Gebaeudeautomation GmbH
  *
@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 /**
- * @defgroup CO_pipe Pipe
+ * @defgroup CO_socketCAN_notify_pipe Notify pipe
  * @ingroup CO_socketCAN
  * @{
  *

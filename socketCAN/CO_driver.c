@@ -32,7 +32,9 @@
 #include <linux/can/error.h>
 #include <linux/net_tstamp.h>
 #include <sys/socket.h>
+#include <asm/socket.h>
 #include <sys/epoll.h>
+#include <time.h>
 
 #include "301/CO_driver.h"
 #include "CO_error.h"
@@ -268,11 +270,9 @@ CO_ReturnError_t CO_CANmodule_init(
         rxArray[i].mask = 0xFFFFFFFFU;
         rxArray[i].object = NULL;
         rxArray[i].CANrx_callback = NULL;
-#ifdef CO_DRIVER_MULTI_INTERFACE
         rxArray[i].CANptr = NULL;
         rxArray[i].timestamp.tv_sec = 0;
         rxArray[i].timestamp.tv_nsec = 0;
-#endif
     }
 
 #ifndef CO_DRIVER_MULTI_INTERFACE
@@ -344,7 +344,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
         log_printf(LOG_DEBUG, DBG_ERRNO, "setsockopt(ovfl)");
         return CO_ERROR_SYSCALL;
     }
-#ifdef CO_DRIVER_MULTI_INTERFACE
+
     /* enable software time stamp mode (hardware timestamps do not work properly
      * on all devices)*/
     tmp = (SOF_TIMESTAMPING_SOFTWARE |
@@ -354,7 +354,6 @@ CO_ReturnError_t CO_CANmodule_addInterface(
         log_printf(LOG_DEBUG, DBG_ERRNO, "setsockopt(timestamping)");
         return CO_ERROR_SYSCALL;
     }
-#endif
 
     //todo - modify rx buffer size? first one needs root
     //ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUFFORCE, (void *)&bytes, sLen);
@@ -501,11 +500,9 @@ CO_ReturnError_t CO_CANrxBufferInit(
             /* Configure object variables */
             buffer->object = object;
             buffer->CANrx_callback = CANrx_callback;
-#ifdef CO_DRIVER_MULTI_INTERFACE
             buffer->CANptr = NULL;
             buffer->timestamp.tv_nsec = 0;
             buffer->timestamp.tv_sec = 0;
-#endif
 
             /* CAN identifier and CAN mask, bit aligned with CAN module */
             buffer->ident = ident & CAN_SFF_MASK;
@@ -626,7 +623,7 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(
 
 #endif /* CO_DRIVER_MULTI_INTERFACE */
 
-/******************************************************************************/
+/* send CAN message ***********************************************************/
 static CO_ReturnError_t CO_CANCheckSendInterface(
         CO_CANmodule_t         *CANmodule,
         CO_CANtx_t             *buffer,
@@ -773,12 +770,12 @@ void CO_CANverifyErrors(CO_CANmodule_t *CANmodule)
 }
 
 
-/******************************************************************************/
+/* Read CAN message from socket and verify some errors ************************/
 static CO_ReturnError_t CO_CANread(
         CO_CANmodule_t         *CANmodule,
         CO_CANinterface_t      *interface,
-        struct can_frame       *msg,
-        struct timespec        *timestamp)
+        struct can_frame       *msg,        /* CAN message, return value */
+        struct timespec        *timestamp)  /* timestamp of CAN message, return value */
 {
     int32_t n;
     uint32_t dropped;
@@ -838,10 +835,11 @@ static CO_ReturnError_t CO_CANread(
 }
 
 
-static int32_t CO_CANrxMsg(
+/* find msg inside rxArray and call corresponding CANrx_callback **************/
+static int32_t CO_CANrxMsg(                 /* return index of received message in rxArray or -1 */
         CO_CANmodule_t        *CANmodule,
-        struct can_frame      *msg,
-        CO_CANrxMsg_t         *buffer)
+        struct can_frame      *msg,         /* CAN message input */
+        CO_CANrxMsg_t         *buffer)      /* If not NULL, msg will be copied to buffer */
 {
     int32_t retval;
     const CO_CANrxMsg_t *rcvMsg;  /* pointer to received message in CAN module */
@@ -888,9 +886,7 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
 {
     int32_t retval;
     int32_t ret;
-#ifdef CO_DRIVER_MULTI_INTERFACE
     const void *CANptr;
-#endif
     CO_ReturnError_t err;
     CO_CANinterface_t *interface = NULL;
     struct epoll_event ev[1];
@@ -938,7 +934,7 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
             /* one of the sockets is ready */
             if ((ev[0].data.fd == CO_NotifyPipeGetFd(CANmodule->pipe)) ||
                 (ev[0].data.fd == fdTimer)) {
-                /* timer/pipe socket */
+                /* timer or notify pipe */
                 return -1;
             }
             else {
@@ -949,10 +945,8 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
                     interface = &CANmodule->CANinterfaces[i];
 
                     if (ev[0].data.fd == interface->fd) {
-#ifdef CO_DRIVER_MULTI_INTERFACE
                         /* get interface handle */
-                        CANdriverState = interface->CANptr;
-#endif
+                        CANptr = interface->CANptr;
                         /* get message */
                         err = CO_CANread(CANmodule, interface, &msg, &timestamp);
                         if (err != CO_ERROR_NO) {
@@ -983,16 +977,15 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
             int32_t msgIndex;
 
 #ifdef CO_DRIVER_ERROR_REPORTING
+            /* clear listenOnly and noackCounter if necessary */
             CO_CANerror_rxMsg(&interface->errorhandler);
 #endif
 
             msgIndex = CO_CANrxMsg(CANmodule, &msg, buffer);
             if (msgIndex > -1) {
-#ifdef CO_DRIVER_MULTI_INTERFACE
                 /* Store message info */
                 CANmodule->rxArray[msgIndex].timestamp = timestamp;
                 CANmodule->rxArray[msgIndex].CANptr = CANptr;
-#endif
             }
             retval = msgIndex;
         }

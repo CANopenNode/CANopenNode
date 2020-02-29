@@ -37,6 +37,7 @@ Change Log
 - NMT self start functionality (OD object 1F80) implemented to strictly folow standard. Default value for object 1F80 have to be updated in OD editor. See README.md.
 ### Fixed
 - Various fixes.
+- neuberger-socketCAN fixed.
 ### Added
 - CANopen TIME protocol added.
 

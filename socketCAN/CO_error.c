@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <linux/can/error.h>
 
 #include "301/CO_driver.h"

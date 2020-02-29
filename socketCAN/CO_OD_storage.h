@@ -2,7 +2,7 @@
  * CANopen Object Dictionary storage object for Linux SocketCAN.
  *
  * @file        CO_OD_storage.h
- * @ingroup     CO_socketCAN
+ * @ingroup     CO_socketCAN_OD_storage
  * @author      Janez Paternoster
  * @copyright   2015 - 2020 Janez Paternoster
  *
@@ -38,7 +38,7 @@ extern "C" {
 #endif
 
 /**
- * @defgroup CO_OD_storage OD_storage
+ * @defgroup CO_socketCAN_OD_storage OD storage
  * @ingroup CO_socketCAN
  * @{
  *

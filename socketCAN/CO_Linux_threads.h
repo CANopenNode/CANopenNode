@@ -33,27 +33,25 @@
 extern "C" {
 #endif
 
+
 /**
  * @defgroup CO_socketCAN socketCAN
  * @{
  *
  * Linux specific interface to CANopenNode
  *
- * CANopenNode runs in two threads: timer based realtime thread for CAN receive,
- * SYNC and PDO and mainline thread for other processing.
+ * CANopenNode runs in two threads:
+ * - timer based real-time thread for CAN receive, SYNC and PDO, see
+ *   CANrx_threadTmr_process()
+ * - mainline thread for other processing, see threadMain_process()
  *
  * The "threads" specified here do not fork threads themselves, but require
  * that two threads are provided by the calling application.
- * It uses the global CO object and has one thread-local struct for variables.
  */
+
 
 /**
  * Initialize mainline thread.
- *
- * threadMain is non-realtime thread for CANopenNode processing. It is nonblocking
- * and should be called cyclically in 50 ms intervals or less if necessary. This
- * is indicated by the callback function.
- * This thread processes CO_process() function from CANopen.c file.
  *
  * @param callback this function is called to indicate #threadMain_process() has
  * work to do
@@ -61,47 +59,64 @@ extern "C" {
  */
 extern void threadMain_init(void (*callback)(void*), void *object);
 
+
 /**
  * Cleanup mainline thread.
  */
 extern void threadMain_close(void);
 
+
 /**
  * Process mainline thread.
  *
- * Function must be called cyclically and after callback
+ * threadMain is non-realtime thread for CANopenNode processing. It is
+ * initialized by threadMain_init(). There is no configuration for CANopen
+ * objects. There is also no configuration for epool or interval timer or notify
+ * pipe. These must be specified externally.
+ *
+ * threadMain_process() calls CO_process() function for processing mainline
+ * CANopen objects. It is non-blocking and should be called cyclically in 50 ms
+ * intervals (typically). Function must also be called immediately after
+ * callback provided in threadMain_init() is called.
  *
  * @param reset return value from CO_process() function.
  */
 extern void threadMain_process(CO_NMT_reset_cmd_t *reset);
 
+
 /**
  * Initialize realtime thread.
- *
- * CANrx_threadTmr is realtime thread for CANopenNode processing. It is nonblocking
- * and must be executed at CAN message receive or periodically in 1ms (or something)
- * intervals. Inside interval is processed CANopen SYNC message, RPDOs(inputs)
- * and TPDOs(outputs).
- * CANrx_threadTmr uses CAN socket from CO_driver.c
- *
- * @remark If realtime is required, this thread must be registred as such in the Linux
- * kernel.
  *
  * @param interval_us Interval of periodic timer in microseconds, recommended
  *                    value for realtime response: 1000 us
  */
 extern void CANrx_threadTmr_init(uint32_t interval_us);
 
+
 /**
  * Terminate realtime thread.
  */
 extern void CANrx_threadTmr_close(void);
 
+
 /**
- * Process realtime thread.
+ * Process real-time thread.
  *
- * This function must be called inside an infinite loop. It blocks until either
- * some event happens or a timer runs out.
+ * CANrx_threadTmr is realtime thread for CANopenNode processing. It is
+ * initialized by CANrx_threadTmr_init(). There is no configuration for CANopen
+ * objects. But configuration for epool event notification facility is included
+ * in CO_CANmodule_init() from CO_driver.c. Epool is configured to monitor the
+ * following file descriptors: notify pipe, CANrx sockets from all interfaces
+ * and interval timer.
+ *
+ * CANrx_threadTmr_process() blocks on epoll_wait(). This is implemented inside
+ * CO_CANrxWait() from CO_driver.c. New CAN message is processed in
+ * CANrx_threadTmr_process() function, which calls CO_process_SYNC(),
+ * CO_process_RPDO() and CO_process_TPDO() functions for each expired timer
+ * interval. This function must be called inside an infinite loop.
+ *
+ * @remark If realtime is required, this thread must be registered as such in
+ * the Linux kernel.
  */
 extern void CANrx_threadTmr_process();
 

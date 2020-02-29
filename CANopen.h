@@ -129,7 +129,7 @@ extern "C" {
 
 #ifdef CO_DOXYGEN
 /**
- * @defgroup CO_NO_OBJ Number of CANopenNode communication objects.
+ * @defgroup CO_NO_OBJ Configuration
  *
  * Definitions specify, which and how many CANopenNode communication objects
  * will be used in current configuration. Usage of some objects is mandatory and
