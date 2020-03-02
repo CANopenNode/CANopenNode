@@ -29,6 +29,10 @@
 #define CO_ERROR_H
 
 #include <stdint.h>
+#include <errno.h>
+#include <string.h>
+#include <linux/can.h>
+#include <net/if.h>
 
 #if __has_include("CO_error_custom.h")
     #include "CO_error_custom.h"

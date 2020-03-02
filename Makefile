@@ -1,13 +1,13 @@
-# Makefile for CANopenNode with socketCAN
+# Makefile for CANopenNode with Linux socketCAN
 
 
-DRV_SRC = .
-CANOPEN_SRC = ..
-OD_SRC = ../example
-APPL_SRC = .
+DRV_SRC = socketCAN
+CANOPEN_SRC = .
+OD_SRC = example
+APPL_SRC = socketCAN
 
 
-LINK_TARGET = canopensocket
+LINK_TARGET = canopend
 
 
 INCLUDE_DIRS = \
@@ -37,20 +37,13 @@ SOURCES = \
 	$(CANOPEN_SRC)/extra/CO_trace.c \
 	$(CANOPEN_SRC)/CANopen.c \
 	$(OD_SRC)/CO_OD.c \
-	$(APPL_SRC)/main.c
-
-
-# This can be a single or multi threaded application. If multithreaded is
-# used, then two nonblocking threads will be used: fast rt-thread for CAN
-# reception + PDO + SYNC processing and slow mainline for other processing.
-# For multithreaded operation:
-# - Add flag -DCO_MULTI_THREAD to the CFLAGS.
-# - Add flag -pthread to LDFLAGS.
+	$(APPL_SRC)/CO_main_basic.c
 
 
 OBJS = $(SOURCES:%.c=%.o)
 CC ?= gcc
-CFLAGS = -Wall -g $(INCLUDE_DIRS) -DCO_MULTI_THREAD
+OPT = -Og
+CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
 LDFLAGS = -pthread
 
 

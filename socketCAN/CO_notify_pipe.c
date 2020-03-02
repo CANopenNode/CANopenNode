@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "CO_notify_pipe.h"
+#include "CO_error.h"
 
 
 CO_NotifyPipe_t *CO_NotifyPipeCreate(void)
@@ -50,8 +51,12 @@ int CO_NotifyPipeGetFd(CO_NotifyPipe_t *p)
 
 void CO_NotifyPipeSend(CO_NotifyPipe_t *p)
 {
+    ssize_t ret;
     if (p == NULL) {
         return;
     }
-    write(p->m_sendFd,"1",1);
+    ret = write(p->m_sendFd,"1",1);
+    if(ret < 0){
+        log_printf(LOG_DEBUG, DBG_ERRNO, "write()");
+    }
 }

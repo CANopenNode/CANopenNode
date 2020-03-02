@@ -26,10 +26,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <time.h>
 #include <linux/can/error.h>
 
-#include "301/CO_driver.h"
 #include "CO_error.h"
 
 
@@ -38,7 +38,7 @@
  */
 static CO_CANinterfaceState_t CO_CANerrorSetListenOnly(
         CO_CANinterfaceErrorhandler_t     *CANerrorhandler,
-        bool_t                             resetIf)
+        unsigned char                      resetIf)
 {
     char command[100];
 
@@ -48,12 +48,17 @@ static CO_CANinterfaceState_t CO_CANerrorSetListenOnly(
     CANerrorhandler->listenOnly = true;
 
     if (resetIf) {
+        int ret;
         snprintf(command, sizeof(command), "ip link set %s down && "
                                            "ip link set %s up "
                                            "&",
                                            CANerrorhandler->ifName,
                                            CANerrorhandler->ifName);
-        system(command);
+        ret = system(command);
+        if(ret < 0){
+            log_printf(LOG_DEBUG, DBG_ERRNO, "system()");
+        }
+
     }
 
     return CO_INTERFACE_LISTEN_ONLY;

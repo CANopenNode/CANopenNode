@@ -1,17 +1,19 @@
-# Makefile for CANopenNode, basic compile with blank CAN device.
+# Makefile for CANopenNode, basic compile with blank CAN device
 
 
 DRV_SRC = .
 CANOPEN_SRC = ..
+OD_SRC = .
 APPL_SRC = .
 
 
-LINK_TARGET = canopennode
+LINK_TARGET = canopennode_blank
 
 
 INCLUDE_DIRS = \
 	-I$(DRV_SRC) \
 	-I$(CANOPEN_SRC) \
+	-I$(OD_SRC) \
 	-I$(APPL_SRC)
 
 
@@ -31,13 +33,14 @@ SOURCES = \
 	$(CANOPEN_SRC)/305/CO_LSSmaster.c \
 	$(CANOPEN_SRC)/extra/CO_trace.c \
 	$(CANOPEN_SRC)/CANopen.c \
-	$(APPL_SRC)/CO_OD.c \
+	$(OD_SRC)/CO_OD.c \
 	$(APPL_SRC)/main_blank.c
 
 
 OBJS = $(SOURCES:%.c=%.o)
-CC = gcc
-CFLAGS = -Wall $(INCLUDE_DIRS)
+CC ?= gcc
+OPT = -g
+CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
 LDFLAGS =
 
 

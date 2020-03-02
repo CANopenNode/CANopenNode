@@ -1,7 +1,7 @@
 /*
  * CANopen main program file for Linux SocketCAN.
  *
- * @file        main
+ * @file        main.c
  * @author      Janez Paternoster
  * @copyright   2015 - 2020 Janez Paternoster
  *
@@ -24,9 +24,6 @@
  */
 
 
-#include "CANopen.h"
-#include "CO_OD_storage.h"
-#include "CO_Linux_threads.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -39,40 +36,37 @@
 #include <linux/reboot.h>
 #include <sys/reboot.h>
 
-#ifdef CO_USE_APPLICATION
+#include "CANopen.h"
+#include "CO_OD_storage.h"
+#include "CO_notify_pipe.h"
+#include "CO_error.h"
+#include "CO_Linux_threads.h"
+
 /* Call external application functions. */
-#include "application.h"
+#if __has_include("CO_application.h")
+#include "CO_application.h"
+#define CO_USE_APPLICATION
 #endif
 
+/* Add trace functionality for recording variables over time */
 #if CO_NO_TRACE > 0
 #include "CO_time_trace.h"
 #endif
 
-#ifdef CO_USE_309
-/* Use DS309-3 standard - ASCII command interface to CANopen: NMT + LSS master, SDO client */
+/* Use DS309-3 standard - ASCII command interface to CANopen: NMT master,
+ * LSS master and SDO client */
+#ifdef CO_309
 #include "CO_command.h"
 #endif
 
-#ifdef CO_MULTI_THREAD
-/* Use two nonblocking threads: fast rt-thread for CAN reception + PDO + SYNC
- * processing and slow mainline for other processing. */
-#include <pthread.h>
+/* Interval of real-time thread in microseconds */
+#ifndef TMR_THREAD_INTERVAL_US
+#define TMR_THREAD_INTERVAL_US 1000
 #endif
 
-
-#define NSEC_PER_SEC            (1000000000)    /* The number of nanoseconds per second. */
-#define NSEC_PER_MSEC           (1000000)       /* The number of nanoseconds per millisecond. */
-#define TMR_THREAD_INTERVAL_NS  (1000000)       /* Interval of threadTmr in nanoseconds */
-#define TMR_THREAD_OVERFLOW_US  (5000)          /* Overflow detect limit for threadTmr in microseconds */
-#define INCREMENT_1MS(var)      (var++)         /* Increment 1ms variable in threadTmr */
-
-
-/* Global variable increments each millisecond. */
-volatile uint16_t           CO_timer1ms = 0U;
-
-#ifdef CO_MULTI_THREAD
+#ifdef CO_309
 /* Mutex is locked, when CAN is not valid (configuration state). May be used
- *  from other threads. RT threads may use CO->CANmodule[0]->CANnormal instead. */
+ * from command interface. RT threads may use CO->CANmodule[0]->CANnormal instead. */
 pthread_mutex_t             CO_CAN_VALID_mtx = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
@@ -83,7 +77,7 @@ static CO_OD_storage_t      odStor;             /* Object Dictionary storage obj
 static CO_OD_storage_t      odStorAuto;         /* Object Dictionary storage object for CO_OD_EEPROM */
 static char                *odStorFile_rom    = "od_storage";       /* Name of the file */
 static char                *odStorFile_eeprom = "od_storage_auto";  /* Name of the file */
-#ifdef CO_USE_309
+#ifdef CO_309
 static in_port_t            CO_command_socket_tcp_port = 60000; /* default port when used in tcp gateway mode */
 #endif
 #if CO_NO_TRACE > 0
@@ -126,12 +120,13 @@ fprintf(stderr,
 "Options:\n"
 "  -i <Node ID>        CANopen Node-id (1..127). If not specified, value from\n"
 "                      Object dictionary (0x2101) is used.\n"
-"  -p <RT priority>    Realtime priority of RT thread (RT disabled by default).\n"
+"  -p <RT priority>    Real-time priority of RT thread (1 .. 99). If not set or\n"
+"                      set to -1, then normal scheduler is used for RT thread.\n"
 "  -r                  Enable reboot on CANopen NMT reset_node command. \n"
 "  -s <ODstorage file> Set Filename for OD storage ('od_storage' is default).\n"
 "  -a <ODstorageAuto>  Set Filename for automatic storage variables from\n"
 "                      Object dictionary. ('od_storage_auto' is default).\n");
-#ifdef CO_USE_309
+#ifdef CO_309
 fprintf(stderr,
 "  -c <Socket path>    Enable command interface for master functionality. \n"
 "                      If socket path is specified as empty string \"\",\n"
@@ -147,7 +142,7 @@ fprintf(stderr,
 #endif
 fprintf(stderr,
 "\n"
-"See also: https://github.com/CANopenNode/CANopenSocket\n"
+"See also: https://github.com/CANopenNode/CANopenNode\n"
 "\n");
 }
 
@@ -167,7 +162,7 @@ int main (int argc, char *argv[]) {
     bool_t nodeIdFromArgs = false;  /* True, if program arguments are used for CANopen Node Id */
     int nodeId = -1;                /* Use value from Object Dictionary or set to 1..127 by arguments */
     bool_t rebootEnable = false;    /* Configurable by arguments */
-#ifdef CO_USE_309
+#ifdef CO_309
     typedef enum CMD_MODE {CMD_NONE, CMD_LOCAL, CMD_REMOTE} cmdMode_t;
     cmdMode_t commandEnable = CMD_NONE;   /* Configurable by arguments */
 #endif
@@ -187,7 +182,7 @@ int main (int argc, char *argv[]) {
                 break;
             case 'p': rtPriority = strtol(optarg, NULL, 0); break;
             case 'r': rebootEnable = true;                  break;
-#ifdef CO_USE_309
+#ifdef CO_309
             case 'c':
                 /* In case of empty string keep default name, just enable interface. */
                 if(strlen(optarg) != 0) {
@@ -288,7 +283,7 @@ int main (int argc, char *argv[]) {
         printf("%s - communication reset ...\n", argv[0]);
 
 
-#ifdef CO_MULTI_THREAD
+#ifdef CO_309
         /* Wait other threads (command interface). */
         pthread_mutex_lock(&CO_CAN_VALID_mtx);
 #endif
@@ -335,6 +330,7 @@ int main (int argc, char *argv[]) {
 
 
         /* Configure callback functions for thread control */
+//        void CO_CANopenInitCallback(void *object, void (*pFunctSignal)(void *object));
 //        CO_EM_initCallback(CO->em, threadMain_cbSignal);
 //        CO_SDO_initCallback(CO->SDO[0], threadMain_cbSignal);
 //        CO_SDOclient_initCallback(CO->SDOclient, threadMain_cbSignal);
@@ -367,8 +363,6 @@ int main (int argc, char *argv[]) {
             /* Init threadRT */
             CANrx_threadTmr_init(rt_thread_epoll_fd, TMR_THREAD_INTERVAL_NS, &OD_performance[ODA_performance_timerCycleMaxTime]);
 
-            OD_performance[ODA_performance_timerCycleTime] = TMR_THREAD_INTERVAL_NS/1000; /* informative */
-
             /* Create rt_thread */
             if(pthread_create(&rt_thread_id, NULL, rt_thread, NULL) != 0)
                 CO_errExit("Program init - rt_thread creation failed");
@@ -381,23 +375,9 @@ int main (int argc, char *argv[]) {
                 if(pthread_setschedparam(rt_thread_id, SCHED_FIFO, &param) != 0)
                     CO_errExit("Program init - rt_thread set scheduler failed");
             }
-#else
-            /* Init threadRT */
-            CANrx_threadTmr_init(mainline_epoll_fd, TMR_THREAD_INTERVAL_NS, &OD_performance[ODA_performance_timerCycleMaxTime]);
-
-            OD_performance[ODA_performance_timerCycleTime] = TMR_THREAD_INTERVAL_NS/1000; /* informative */
-
-            /* Set priority for mainline */
-            if(rtPriority > 0) {
-                struct sched_param param;
-
-                param.sched_priority = rtPriority;
-                if(sched_setscheduler(0, SCHED_FIFO, &param) != 0)
-                    CO_errExit("Program init - mainline set scheduler failed");
-            }
 #endif
 
-#ifdef CO_USE_309
+#ifdef CO_309
             /* Initialize socket command interface */
             switch(commandEnable) {
               case CMD_LOCAL:
@@ -421,7 +401,7 @@ int main (int argc, char *argv[]) {
             /* Execute optional additional application code */
             app_programStart();
 #endif
-        }
+        } /* if(firstRun) */
 
 
 #ifdef CO_USE_APPLICATION
@@ -433,7 +413,7 @@ int main (int argc, char *argv[]) {
         /* start CAN */
         CO_CANsetNormalMode(CO->CANmodule[0]);
 
-#ifdef CO_MULTI_THREAD
+#ifdef CO_309
         pthread_mutex_unlock(&CO_CAN_VALID_mtx);
 #endif
 
@@ -455,17 +435,6 @@ int main (int argc, char *argv[]) {
                     CO_error(0x11100000L + errno);
                 }
             }
-
-#ifndef CO_MULTI_THREAD
-            else if(CANrx_threadTmr_process(ev.data.fd)) {
-                /* code was processed in the above function. Additional code process below */
-                INCREMENT_1MS(CO_timer1ms);
-                /* Detect timer large overflow */
-                if(OD_performance[ODA_performance_timerCycleMaxTime] > TMR_THREAD_OVERFLOW_US && rtPriority > 0) {
-                    CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0x22400000L | OD_performance[ODA_performance_timerCycleMaxTime]);
-                }
-            }
-#endif
 
             else if(threadMain_process(ev.data.fd, &reset, CO_timer1ms)) {
                 uint16_t timer1msDiff;
@@ -495,7 +464,7 @@ int main (int argc, char *argv[]) {
 
 /* program exit ***************************************************************/
     /* join threads */
-#ifdef CO_USE_309
+#ifdef CO_309
     switch (commandEnable)
     {
       case CMD_LOCAL:
@@ -566,9 +535,6 @@ static void* rt_thread(void* arg) {
         else if(CANrx_threadTmr_process(ev.data.fd)) {
             int i;
 
-            /* code was processed in the above function. Additional code process below */
-            INCREMENT_1MS(CO_timer1ms);
-
 #if CO_NO_TRACE > 0
             /* Monitor variables with trace objects */
             CO_time_process(&CO_time);
@@ -582,10 +548,6 @@ static void* rt_thread(void* arg) {
             app_program1ms();
 #endif
 
-            /* Detect timer large overflow */
-            if(OD_performance[ODA_performance_timerCycleMaxTime] > TMR_THREAD_OVERFLOW_US && rtPriority > 0 && CO->CANmodule[0]->CANnormal) {
-                CO_errorReport(CO->em, CO_EM_ISR_TIMER_OVERFLOW, CO_EMC_SOFTWARE_INTERNAL, 0x22400000L | OD_performance[ODA_performance_timerCycleMaxTime]);
-            }
         }
 
         else {

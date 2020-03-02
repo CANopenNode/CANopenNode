@@ -1,4 +1,5 @@
-canopennode
+/example/canopennode_blank
+/canopend
 *.o
 
 doc/html/

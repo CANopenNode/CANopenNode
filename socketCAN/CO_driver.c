@@ -886,7 +886,7 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
 {
     int32_t retval;
     int32_t ret;
-    const void *CANptr;
+    const void *CANptr = NULL;
     CO_ReturnError_t err;
     CO_CANinterface_t *interface = NULL;
     struct epoll_event ev[1];
