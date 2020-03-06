@@ -18,35 +18,34 @@ Dictionary and are accessible from both: C code and from CANopen network.
 CANopenNode homepage is https://github.com/CANopenNode/CANopenNode
 
 
-CANopen Features
-----------------
- - NMT slave to start, stop, reset device. Simple NMT master.
- - Heartbeat producer/consumer error control.
- - PDO linking and dynamic mapping for fast exchange of process variables.
- - SDO expedited, segmented and block transfer for service access to all parameters.
- - SDO master.
- - Emergency message.
- - Sync producer/consumer.
- - Time protocol (producer/consumer).
+Characteristics
+---------------
+### CANopen
+ - [NMT](https://www.can-cia.org/can-knowledge/canopen/network-management/)
+   slave to start, stop, reset device. Simple NMT master.
+ - [Heartbeat](https://www.can-cia.org/can-knowledge/canopen/error-control-protocols/)
+   producer/consumer error control.
+ - [PDO](https://www.can-cia.org/can-knowledge/canopen/pdo-protocol/) linking
+   and dynamic mapping for fast exchange of process variables.
+ - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) expedited,
+   segmented and block transfer for service access to all parameters.
+ - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) client.
+ - [Emergency](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/)
+   producer/consumer.
+ - [Sync](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/)
+   producer/consumer.
+ - [Time-stamp](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/)
+   protocol producer/consumer.
+ - [LSS](https://www.can-cia.org/can-knowledge/canopen/cia305/) master and
+   slave, LSS fastscan
+
+### Other
+ - [Suitable for 16-bit microcontrollers and above](#device-support)
+ - [Multithreaded, real-time](#flowchart-of-a-typical-canopennode-implementation)
+ - [Object Dictionary editor](#object-dictionary-editor)
  - Non-volatile storage.
- - LSS master and slave, LSS fastscan
-
-### RTR
-RTR (remote transmission request) is a feature of CAN bus. Usage of RTR
-is not recommended for CANopen and it is not implemented in CANopenNode.
-
-### Self start
-Object **0x1F80** from Object Dictionary enables the NMT slaves to start
-automatically or allows it to start the whole network. It is specified in
-DSP302-2 standard. Standard allows two values for slaves for object 0x1F80:
-- Object 0x1F80, value = **0x8** - "NMT slave shall enter the NMT state
-  Operational after the NMT state Initialization autonomously (self starting)"
-- Object 0x1F80, value = **0x2** - "NMT slave shall execute the NMT service
-  start remote node with node-ID set to 0"
-
-Note: When node is stated (in NMT operational state), it is allowed to send or
-receive Process Data Objects (PDO). If Error Register (object 0x1001) is set,
-then NMT operational state is not allowed.
+ - [Power saving possible](#power-saving) (experimental)
+ - [Bootloader possible](https://github.com/CANopenNode/CANopenNode/issues/111) (for firmware update)
 
 
 Documentation, support and contributions
@@ -65,9 +64,9 @@ http://sourceforge.net/p/canopennode/discussion/387151/
 
 Contributions are welcome. Best way to contribute your code is to fork
 a project, modify it and then send a pull request. Some basic formatting
-rules should be followed: Linux style with indentation of 4 spaces. There
-is also a `codingStyle` file with example and a configuration file for
-`clang-format` tool.
+rules should be followed: Linux style with indentation of 4 spaces or
+optionally 2 spaces. There is also a `codingStyle` file with example and
+a configuration file for `clang-format` tool.
 
 
 Flowchart of a typical CANopenNode implementation
@@ -206,6 +205,32 @@ It is not practical to have all device interfaces in a single project. For that
 reason CANopenNode project only includes interface to Linux socketCAN.
 Interfaces to other microcontrollers are in separate projects. See
 [deviceSupport.md](doc/deviceSupport.md) for list of known device interfaces.
+
+
+Some details
+------------
+### RTR
+RTR (remote transmission request) is a feature of CAN bus. Usage of RTR
+is not recommended for CANopen and it is not implemented in CANopenNode.
+
+### Self start
+Object **0x1F80** from Object Dictionary enables the NMT slaves to start
+automatically or allows it to start the whole network. It is specified in
+DSP302-2 standard. Standard allows two values for slaves for object 0x1F80:
+- Object 0x1F80, value = **0x8** - "NMT slave shall enter the NMT state
+  Operational after the NMT state Initialization autonomously (self starting)"
+- Object 0x1F80, value = **0x2** - "NMT slave shall execute the NMT service
+  start remote node with node-ID set to 0"
+
+### Error control
+When node is stated (in NMT operational state), it is allowed to send or
+receive Process Data Objects (PDO). If Error Register (object 0x1001) is set,
+then NMT operational state is not allowed.
+
+### Power saving
+All CANopen objects calculates next timer info for OS. Calculation is based on
+various timers which expire in known time. Can be used to put microcontroller
+into sleep and wake at the calculated time. This is experimental.
 
 
 Change Log

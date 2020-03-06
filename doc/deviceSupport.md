@@ -3,7 +3,7 @@ Device Support
 
 CANopenNode can run on many different devices. There are possible many different implementations on many different hardware, with many different development tools, by many different developers. It is not possible for single project maintainer to keep all the hardware interfaces updated. For that reason all hardware specific files are not part of the CANopenNode project.
 
-It is necessary to implement interface to specific hardware. Interface to Linux socketCAN is part of this projects. Interfaces to other controllers are separate projects. There are interfaces to: Zephyr RTOS, PIC, Mbed-os RTOS + STM32, etc.
+It is necessary to implement interface to specific hardware. Interface to Linux socketCAN is part of this projects. Interfaces to other controllers are separate projects. There are interfaces to: Zephyr RTOS, PIC, Mbed-os RTOS + STM32, NXP, etc.
 
 
 Note for device driver contributors
@@ -25,7 +25,7 @@ Linux
 * https://github.com/CANopenNode/CANopenNode (this project).
 * CANopenNode version: (will be v2.0)
 * Status: stable
-* Features: OD storage, SDO client
+* Features: OD storage, error counters, master (SDO client, LSS master, NMT master)
 * Systems: Linux PC, Raspberry PI, etc.
 * Development tools: Linux
 * Information updated 2020-02-14
@@ -68,21 +68,41 @@ Mbed-os RTOS + STM32 (F091RC, L496ZG)
 * Information updated 2020-01-21
 
 
-Kinetis K20 (ARM)
------------------
-* CANopenNode driver for Teensy3 (Kinetis K20 ARM)
-* https://github.com/c0d3runn3r/CANopenNode/tree/add-k20-driver, https://github.com/CANopenNode/CANopenNode/pull/28
-* CANopenNode version: 83f18edc (before V1.0)
-* Status: ?
-* Features: ?
+Kinetis K20 (NXP Arm)
+---------------------
+* CANopenNode driver for Teensy3 (Kinetis K20 Arm)
+* Driver source: https://github.com/c0d3runn3r/CANopenNode/tree/add-k20-driver/stack/ARM_Kinetis_K20_teensy
+* Discussion: https://github.com/CANopenNode/CANopenNode/pull/28
+* CANopenNode version: v1.0, 2017-08-01
+* Status: seems to be stable
+* Features: error counters, ?
 * Development tools: (see [readme](https://github.com/c0d3runn3r/CANopenNode/tree/add-k20-driver/stack/ARM_Kinetis_K20_teensy))
 * Demo hardware: Teensyduino, [Teensy3](https://www.pjrc.com/store/teensy32.html)
-* Information updated 2020-02-14
+* Information updated 2020-03-02
+
+
+S32DS (NXP S32 Design studio for Arm or Powerpc)
+------------------------------------------------
+* CANopenNode driver for S32DS and supported devices
+* Driver source: https://github.com/bubi-soft/CANopenNode/tree/S32_SDK_support/stack/S32_SDK
+* Documentation: included in driver, example available
+* CANopenNode version: v1.0, 2017-08-01
+* Status: seems to be stable
+* Features: error counters, ?
+* Development tools: [NXP S32 Design studio for Arm or Powerpc](https://www.nxp.com/design/software/development-software/s32-design-studio-ide:S32-DESIGN-STUDIO-IDE?&fsrch=1&sr=1&pageNum=1)
+* Demo hardware: [S32K144EVB-Q100](https://www.nxp.com/design/development-boards/automotive-development-platforms/s32k-mcu-platforms/s32k144-evaluation-board:S32K144EVB), [DEVKIT-MPC5748G](https://www.nxp.com/design/development-boards/automotive-development-platforms/mpc57xx-mcu-platforms/mpc5748g-development-board-for-secure-gateway:DEVKIT-MPC5748G)
+* Information updated 2020-03-02
+
+
+Other
+-----
+* [STM32CubeMX HAL](https://github.com/w1ne/CANOpenNode-CubeMX-HAL), 2019-05-03, demo project for Atollic studio, tested on Nucleo STM32L452xx board.
+* K64F_FreeRTOS, Kinetis SDK, 2018-02-13, [zip file](https://github.com/CANopenNode/CANopenNode/pull/28#issuecomment-365392867)
+* LPC1768 (MBED) (released in 2016) - [CANopenNode v1.0](https://github.com/CANopenNode/CANopenNode/tree/v1.0), [known example from 2016](https://github.com/exmachina-dev/CANopenMbed)
 
 
 Other old versions
 ------------------
-* LPC1768 (MBED) (released in 2016) - [CANopenNode v1.0](https://github.com/CANopenNode/CANopenNode/tree/v1.0), [known example from 2016](https://github.com/exmachina-dev/CANopenMbed)
 * RTOS eCos - [CANopenNode v1.0](https://github.com/CANopenNode/CANopenNode/tree/v1.0), ([released in 2013, old repo](http://sourceforge.net/p/canopennode/code_complete/))
 * Atmel SAM3X - [CANopenNode v1.0](https://github.com/CANopenNode/CANopenNode/tree/v1.0), ([released in old repo](http://sourceforge.net/p/canopennode/code_complete/))
 * ST STM32 - [CANopenNode v1.0](https://github.com/CANopenNode/CANopenNode/tree/v1.0), ([released in old repo](http://sourceforge.net/p/canopennode/code_complete/))
