@@ -35,7 +35,6 @@
 extern const CO_OD_entry_t CO_OD[CO_OD_NoOfElements];   /* Object Dictionary */
 static CO_t COO;                    /* Pointers to CANopen objects */
 CO_t *CO = NULL;                    /* Pointer to COO */
-static uint32_t CO_memoryUsed = 0;  /* informative */
 
 static CO_CANrx_t          *CO_CANmodule_rxArray0;
 static CO_CANtx_t          *CO_CANmodule_txArray0;
@@ -109,9 +108,10 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 
 
 /******************************************************************************/
-CO_ReturnError_t CO_new(void) {
+CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     int16_t i;
     uint16_t errCnt = 0;
+    uint32_t CO_memoryUsed = 0;
 
     /* If CANopen was initialized before, return. */
     if (CO != NULL) {
@@ -134,7 +134,6 @@ CO_ReturnError_t CO_new(void) {
 
     /* globals */
     CO = &COO;
-    CO_memoryUsed = 0;
 
     /* CANmodule */
     CO->CANmodule[0] = (CO_CANmodule_t *)calloc(1, sizeof(CO_CANmodule_t));
@@ -259,6 +258,10 @@ CO_ReturnError_t CO_new(void) {
     }
 #endif
 
+    if(heapMemoryUsed != NULL) {
+        *heapMemoryUsed = CO_memoryUsed;
+    }
+
     return (errCnt == 0) ? CO_ERROR_NO : CO_ERROR_OUT_OF_MEMORY;
 }
 
@@ -346,7 +349,6 @@ void CO_delete(void *CANptr) {
 
     /* globals */
     CO = NULL;
-    CO_memoryUsed = 0;
 }
 
 

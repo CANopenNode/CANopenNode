@@ -216,10 +216,17 @@ extern CO_t *CO;
  *
  * Function must be called the first time, after program starts.
  *
+ * @remark
+ * With some microcontrollers it is necessary to specify Heap size within
+ * linker configuration.
+ *
+ * @param [out] heapMemoryUsed Information about heap memory used. Ignored if
+ * NULL.
+ *
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_OUT_OF_MEMORY
  */
-CO_ReturnError_t CO_new(void);
+CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed);
 
 
 /**

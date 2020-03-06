@@ -25,11 +25,16 @@
  */
 
 
+#include <stdio.h>
+
 #include "CANopen.h"
 
 
 #define TMR_TASK_INTERVAL   (1000)          /* Interval of tmrTask thread in microseconds */
 #define INCREMENT_1MS(var)  (var++)         /* Increment 1ms variable in tmrTask */
+
+#define log_printf(macropar_message, ...) \
+        printf(macropar_message, ##__VA_ARGS__)
 
 
 /* Global variables and objects */
@@ -40,14 +45,19 @@
 int main (void){
     CO_ReturnError_t err;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
+    uint32_t heapMemoryUsed;
 
     /* Configure microcontroller. */
 
 
     /* Allocate memory */
-    err = CO_new();
+    err = CO_new(&heapMemoryUsed);
     if (err != CO_ERROR_NO) {
-        while(1);
+        log_printf("Error: Can't allocate memory\n");
+        return 0;
+    }
+    else {
+        log_printf("Allocated %d bytes for CANopen objects\n", heapMemoryUsed);
     }
 
     /* initialize EEPROM */
@@ -56,20 +66,27 @@ int main (void){
     /* increase variable each startup. Variable is stored in EEPROM. */
     OD_powerOnCounter++;
 
+    log_printf("CANopenNode - Reset application, count = %d\n", OD_powerOnCounter);
+
 
     while(reset != CO_RESET_APP){
 /* CANopen communication reset - initialize CANopen objects *******************/
         uint16_t timer1msPrevious;
 
+        log_printf("CANopenNode - Reset communication\n");
+
         /* disable CAN and CAN interrupts */
 
         /* initialize CANopen */
         err = CO_CANinit(NULL /* CAN module address */, 125 /* bit rate */);
-        if (err == CO_ERROR_NO) {
-            err = CO_CANopenInit(10 /* NodeID */);
+        if (err != CO_ERROR_NO) {
+            log_printf("Error: CAN initialization failed: %d\n", err);
+            return 0;
         }
-        if(err != CO_ERROR_NO){
-            while(1);
+        err = CO_CANopenInit(10 /* NodeID */);
+        if(err != CO_ERROR_NO) {
+            log_printf("Error: CANopen initialization failed: %d\n", err);
+            return 0;
             /* CO_errorReport(CO->em, CO_EM_MEMORY_ALLOCATION_ERROR, CO_EMC_SOFTWARE_INTERNAL, err); */
         }
 
@@ -84,6 +101,9 @@ int main (void){
 
         reset = CO_RESET_NOT;
         timer1msPrevious = CO_timer1ms;
+
+        log_printf("CANopenNode - Running...\n");
+        fflush(stdout);
 
         while(reset == CO_RESET_NOT){
 /* loop for normal program execution ******************************************/
@@ -100,6 +120,8 @@ int main (void){
             /* Nonblocking application code may go here. */
 
             /* Process EEPROM */
+
+            /* optional sleep for short time */
         }
     }
 
@@ -111,6 +133,7 @@ int main (void){
     /* delete objects from memory */
     CO_delete((void*) 0/* CAN module address */);
 
+    log_printf("CANopenNode finished\n");
 
     /* reset */
     return 0;
