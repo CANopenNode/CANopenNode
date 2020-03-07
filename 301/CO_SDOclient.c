@@ -334,7 +334,8 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
         uint8_t                *dataTx,
         uint32_t                dataSize,
         uint16_t                SDOtimeoutTime_ms,
-        uint8_t                 blockEnable)
+        uint8_t                 blockEnable,
+        uint32_t               *timerNext_us)
 {
     /* verify parameters */
     if(SDO_C == NULL || dataTx == 0 || dataSize == 0) {
@@ -362,8 +363,8 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
     if(SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId){
 
         /* Optional signal to RTOS. We can immediately continue SDO Client */
-        if(SDO_C->pFunctSignal != NULL) {
-            SDO_C->pFunctSignal(SDO_C->functSignalObject);
+        if(timerNext_us != NULL) {
+            *timerNext_us = 0;
         }
 
         return CO_SDOcli_ok_communicationEnd;
@@ -713,9 +714,6 @@ CO_SDOclient_return_t CO_SDOclientDownload(
                 if (timerNext_us != NULL) {
                     *timerNext_us = 0;
                 }
-                if (SDO_C->pFunctSignal != NULL) {
-                    SDO_C->pFunctSignal(SDO_C->functSignalObject);
-                }
             }
 
             /*  tx data */
@@ -767,7 +765,8 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
         uint8_t                *dataRx,
         uint32_t                dataRxSize,
         uint16_t                SDOtimeoutTime_ms,
-        uint8_t                 blockEnable)
+        uint8_t                 blockEnable,
+        uint32_t               *timerNext_us)
 {
     /* verify parameters */
     if(SDO_C == NULL || dataRx == 0 || dataRxSize < 4) {
@@ -821,8 +820,8 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
     if(SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId){
 
         /* Optional signal to RTOS. We can immediately continue SDO Client */
-        if(SDO_C->pFunctSignal != NULL) {
-            SDO_C->pFunctSignal(SDO_C->functSignalObject);
+        if(timerNext_us != NULL) {
+            *timerNext_us = 0;
         }
 
         return CO_SDOcli_ok_communicationEnd;

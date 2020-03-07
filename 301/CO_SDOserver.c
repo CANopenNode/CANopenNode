@@ -1442,9 +1442,6 @@ int8_t CO_SDO_process(
             if (timerNext_us != NULL) {
                 *timerNext_us = 0;
             }
-            if (SDO->pFunctSignal != NULL) {
-                SDO->pFunctSignal(SDO->functSignalObject);
-            }
 
             /* don't call CO_FLAG_CLEAR, so return directly */
             return 1;

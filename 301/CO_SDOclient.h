@@ -69,17 +69,20 @@ typedef enum{
 
 
 /**
- * SDO Client Parameter. The same as record from Object dictionary (index 0x1280+).
+ * SDO Client Parameter. The same as record from Object dictionary
+ * (index 0x1280+).
  */
 typedef struct{
     /** Equal to 3 */
     uint8_t             maxSubIndex;
-    /** Communication object identifier for client transmission. Meaning of the specific bits:
+    /** Communication object identifier for client transmission.
+     * Meaning of the specific bits:
         - Bit 0...10: 11-bit CAN identifier.
         - Bit 11..30: reserved, set to 0.
         - Bit 31: if 1, SDO client object is not used. */
     uint32_t            COB_IDClientToServer;
-    /** Communication object identifier for message received from server. Meaning of the specific bits:
+    /** Communication object identifier for message received from server.
+     * Meaning of the specific bits:
         - Bit 0...10: 11-bit CAN identifier.
         - Bit 11..30: reserved, set to 0.
         - Bit 31: if 1, SDO client object is not used. */
@@ -145,8 +148,9 @@ typedef struct{
     uint16_t            CANdevTxIdx;
     /** Toggle bit toggled with each subsequent in segmented transfer */
     uint8_t             toggle;
-    /** Server threshold for switch back to segmented transfer, if data size is small.
-    Set in CO_SDOclient_init(). Can be changed by application. 0 Disables switching. */
+    /** Server threshold for switch back to segmented transfer, if data size is
+     * small. Set in CO_SDOclient_init(). Can be changed by application.
+     * 0 Disables switching. */
     uint8_t             pst;
     /** Maximum number of segments in one block. Set in CO_SDOclient_init(). Can
     be changed by application to 2 .. 127. */
@@ -204,7 +208,8 @@ CO_ReturnError_t CO_SDOclient_init(
  * or SDO block transfer is in progress).
  *
  * @param SDOclient This object.
- * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can
+ * be NULL.
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
 void CO_SDOclient_initCallback(
@@ -258,6 +263,7 @@ CO_SDOclient_return_t CO_SDOclient_setup(
  * @param dataSize Size of data in dataTx.
  * @param SDOtimeoutTime_ms Timeout time for SDO communication in milliseconds.
  * @param blockEnable Try to initiate block transfer.
+ * @param [out] timerNext_us info to OS - see CO_process(). Ignored if NULL.
  *
  * @return #CO_SDOclient_return_t
  */
@@ -268,7 +274,8 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
         uint8_t                *dataTx,
         uint32_t                dataSize,
         uint16_t                SDOtimeoutTime_ms,
-        uint8_t                 blockEnable);
+        uint8_t                 blockEnable,
+        uint32_t               *timerNext_us);
 
 
 /**
@@ -279,10 +286,11 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
  * Function is non-blocking.
  *
  * @param SDO_C This object.
- * @param timeDifference_us Time difference from previous function call in [microseconds].
- * @param pSDOabortCode Pointer to external variable written by this function
- * in case of error in communication.
- * @param timerNext_us [out] info to OS - see CO_process().
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds].
+ * @param [out] pSDOabortCode Pointer to external variable written by this
+ * function in case of error in communication.
+ * @param [out] timerNext_us info to OS - see CO_process(). Ignored if NULL.
  *
  * @return #CO_SDOclient_return_t
  */
@@ -303,13 +311,14 @@ CO_SDOclient_return_t CO_SDOclientDownload(
  * @param SDO_C This object.
  * @param index Index of object in object dictionary in remote node.
  * @param subIndex Subindex of object in object dictionary in remote node.
- * @param dataRx Pointer to data buffer, into which received data will be written.
- * Buffer must be valid until end of communication. Note that data are aligned
- * in little-endian format, because CANopen itself uses
- * little-endian. Take care, when using processors with big-endian.
+ * @param dataRx Pointer to data buffer, into which received data will be
+ * written. Buffer must be valid until end of communication. Note that data are
+ * aligned in little-endian format, because CANopen itself uses little-endian.
+ * Take care, when using processors with big-endian.
  * @param dataRxSize Size of dataRx.
  * @param SDOtimeoutTime_ms Timeout time for SDO communication in milliseconds.
  * @param blockEnable Try to initiate block transfer.
+ * @param [out] timerNext_us info to OS - see CO_process(). Ignored if NULL.
  *
  * @return #CO_SDOclient_return_t
  */
@@ -320,7 +329,8 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
         uint8_t                *dataRx,
         uint32_t                dataRxSize,
         uint16_t                SDOtimeoutTime_ms,
-        uint8_t                 blockEnable);
+        uint8_t                 blockEnable,
+        uint32_t               *timerNext_us);
 
 
 /**
@@ -331,12 +341,13 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
  * Function is non-blocking.
  *
  * @param SDO_C This object.
- * @param timeDifference_us Time difference from previous function call in [microseconds].
- * @param pDataSize pointer to external variable, where size of received
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds].
+ * @param [out] pDataSize pointer to external variable, where size of received
  * data will be written.
- * @param pSDOabortCode Pointer to external variable written by this function
- * in case of error in communication.
- * @param timerNext_us [out] info to OS - see CO_process().
+ * @param [out] pSDOabortCode Pointer to external variable written by this
+ * function in case of error in communication.
+ * @param [out] timerNext_us info to OS - see CO_process(). Ignored if NULL.
  *
  * @return #CO_SDOclient_return_t
  */
@@ -354,6 +365,8 @@ CO_SDOclient_return_t CO_SDOclientUpload(
  * Function must be called after finish of each SDO client communication cycle.
  * It disables reception of SDO client CAN messages. It is necessary, because
  * CO_SDOclient_receive function may otherwise write into undefined SDO buffer.
+ *
+ * @param SDO_C This object.
  */
 void CO_SDOclientClose(CO_SDOclient_t *SDO_C);
 
