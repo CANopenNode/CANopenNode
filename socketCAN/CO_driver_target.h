@@ -42,7 +42,7 @@
 #include <net/if.h>
 
 #if __has_include("CO_driver_custom.h")
-    #include "CO_driver_custom.h"
+#include "CO_driver_custom.h"
 #endif
 #include "CO_notify_pipe.h"
 #include "CO_error.h"
@@ -50,6 +50,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Stack configuration override */
+#ifndef CO_CONFIG_SDO_BUFFER_SIZE
+#define CO_CONFIG_SDO_BUFFER_SIZE 889
+#endif
+
 
 /**
  * @defgroup CO_socketCAN_driver_target CO_driver_target.h

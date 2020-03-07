@@ -129,7 +129,7 @@ typedef enum{
  * @ref CO_NMT_statusLEDdiodes. Object is initialized by CO_NMT_init().
  */
 typedef struct{
-#ifdef CO_USE_LEDS
+#if CO_CONFIG_NMT_LEDS > 0
     uint32_t            LEDtimer;       /**< 50ms led timer */
     int8_t              LEDflickering;  /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDblinking;    /**< See @ref CO_NMT_statusLEDdiodes */
@@ -139,7 +139,7 @@ typedef struct{
     int8_t              LEDquadrupleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDgreenRun;    /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDredError;    /**< See @ref CO_NMT_statusLEDdiodes */
-#endif /* CO_USE_LEDS */
+#endif /* CO_CONFIG_NMT_LEDS */
 
     uint8_t             operatingState; /**< See @ref CO_NMT_internalState_t */
     uint8_t             resetCommand;   /**< If different than zero, device will reset */

@@ -39,8 +39,8 @@
 #define CCS_ABORT                      0x80U
 
 
-#if CO_SDO_BUFFER_SIZE < 7
-    #error CO_SDO_BUFFER_SIZE must be greater than 7
+#if CO_CONFIG_SDO_BUFFER_SIZE < 7
+    #error CO_CONFIG_SDO_BUFFER_SIZE must be greater than 7
 #endif
 
 
@@ -214,7 +214,7 @@ static void CO_SDO_receive(void *object, void *msg){
                 /* copy data */
                 for(i=1; i<8; i++) {
                     SDO->ODF_arg.data[SDO->bufferOffset++] = data[i]; //SDO->ODF_arg.data is equal as SDO->databuffer
-                    if(SDO->bufferOffset >= CO_SDO_BUFFER_SIZE) {
+                    if(SDO->bufferOffset >= CO_CONFIG_SDO_BUFFER_SIZE) {
                         /* buffer full, break reception */
                         SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
                         CO_FLAG_SET(SDO->CANrxNew);
@@ -450,7 +450,7 @@ uint16_t CO_OD_getLength(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
 
     if(object->maxSubIndex == 0U){    /* Object type is Var */
         if(object->pData == 0){ /* data type is domain */
-            return CO_SDO_BUFFER_SIZE;
+            return CO_CONFIG_SDO_BUFFER_SIZE;
         }
         else{
             return object->length;
@@ -462,7 +462,7 @@ uint16_t CO_OD_getLength(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
         }
         else if(object->pData == 0){
             /* data type is domain */
-            return CO_SDO_BUFFER_SIZE;
+            return CO_CONFIG_SDO_BUFFER_SIZE;
         }
         else{
             return object->length;
@@ -471,7 +471,7 @@ uint16_t CO_OD_getLength(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
     else{                            /* Object type is Record */
         if(((const CO_OD_entryRecord_t*)(object->pData))[subIndex].pData == 0){
             /* data type is domain */
-            return CO_SDO_BUFFER_SIZE;
+            return CO_CONFIG_SDO_BUFFER_SIZE;
         }
         else{
             return ((const CO_OD_entryRecord_t*)(object->pData))[subIndex].length;
@@ -604,7 +604,7 @@ uint32_t CO_SDO_initTransfer(CO_SDO_t *SDO, uint16_t index, uint8_t subIndex){
     SDO->ODF_arg.offset = 0U;
 
     /* verify length */
-    if(SDO->ODF_arg.dataLength > CO_SDO_BUFFER_SIZE){
+    if(SDO->ODF_arg.dataLength > CO_CONFIG_SDO_BUFFER_SIZE){
         return CO_SDO_AB_DEVICE_INCOMPAT;     /* general internal incompatibility in the device */
     }
 
@@ -853,7 +853,7 @@ int8_t CO_SDO_process(
 
             /* upload */
             else{
-                abortCode = CO_SDO_readOD(SDO, CO_SDO_BUFFER_SIZE);
+                abortCode = CO_SDO_readOD(SDO, CO_CONFIG_SDO_BUFFER_SIZE);
                 if(abortCode != 0U){
                     CO_SDO_abort(SDO, abortCode);
                     return -1;
@@ -985,7 +985,7 @@ int8_t CO_SDO_process(
                         return -1;
                     }
 
-                    SDO->ODF_arg.dataLength = CO_SDO_BUFFER_SIZE;
+                    SDO->ODF_arg.dataLength = CO_CONFIG_SDO_BUFFER_SIZE;
                     SDO->bufferOffset = 0;
                 }
             }
@@ -1028,7 +1028,7 @@ int8_t CO_SDO_process(
             SDO->CANtxBuff->data[3] = SDO->CANrxData[3];
 
             /* blksize */
-            SDO->blksize = (CO_SDO_BUFFER_SIZE > (7*127)) ? 127 : (CO_SDO_BUFFER_SIZE / 7);
+            SDO->blksize = (CO_CONFIG_SDO_BUFFER_SIZE > (7*127)) ? 127 : (CO_CONFIG_SDO_BUFFER_SIZE / 7);
             SDO->CANtxBuff->data[4] = SDO->blksize;
 
             /* is CRC enabled */
@@ -1087,12 +1087,12 @@ int8_t CO_SDO_process(
                     return -1;
                 }
 
-                SDO->ODF_arg.dataLength = CO_SDO_BUFFER_SIZE;
+                SDO->ODF_arg.dataLength = CO_CONFIG_SDO_BUFFER_SIZE;
                 SDO->bufferOffset = 0;
             }
 
             /* blksize */
-            len = CO_SDO_BUFFER_SIZE - SDO->bufferOffset;
+            len = CO_CONFIG_SDO_BUFFER_SIZE - SDO->bufferOffset;
             SDO->blksize = (len > (7*127)) ? 127 : (len / 7);
             SDO->CANtxBuff->data[2] = SDO->blksize;
 
@@ -1100,7 +1100,7 @@ int8_t CO_SDO_process(
             if(lastSegmentInSubblock) {
                 SDO->state = CO_SDO_ST_DOWNLOAD_BL_END;
             }
-            else if(SDO->bufferOffset >= CO_SDO_BUFFER_SIZE) {
+            else if(SDO->bufferOffset >= CO_CONFIG_SDO_BUFFER_SIZE) {
                 CO_SDO_abort(SDO, CO_SDO_AB_DEVICE_INCOMPAT);
                 return -1;
             }
@@ -1222,7 +1222,7 @@ int8_t CO_SDO_process(
                 SDO->ODF_arg.dataLength = CO_OD_getLength(SDO, SDO->entryNo, SDO->ODF_arg.subIndex) - len;
 
                 /* read next data from Object dictionary function */
-                abortCode = CO_SDO_readOD(SDO, CO_SDO_BUFFER_SIZE);
+                abortCode = CO_SDO_readOD(SDO, CO_CONFIG_SDO_BUFFER_SIZE);
                 if(abortCode != 0U){
                     CO_SDO_abort(SDO, abortCode);
                     return -1;
@@ -1375,7 +1375,7 @@ int8_t CO_SDO_process(
                     SDO->ODF_arg.dataLength = CO_OD_getLength(SDO, SDO->entryNo, SDO->ODF_arg.subIndex) - len;
 
                     /* read next data from Object dictionary function */
-                    abortCode = CO_SDO_readOD(SDO, CO_SDO_BUFFER_SIZE);
+                    abortCode = CO_SDO_readOD(SDO, CO_CONFIG_SDO_BUFFER_SIZE);
                     if(abortCode != 0U){
                         CO_SDO_abort(SDO, abortCode);
                         return -1;

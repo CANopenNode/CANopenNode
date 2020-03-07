@@ -102,7 +102,7 @@ CO_ReturnError_t CO_NMT_init(
     }
 
     /* blinking bytes and LEDS */
-#ifdef CO_USE_LEDS
+#if CO_CONFIG_NMT_LEDS > 0
     NMT->LEDtimer               = 0;
     NMT->LEDflickering          = 0;
     NMT->LEDblinking            = 0;
@@ -112,7 +112,7 @@ CO_ReturnError_t CO_NMT_init(
     NMT->LEDquadrupleFlash      = 0;
     NMT->LEDgreenRun            = -1;
     NMT->LEDredError            = 1;
-#endif /* CO_USE_LEDS */
+#endif /* CO_CONFIG_NMT_LEDS */
 
     /* Configure object variables */
     NMT->operatingState         = CO_NMT_INITIALIZING;
@@ -217,7 +217,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         CANpassive = 1;
 
 
-#ifdef CO_USE_LEDS
+#if CO_CONFIG_NMT_LEDS > 0
     NMT->LEDtimer += timeDifference_us;
     if (NMT->LEDtimer >= 50000) {
         NMT->LEDtimer -= 50000;
@@ -290,7 +290,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 
     else
         NMT->LEDredError = -1;
-#endif /* CO_USE_LEDS */
+#endif /* CO_CONFIG_NMT_LEDS */
 
 
     /* in case of error enter pre-operational state */

@@ -34,13 +34,22 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#if __has_include("CO_driver_custom.h")
+#include "CO_driver_custom.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* Stack configuration override */
+#ifndef CO_CONFIG_NMT_LEDS
+#define CO_CONFIG_NMT_LEDS 1
+#endif
+
+
 /* Basic definitions */
 #define CO_LITTLE_ENDIAN
-#define CO_USE_LEDS
 /* NULL is defined in stddef.h */
 /* true and false are defined in stdbool.h */
 /* int8_t to uint64_t are defined in stdint.h */

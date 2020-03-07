@@ -28,6 +28,7 @@ Change Log
 ### Added
 - Documentation added to `doc` directory: CHANGELOG.md, deviceSupport.md, gettingStarted.md, LSSusage.md and traceUsage.md.
 - All CANopen objects calculates next timer info for OS. Useful for energy saving.
+- Stack configuration added to CO_driver.h. Can be overridden by custom definitions.
 
 [Unreleased master]
 -------------------
@@ -77,7 +78,7 @@ Change Log
 
 ------
 
-Changelog written according to recomendations from https://keepachangelog.com/
+Changelog written according to recommendations from https://keepachangelog.com/
 
 [Unreleased split-driver]: https://github.com/CANopenNode/CANopenNode/tree/split-driver
 [Unreleased master]: https://github.com/CANopenNode/CANopenNode

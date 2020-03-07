@@ -87,6 +87,38 @@ extern "C" {
  * (or interrupts), CAN module, etc.).
  */
 
+
+/**
+ * @defgroup CO_STACK_CONFIG Stack configuration
+ *
+ * Definitions specify, which parts of the stack will be enabled. Values can be
+ * overridden by CO_driver_target.h file for example.
+ * @{
+ */
+/**
+ * Usage of CANopen LEDS.
+ *
+ * If >0, calculate CANopen blinking variables, which can be used for LEDs */
+#ifndef CO_CONFIG_NMT_LEDS
+#define CO_CONFIG_NMT_LEDS 0
+#endif
+/**
+ * Size of the internal SDO buffer.
+ *
+ * Size must be at least equal to size of largest variable in
+ * @ref CO_SDO_objectDictionary. If data type is domain, data length is not
+ * limited to SDO buffer size. If block transfer is implemented, value should be
+ * set to 889.
+ *
+ * Value can be in range from 7 to 889 bytes.
+ */
+#ifndef CO_CONFIG_SDO_BUFFER_SIZE
+#define CO_CONFIG_SDO_BUFFER_SIZE 32
+#endif
+
+/** @} */
+
+
 /* Macros and declarations in following part are only used for documentation. */
 #ifdef CO_DOXYGEN
 /**
@@ -108,8 +140,6 @@ extern "C" {
  */
 /** CO_LITTLE_ENDIAN or CO_BIG_ENDIAN must be defined */
 #define CO_LITTLE_ENDIAN
-/** Enable LED blinking calculation, optional */
-#define CO_USE_LEDS
 /** NULL, for general usage */
 #define NULL (0)
 /** Logical true, for general use */

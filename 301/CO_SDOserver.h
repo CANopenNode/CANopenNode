@@ -311,7 +311,7 @@ typedef enum{
  *     download it must store the data in own location. In case of upload it must
  *     write the data (maximum size is specified by length) into data buffer and
  *     specify actual length. With domain data type it is possible to transfer
- *     data, which are longer than #CO_SDO_BUFFER_SIZE. In that case
+ *     data, which are longer than #CO_CONFIG_SDO_BUFFER_SIZE. In that case
  *     Object dictionary function is called multiple times between SDO transfer.
  *
  * ####Parameter to function:
@@ -321,22 +321,6 @@ typedef enum{
  *  - 0: Data transfer is successful
  *  - Different than 0: Failure. See #CO_SDO_abortCode_t.
  */
-
-
-/**
- * SDO buffer size.
- *
- * Size of the internal SDO buffer.
- *
- * Size must be at least equal to size of largest variable in @ref CO_SDO_objectDictionary.
- * If data type is domain, data length is not limited to SDO buffer size. If
- * block transfer is implemented, value should be set to 889.
- *
- * Value can be in range from 7 to 889 bytes.
- */
-    #ifndef CO_SDO_BUFFER_SIZE
-        #define CO_SDO_BUFFER_SIZE    32
-    #endif
 
 
 /**
@@ -589,8 +573,8 @@ typedef struct{
 typedef struct{
     /** 8 data bytes of the received message. */
     uint8_t             CANrxData[8];
-    /** SDO data buffer of size #CO_SDO_BUFFER_SIZE. */
-    uint8_t             databuffer[CO_SDO_BUFFER_SIZE];
+    /** SDO data buffer of size #CO_CONFIG_SDO_BUFFER_SIZE. */
+    uint8_t             databuffer[CO_CONFIG_SDO_BUFFER_SIZE];
     /** Internal flag indicates, that this object has own OD */
     bool_t              ownOD;
     /** Pointer to the @ref CO_SDO_objectDictionary (array) */
