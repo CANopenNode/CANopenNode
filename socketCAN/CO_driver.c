@@ -475,51 +475,39 @@ CO_ReturnError_t CO_CANrxBufferInit(
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     if((CANmodule!=NULL) && (index < CANmodule->rxSize)){
-        uint32_t i;
         CO_CANrx_t *buffer;
 
-        /* check if COB ID is already used */
-        for (i = 0; i < CANmodule->rxSize; i ++) {
-            buffer = &CANmodule->rxArray[i];
-
-            if (i!=index && ident>0 && ident==buffer->ident) {
-                log_printf(LOG_DEBUG, DBG_CAN_RX_PARAM_FAILED, "duplicate entry");
-                ret = CO_ERROR_ILLEGAL_ARGUMENT;
-            }
-        }
-
-        if (ret == CO_ERROR_NO) {
-            /* buffer, which will be configured */
-            buffer = &CANmodule->rxArray[index];
+        /* buffer, which will be configured */
+        buffer = &CANmodule->rxArray[index];
 
 #ifdef CO_DRIVER_MULTI_INTERFACE
-            CO_CANsetIdentToIndex(CANmodule->rxIdentToIndex, index, ident,
-                                  buffer->ident);
+        CO_CANsetIdentToIndex(CANmodule->rxIdentToIndex, index, ident,
+                                buffer->ident);
 #endif
 
-            /* Configure object variables */
-            buffer->object = object;
-            buffer->CANrx_callback = CANrx_callback;
-            buffer->CANptr = NULL;
-            buffer->timestamp.tv_nsec = 0;
-            buffer->timestamp.tv_sec = 0;
+        /* Configure object variables */
+        buffer->object = object;
+        buffer->CANrx_callback = CANrx_callback;
+        buffer->CANptr = NULL;
+        buffer->timestamp.tv_nsec = 0;
+        buffer->timestamp.tv_sec = 0;
 
-            /* CAN identifier and CAN mask, bit aligned with CAN module */
-            buffer->ident = ident & CAN_SFF_MASK;
-            if(rtr){
-                buffer->ident |= CAN_RTR_FLAG;
-            }
-            buffer->mask = (mask & CAN_SFF_MASK) | CAN_EFF_FLAG | CAN_RTR_FLAG;
+        /* CAN identifier and CAN mask, bit aligned with CAN module */
+        buffer->ident = ident & CAN_SFF_MASK;
+        if(rtr){
+            buffer->ident |= CAN_RTR_FLAG;
+        }
+        buffer->mask = (mask & CAN_SFF_MASK) | CAN_EFF_FLAG | CAN_RTR_FLAG;
 
-            /* Set CAN hardware module filter and mask. */
-            CANmodule->rxFilter[index].can_id = buffer->ident;
-            CANmodule->rxFilter[index].can_mask = buffer->mask;
-            if(CANmodule->CANnormal){
-                ret = setRxFilters(CANmodule);
-            }
+        /* Set CAN hardware module filter and mask. */
+        CANmodule->rxFilter[index].can_id = buffer->ident;
+        CANmodule->rxFilter[index].can_mask = buffer->mask;
+        if(CANmodule->CANnormal){
+            ret = setRxFilters(CANmodule);
         }
     }
     else {
+        log_printf(LOG_DEBUG, DBG_CAN_RX_PARAM_FAILED, "illegal argument");
         ret = CO_ERROR_ILLEGAL_ARGUMENT;
     }
 

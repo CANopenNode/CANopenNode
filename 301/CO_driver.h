@@ -95,6 +95,7 @@ extern "C" {
  * overridden by CO_driver_target.h file for example.
  * @{
  */
+
 /**
  * Usage of CANopen LEDS.
  *
@@ -102,6 +103,7 @@ extern "C" {
 #ifndef CO_CONFIG_NMT_LEDS
 #define CO_CONFIG_NMT_LEDS 0
 #endif
+
 /**
  * Size of the internal SDO buffer.
  *
@@ -114,6 +116,23 @@ extern "C" {
  */
 #ifndef CO_CONFIG_SDO_BUFFER_SIZE
 #define CO_CONFIG_SDO_BUFFER_SIZE 32
+#endif
+
+/**
+ * Configuration of Standard CiA 309 usage.
+ *
+ * CiA 309 standard covers CANopen access from other networks. It enables
+ * usage of the NMT master, SDO client and LSS master as a gateway device.
+ *
+ * Value can be one of the following:
+ * - 0: Disabled.
+ * - 1: Interface enabled
+ * - 2: Modbus/TCP mapping (Not implemented)
+ * - 3: ASCII mapping
+ * - 4: Profinet (Not implemented)
+ */
+#ifndef CO_CONFIG_309
+#define CO_CONFIG_309 0
 #endif
 
 /** @} */
@@ -538,7 +557,9 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule);
  *
  * @param CANmodule This object.
  * @param index Index of the specific buffer in _rxArray_.
- * @param ident 11-bit standard CAN Identifier.
+ * @param ident 11-bit standard CAN Identifier. If two or more CANrx buffers
+ * have the same _ident_, then buffer with lowest _index_ has precedence and
+ * other CANrx buffers will be ignored.
  * @param mask 11-bit mask for identifier. Most usually set to 0x7FF.
  * Received message (rcvMsg) will be accepted if the following
  * condition is true: (((rcvMsgId ^ ident) & mask) == 0).
