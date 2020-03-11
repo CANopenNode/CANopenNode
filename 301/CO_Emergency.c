@@ -292,6 +292,19 @@ void CO_EM_process(
             /* add error register */
             em->bufReadPtr[2] = *emPr->errorRegister;
 
+            /* report also own emergency messages */
+            if (em->pFunctSignalRx != NULL) {
+                uint16_t errorCode;
+                uint32_t infoCode;
+                CO_memcpySwap2(&errorCode, &em->bufReadPtr[0]);
+                CO_memcpySwap4(&infoCode, &em->bufReadPtr[4]);
+                em->pFunctSignalRx(0,
+                                   errorCode,
+                                   em->bufReadPtr[2],
+                                   em->bufReadPtr[3],
+                                   infoCode);
+            }
+
             /* copy data to CAN emergency message */
             CO_memcpy(emPr->CANtxBuff->data, em->bufReadPtr, 8U);
             CO_memcpy((uint8_t*)&preDEF, em->bufReadPtr, 4U);
@@ -326,6 +339,7 @@ void CO_EM_process(
 
             /* send CAN message */
             CO_CANsend(emPr->CANdev, emPr->CANtxBuff);
+
         }
         else if (timerNext_us != NULL) {
             /* check again after inhibit time elapsed */

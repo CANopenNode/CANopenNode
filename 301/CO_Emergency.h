@@ -410,11 +410,13 @@ void CO_EM_initCallback(
  * Initialize Emergency received callback function.
  *
  * Function initializes optional callback function, which executes after
- * error condition is received. Function may wake up external task,
- * which processes mainline CANopen functions.
+ * error condition is received.
+ *
+ * _ident_ argument from callback contains CAN-ID of the emergency message. If
+ * _ident_ == 0, then emergency message was sent from this device.
  *
  * @remark Depending on the CAN driver implementation, this function is called
- * inside an ISR
+ * inside an ISR or inside a mainline. Must be thread safe.
  *
  * @param em This object.
  * @param pFunctSignalRx Pointer to the callback function. Not called if NULL.
