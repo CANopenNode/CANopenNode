@@ -43,17 +43,20 @@ static void CO_EM_receive(void *object, void *msg) {
 
     if(em!=NULL && em->pFunctSignalRx!=NULL){
         uint16_t ident = CO_CANrxMsg_readIdent(msg);
-        uint8_t *data = CO_CANrxMsg_readData(msg);
-        uint16_t errorCode;
-        uint32_t infoCode;
+        if (ident != 0x80) {
+            /* ignore sync messages (necessary if sync object is not used) */
+            uint8_t *data = CO_CANrxMsg_readData(msg);
+            uint16_t errorCode;
+            uint32_t infoCode;
 
-        CO_memcpySwap2(&errorCode, &data[0]);
-        CO_memcpySwap4(&infoCode, &data[4]);
-        em->pFunctSignalRx(ident,
-                           errorCode,
-                           data[2],
-                           data[3],
-                           infoCode);
+            CO_memcpySwap2(&errorCode, &data[0]);
+            CO_memcpySwap4(&infoCode, &data[4]);
+            em->pFunctSignalRx(ident,
+                            errorCode,
+                            data[2],
+                            data[3],
+                            infoCode);
+        }
     }
 }
 
