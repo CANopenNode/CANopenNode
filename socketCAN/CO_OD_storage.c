@@ -241,8 +241,7 @@ CO_ReturnError_t CO_OD_storage_init(
         odStor->odSize = odSize;
         odStor->filename = filename;
         odStor->fp = NULL;
-        odStor->tmr1msPrev = 0;
-        odStor->lastSavedMs = 0;
+        odStor->lastSavedUs = 0;
 
         buf = malloc(odStor->odSize);
         if(buf == NULL) {
@@ -292,8 +291,8 @@ CO_ReturnError_t CO_OD_storage_init(
 /******************************************************************************/
 CO_ReturnError_t CO_OD_storage_autoSave(
         CO_OD_storage_t        *odStor,
-        uint16_t                timer1ms,
-        uint16_t                delay)
+        uint32_t                timer1usDiff,
+        uint32_t                delay_us)
 {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
@@ -303,10 +302,8 @@ CO_ReturnError_t CO_OD_storage_autoSave(
     }
 
     /* don't save file more often than delay */
-    if(odStor->lastSavedMs < delay) {
-        odStor->lastSavedMs += timer1ms - odStor->tmr1msPrev;
-    }
-    else {
+    odStor->lastSavedUs += timer1usDiff;
+    if (odStor->lastSavedUs > delay_us) {
         void *buf = NULL;
         bool_t saveData = false;
 
@@ -360,13 +357,11 @@ CO_ReturnError_t CO_OD_storage_autoSave(
 
             fflush(odStor->fp);
 
-            odStor->lastSavedMs = 0;
+            odStor->lastSavedUs = 0;
         }
 
         free(buf);
     }
-
-    odStor->tmr1msPrev = timer1ms;
 
     return ret;
 }

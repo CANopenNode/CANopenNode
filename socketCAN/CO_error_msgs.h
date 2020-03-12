@@ -77,6 +77,18 @@ extern "C" {
 #define DBG_CAN_SET_LISTEN_ONLY   "(%s) %s Set Listen Only", __func__
 #define DBG_CAN_CLR_LISTEN_ONLY   "(%s) %s Leave Listen Only", __func__
 
+/* mainline */
+#define DBG_EMERGENCY_RX          "CANopen Emergency message from node 0x%02X: errorCode=0x%04X, errorRegister=0x%02X, errorBit=0x%02X, infoCode=0x%08X"
+#define DBG_NOT_TCP_PORT          "(%s) -t argument \'%s\' is not a valid tcp port", __func__
+#define DBG_WRONG_NODE_ID         "(%s) Wrong node ID \"%d\"", __func__
+#define DBG_WRONG_PRIORITY        "(%s) Wrong RT priority \"%d\"", __func__
+#define DBG_NO_CAN_DEVICE         "(%s) Can't find CAN device \"%s\"", __func__
+#define DBG_OBJECT_DICTIONARY     "(%s) Error in Object Dictionary \"%s\"", __func__
+#define DBG_CAN_OPEN              "(%s) CANopen error in %s, err=%d", __func__
+#define DBG_CAN_OPEN_INFO         "(%s) CANopen device, Node ID = %d(0x%02X), %s", __func__
+#define DBG_COMMAND_LOCAL_INFO    "(%s) Command interface on socket \"%s\" started", __func__
+#define DBG_COMMAND_TCP_INFO      "(%s) Command interface on tcp port \"%hu\" started", __func__
+
 
 #ifdef __cplusplus
 }

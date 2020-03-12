@@ -55,16 +55,20 @@
 
 /* Use DS309-3 standard - ASCII command interface to CANopen: NMT master,
  * LSS master and SDO client */
-#ifdef CO_309
+#if CO_CONFIG_309 > 0
 #include "CO_command.h"
 #endif
 
-/* Interval of real-time thread in microseconds */
+/* Interval of mainline and real-time thread in microseconds */
+#ifndef MAIN_THREAD_INTERVAL_US
+#define MAIN_THREAD_INTERVAL_US 100000
+#endif
 #ifndef TMR_THREAD_INTERVAL_US
 #define TMR_THREAD_INTERVAL_US 1000
 #endif
 
-#ifdef CO_309
+
+#if CO_CONFIG_309 > 0
 /* Mutex is locked, when CAN is not valid (configuration state). May be used
  * from command interface. RT threads may use CO->CANmodule[0]->CANnormal instead. */
 pthread_mutex_t             CO_CAN_VALID_mtx = PTHREAD_MUTEX_INITIALIZER;
@@ -72,25 +76,21 @@ pthread_mutex_t             CO_CAN_VALID_mtx = PTHREAD_MUTEX_INITIALIZER;
 
 /* Other variables and objects */
 static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
-static int                  mainline_epoll_fd;  /* epoll file descriptor for mainline */
+static int nodeId = -1;                         /* Use value from Object Dictionary or set to 1..127 by arguments */
 static CO_OD_storage_t      odStor;             /* Object Dictionary storage object for CO_OD_ROM */
 static CO_OD_storage_t      odStorAuto;         /* Object Dictionary storage object for CO_OD_EEPROM */
 static char                *odStorFile_rom    = "od_storage";       /* Name of the file */
 static char                *odStorFile_eeprom = "od_storage_auto";  /* Name of the file */
-#ifdef CO_309
+#if CO_CONFIG_309 > 0
 static in_port_t            CO_command_socket_tcp_port = 60000; /* default port when used in tcp gateway mode */
 #endif
 #if CO_NO_TRACE > 0
 static CO_time_t            CO_time;            /* Object for current time */
 #endif
 
+/* Helper functions ***********************************************************/
 /* Realtime thread */
-#ifdef CO_MULTI_THREAD
-static void*                rt_thread(void* arg);
-static pthread_t            rt_thread_id;
-static int                  rt_thread_epoll_fd;
-#endif
-
+static void* rt_thread(void* arg);
 
 /* Signal handler */
 volatile sig_atomic_t CO_endProgram = 0;
@@ -98,24 +98,25 @@ static void sigHandler(int sig) {
     CO_endProgram = 1;
 }
 
+/* callback for emergency messages */
+static void EmergencyRxCallback(const uint16_t ident,
+                                const uint16_t errorCode,
+                                const uint8_t errorRegister,
+                                const uint8_t errorBit,
+                                const uint32_t infoCode)
+{
+    int16_t nodeIdRx = ident ? (ident&0x7F) : nodeId;
 
-/* Helper functions ***********************************************************/
-void CO_errExit(char* msg) {
-    perror(msg);
-    exit(EXIT_FAILURE);
+    log_printf(LOG_NOTICE, DBG_EMERGENCY_RX, nodeIdRx, errorCode,
+               errorRegister, errorBit, infoCode);
 }
 
-/* send CANopen generic emergency message */
-void CO_error(const uint32_t info) {
-    CO_errorReport(CO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, info);
-    fprintf(stderr, "canopend generic error: 0x%X\n", info);
-}
 
-
+/* Print usage */
 static void printUsage(char *progName) {
-fprintf(stderr,
+printf(
 "Usage: %s <CAN device name> [options]\n", progName);
-fprintf(stderr,
+printf(
 "\n"
 "Options:\n"
 "  -i <Node ID>        CANopen Node-id (1..127). If not specified, value from\n"
@@ -126,31 +127,30 @@ fprintf(stderr,
 "  -s <ODstorage file> Set Filename for OD storage ('od_storage' is default).\n"
 "  -a <ODstorageAuto>  Set Filename for automatic storage variables from\n"
 "                      Object dictionary. ('od_storage_auto' is default).\n");
-#ifdef CO_309
-fprintf(stderr,
+#if CO_CONFIG_309 > 0
+printf(
 "  -c <Socket path>    Enable command interface for master functionality. \n"
 "                      If socket path is specified as empty string \"\",\n"
 "                      default '%s' will be used.\n"
 "                      Note that location of socket path may affect security.\n"
 "                      See 'canopencomm/canopencomm --help' for more info.\n"
 , CO_command_socketPath);
-fprintf(stderr,
-"  -t <port>           Enable command interface for master functionality over tcp, \n"
-"                      listen to <port>.\n"
+printf(
+"  -t <port>           Enable command interface for master functionality over\n"
+"                      tcp, listen to <port>.\n"
 "                      Note that using this mode may affect security.\n"
 );
 #endif
-fprintf(stderr,
+printf(
 "\n"
 "See also: https://github.com/CANopenNode/CANopenNode\n"
 "\n");
 }
 
 
-/******************************************************************************/
-/** Mainline and RT thread                                                   **/
-/******************************************************************************/
+/*Mainline thread *************************************************************/
 int main (int argc, char *argv[]) {
+    pthread_t rt_thread_id;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_ReturnError_t err;
     CO_ReturnError_t odStorStatus_rom, odStorStatus_eeprom;
@@ -160,20 +160,21 @@ int main (int argc, char *argv[]) {
 
     char* CANdevice = NULL;         /* CAN device, configurable by arguments. */
     bool_t nodeIdFromArgs = false;  /* True, if program arguments are used for CANopen Node Id */
-    int nodeId = -1;                /* Use value from Object Dictionary or set to 1..127 by arguments */
     bool_t rebootEnable = false;    /* Configurable by arguments */
-#ifdef CO_309
+#if CO_CONFIG_309 > 0
     typedef enum CMD_MODE {CMD_NONE, CMD_LOCAL, CMD_REMOTE} cmdMode_t;
     cmdMode_t commandEnable = CMD_NONE;   /* Configurable by arguments */
 #endif
 
+    /* configure system log */
+    setlogmask(LOG_UPTO (LOG_DEBUG)); /* LOG_DEBUG - log all meessages */
+    openlog(argv[0], LOG_PID | LOG_PERROR, LOG_USER); /* print also to standard error */
+
+    /* Get program options */
     if(argc < 2 || strcmp(argv[1], "--help") == 0){
         printUsage(argv[0]);
         exit(EXIT_SUCCESS);
     }
-
-
-    /* Get program options */
     while((opt = getopt(argc, argv, "i:p:rc:t:s:a:")) != -1) {
         switch (opt) {
             case 'i':
@@ -182,7 +183,7 @@ int main (int argc, char *argv[]) {
                 break;
             case 'p': rtPriority = strtol(optarg, NULL, 0); break;
             case 'r': rebootEnable = true;                  break;
-#ifdef CO_309
+#if CO_CONFIG_309 > 0
             case 'c':
                 /* In case of empty string keep default name, just enable interface. */
                 if(strlen(optarg) != 0) {
@@ -196,8 +197,8 @@ int main (int argc, char *argv[]) {
                   //CO_command_socket_tcp_port = optarg;
                   int scanResult = sscanf(optarg, "%hu", &CO_command_socket_tcp_port);
                   if(scanResult != 1){ //expect one argument to be extracted
-                    printf("ERROR: -t argument \'%s\' is not a valid tcp port\n", optarg);
-                    exit(EXIT_FAILURE);
+                      log_printf(LOG_CRIT, DBG_NOT_TCP_PORT, optarg);
+                      exit(EXIT_FAILURE);
                   }
                 }
                 commandEnable = CMD_REMOTE;
@@ -217,47 +218,46 @@ int main (int argc, char *argv[]) {
     }
 
     if(nodeIdFromArgs && (nodeId < 1 || nodeId > 127)) {
-        fprintf(stderr, "Wrong node ID (%d)\n", nodeId);
+        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, nodeId);
         printUsage(argv[0]);
         exit(EXIT_FAILURE);
     }
 
     if(rtPriority != -1 && (rtPriority < sched_get_priority_min(SCHED_FIFO)
                          || rtPriority > sched_get_priority_max(SCHED_FIFO))) {
-        fprintf(stderr, "Wrong RT priority (%d)\n", rtPriority);
+        log_printf(LOG_CRIT, DBG_WRONG_PRIORITY, rtPriority);
         printUsage(argv[0]);
         exit(EXIT_FAILURE);
     }
 
     if(CANdevice0Index == 0) {
-        char s[120];
-        snprintf(s, 120, "Can't find CAN device \"%s\"", CANdevice);
-        CO_errExit(s);
+        log_printf(LOG_CRIT, DBG_NO_CAN_DEVICE, CANdevice);
+        exit(EXIT_FAILURE);
     }
 
 
-    printf("%s - starting CANopen device with Node ID %d(0x%02X)", argv[0], nodeId, nodeId);
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, nodeId, nodeId, "starting");
 
 
     /* Allocate memory for CANopen objects */
-    err = CO_new();
+    err = CO_new(NULL);
     if (err != CO_ERROR_NO) {
-        fprintf(stderr, "Program init - %s - CO_new() failed.\n", argv[0]);
+        log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_new()", err);
         exit(EXIT_FAILURE);
     }
 
 
     /* Verify, if OD structures have proper alignment of initial values */
     if(CO_OD_RAM.FirstWord != CO_OD_RAM.LastWord) {
-        fprintf(stderr, "Program init - %s - Error in CO_OD_RAM.\n", argv[0]);
+        log_printf(LOG_CRIT, DBG_OBJECT_DICTIONARY, "CO_OD_RAM");
         exit(EXIT_FAILURE);
     }
     if(CO_OD_EEPROM.FirstWord != CO_OD_EEPROM.LastWord) {
-        fprintf(stderr, "Program init - %s - Error in CO_OD_EEPROM.\n", argv[0]);
+        log_printf(LOG_CRIT, DBG_OBJECT_DICTIONARY, "CO_OD_EEPROM");
         exit(EXIT_FAILURE);
     }
     if(CO_OD_ROM.FirstWord != CO_OD_ROM.LastWord) {
-        fprintf(stderr, "Program init - %s - Error in CO_OD_ROM.\n", argv[0]);
+        log_printf(LOG_CRIT, DBG_OBJECT_DICTIONARY, "CO_OD_ROM");
         exit(EXIT_FAILURE);
     }
 
@@ -268,22 +268,23 @@ int main (int argc, char *argv[]) {
 
 
     /* Catch signals SIGINT and SIGTERM */
-    if(signal(SIGINT, sigHandler) == SIG_ERR)
-        CO_errExit("Program init - SIGINIT handler creation failed");
-    if(signal(SIGTERM, sigHandler) == SIG_ERR)
-        CO_errExit("Program init - SIGTERM handler creation failed");
-
-    /* increase variable each startup. Variable is automatically stored in non-volatile memory. */
-    printf(", count=%u ...\n", ++OD_powerOnCounter);
+    if(signal(SIGINT, sigHandler) == SIG_ERR) {
+        log_printf(LOG_CRIT, DBG_ERRNO, "signal(SIGINT, sigHandler)");
+        exit(EXIT_FAILURE);
+    }
+    if(signal(SIGTERM, sigHandler) == SIG_ERR) {
+        log_printf(LOG_CRIT, DBG_ERRNO, "signal(SIGTERM, sigHandler)");
+        exit(EXIT_FAILURE);
+    }
 
 
     while(reset != CO_RESET_APP && reset != CO_RESET_QUIT && CO_endProgram == 0) {
 /* CANopen communication reset - initialize CANopen objects *******************/
 
-        printf("%s - communication reset ...\n", argv[0]);
+        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, nodeId, nodeId, "communication reset");
 
 
-#ifdef CO_309
+#if CO_CONFIG_309 > 0
         /* Wait other threads (command interface). */
         pthread_mutex_lock(&CO_CAN_VALID_mtx);
 #endif
@@ -307,16 +308,19 @@ int main (int argc, char *argv[]) {
         }
 
         err = CO_CANinit((void *)CANdevice0Index, 0 /* bit rate not used */);
-        if (err == CO_ERROR_NO) {
-            err = CO_CANopenInit(nodeId);
-        }
-
         if(err != CO_ERROR_NO) {
-            char s[120];
-            snprintf(s, 120, "Communication reset - CANopen initialization failed, err=%d", err);
-            CO_errExit(s);
+            log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANinit()", err);
+            exit(EXIT_FAILURE);
         }
 
+        err = CO_CANopenInit(nodeId);
+        if(err != CO_ERROR_NO) {
+            log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
+            exit(EXIT_FAILURE);
+        }
+
+        /* initialize callbacks */
+        CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
 
         /* initialize OD objects 1010 and 1011 and verify errors. */
         CO_OD_configure(CO->SDO[0], OD_H1010_STORE_PARAM_FUNC, CO_ODF_1010, (void*)&odStor, 0, 0U);
@@ -329,13 +333,6 @@ int main (int argc, char *argv[]) {
         }
 
 
-        /* Configure callback functions for thread control */
-//        void CO_CANopenInitCallback(void *object, void (*pFunctSignal)(void *object));
-//        CO_EM_initCallback(CO->em, threadMain_cbSignal);
-//        CO_SDO_initCallback(CO->SDO[0], threadMain_cbSignal);
-//        CO_SDOclient_initCallback(CO->SDOclient, threadMain_cbSignal);
-
-
 #if CO_NO_TRACE > 0
         /* Initialize time */
         CO_time_init(&CO_time, CO->SDO[0], &OD_time.epochTimeBaseMs, &OD_time.epochTimeOffsetMs, 0x2130);
@@ -345,52 +342,43 @@ int main (int argc, char *argv[]) {
         if(firstRun) {
             firstRun = false;
 
-            /* Configure epoll for mainline */
-            mainline_epoll_fd = epoll_create(4);
-            if(mainline_epoll_fd == -1)
-                CO_errExit("Program init - epoll_create mainline failed");
 
-            /* Init mainline */
-            threadMain_init(mainline_epoll_fd, &OD_performance[ODA_performance_mainCycleMaxTime]);
+            /* Init threadMainWait structure and file descriptors */
+            threadMainWait_init(MAIN_THREAD_INTERVAL_US);
 
 
-#ifdef CO_MULTI_THREAD
-            /* Configure epoll for rt_thread */
-            rt_thread_epoll_fd = epoll_create(2);
-            if(rt_thread_epoll_fd == -1)
-                CO_errExit("Program init - epoll_create rt_thread failed");
+            /* Init threadRT structure and file descriptors */
+            CANrx_threadTmr_init(TMR_THREAD_INTERVAL_US);
 
-            /* Init threadRT */
-            CANrx_threadTmr_init(rt_thread_epoll_fd, TMR_THREAD_INTERVAL_NS, &OD_performance[ODA_performance_timerCycleMaxTime]);
-
-            /* Create rt_thread */
-            if(pthread_create(&rt_thread_id, NULL, rt_thread, NULL) != 0)
-                CO_errExit("Program init - rt_thread creation failed");
-
-            /* Set priority for rt_thread */
+            /* Create rt_thread and set priority */
+            if(pthread_create(&rt_thread_id, NULL, rt_thread, NULL) != 0) {
+                log_printf(LOG_CRIT, DBG_ERRNO, "pthread_create(rt_thread)");
+                exit(EXIT_FAILURE);
+            }
             if(rtPriority > 0) {
                 struct sched_param param;
 
                 param.sched_priority = rtPriority;
-                if(pthread_setschedparam(rt_thread_id, SCHED_FIFO, &param) != 0)
-                    CO_errExit("Program init - rt_thread set scheduler failed");
+                if (pthread_setschedparam(rt_thread_id, SCHED_FIFO, &param) != 0) {
+                    log_printf(LOG_CRIT, DBG_ERRNO, "pthread_setschedparam()");
+                    exit(EXIT_FAILURE);
+                }
             }
-#endif
 
-#ifdef CO_309
+#if CO_CONFIG_309 > 0
             /* Initialize socket command interface */
             switch(commandEnable) {
               case CMD_LOCAL:
                 if(CO_command_init() != 0) {
                     CO_errExit("Socket command interface initialization failed");
                 }
-                printf("%s - Command interface on socket '%s' started ...\n", argv[0], CO_command_socketPath);
+                log_printf(LOG_INFO, DBG_COMMAND_LOCAL_INFO, CO_command_socketPath);
                 break;
               case CMD_REMOTE:
                 if(CO_command_init_tcp(CO_command_socket_tcp_port) != 0) {
                     CO_errExit("Socket command interface initialization failed");
                 }
-                printf("%s - Command interface on tcp port '%hu' started ...\n", argv[0], CO_command_socket_tcp_port);
+                log_printf(LOG_INFO, DBG_COMMAND_TCP_INFO, CO_command_socket_tcp_port);
                 break;
               default:
                 break;
@@ -413,58 +401,32 @@ int main (int argc, char *argv[]) {
         /* start CAN */
         CO_CANsetNormalMode(CO->CANmodule[0]);
 
-#ifdef CO_309
+#if CO_CONFIG_309 > 0
         pthread_mutex_unlock(&CO_CAN_VALID_mtx);
 #endif
 
 
         reset = CO_RESET_NOT;
 
-        printf("%s - running ...\n", argv[0]);
+        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, nodeId, nodeId, "running ...");
 
 
         while(reset == CO_RESET_NOT && CO_endProgram == 0) {
 /* loop for normal program execution ******************************************/
-            int ready;
-            struct epoll_event ev;
-
-            ready = epoll_wait(mainline_epoll_fd, &ev, 1, -1);
-
-            if(ready != 1) {
-                if(errno != EINTR) {
-                    CO_error(0x11100000L + errno);
-                }
-            }
-
-            else if(threadMain_process(ev.data.fd, &reset, CO_timer1ms)) {
-                uint16_t timer1msDiff;
-                static uint16_t tmr1msPrev = 0;
-
-                /* Calculate time difference */
-                timer1msDiff = CO_timer1ms - tmr1msPrev;
-                tmr1msPrev = CO_timer1ms;
-
-                /* code was processed in the above function. Additional code process below */
+            uint32_t timer1usDiff = threadMainWait_process(&reset);
 
 #ifdef CO_USE_APPLICATION
-                /* Execute optional additional application code */
-                app_programAsync(timer1msDiff);
+            app_programAsync(timer1usDiff);
 #endif
 
-                CO_OD_storage_autoSave(&odStorAuto, CO_timer1ms, 60000);
-            }
-
-            else {
-                /* No file descriptor was processed. */
-                CO_error(0x11200000L);
-            }
+            CO_OD_storage_autoSave(&odStorAuto, timer1usDiff, 60000000);
         }
     }
 
 
 /* program exit ***************************************************************/
     /* join threads */
-#ifdef CO_309
+#if CO_CONFIG_309 > 0
     switch (commandEnable)
     {
       case CMD_LOCAL:
@@ -481,11 +443,10 @@ int main (int argc, char *argv[]) {
 #endif
 
     CO_endProgram = 1;
-#ifdef CO_MULTI_THREAD
-    if(pthread_join(rt_thread_id, NULL) != 0) {
-        CO_errExit("Program end - pthread_join failed");
+    if (pthread_join(rt_thread_id, NULL) != 0) {
+        log_printf(LOG_CRIT, DBG_ERRNO, "pthread_join()");
+        exit(EXIT_FAILURE);
     }
-#endif
 
 #ifdef CO_USE_APPLICATION
     /* Execute optional additional application code */
@@ -498,16 +459,17 @@ int main (int argc, char *argv[]) {
 
     /* delete objects from memory */
     CANrx_threadTmr_close();
-    threadMain_close();
+    threadMainWait_close();
     CO_delete((void *)CANdevice0Index);
 
-    printf("%s on %s (nodeId=0x%02X) - finished.\n\n", argv[0], CANdevice, nodeId);
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, nodeId, nodeId, "finished");
 
     /* Flush all buffers (and reboot) */
     if(rebootEnable && reset == CO_RESET_APP) {
         sync();
         if(reboot(LINUX_REBOOT_CMD_RESTART) != 0) {
-            CO_errExit("Program end - reboot failed");
+            log_printf(LOG_CRIT, DBG_ERRNO, "reboot()");
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -515,47 +477,28 @@ int main (int argc, char *argv[]) {
 }
 
 
-#ifdef CO_MULTI_THREAD
 /* Realtime thread for CAN receive and threadTmr ******************************/
 static void* rt_thread(void* arg) {
 
     /* Endless loop */
     while(CO_endProgram == 0) {
-        int ready;
-        struct epoll_event ev;
 
-        ready = epoll_wait(rt_thread_epoll_fd, &ev, 1, -1);
-
-        if(ready != 1) {
-            if(errno != EINTR) {
-                CO_error(0x12100000L + errno);
-            }
-        }
-
-        else if(CANrx_threadTmr_process(ev.data.fd)) {
-            int i;
+        CANrx_threadTmr_process();
 
 #if CO_NO_TRACE > 0
-            /* Monitor variables with trace objects */
-            CO_time_process(&CO_time);
-            for(i=0; i<OD_traceEnable && i<CO_NO_TRACE; i++) {
-                CO_trace_process(CO->trace[i], *CO_time.epochTimeOffsetMs);
-            }
+        /* Monitor variables with trace objects */
+        CO_time_process(&CO_time);
+        for(i=0; i<OD_traceEnable && i<CO_NO_TRACE; i++) {
+            CO_trace_process(CO->trace[i], *CO_time.epochTimeOffsetMs);
+        }
 #endif
 
 #ifdef CO_USE_APPLICATION
-            /* Execute optional additional application code */
-            app_program1ms();
+        /* Execute optional additional application code */
+        app_program1ms();
 #endif
 
-        }
-
-        else {
-            /* No file descriptor was processed. */
-            CO_error(0x12200000L);
-        }
     }
 
     return NULL;
 }
-#endif /* CO_MULTI_THREAD */

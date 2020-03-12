@@ -38,12 +38,17 @@ extern "C" {
  * @defgroup CO_socketCAN socketCAN
  * @{
  *
- * Linux specific interface to CANopenNode
+ * Linux specific interface to CANopenNode.
+ *
+ * CANopenNode runs on top of SocketCAN interface, which is part of the Linux
+ * kernel. For more info on Linux SocketCAN see
+ * https://www.kernel.org/doc/html/latest/networking/can.html
  *
  * CANopenNode runs in two threads:
  * - timer based real-time thread for CAN receive, SYNC and PDO, see
  *   CANrx_threadTmr_process()
- * - mainline thread for other processing, see threadMain_process()
+ * - mainline thread for other processing, see threadMain_process() or
+ *   threadMainWait_process()
  *
  * The "threads" specified here do not fork threads themselves, but require
  * that two threads are provided by the calling application.
@@ -51,28 +56,29 @@ extern "C" {
 
 
 /**
- * Initialize mainline thread.
+ * Initialize mainline thread - basic.
  *
  * @param callback this function is called to indicate #threadMain_process() has
  * work to do
  * @param object this pointer is given to _callback()_
  */
-extern void threadMain_init(void (*callback)(void*), void *object);
+void threadMain_init(void (*callback)(void*), void *object);
 
 
 /**
- * Cleanup mainline thread.
+ * Cleanup mainline thread - basic.
  */
-extern void threadMain_close(void);
+void threadMain_close(void);
 
 
 /**
- * Process mainline thread.
+ * Process mainline thread - basic.
  *
  * threadMain is non-realtime thread for CANopenNode processing. It is
  * initialized by threadMain_init(). There is no configuration for CANopen
- * objects. There is also no configuration for epool or interval timer or notify
- * pipe. These must be specified externally.
+ * objects. There is also no configuration for epool or interval timer or
+ * eventfd. These must be specified externally. For more complete function see
+ * threadMainWait_process(), they are included.
  *
  * threadMain_process() calls CO_process() function for processing mainline
  * CANopen objects. It is non-blocking and should be called cyclically in 50 ms
@@ -81,7 +87,39 @@ extern void threadMain_close(void);
  *
  * @param reset return value from CO_process() function.
  */
-extern void threadMain_process(CO_NMT_reset_cmd_t *reset);
+void threadMain_process(CO_NMT_reset_cmd_t *reset);
+
+
+/**
+ * Initialize mainline thread - blocking.
+ *
+ * @param interval_us interval of the threadMainWait_process()
+ */
+void threadMainWait_init(uint32_t interval_us);
+
+
+/**
+ * Cleanup mainline thread - blocking.
+ */
+void threadMainWait_close(void);
+
+
+/**
+ * Process mainline thread - blocking.
+ *
+ * threadMainWait is non-realtime thread for CANopenNode processing. It is
+ * initialized by threadMainWait_init(). There is no configuration for CANopen
+ * objects. But there is configuration for epool, interval timer and eventfd.
+ * Function must be called inside loop. It blocks for correct time and unblocks
+ * automatically in case of event. It calls CO_process() function for processing
+ * mainline CANopen objects.
+ * For more basic function see threadMain_process() alternative.
+ *
+ * @param reset return value from CO_process() function.
+ *
+ * @return time difference since last call in microseconds
+ */
+uint32_t threadMainWait_process(CO_NMT_reset_cmd_t *reset);
 
 
 /**
@@ -90,13 +128,13 @@ extern void threadMain_process(CO_NMT_reset_cmd_t *reset);
  * @param interval_us Interval of periodic timer in microseconds, recommended
  *                    value for realtime response: 1000 us
  */
-extern void CANrx_threadTmr_init(uint32_t interval_us);
+void CANrx_threadTmr_init(uint32_t interval_us);
 
 
 /**
  * Terminate realtime thread.
  */
-extern void CANrx_threadTmr_close(void);
+void CANrx_threadTmr_close(void);
 
 
 /**
@@ -117,8 +155,10 @@ extern void CANrx_threadTmr_close(void);
  *
  * @remark If realtime is required, this thread must be registered as such in
  * the Linux kernel.
+ *
+ * @return Number of interval timer passes since last call.
  */
-extern void CANrx_threadTmr_process();
+void CANrx_threadTmr_process(void);
 
 /** @} */
 

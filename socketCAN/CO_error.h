@@ -59,10 +59,10 @@ extern "C" {
  * default system stores messages in /var/log/syslog file.
  * Log can optionally be configured before, for example to filter out less
  * critical errors than LOG_NOTICE, specify program name, print also process PID
- * and print also to standard error, use:
+ * and print also to standard error, set 'user' type of program, use:
  * @code
  * setlogmask (LOG_UPTO (LOG_NOTICE));
- * openlog ("exampleprog", LOG_PID | LOG_PERROR);
+ * openlog ("exampleprog", LOG_PID | LOG_PERROR, LOG_USER);
  * @endcode
  *
  * @param priority one of LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING,

@@ -42,7 +42,7 @@ SOURCES = \
 
 OBJS = $(SOURCES:%.c=%.o)
 CC ?= gcc
-OPT = -Og
+OPT = -g
 CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
 LDFLAGS = -pthread
 

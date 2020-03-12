@@ -108,8 +108,7 @@ typedef struct {
     char       *filename;       /**< From CO_OD_storage_init() */
     /** If CO_OD_storage_autoSave() is used, file stays opened and fp is stored here. */
     FILE       *fp;
-    uint16_t    tmr1msPrev;     /**< used with CO_OD_storage_autoSave. */
-    uint32_t    lastSavedMs;    /**< used with CO_OD_storage_autoSave. */
+    uint32_t    lastSavedUs;    /**< used with CO_OD_storage_autoSave. */
 } CO_OD_storage_t;
 
 
@@ -143,16 +142,17 @@ CO_ReturnError_t CO_OD_storage_init(
  * CRC bytes. File remains opened.
  *
  * @param odStor OD storage object.
- * @param timer1ms Variable, which must increment each millisecond.
- * @param delay Delay (inhibit) time between writes to disk in milliseconds (60000 for example).
+ * @param timer1usDiff Time difference in microseconds since last call.
+ * @param delay_us Delay (inhibit) time between writes to disk in microseconds
+ * (60000 for example).
  *
- * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_DATA_CORRUPT (Data in file corrupt),
- * CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY (malloc failed).
+ * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_DATA_CORRUPT (Data in file
+ * corrupt), CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY (malloc failed).
  */
 CO_ReturnError_t CO_OD_storage_autoSave(
         CO_OD_storage_t        *odStor,
-        uint16_t                timer1ms,
-        uint16_t                delay);
+        uint32_t                timer1usDiff,
+        uint32_t                delay_us);
 
 
 /**

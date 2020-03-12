@@ -25,12 +25,16 @@
  * limitations under the License.
  */
 
-#include <sys/timerfd.h>
-#include <fcntl.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/epoll.h>
+#include <sys/eventfd.h>
+#include <sys/timerfd.h>
+#include <fcntl.h>
 
 #include "CANopen.h"
+
 
 /* Helper function - get monotonic clock time in microseconds */
 static uint64_t CO_LinuxThreads_clock_gettime_us(void)
@@ -41,7 +45,8 @@ static uint64_t CO_LinuxThreads_clock_gettime_us(void)
   return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
 }
 
-/* Mainline thread (threadMain) ***********************************************/
+
+/* Mainline thread - basic (threadMain) ***************************************/
 static struct
 {
   uint64_t start;   /* time value CO_process() was called last time in us */
@@ -69,6 +74,7 @@ void threadMain_process(CO_NMT_reset_cmd_t *reset)
 
   now = CO_LinuxThreads_clock_gettime_us();
   diff = (uint32_t)(now - threadMain.start);
+  threadMain.start = now;
 
   /* we use timerNext_us in CO_process() as indication if processing is
    * finished. We ignore any calculated values for maximum delay times. */
@@ -78,9 +84,159 @@ void threadMain_process(CO_NMT_reset_cmd_t *reset)
     diff = 0;
   } while ((*reset == CO_RESET_NOT) && (finished == 0));
 
-  /* prepare next call */
-  threadMain.start = now;
 }
+
+
+/* Mainline thread - Blocking (threadMainWait) ********************************/
+static struct
+{
+  uint64_t start;       /* time value CO_process() was called last time in us */
+  int epoll_fd;         /* epoll file descriptor */
+  int event_fd;         /* notification event file descriptor */
+  int timer_fd;         /* interval timer file descriptor */
+  uint32_t interval_us; /* interval for threadMainWait_process */
+  struct itimerspec tm; /* structure for timer configuration */
+} threadMainWait;
+
+static void threadMainWait_callback(void *object)
+{
+  /* send event to wake threadMainWait_process() */
+  uint64_t u = 1;
+  ssize_t s;
+  s = write(threadMainWait.event_fd, &u, sizeof(uint64_t));
+  if (s != sizeof(uint64_t)) {
+    log_printf(LOG_DEBUG, DBG_ERRNO, "write()");
+  }
+}
+
+void threadMainWait_init(uint32_t interval_us)
+{
+  int32_t ret;
+  struct epoll_event ev;
+
+  /* Configure callback functions */
+  CO_SDO_initCallback(CO->SDO[0], NULL, threadMainWait_callback);
+  CO_EM_initCallback(CO->em, NULL, threadMainWait_callback);
+
+  /* Initial value for time calculation */
+  threadMainWait.start = CO_LinuxThreads_clock_gettime_us();
+
+  /* Configure epoll for mainline */
+  threadMainWait.epoll_fd = epoll_create(1);
+  if (threadMainWait.epoll_fd < 0) {
+    log_printf(LOG_CRIT, DBG_ERRNO, "epoll_create()");
+    exit(EXIT_FAILURE);
+  }
+
+  /* Configure eventfd for notifications and add it to epoll */
+  threadMainWait.event_fd = eventfd(0, 0);
+  if (threadMainWait.event_fd < 0) {
+    log_printf(LOG_CRIT, DBG_ERRNO, "eventfd()");
+    exit(EXIT_FAILURE);
+  }
+  ev.events = EPOLLIN;
+  ev.data.fd = threadMainWait.event_fd;
+  ret = epoll_ctl(threadMainWait.epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev);
+  if (ret < 0){
+    log_printf(LOG_CRIT, DBG_ERRNO, "epoll_ctl(event_fd)");
+    exit(EXIT_FAILURE);
+  }
+
+  /* Configure timer for interval_us and add it to epoll */
+  threadMainWait.timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+  if (threadMainWait.timer_fd < 0) {
+    log_printf(LOG_CRIT, DBG_ERRNO, "timerfd_create()");
+    exit(EXIT_FAILURE);
+  }
+  threadMainWait.interval_us = interval_us;
+  threadMainWait.tm.it_interval.tv_sec = interval_us / 1000000;
+  threadMainWait.tm.it_interval.tv_nsec = (interval_us % 1000000) * 1000;
+  threadMainWait.tm.it_value.tv_sec = 0;
+  threadMainWait.tm.it_value.tv_nsec = 1;
+  ret = timerfd_settime(threadMainWait.timer_fd, 0, &threadMainWait.tm, NULL);
+  if (ret < 0){
+    log_printf(LOG_CRIT, DBG_ERRNO, "timerfd_settime");
+    exit(EXIT_FAILURE);
+  }
+  ev.events = EPOLLIN;
+  ev.data.fd = threadMainWait.timer_fd;
+  ret = epoll_ctl(threadMainWait.epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev);
+  if (ret < 0){
+    log_printf(LOG_CRIT, DBG_ERRNO, "epoll_ctl(timer_fd)");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void threadMainWait_close(void)
+{
+  CO_SDO_initCallback(CO->SDO[0], NULL, NULL);
+  CO_EM_initCallback(CO->em, NULL, NULL);
+
+  close(threadMainWait.epoll_fd);
+  close(threadMainWait.event_fd);
+  close(threadMainWait.timer_fd);
+  threadMainWait.epoll_fd = -1;
+  threadMainWait.event_fd = -1;
+  threadMainWait.timer_fd = -1;
+}
+
+uint32_t threadMainWait_process(CO_NMT_reset_cmd_t *reset)
+{
+  int ready, ret;
+  struct epoll_event ev;
+  uint64_t ull;
+  ssize_t s;
+  uint32_t diff, timerNext_us;
+
+  /* wait for event or timer expiration and read data from file descriptors */
+  ready = epoll_wait(threadMainWait.epoll_fd, &ev, 1, -1);
+  if (ready != 1 && errno != EINTR) {
+    log_printf(LOG_DEBUG, DBG_ERRNO, "epoll_wait");
+  }
+  else if (ev.data.fd == threadMainWait.event_fd) {
+    s = read(threadMainWait.event_fd, &ull, sizeof(uint64_t));
+    if (s != sizeof(uint64_t)) {
+      log_printf(LOG_DEBUG, DBG_ERRNO, "read(event_fd)");
+    }
+  }
+  else if (ev.data.fd == threadMainWait.timer_fd) {
+    s = read(threadMainWait.timer_fd, &ull, sizeof(uint64_t));
+    if (s != sizeof(uint64_t) && errno != EAGAIN) {
+      log_printf(LOG_DEBUG, DBG_ERRNO, "read(timer_fd)");
+    }
+  }
+
+  /* calculate time difference since last call */
+  ull = CO_LinuxThreads_clock_gettime_us();
+  diff = (uint32_t)(ull - threadMainWait.start);
+  threadMainWait.start = ull;
+
+  /* stack will lower this, if necessary */
+  timerNext_us = threadMainWait.interval_us;
+
+  /* process CANopen objects */
+  *reset = CO_process(CO, diff, &timerNext_us);
+
+  /* lower next timer interval if necessary */
+  if (timerNext_us < threadMainWait.interval_us) {
+    /* add one microsecond extra delay and make sure it is not zero */
+    timerNext_us += 1;
+    if (threadMainWait.interval_us < 1000000) {
+      threadMainWait.tm.it_value.tv_nsec = timerNext_us * 1000;
+    } else {
+      threadMainWait.tm.it_value.tv_sec = timerNext_us / 1000000;
+      threadMainWait.tm.it_value.tv_nsec = (timerNext_us % 1000000) * 1000;
+    }
+    ret = timerfd_settime(threadMainWait.timer_fd, 0,
+                          &threadMainWait.tm, NULL);
+    if (ret < 0){
+      log_printf(LOG_DEBUG, DBG_ERRNO, "timerfd_settime");
+    }
+  }
+
+  return diff;
+}
+
 
 /* Realtime thread (threadRT) *************************************************/
 static struct {
@@ -108,12 +264,12 @@ void CANrx_threadTmr_close(void)
   threadRT.interval_fd = -1;
 }
 
-void CANrx_threadTmr_process(void)
+uint32_t CANrx_threadTmr_process(void)
 {
   int32_t result;
   uint64_t i;
   bool_t syncWas;
-  uint64_t missed;
+  uint64_t missed = 0;
 
   result = CO_CANrxWait(CO->CANmodule[0], threadRT.interval_fd, NULL);
   if (result < 0) {
@@ -143,4 +299,6 @@ void CANrx_threadTmr_process(void)
       CO_UNLOCK_OD();
     }
   }
+
+  return (uint32_t) missed;
 }

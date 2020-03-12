@@ -192,7 +192,7 @@ Some tested USB to CAN interfaces, which are natively integrated into Linux are:
  - Simple serial [USBtin](http://www.fischl.de/usbtin/) - Start with: `sudo slcand -f -o -c -s8 /dev/ttyACM0 can0; sudo ip link set up can0`
  - [EMS CPC-USB](http://www.ems-wuensche.com/product/datasheet/html/can-usb-adapter-converter-interface-cpcusb.html) - Start with: `sudo ip link set up can0 type can bitrate 250000`
  - [PCAN-USB FD](http://www.peak-system.com/PCAN-USB-FD.365.0.html?&L=1) - Needs newer Linux kernel, supports CAN flexible data rate.
- - You can get the idea of other supported CAN interfaces in [Linux kernel source](https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can).
+ - You can get the idea of other supported CAN interfaces in [Linux kernel source](https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can) (Kconfig files).
  - Beaglebone or Paspberry PI or similar has CAN capes available. On RPI worked
    also the above USB interfaces, but it was necessary to compile the kernel.
 
