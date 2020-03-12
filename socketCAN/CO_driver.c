@@ -39,21 +39,20 @@
 #include "301/CO_driver.h"
 #include "CO_error.h"
 
-#if __has_include("301/CO_Emergency.h")
-  #include "301/CO_Emergency.h"
-  #define USE_EMERGENCY_OBJECT
+#if CO_DRIVER_USE_EMERGENCY > 0
+#include "301/CO_Emergency.h"
 #endif
 
 
 pthread_mutex_t CO_EMCY_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t CO_OD_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-#ifndef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE == 0
 static CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule, const void *CANptr);
 #endif
 
 
-#ifdef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE > 0
 
 static const uint32_t CO_INVALID_COB_ID = 0xffffffff;
 
@@ -249,7 +248,7 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->CANnormal = false;
     CANmodule->em = NULL; //this is set inside CO_Emergency.c init function!
     CANmodule->fdTimerRead = -1;
-#ifdef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE > 0
     for (i = 0; i < CO_CAN_MSG_SFF_MAX_COB_ID; i++) {
         CANmodule->rxIdentToIndex[i] = CO_INVALID_COB_ID;
         CANmodule->txIdentToIndex[i] = CO_INVALID_COB_ID;
@@ -275,7 +274,7 @@ CO_ReturnError_t CO_CANmodule_init(
         rxArray[i].timestamp.tv_nsec = 0;
     }
 
-#ifndef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE == 0
     /* add one interface */
     ret = CO_CANmodule_addInterface(CANmodule, CANptr);
     if (ret != CO_ERROR_NO) {
@@ -289,7 +288,7 @@ CO_ReturnError_t CO_CANmodule_init(
 
 
 /** enable socketCAN *********************************************************/
-#ifndef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE == 0
 static
 #endif
 CO_ReturnError_t CO_CANmodule_addInterface(
@@ -304,7 +303,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
     CO_CANinterface_t *interface;
     struct sockaddr_can sockAddr;
     struct epoll_event ev;
-#ifdef CO_DRIVER_ERROR_REPORTING
+#if CO_DRIVER_ERROR_REPORTING > 0
     can_err_mask_t err_mask;
 #endif
 
@@ -379,7 +378,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(
         return CO_ERROR_SYSCALL;
     }
 
-#ifdef CO_DRIVER_ERROR_REPORTING
+#if CO_DRIVER_ERROR_REPORTING > 0
     CO_CANerror_init(&interface->errorhandler, interface->fd, interface->ifName);
     /* set up error frame generation. What actually is available depends on your
      * CAN kernel driver */
@@ -427,7 +426,7 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
     for (i = 0; i < CANmodule->CANinterfaceCount; i++) {
         CO_CANinterface_t *interface = &CANmodule->CANinterfaces[i];
 
-#ifdef CO_DRIVER_ERROR_REPORTING
+#if CO_DRIVER_ERROR_REPORTING > 0
         CO_CANerror_disable(&interface->errorhandler);
 #endif
 
@@ -480,7 +479,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
         /* buffer, which will be configured */
         buffer = &CANmodule->rxArray[index];
 
-#ifdef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE > 0
         CO_CANsetIdentToIndex(CANmodule->rxIdentToIndex, index, ident,
                                 buffer->ident);
 #endif
@@ -514,7 +513,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
     return ret;
 }
 
-#ifdef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE > 0
 
 /******************************************************************************/
 bool_t CO_CANrxBuffer_getInterface(
@@ -568,7 +567,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
         /* get specific buffer */
         buffer = &CANmodule->txArray[index];
 
-#ifdef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE > 0
        CO_CANsetIdentToIndex(CANmodule->txIdentToIndex, index, ident, buffer->ident);
 #endif
 
@@ -587,7 +586,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
     return buffer;
 }
 
-#ifdef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE > 0
 
 /******************************************************************************/
 CO_ReturnError_t CO_CANtxBuffer_setInterface(
@@ -618,7 +617,7 @@ static CO_ReturnError_t CO_CANCheckSendInterface(
         CO_CANinterface_t      *interface)
 {
     CO_ReturnError_t err = CO_ERROR_NO;
-#ifdef CO_DRIVER_ERROR_REPORTING
+#if CO_DRIVER_ERROR_REPORTING > 0
     CO_CANinterfaceState_t ifState;
 #endif
     ssize_t n;
@@ -627,7 +626,7 @@ static CO_ReturnError_t CO_CANCheckSendInterface(
         return CO_ERROR_PARAMETERS;
     }
 
-#ifdef CO_DRIVER_ERROR_REPORTING
+#if CO_DRIVER_ERROR_REPORTING > 0
     ifState = CO_CANerror_txMsg(&interface->errorhandler);
     switch (ifState) {
         case CO_INTERFACE_ACTIVE:
@@ -663,7 +662,7 @@ static CO_ReturnError_t CO_CANCheckSendInterface(
     } while (errno != 0);
 
     if(n != CAN_MTU){
-#ifdef USE_EMERGENCY_OBJECT
+#if CO_DRIVER_USE_EMERGENCY > 0
         CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_TX_OVERFLOW, CO_EMC_CAN_OVERRUN, 0);
 #endif
         log_printf(LOG_ERR, DBG_CAN_TX_FAILED, buffer->ident, interface->ifName);
@@ -702,7 +701,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     err = CO_CANCheckSend(CANmodule, buffer);
     if (err == CO_ERROR_TX_BUSY) {
         /* send doesn't have "busy" */
-#ifdef USE_EMERGENCY_OBJECT
+#if CO_DRIVER_USE_EMERGENCY > 0
         CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_TX_OVERFLOW, CO_EMC_CAN_OVERRUN, 0);
 #endif
         log_printf(LOG_ERR, DBG_CAN_TX_FAILED, buffer->ident, "CANx");
@@ -787,7 +786,7 @@ static CO_ReturnError_t CO_CANread(
 
     n = recvmsg(interface->fd, &msghdr, 0);
     if (n != CAN_MTU) {
-#ifdef USE_EMERGENCY_OBJECT
+#if CO_DRIVER_USE_EMERGENCY > 0
         CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_RXB_OVERFLOW,
                        CO_EMC_CAN_OVERRUN, n);
 #endif
@@ -807,7 +806,7 @@ static CO_ReturnError_t CO_CANread(
         else if (cmsg->cmsg_type == SO_RXQ_OVFL) {
             dropped = *(uint32_t*)CMSG_DATA(cmsg);
             if (dropped > CANmodule->rxDropCount) {
-#ifdef USE_EMERGENCY_OBJECT
+#if CO_DRIVER_USE_EMERGENCY > 0
                 CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_RXB_OVERFLOW,
                                CO_EMC_COMMUNICATION, 0);
 #endif
@@ -956,7 +955,7 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
 
         if (msg.can_id & CAN_ERR_FLAG) {
             /* error msg */
-#ifdef CO_DRIVER_ERROR_REPORTING
+#if CO_DRIVER_ERROR_REPORTING > 0
             CO_CANerror_rxMsgError(&interface->errorhandler, &msg);
 #endif
         }
@@ -964,7 +963,7 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
             /* data msg */
             int32_t msgIndex;
 
-#ifdef CO_DRIVER_ERROR_REPORTING
+#if CO_DRIVER_ERROR_REPORTING > 0
             /* clear listenOnly and noackCounter if necessary */
             CO_CANerror_rxMsg(&interface->errorhandler);
 #endif

@@ -18,10 +18,13 @@ Change Log
 - CO_driver.h file, function `CO_CANrxBufferInit()`, last argument (callback) changed from `(*pFunct)(void *object, const CO_CANrxMsg_t *message)` to `void (*CANrx_callback)(void *object, void *message)`. New functions are defined in `CO_driver_target.h` file: `CO_CANrxMsg_readIdent()`, `CO_CANrxMsg_readDLC()` and `CO_CANrxMsg_readData()`.
 - It is necessary to manually update CO_OD.c file - it must include: `301/CO_driver.h`, `CO_OD.h` and `301/CO_SDOserver.h`.
 - Added `void *object` argument to CO_*_initCallback() functions. API clarified. Callback functions called also from SDO_blockTransferInProgress.
+- Add emergency receive callback also for own emergency messages.
 ### Changed SocketCAN
 - ./stack/socketCAN removed from the project, ./stack/Neuberger-socketCAN moved to ./socketCAN
 - driver API updated
 - CO_Linux_threads.h, function `void CANrx_threadTmr_init(uint16_t interval_in_milliseconds (changed to) uint32_t interval_in_microseconds)`
+- CO_CANrxBufferInit(): remove check COB ID already used.
+- change macros CO_DRIVER_MULTI_INTERFACE and CO_DRIVER_ERROR_REPORTING. To enable(disable), set to 1(0).
 ### Fixed
 - Bugfix in `CO_HBconsumer_process()`: argument `timeDifference_us` was set to 0 inside for loop, fixed now.
 - BUG in CO_HBconsumer.c #168

@@ -73,19 +73,20 @@ extern "C" {
  * given interfaces as well as combining all received message into
  * one queue.
  *
- * If CO_DRIVER_MULTI_INTERFACE is disabled, then CO_CANmodule_init()
+ * If CO_DRIVER_MULTI_INTERFACE is set to 0, then CO_CANmodule_init()
  * adds single socketCAN interface specified by CANptr argument. In case of
  * failure, CO_CANmodule_init() returns CO_ERROR_SYSCALL.
  *
- * If CO_DRIVER_MULTI_INTERFACE is enabled, then CO_CANmodule_init()
+ * If CO_DRIVER_MULTI_INTERFACE is set to 1, then CO_CANmodule_init()
  * ignores CANptr argument. Interfaces must be added by
  * CO_CANmodule_addInterface() function after CO_CANmodule_init().
  *
+ * Macro is set to 0 (disabled) by default. It can be overridden.
+ *
  * This is not intended to realize interface redundancy!!!
  */
-/* #define CO_DRIVER_MULTI_INTERFACE */
-#ifdef CO_DOXYGEN
-#define CO_DRIVER_MULTI_INTERFACE
+#ifndef CO_DRIVER_MULTI_INTERFACE
+#define CO_DRIVER_MULTI_INTERFACE 0
 #endif
 
 /**
@@ -96,6 +97,8 @@ extern "C" {
  * CANopen with "0" connected nodes as a use case, as this is normally
  * forbidden in CAN.
  *
+ * Macro is set to 1 (enabled) by default. It can be overridden.
+ *
  * you need to enable error reporting in your kernel driver using:
  * @code{.sh}
  * ip link set canX type can berr-reporting on
@@ -103,9 +106,20 @@ extern "C" {
  * Of course, the kernel driver for your hardware needs this functionality to be
  * implemented...
  */
-/* #define CO_DRIVER_ERROR_REPORTING */
-#ifdef CO_DOXYGEN
-#define CO_DRIVER_ERROR_REPORTING
+#ifndef CO_DRIVER_ERROR_REPORTING
+#define CO_DRIVER_ERROR_REPORTING 1
+#endif
+
+/**
+ * Use CANopen Emergency object on CAN RX or TX overflow.
+ *
+ * If CO_DRIVER_USE_EMERGENCY is set to 1, then CANopen Emergency message will
+ * be sent, if CAN rx or tx bufers are overflowed.
+ *
+ * Macro is set to 1 (enabled) by default. It can be overridden.
+ */
+#ifndef CO_DRIVER_USE_EMERGENCY
+#define CO_DRIVER_USE_EMERGENCY 1
 #endif
 
 /* skip this section for Doxygen, because it is documented in CO_driver.h */
@@ -185,7 +199,7 @@ typedef struct {
     const void *CANptr;         /* CAN Interface identifier */
     char ifName[IFNAMSIZ];      /* CAN Interface name */
     int fd;                     /* socketCAN file descriptor */
-#ifdef CO_DRIVER_ERROR_REPORTING
+#if CO_DRIVER_ERROR_REPORTING > 0 || defined CO_DOXYGEN
     CO_CANinterfaceErrorhandler_t errorhandler;
 #endif
 } CO_CANinterface_t;
@@ -208,7 +222,7 @@ typedef struct {
     int fdEpoll;                /* epoll FD for pipe, CANrx sockets in all
                                    interfaces and fdTimerRead */
     int fdTimerRead;            /* timer handle from CANrxWait() */
-#ifdef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE > 0 || defined CO_DOXYGEN
     /* Lookup tables Cob ID to rx/tx array index.
      *  Only feasible for SFF Messages. */
     uint32_t rxIdentToIndex[CO_CAN_MSG_SFF_MAX_COB_ID];
@@ -248,7 +262,7 @@ static inline void CO_UNLOCK_OD() {
 #endif /* CO_DOXYGEN */
 
 
-#ifdef CO_DRIVER_MULTI_INTERFACE
+#if CO_DRIVER_MULTI_INTERFACE > 0 || defined CO_DOXYGEN
 /**
  * Add socketCAN interface to can driver
  *
