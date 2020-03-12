@@ -98,6 +98,7 @@ CO_ReturnError_t CO_HBconsumer_init(
         uint16_t                CANdevRxIdxStart)
 {
     uint8_t i;
+    CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
     if(HBcons==NULL || em==NULL || SDO==NULL || HBconsTime==NULL ||
@@ -119,13 +120,13 @@ CO_ReturnError_t CO_HBconsumer_init(
     for(i=0; i<HBcons->numberOfMonitoredNodes; i++) {
         uint8_t nodeId = (HBcons->HBconsTime[i] >> 16U) & 0xFFU;
         uint16_t time = HBcons->HBconsTime[i] & 0xFFFFU;
-        CO_HBconsumer_initEntry(HBcons, i, nodeId, time);
+        ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, time);
     }
 
     /* Configure Object dictionary entry at index 0x1016 */
     CO_OD_configure(SDO, OD_H1016_CONSUMER_HB_TIME, CO_ODF_1016, (void*)HBcons, 0, 0);
 
-    return CO_ERROR_NO;
+    return ret;
 }
 
 
@@ -139,7 +140,7 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
-    if(HBcons==NULL){
+    if (HBcons == NULL || idx >= HBcons->numberOfMonitoredNodes) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -157,7 +158,7 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
     }
 
     /* Configure one monitored node */
-    if (ret == CO_ERROR_NO && idx < HBcons->numberOfMonitoredNodes ) {
+    if (ret == CO_ERROR_NO) {
         uint16_t COB_ID;
 
         CO_HBconsNode_t * monitoredNode = &HBcons->monitoredNodes[idx];
@@ -179,13 +180,13 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
 
         /* configure Heartbeat consumer CAN reception */
         if (monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) {
-            CO_CANrxBufferInit(HBcons->CANdevRx,
-                               HBcons->CANdevRxIdxStart + idx,
-                               COB_ID,
-                               0x7FF,
-                               0,
-                               (void*)&HBcons->monitoredNodes[idx],
-                               CO_HBcons_receive);
+            ret = CO_CANrxBufferInit(HBcons->CANdevRx,
+                                     HBcons->CANdevRxIdxStart + idx,
+                                     COB_ID,
+                                     0x7FF,
+                                     0,
+                                     (void*)&HBcons->monitoredNodes[idx],
+                                     CO_HBcons_receive);
         }
     }
     return ret;

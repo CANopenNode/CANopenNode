@@ -105,7 +105,7 @@ static CO_SDO_abortCode_t CO_ODF_1005(CO_ODF_arg_t *ODF_arg){
             }
         }
 
-        /* configure sync producer and consumer */
+        /* configure sync producer */
         if(ret == CO_SDO_AB_NONE){
             SYNC->COB_ID = (uint16_t)(value & 0x7FFU);
 
@@ -123,20 +123,33 @@ static CO_SDO_abortCode_t CO_ODF_1005(CO_ODF_arg_t *ODF_arg){
                         0,                      /* rtr */
                         len,                    /* number of data bytes */
                         0);                     /* synchronous message flag bit */
-                SYNC->isProducer = true;
+
+                if (SYNC->CANtxBuff == NULL) {
+                    ret = CO_SDO_AB_DATA_DEV_STATE;
+                    SYNC->isProducer = false;
+                } else {
+                    SYNC->isProducer = true;
+                }
             }
             else{
                 SYNC->isProducer = false;
             }
+        }
 
-            CO_CANrxBufferInit(
-                    SYNC->CANdevRx,         /* CAN device */
-                    SYNC->CANdevRxIdx,      /* rx buffer index */
-                    SYNC->COB_ID,           /* CAN identifier */
-                    0x7FF,                  /* mask */
-                    0,                      /* rtr */
-                    (void*)SYNC,            /* object passed to receive function */
-                    CO_SYNC_receive);       /* this function will process received message */
+        /* configure sync consumer */
+        if (ret == CO_SDO_AB_NONE) {
+            CO_ReturnError_t CANret = CO_CANrxBufferInit(
+                SYNC->CANdevRx,         /* CAN device */
+                SYNC->CANdevRxIdx,      /* rx buffer index */
+                SYNC->COB_ID,           /* CAN identifier */
+                0x7FF,                  /* mask */
+                0,                      /* rtr */
+                (void*)SYNC,            /* object passed to receive function */
+                CO_SYNC_receive);       /* this function will process received message */
+
+            if (CANret != CO_ERROR_NO) {
+                ret = CO_SDO_AB_DATA_DEV_STATE;
+            }
         }
     }
 
@@ -212,6 +225,10 @@ static CO_SDO_abortCode_t CO_ODF_1019(CO_ODF_arg_t *ODF_arg){
                     0,                      /* rtr */
                     len,                    /* number of data bytes */
                     0);                     /* synchronous message flag bit */
+
+            if (SYNC->CANtxBuff == NULL) {
+                ret = CO_SDO_AB_DATA_DEV_STATE;
+            }
         }
     }
 
@@ -234,6 +251,7 @@ CO_ReturnError_t CO_SYNC_init(
         uint16_t                CANdevTxIdx)
 {
     uint8_t len = 0;
+    CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
     if(SYNC==NULL || em==NULL || SDO==NULL || operatingState==NULL ||
@@ -273,7 +291,7 @@ CO_ReturnError_t CO_SYNC_init(
     CO_OD_configure(SDO, OD_H1019_SYNC_CNT_OVERFLOW, CO_ODF_1019, (void*)SYNC, 0, 0);
 
     /* configure SYNC CAN reception */
-    CO_CANrxBufferInit(
+    ret = CO_CANrxBufferInit(
             CANdevRx,               /* CAN device */
             CANdevRxIdx,            /* rx buffer index */
             SYNC->COB_ID,           /* CAN identifier */
@@ -293,7 +311,11 @@ CO_ReturnError_t CO_SYNC_init(
             len,                    /* number of data bytes */
             0);                     /* synchronous message flag bit */
 
-    return CO_ERROR_NO;
+    if (SYNC->CANtxBuff == NULL) {
+        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    return ret;
 }
 
 

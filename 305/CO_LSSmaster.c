@@ -137,6 +137,8 @@ CO_ReturnError_t CO_LSSmaster_init(
         uint16_t                CANdevTxIdx,
         uint32_t                CANidLssMaster)
 {
+    CO_ReturnError_t ret = CO_ERROR_NO;
+
     /* verify arguments */
     if (LSSmaster==NULL || CANdevRx==NULL || CANdevTx==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -152,7 +154,7 @@ CO_ReturnError_t CO_LSSmaster_init(
     LSSmaster->functSignalObject = NULL;
 
     /* configure LSS CAN Slave response message reception */
-    CO_CANrxBufferInit(
+    ret = CO_CANrxBufferInit(
             CANdevRx,             /* CAN device */
             CANdevRxIdx,          /* rx buffer index */
             CANidLssSlave,        /* CAN identifier */
@@ -171,7 +173,11 @@ CO_ReturnError_t CO_LSSmaster_init(
             8,                    /* number of data bytes */
             0);                   /* synchronous message flag bit */
 
-    return CO_ERROR_NO;
+    if (LSSmaster->TXbuff == NULL) {
+        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    return ret;
 }
 
 

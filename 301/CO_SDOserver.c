@@ -287,6 +287,8 @@ CO_ReturnError_t CO_SDO_init(
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx)
 {
+    CO_ReturnError_t ret = CO_ERROR_NO;
+
     /* verify arguments */
     if(SDO==NULL || CANdevRx==NULL || CANdevTx==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -336,7 +338,7 @@ CO_ReturnError_t CO_SDO_init(
         COB_IDServerToClient = 0;
     }
     /* configure SDO server CAN reception */
-    CO_CANrxBufferInit(
+    ret = CO_CANrxBufferInit(
             CANdevRx,               /* CAN device */
             CANdevRxIdx,            /* rx buffer index */
             COB_IDClientToServer,   /* CAN identifier */
@@ -355,7 +357,11 @@ CO_ReturnError_t CO_SDO_init(
             8,                      /* number of data bytes */
             0);                     /* synchronous message flag bit */
 
-    return CO_ERROR_NO;
+    if (SDO->CANtxBuff == NULL) {
+        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    return ret;
 }
 
 

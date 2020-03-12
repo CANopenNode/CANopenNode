@@ -147,6 +147,7 @@ CO_ReturnError_t CO_EM_init(
         uint16_t                CANidTxEM)
 {
     uint8_t i;
+    CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
     if(em==NULL || emPr==NULL || SDO==NULL || errorStatusBits==NULL || errorStatusBitsSize<6U ||
@@ -182,7 +183,7 @@ CO_ReturnError_t CO_EM_init(
     CO_OD_configure(SDO, OD_H1014_COBID_EMERGENCY, CO_ODF_1014, (void*)&SDO->nodeId, 0, 0U);
 
     /* configure SDO server CAN reception */
-    CO_CANrxBufferInit(
+    ret = CO_CANrxBufferInit(
             CANdevRx,               /* CAN device */
             CANdevRxIdx,            /* rx buffer index */
             CO_CAN_ID_EMERGENCY,    /* CAN identifier */
@@ -202,7 +203,11 @@ CO_ReturnError_t CO_EM_init(
             8U,                 /* number of data bytes */
             0);                 /* synchronous message flag bit */
 
-    return CO_ERROR_NO;
+    if (emPr->CANtxBuff == NULL) {
+        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    return ret;
 }
 
 

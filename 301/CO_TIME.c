@@ -68,6 +68,8 @@ CO_ReturnError_t CO_TIME_init(
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx)
 {
+    CO_ReturnError_t ret = CO_ERROR_NO;
+
     /* verify arguments */
     if(TIME==NULL || em==NULL || SDO==NULL || operatingState==NULL ||
     CANdevRx==NULL || CANdevTx==NULL){
@@ -96,8 +98,8 @@ CO_ReturnError_t CO_TIME_init(
     /* configure TIME consumer message reception */
     TIME->CANdevRx = CANdevRx;
     TIME->CANdevRxIdx = CANdevRxIdx;
-	if(TIME->isConsumer)
-            CO_CANrxBufferInit(
+	if (TIME->isConsumer) {
+        ret = CO_CANrxBufferInit(
                 CANdevRx,               /* CAN device */
                 CANdevRxIdx,            /* rx buffer index */
                 TIME->COB_ID,           /* CAN identifier */
@@ -105,12 +107,12 @@ CO_ReturnError_t CO_TIME_init(
                 0,                      /* rtr */
                 (void*)TIME,            /* object passed to receive function */
                 CO_TIME_receive);       /* this function will process received message */
-
+    }
 
     /* configure TIME producer message transmission */
     TIME->CANdevTx = CANdevTx;
     TIME->CANdevTxIdx = CANdevTxIdx;
-    if(TIME->isProducer)
+    if (TIME->isProducer) {
         TIME->TXbuff = CO_CANtxBufferInit(
             CANdevTx,               /* CAN device */
             CANdevTxIdx,            /* index of specific buffer inside CAN module */
@@ -119,7 +121,12 @@ CO_ReturnError_t CO_TIME_init(
             TIME_MSG_LENGTH,        /* number of data bytes */
             0);                     /* synchronous message flag bit */
 
-    return CO_ERROR_NO;
+        if (TIME->TXbuff == NULL) {
+            ret = CO_ERROR_ILLEGAL_ARGUMENT;
+        }
+    }
+
+    return ret;
 }
 
 /******************************************************************************/

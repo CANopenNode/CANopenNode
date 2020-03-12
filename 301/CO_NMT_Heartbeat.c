@@ -101,6 +101,8 @@ CO_ReturnError_t CO_NMT_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
+    CO_ReturnError_t ret = CO_ERROR_NO;
+
     /* blinking bytes and LEDS */
 #if CO_CONFIG_NMT_LEDS > 0
     NMT->LEDtimer               = 0;
@@ -124,7 +126,7 @@ CO_ReturnError_t CO_NMT_init(
     NMT->pFunctNMT              = NULL;
 
     /* configure NMT CAN reception */
-    CO_CANrxBufferInit(
+    ret = CO_CANrxBufferInit(
             NMT_CANdevRx,       /* CAN device */
             NMT_rxIdx,          /* rx buffer index */
             CANidRxNMT,         /* CAN identifier */
@@ -153,7 +155,11 @@ CO_ReturnError_t CO_NMT_init(
             1,                  /* number of data bytes */
             0);                 /* synchronous message flag bit */
 
-    return CO_ERROR_NO;
+    if (NMT->NMT_TXbuff == NULL || NMT->HB_TXbuff == NULL) {
+        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    return ret;
 }
 
 

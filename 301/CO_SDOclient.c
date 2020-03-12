@@ -271,7 +271,7 @@ CO_SDOclient_return_t CO_SDOclient_setup(
 
     /* configure SDO client CAN reception, if differs. */
     if(SDO_C->COB_IDClientToServerPrev != idCtoS || SDO_C->COB_IDServerToClientPrev != idStoC) {
-        CO_CANrxBufferInit(
+        CO_ReturnError_t ret = CO_CANrxBufferInit(
                 SDO_C->CANdevRx,            /* CAN device */
                 SDO_C->CANdevRxIdx,         /* rx buffer index */
                 (uint16_t)idStoC,           /* CAN identifier */
@@ -291,6 +291,10 @@ CO_SDOclient_return_t CO_SDOclient_setup(
 
         SDO_C->COB_IDClientToServerPrev = idCtoS;
         SDO_C->COB_IDServerToClientPrev = idStoC;
+
+        if (ret != CO_ERROR_NO || SDO_C->CANtxBuff == NULL) {
+            return CO_SDOcli_wrongArguments;
+        }
     }
 
     return CO_SDOcli_ok_communicationEnd;
