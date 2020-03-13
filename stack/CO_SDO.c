@@ -201,6 +201,9 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
             SDO->CANrxData[0] = msg->data[0];
             seqno = SDO->CANrxData[0] & 0x7fU;
             SDO->timeoutTimer = 0;
+            /* clear timeout in sub-block transfer indication if set before */
+            if (SDO->timeoutSubblockDownolad)
+                SDO->timeoutSubblockDownolad = false;
 
             /* check correct sequence number. */
             if(seqno == (SDO->sequence + 1U)) {
@@ -220,7 +223,7 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
                     }
                 }
 
-                /* break reception if last segment or block sequence is too large */
+                /* break reception if last segment, block ends or block sequence is too large */
                 if(((SDO->CANrxData[0] & 0x80U) == 0x80U) || (SDO->sequence >= SDO->blksize)) {
                     SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
                     SET_CANrxNew(SDO->CANrxNew);
@@ -230,8 +233,8 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
                 /* Ignore message, if it is duplicate or if sequence didn't started yet. */
             }
             else {
-                /* seqno is totally wrong, break reception. */
-                SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
+                /* seqno is wrong, send response without resetting sequence */
+                SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP_2;
                 SET_CANrxNew(SDO->CANrxNew);
             }
         }
@@ -771,7 +774,6 @@ int8_t CO_SDO_process(
         uint16_t               *timerNext_ms)
 {
     CO_SDO_state_t state = CO_SDO_ST_IDLE;
-    bool_t timeoutSubblockDownolad = false;
     bool_t sendResponse = false;
 
     /* return if idle */
@@ -869,9 +871,12 @@ int8_t CO_SDO_process(
         SDO->timeoutTimer += timeDifference_ms;
     }
     if(SDO->timeoutTimer >= SDOtimeoutTime){
-        if((SDO->state == CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK) && (SDO->sequence != 0) && (!SDO->CANtxBuff->bufferFull)){
-            timeoutSubblockDownolad = true;
-            state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
+        if((SDO->state == CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK) && (!SDO->timeoutSubblockDownolad) && (!SDO->CANtxBuff->bufferFull)){
+            /* set indication timeout in sub-block transfer and reset timeout */
+            SDO->timeoutSubblockDownolad = true;
+            SDO->timeoutTimer = 0;
+            /* send response without resetting sequence */
+            state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP_2;
         }
         else{
             CO_SDO_abort(SDO, CO_SDO_AB_TIMEOUT); /* SDO protocol timed out */
@@ -939,8 +944,8 @@ int8_t CO_SDO_process(
                         return -1;
                     }
                 }
-                SDO->bufferOffset = 0;
-                SDO->sequence = 0;
+                SDO->bufferOffset = 0U;
+                SDO->sequence = 0U;
                 SDO->state = CO_SDO_ST_DOWNLOAD_SEGMENTED;
                 sendResponse = true;
             }
@@ -980,7 +985,7 @@ int8_t CO_SDO_process(
                     }
 
                     SDO->ODF_arg.dataLength = CO_SDO_BUFFER_SIZE;
-                    SDO->bufferOffset = 0;
+                    SDO->bufferOffset = 0U;
                 }
             }
 
@@ -1042,8 +1047,9 @@ int8_t CO_SDO_process(
                 }
             }
 
-            SDO->bufferOffset = 0;
-            SDO->sequence = 0;
+            SDO->bufferOffset = 0U;
+            SDO->sequence = 0U;
+            SDO->timeoutSubblockDownolad = false;
             SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK;
 
             /* send response */
@@ -1056,15 +1062,19 @@ int8_t CO_SDO_process(
             break;
         }
 
-        case CO_SDO_ST_DOWNLOAD_BL_SUB_RESP:{
-            /* no new message received, SDO timeout occured, try to response */
-            lastSegmentInSubblock = (!timeoutSubblockDownolad &&
+        case CO_SDO_ST_DOWNLOAD_BL_SUB_RESP:
+        case CO_SDO_ST_DOWNLOAD_BL_SUB_RESP_2:{
+            /* check if last segment received */
+            lastSegmentInSubblock = (!SDO->timeoutSubblockDownolad &&
                         ((SDO->CANrxData[0] & 0x80U) == 0x80U)) ? true : false;
 
             /* prepare response */
             SDO->CANtxBuff->data[0] = 0xA2;
             SDO->CANtxBuff->data[1] = SDO->sequence;
-            SDO->sequence = 0;
+
+            /* reset sequence on reception break */
+            if (state == CO_SDO_ST_DOWNLOAD_BL_SUB_RESP)
+                SDO->sequence = 0U;
 
             /* empty buffer in domain data type if not last segment */
             if((SDO->ODF_arg.ODdataStorage == 0) && (SDO->bufferOffset != 0) && !lastSegmentInSubblock){
@@ -1082,7 +1092,7 @@ int8_t CO_SDO_process(
                 }
 
                 SDO->ODF_arg.dataLength = CO_SDO_BUFFER_SIZE;
-                SDO->bufferOffset = 0;
+                SDO->bufferOffset = 0U;
             }
 
             /* blksize */
@@ -1306,8 +1316,8 @@ int8_t CO_SDO_process(
                 return -1;
             }
 
-            SDO->bufferOffset = 0;
-            SDO->sequence = 0;
+            SDO->bufferOffset = 0U;
+            SDO->sequence = 0U;
             SDO->endOfTransfer = false;
             CLEAR_CANrxNew(SDO->CANrxNew);
             SDO->state = CO_SDO_ST_UPLOAD_BL_SUBBLOCK;

@@ -452,19 +452,20 @@ typedef enum{
  * Internal states of the SDO server state machine
  */
 typedef enum {
-    CO_SDO_ST_IDLE                  = 0x00U,
-    CO_SDO_ST_DOWNLOAD_INITIATE     = 0x11U,
-    CO_SDO_ST_DOWNLOAD_SEGMENTED    = 0x12U,
-    CO_SDO_ST_DOWNLOAD_BL_INITIATE  = 0x14U,
-    CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK  = 0x15U,
-    CO_SDO_ST_DOWNLOAD_BL_SUB_RESP  = 0x16U,
-    CO_SDO_ST_DOWNLOAD_BL_END       = 0x17U,
-    CO_SDO_ST_UPLOAD_INITIATE       = 0x21U,
-    CO_SDO_ST_UPLOAD_SEGMENTED      = 0x22U,
-    CO_SDO_ST_UPLOAD_BL_INITIATE    = 0x24U,
-    CO_SDO_ST_UPLOAD_BL_INITIATE_2  = 0x25U,
-    CO_SDO_ST_UPLOAD_BL_SUBBLOCK    = 0x26U,
-    CO_SDO_ST_UPLOAD_BL_END         = 0x27U
+    CO_SDO_ST_IDLE                   = 0x00U,
+    CO_SDO_ST_DOWNLOAD_INITIATE      = 0x11U,
+    CO_SDO_ST_DOWNLOAD_SEGMENTED     = 0x12U,
+    CO_SDO_ST_DOWNLOAD_BL_INITIATE   = 0x14U,
+    CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK   = 0x15U,
+    CO_SDO_ST_DOWNLOAD_BL_SUB_RESP   = 0x16U,
+    CO_SDO_ST_DOWNLOAD_BL_SUB_RESP_2 = 0x17U,
+    CO_SDO_ST_DOWNLOAD_BL_END        = 0x18U,
+    CO_SDO_ST_UPLOAD_INITIATE        = 0x21U,
+    CO_SDO_ST_UPLOAD_SEGMENTED       = 0x22U,
+    CO_SDO_ST_UPLOAD_BL_INITIATE     = 0x24U,
+    CO_SDO_ST_UPLOAD_BL_INITIATE_2   = 0x25U,
+    CO_SDO_ST_UPLOAD_BL_SUBBLOCK     = 0x26U,
+    CO_SDO_ST_UPLOAD_BL_END          = 0x27U
 } CO_SDO_state_t;
 
 
@@ -623,6 +624,8 @@ typedef struct{
     uint16_t            crc;
     /** Length of data in the last segment in block upload */
     uint8_t             lastLen;
+    /** Indication timeout in sub-block transfer */
+    bool_t              timeoutSubblockDownolad;
     /** Indication end of block transfer */
     bool_t              endOfTransfer;
     /** Variable indicates, if new SDO message received from CAN bus */
