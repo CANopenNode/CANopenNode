@@ -64,23 +64,41 @@ typedef enum {
 /**
  * One monitored node inside CO_HBconsumer_t.
  */
-typedef struct{
-    uint8_t                 nodeId;       /**< Node Id of the monitored node */
-    CO_NMT_internalState_t  NMTstate;     /**< Of the remote node (Heartbeat payload) */
-    CO_HBconsumer_state_t   HBstate;      /**< Current heartbeat state */
-    uint32_t                timeoutTimer; /**< Time since last heartbeat received */
-    uint32_t                time_us;      /**< Consumer heartbeat time from OD */
-    volatile void          *CANrxNew;     /**< Indication if new Heartbeat message received from the CAN bus */
-    /** Callback for heartbeat state change to active event */
-    void                  (*pFunctSignalHbStarted)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initTimeoutCallback() or NULL */
-    void                   *functSignalObjectHbStarted;/**< Pointer to object */
-    /** Callback for consumer timeout event */
-    void                  (*pFunctSignalTimeout)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initTimeoutCallback() or NULL */
-    void                   *functSignalObjectTimeout;/**< Pointer to object */
-    /** Callback for remote reset event */
-    void                  (*pFunctSignalRemoteReset)(uint8_t nodeId, uint8_t idx, void *object); /**< From CO_HBconsumer_initRemoteResetCallback() or NULL */
-    void                   *functSignalObjectRemoteReset;/**< Pointer to object */
-}CO_HBconsNode_t;
+typedef struct {
+    /** Node Id of the monitored node */
+    uint8_t nodeId;
+    /** Of the remote node (Heartbeat payload) */
+    CO_NMT_internalState_t NMTstate;
+#if (CO_CONFIG_HB_CONS_CALLBACKS & 1) || defined CO_DOXYGEN
+    /** Previous value of the remote node (Heartbeat payload) */
+    CO_NMT_internalState_t NMTstatePrev;
+#endif
+    /** Current heartbeat state */
+    CO_HBconsumer_state_t HBstate;
+    /** Time since last heartbeat received */
+    uint32_t timeoutTimer;
+    /** Consumer heartbeat time from OD */
+    uint32_t time_us;
+    /** Indication if new Heartbeat message received from the CAN bus */
+    volatile void *CANrxNew;
+#if (CO_CONFIG_HB_CONS_CALLBACKS & 2) || defined CO_DOXYGEN
+    /** Callback for heartbeat state change to active event.
+     *  From CO_HBconsumer_initCallbackHeartbeatStarted() or NULL. */
+    void (*pFunctSignalHbStarted)(uint8_t nodeId, uint8_t idx, void *object);
+    /** Pointer to object */
+    void *functSignalObjectHbStarted;
+    /** Callback for consumer timeout event.
+     *  From CO_HBconsumer_initCallbackTimeout() or NULL. */
+    void (*pFunctSignalTimeout)(uint8_t nodeId, uint8_t idx, void *object);
+    /** Pointer to object */
+    void *functSignalObjectTimeout;
+    /** Callback for remote reset event.
+     *  From CO_HBconsumer_initCallbackRemoteReset() or NULL. */
+    void (*pFunctSignalRemoteReset)(uint8_t nodeId, uint8_t idx, void *object);
+    /** Pointer to object */
+    void *functSignalObjectRemoteReset;
+#endif
+} CO_HBconsNode_t;
 
 
 /**
@@ -103,6 +121,15 @@ typedef struct{
     bool_t              NMTisPreOrOperationalPrev; /**< previous state of var */
     CO_CANmodule_t     *CANdevRx;         /**< From CO_HBconsumer_init() */
     uint16_t            CANdevRxIdxStart; /**< From CO_HBconsumer_init() */
+#if (CO_CONFIG_HB_CONS_CALLBACKS & 1) || defined CO_DOXYGEN
+    /** Callback for remote NMT changed event.
+     *  From CO_HBconsumer_initCallbackNmtChanged() or NULL. */
+    void (*pFunctSignalNmtChanged)(uint8_t nodeId,
+                                   CO_NMT_internalState_t state,
+                                   void *object);
+    /** Pointer to object */
+    void *pFunctSignalObjectNmtChanged;
+#endif
 }CO_HBconsumer_t;
 
 
@@ -155,6 +182,27 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
         uint8_t                 nodeId,
         uint16_t                consumerTime_ms);
 
+#if (CO_CONFIG_HB_CONS_CALLBACKS & 1) || defined CO_DOXYGEN
+/**
+ * Initialize Heartbeat consumer NMT changed callback function.
+ *
+ * Function initializes optional callback function, which is called when NMT
+ * state from the remote node changes.
+ *
+ * @param HBcons This object.
+ * @param object Pointer to object, which will be passed to pFunctSignal().
+ *               Can be NULL.
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_HBconsumer_initCallbackNmtChanged(
+        CO_HBconsumer_t        *HBcons,
+        void                   *object,
+        void                  (*pFunctSignal)(uint8_t nodeId,
+                                              CO_NMT_internalState_t state,
+                                              void *object));
+#endif
+
+#if (CO_CONFIG_HB_CONS_CALLBACKS & 2) || defined CO_DOXYGEN
 /**
  * Initialize Heartbeat consumer started callback function.
  *
@@ -209,6 +257,7 @@ void CO_HBconsumer_initCallbackRemoteReset(
         uint8_t                 idx,
         void                   *object,
         void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
+#endif
 
 /**
  * Process Heartbeat consumer object.

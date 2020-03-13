@@ -165,6 +165,9 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
         monitoredNode->nodeId = nodeId;
         monitoredNode->time_us = (int32_t)consumerTime_ms * 1000;
         monitoredNode->NMTstate = CO_NMT_INITIALIZING;
+#if CO_CONFIG_HB_CONS_CALLBACKS & 1
+        monitoredNode->NMTstatePrev = CO_NMT_INITIALIZING;
+#endif
         CO_FLAG_CLEAR(monitoredNode->CANrxNew);
 
         /* is channel used */
@@ -193,6 +196,26 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
 }
 
 
+#if CO_CONFIG_HB_CONS_CALLBACKS & 1
+/******************************************************************************/
+void CO_HBconsumer_initCallbackNmtChanged(
+        CO_HBconsumer_t        *HBcons,
+        void                   *object,
+        void                  (*pFunctSignal)(uint8_t nodeId,
+                                              CO_NMT_internalState_t NMTstate,
+                                              void *object))
+{
+    if (HBcons==NULL) {
+        return;
+    }
+
+    HBcons->pFunctSignalNmtChanged = pFunctSignal;
+    HBcons->pFunctSignalObjectNmtChanged = object;
+}
+#endif /* CO_CONFIG_HB_CONS_CALLBACKS & 1 */
+
+
+#if CO_CONFIG_HB_CONS_CALLBACKS & 2
 /******************************************************************************/
 void CO_HBconsumer_initCallbackHeartbeatStarted(
     CO_HBconsumer_t        *HBcons,
@@ -248,6 +271,7 @@ void CO_HBconsumer_initCallbackRemoteReset(
     monitoredNode->pFunctSignalRemoteReset = pFunctSignal;
     monitoredNode->functSignalObjectRemoteReset = object;
 }
+#endif /* CO_CONFIG_HB_CONS_CALLBACKS & 2 */
 
 
 /******************************************************************************/
@@ -273,12 +297,14 @@ void CO_HBconsumer_process(
             /* Verify if received message is heartbeat or bootup */
             if (CO_FLAG_READ(monitoredNode->CANrxNew)) {
                 if (monitoredNode->NMTstate == CO_NMT_INITIALIZING) {
-                    /* bootup message, call callback */
+                    /* bootup message*/
+#if CO_CONFIG_HB_CONS_CALLBACKS & 2
                     if (monitoredNode->pFunctSignalRemoteReset != NULL) {
                         monitoredNode->pFunctSignalRemoteReset(
                             monitoredNode->nodeId, i,
                             monitoredNode->functSignalObjectRemoteReset);
                     }
+#endif
                     if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
                         CO_errorReport(HBcons->em,
                                        CO_EM_HB_CONSUMER_REMOTE_RESET,
@@ -288,13 +314,15 @@ void CO_HBconsumer_process(
 
                 }
                 else {
-                    /* heartbeat message, call callback */
+                    /* heartbeat message */
+#if CO_CONFIG_HB_CONS_CALLBACKS & 2
                     if (monitoredNode->HBstate != CO_HBconsumer_ACTIVE &&
                         monitoredNode->pFunctSignalHbStarted != NULL) {
                         monitoredNode->pFunctSignalHbStarted(
                             monitoredNode->nodeId, i,
                             monitoredNode->functSignalObjectHbStarted);
                     }
+#endif
                     monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
                     /* reset timer */
                     monitoredNode->timeoutTimer = 0;
@@ -308,12 +336,14 @@ void CO_HBconsumer_process(
                 monitoredNode->timeoutTimer += timeDifference_us_copy;
 
                 if (monitoredNode->timeoutTimer >= monitoredNode->time_us) {
-                    /* timeout expired, call callback */
+                    /* timeout expired */
+#if CO_CONFIG_HB_CONS_CALLBACKS & 2
                     if (monitoredNode->pFunctSignalTimeout!=NULL) {
                         monitoredNode->pFunctSignalTimeout(
                             monitoredNode->nodeId, i,
                             monitoredNode->functSignalObjectTimeout);
                     }
+#endif
                     CO_errorReport(HBcons->em, CO_EM_HEARTBEAT_CONSUMER,
                                    CO_EMC_HEARTBEAT, i);
                     monitoredNode->NMTstate = CO_NMT_INITIALIZING;
@@ -336,6 +366,17 @@ void CO_HBconsumer_process(
             if (monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
                 allMonitoredOperationalCurrent = CO_NMT_INITIALIZING;
             }
+#if CO_CONFIG_HB_CONS_CALLBACKS & 1
+            /* Verify, if NMT state of monitored node changed */
+            if(monitoredNode->NMTstate != monitoredNode->NMTstatePrev) {
+                if (HBcons->pFunctSignalNmtChanged != NULL) {
+                    HBcons->pFunctSignalNmtChanged(
+                        monitoredNode->nodeId, monitoredNode->NMTstate,
+                        HBcons->pFunctSignalObjectNmtChanged);
+                }
+                monitoredNode->NMTstatePrev = monitoredNode->NMTstate;
+            }
+#endif
             monitoredNode++;
         }
     }
@@ -343,6 +384,9 @@ void CO_HBconsumer_process(
         /* (pre)operational state changed, clear variables */
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++) {
             monitoredNode->NMTstate = CO_NMT_INITIALIZING;
+#if CO_CONFIG_HB_CONS_CALLBACKS & 1
+            monitoredNode->NMTstatePrev = CO_NMT_INITIALIZING;
+#endif
             CO_FLAG_CLEAR(monitoredNode->CANrxNew);
             if (monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) {
                 monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;

@@ -119,6 +119,24 @@ extern "C" {
 #endif
 
 /**
+ * Configuration of Heartbeat Consumer Callbacks usage.
+ *
+ * - value = 0: Don't include any Heartbeat consumer callback functions in the
+ *   code.
+ * - value = 1: Use function CO_HBconsumer_initCallbackNmtChanged(). It enables
+ *   application to configure one callback, which will notify about NMT state
+ *   change of the monitored node.
+ * - value = 2: Use functions CO_HBconsumer_initCallbackHeartbeatStarted(),
+ *   CO_HBconsumer_initCallbackTimeout() and
+ *   CO_HBconsumer_initCallbackRemoteReset(). Those functions enable application
+ *   to configure set of three callbacks, different for each monitored node.
+ * - value = 3: Use all functions, from 1 and 2.
+ */
+#ifndef CO_CONFIG_HB_CONS_CALLBACKS
+#define CO_CONFIG_HB_CONS_CALLBACKS 0
+#endif
+
+/**
  * Configuration of Standard CiA 309 usage.
  *
  * CiA 309 standard covers CANopen access from other networks. It enables

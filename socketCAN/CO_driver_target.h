@@ -55,6 +55,9 @@ extern "C" {
 #ifndef CO_CONFIG_SDO_BUFFER_SIZE
 #define CO_CONFIG_SDO_BUFFER_SIZE 889
 #endif
+#ifndef CO_CONFIG_HB_CONS_CALLBACKS
+#define CO_CONFIG_HB_CONS_CALLBACKS 1
+#endif
 
 
 /**
