@@ -76,7 +76,7 @@ pthread_mutex_t             CO_CAN_VALID_mtx = PTHREAD_MUTEX_INITIALIZER;
 
 /* Other variables and objects */
 static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
-static int nodeId = -1;                         /* Use value from Object Dictionary or set to 1..127 by arguments */
+static int                  CO_ownNodeId = -1;  /* Use value from Object Dictionary or set to 1..127 by arguments */
 static CO_OD_storage_t      odStor;             /* Object Dictionary storage object for CO_OD_ROM */
 static CO_OD_storage_t      odStorAuto;         /* Object Dictionary storage object for CO_OD_EEPROM */
 static char                *odStorFile_rom    = "od_storage";       /* Name of the file */
@@ -105,12 +105,38 @@ static void EmergencyRxCallback(const uint16_t ident,
                                 const uint8_t errorBit,
                                 const uint32_t infoCode)
 {
-    int16_t nodeIdRx = ident ? (ident&0x7F) : nodeId;
+    int16_t nodeIdRx = ident ? (ident&0x7F) : CO_ownNodeId;
 
     log_printf(LOG_NOTICE, DBG_EMERGENCY_RX, nodeIdRx, errorCode,
                errorRegister, errorBit, infoCode);
 }
 
+/* return string description of NMT state. */
+static char *NmtState2Str(CO_NMT_internalState_t state)
+{
+    switch(state) {
+        case CO_NMT_INITIALIZING:    return "initializing";
+        case CO_NMT_PRE_OPERATIONAL: return "pre-operational";
+        case CO_NMT_OPERATIONAL:     return "operational";
+        case CO_NMT_STOPPED:         return "stopped";
+        default:                     return "unknown";
+    }
+}
+
+/* callback for NMT change messages */
+static void NmtChangeCallback(CO_NMT_internalState_t state)
+{
+    log_printf(LOG_NOTICE, DBG_NMT_CHANGE, NmtState2Str(state), state);
+}
+
+/* callback for monitoring Heartbeat remote NMT state change */
+static void HeartbeatNmtChangedCallback(uint8_t nodeId,
+                                        CO_NMT_internalState_t state,
+                                        void *object)
+{
+    log_printf(LOG_NOTICE, DBG_HB_CONS_NMT_CHANGE,
+               nodeId, NmtState2Str(state), state);
+}
 
 /* Print usage */
 static void printUsage(char *progName) {
@@ -148,7 +174,9 @@ printf(
 }
 
 
-/*Mainline thread *************************************************************/
+/*******************************************************************************
+ * Mainline thread
+ ******************************************************************************/
 int main (int argc, char *argv[]) {
     pthread_t rt_thread_id;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
@@ -167,7 +195,7 @@ int main (int argc, char *argv[]) {
 #endif
 
     /* configure system log */
-    setlogmask(LOG_UPTO (LOG_DEBUG)); /* LOG_DEBUG - log all meessages */
+    setlogmask(LOG_UPTO (LOG_DEBUG)); /* LOG_DEBUG - log all messages */
     openlog(argv[0], LOG_PID | LOG_PERROR, LOG_USER); /* print also to standard error */
 
     /* Get program options */
@@ -178,7 +206,7 @@ int main (int argc, char *argv[]) {
     while((opt = getopt(argc, argv, "i:p:rc:t:s:a:")) != -1) {
         switch (opt) {
             case 'i':
-                nodeId = strtol(optarg, NULL, 0);
+                CO_ownNodeId = strtol(optarg, NULL, 0);
                 nodeIdFromArgs = true;
                 break;
             case 'p': rtPriority = strtol(optarg, NULL, 0); break;
@@ -217,8 +245,8 @@ int main (int argc, char *argv[]) {
         CANdevice0Index = if_nametoindex(CANdevice);
     }
 
-    if(nodeIdFromArgs && (nodeId < 1 || nodeId > 127)) {
-        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, nodeId);
+    if(nodeIdFromArgs && (CO_ownNodeId < 1 || CO_ownNodeId > 127)) {
+        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_ownNodeId);
         printUsage(argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -236,7 +264,7 @@ int main (int argc, char *argv[]) {
     }
 
 
-    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, nodeId, nodeId, "starting");
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, CO_ownNodeId, "starting");
 
 
     /* Allocate memory for CANopen objects */
@@ -281,7 +309,7 @@ int main (int argc, char *argv[]) {
     while(reset != CO_RESET_APP && reset != CO_RESET_QUIT && CO_endProgram == 0) {
 /* CANopen communication reset - initialize CANopen objects *******************/
 
-        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, nodeId, nodeId, "communication reset");
+        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, CO_ownNodeId, "communication reset");
 
 
 #if CO_CONFIG_309 > 0
@@ -304,7 +332,7 @@ int main (int argc, char *argv[]) {
         /* initialize CANopen */
         if(!nodeIdFromArgs) {
             /* use value from Object dictionary, if not set by program arguments */
-            nodeId = OD_CANNodeID;
+            CO_ownNodeId = OD_CANNodeID;
         }
 
         err = CO_CANinit((void *)CANdevice0Index, 0 /* bit rate not used */);
@@ -313,7 +341,7 @@ int main (int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        err = CO_CANopenInit(nodeId);
+        err = CO_CANopenInit(CO_ownNodeId);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
             exit(EXIT_FAILURE);
@@ -321,6 +349,10 @@ int main (int argc, char *argv[]) {
 
         /* initialize callbacks */
         CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
+        CO_NMT_initCallback(CO->NMT, NmtChangeCallback);
+        CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
+                                             HeartbeatNmtChangedCallback);
+
 
         /* initialize OD objects 1010 and 1011 and verify errors. */
         CO_OD_configure(CO->SDO[0], OD_H1010_STORE_PARAM_FUNC, CO_ODF_1010, (void*)&odStor, 0, 0U);
@@ -408,7 +440,7 @@ int main (int argc, char *argv[]) {
 
         reset = CO_RESET_NOT;
 
-        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, nodeId, nodeId, "running ...");
+        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, CO_ownNodeId, "running ...");
 
 
         while(reset == CO_RESET_NOT && CO_endProgram == 0) {
@@ -462,7 +494,7 @@ int main (int argc, char *argv[]) {
     threadMainWait_close();
     CO_delete((void *)CANdevice0Index);
 
-    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, nodeId, nodeId, "finished");
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, CO_ownNodeId, "finished");
 
     /* Flush all buffers (and reboot) */
     if(rebootEnable && reset == CO_RESET_APP) {
@@ -477,7 +509,9 @@ int main (int argc, char *argv[]) {
 }
 
 
-/* Realtime thread for CAN receive and threadTmr ******************************/
+/*******************************************************************************
+ * Realtime thread for CAN receive and threadTmr
+ ******************************************************************************/
 static void* rt_thread(void* arg) {
 
     /* Endless loop */
