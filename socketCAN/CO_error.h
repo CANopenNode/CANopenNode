@@ -110,11 +110,11 @@ typedef enum {
  * socketCAN interface error handling
  */
 typedef struct {
-  int                 fd;             /**< interface FD */
-  char                ifName[IFNAMSIZ]; /**< interface name as string */
-  uint32_t            noackCounter;   /**< counts no ACK on CAN transmission */
-  volatile unsigned char listenOnly;  /**< set to listen only mode */
-  struct timespec     timestamp;      /**< listen only mode started at this time */
+    int                 fd;             /**< interface FD */
+    char                ifName[IFNAMSIZ]; /**< interface name as string */
+    uint32_t            noackCounter;   /**< counts no ACK on CAN transmission */
+    volatile unsigned char listenOnly;  /**< set to listen only mode */
+    struct timespec     timestamp;      /**< listen only mode started at this time */
 } CO_CANinterfaceErrorhandler_t;
 
 

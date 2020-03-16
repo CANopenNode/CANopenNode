@@ -64,9 +64,9 @@ http://sourceforge.net/p/canopennode/discussion/387151/
 
 Contributions are welcome. Best way to contribute your code is to fork
 a project, modify it and then send a pull request. Some basic formatting
-rules should be followed: Linux style with indentation of 4 spaces or
-optionally 2 spaces. There is also a `codingStyle` file with example and
-a configuration file for `clang-format` tool.
+rules should be followed: Linux style with indentation of 4 spaces. There is
+also a `codingStyle` file with example and a configuration file for
+`clang-format` tool.
 
 
 Flowchart of a typical CANopenNode implementation

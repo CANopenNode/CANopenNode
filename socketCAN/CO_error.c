@@ -272,17 +272,17 @@ CO_CANinterfaceState_t CO_CANerror_rxMsgError(
 
     result = CO_CANerrorBusoff(CANerrorhandler, msg);
     if (result != CO_INTERFACE_ACTIVE) {
-      return result;
+        return result;
     }
 
     result = CO_CANerrorCrtl(CANerrorhandler, msg);
     if (result != CO_INTERFACE_ACTIVE) {
-      return result;
+        return result;
     }
 
     result = CO_CANerrorNoack(CANerrorhandler, msg);
     if (result != CO_INTERFACE_ACTIVE) {
-      return result;
+        return result;
     }
 
     return CO_INTERFACE_ACTIVE;
