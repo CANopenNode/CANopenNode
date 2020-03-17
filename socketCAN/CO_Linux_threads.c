@@ -128,7 +128,7 @@ void threadMainWait_init(uint32_t interval_us)
     }
 
     /* Configure eventfd for notifications and add it to epoll */
-    threadMainWait.event_fd = eventfd(0, 0);
+    threadMainWait.event_fd = eventfd(0, EFD_NONBLOCK);
     if (threadMainWait.event_fd < 0) {
         log_printf(LOG_CRIT, DBG_ERRNO, "eventfd()");
         exit(EXIT_FAILURE);

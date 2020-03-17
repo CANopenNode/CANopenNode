@@ -33,6 +33,7 @@
 #include <linux/net_tstamp.h>
 #include <sys/socket.h>
 #include <asm/socket.h>
+#include <sys/eventfd.h>
 #include <sys/epoll.h>
 #include <time.h>
 
@@ -221,19 +222,19 @@ CO_ReturnError_t CO_CANmodule_init(
         return CO_ERROR_SYSCALL;
     }
 
-    /* Create notification pipe */
-    CANmodule->pipe = CO_NotifyPipeCreate();
-    if (CANmodule->pipe==NULL) {
-        log_printf(LOG_DEBUG, DBG_ERRNO, "pipe");
+    /* Create notification event */
+    CANmodule->fdEvent = eventfd(0, EFD_NONBLOCK);
+    if (CANmodule->fdEvent < 0) {
+        log_printf(LOG_DEBUG, DBG_ERRNO, "eventfd");
         CO_CANmodule_disable(CANmodule);
         return CO_ERROR_OUT_OF_MEMORY;
     }
     /* ...and add it to epoll */
     ev.events = EPOLLIN;
-    ev.data.fd = CO_NotifyPipeGetFd(CANmodule->pipe);
+    ev.data.fd = CANmodule->fdEvent;
     ret = epoll_ctl(CANmodule->fdEpoll, EPOLL_CTL_ADD, ev.data.fd, &ev);
     if(ret < 0){
-        log_printf(LOG_DEBUG, DBG_ERRNO, "epoll_ctl(pipe)");
+        log_printf(LOG_DEBUG, DBG_ERRNO, "epoll_ctl(eventfd)");
         CO_CANmodule_disable(CANmodule);
         return CO_ERROR_SYSCALL;
     }
@@ -440,13 +441,18 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
     CANmodule->CANinterfaceCount = 0;
 
     /* cancel rx */
-    if (CANmodule->pipe != NULL) {
-        CO_NotifyPipeSend(CANmodule->pipe);
+    if (CANmodule->fdEvent != -1) {
+        uint64_t u = 1;
+        ssize_t s;
+        s = write(CANmodule->fdEvent, &u, sizeof(uint64_t));
+        if (s != sizeof(uint64_t)) {
+            log_printf(LOG_DEBUG, DBG_ERRNO, "write()");
+        }
         /* give some time for delivery */
         wait.tv_sec = 0;
         wait.tv_nsec = 50 /* ms */ * 1000000;
         nanosleep(&wait, NULL);
-        CO_NotifyPipeFree(CANmodule->pipe);
+        close(CANmodule->fdEvent);
     }
 
     if (CANmodule->fdEpoll >= 0) {
@@ -919,9 +925,9 @@ int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buff
         }
         else if ((ev[0].events & EPOLLIN) != 0) {
             /* one of the sockets is ready */
-            if ((ev[0].data.fd == CO_NotifyPipeGetFd(CANmodule->pipe)) ||
+            if ((ev[0].data.fd == CANmodule->fdEvent) ||
                 (ev[0].data.fd == fdTimer)) {
-                /* timer or notify pipe */
+                /* timer or notification event */
                 return -1;
             }
             else {

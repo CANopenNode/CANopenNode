@@ -44,7 +44,6 @@
 #if __has_include("CO_driver_custom.h")
 #include "CO_driver_custom.h"
 #endif
-#include "CO_notify_pipe.h"
 #include "CO_error.h"
 
 #ifdef __cplusplus
@@ -221,8 +220,8 @@ typedef struct {
     uint16_t txSize;
     volatile bool_t CANnormal;
     void *em;
-    CO_NotifyPipe_t *pipe;      /* Notification Pipe */
-    int fdEpoll;                /* epoll FD for pipe, CANrx sockets in all
+    int fdEvent;                /* notification event file descriptor */
+    int fdEpoll;                /* epoll FD for event, CANrx sockets in all
                                    interfaces and fdTimerRead */
     int fdTimerRead;            /* timer handle from CANrxWait() */
 #if CO_DRIVER_MULTI_INTERFACE > 0 || defined CO_DOXYGEN
@@ -324,8 +323,8 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(CO_CANmodule_t *CANmodule,
  * Functions receives CAN messages (blocking)
  *
  * This function waits for received CAN message, CAN error frame, notification
- * pipe or fdTimer expiration. In case of CAN message it searches _rxArray_ from
- * CO_CANmodule_t and if matched it calls the corresponding CANrx_callback,
+ * event or fdTimer expiration. In case of CAN message it searches _rxArray_
+  from* CO_CANmodule_t and if matched it calls the corresponding CANrx_callback,
  * optionally copies received CAN message to _buffer_ and returns index of
  * matched _rxArray_.
  *
@@ -342,7 +341,7 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(CO_CANmodule_t *CANmodule,
  * @param [out] buffer Storage for received message or _NULL_ if not used.
  * @retval >= 0 index of received message in array from CO_CANmodule_t
  *              _rxArray_, copy of CAN message is available in _buffer_.
- * @retval -1 no message received (timer expired or notification pipe or error)
+ * @retval -1 no message received (timer expired or notification event or error)
  */
 int32_t CO_CANrxWait(CO_CANmodule_t* CANmodule, int fdTimer, CO_CANrxMsg_t* buffer);
 

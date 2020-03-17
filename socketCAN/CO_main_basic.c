@@ -38,7 +38,6 @@
 
 #include "CANopen.h"
 #include "CO_OD_storage.h"
-#include "CO_notify_pipe.h"
 #include "CO_error.h"
 #include "CO_Linux_threads.h"
 
