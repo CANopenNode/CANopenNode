@@ -803,8 +803,10 @@ int8_t CO_SDO_process(
         uint8_t CCS = SDO->CANrxData[0] >> 5;   /* Client command specifier */
 
         /* reset timeout */
-        if(SDO->state != CO_SDO_ST_UPLOAD_BL_SUBBLOCK)
+        if(SDO->state != CO_SDO_ST_UPLOAD_BL_SUBBLOCK) {
             SDO->timeoutTimer = 0;
+            timeDifference_us = 0;
+        }
 
         /* clear response buffer */
         SDO->CANtxBuff->data[0] = SDO->CANtxBuff->data[1] = SDO->CANtxBuff->data[2] = SDO->CANtxBuff->data[3] = 0;
@@ -890,6 +892,13 @@ int8_t CO_SDO_process(
             return -1;
         }
     }
+    else if (timerNext_us != NULL) {
+        /* check again after timeout time elapsed */
+        uint32_t diff = SDO->SDOtimeoutTime_us - SDO->timeoutTimer;
+        if (*timerNext_us > diff) {
+            *timerNext_us = diff;
+        }
+    }
 
     /* return immediately if still idle */
     if(state == CO_SDO_ST_IDLE){
@@ -932,9 +941,11 @@ int8_t CO_SDO_process(
                     return -1;
                 }
 
-                /* finish the communication */
+                /* finish the communication and run mainline processing again */
                 SDO->state = CO_SDO_ST_IDLE;
                 sendResponse = true;
+                if (timerNext_us != NULL)
+                    *timerNext_us = 0;
             }
 
             /* Segmented transfer */
@@ -1009,8 +1020,10 @@ int8_t CO_SDO_process(
                     return -1;
                 }
 
-                /* finish */
+                /* finish the communication and run mainline processing again */
                 SDO->state = CO_SDO_ST_IDLE;
+                if (timerNext_us != NULL)
+                    *timerNext_us = 0;
             }
 
             /* download segment response and alternate toggle bit */
@@ -1152,10 +1165,12 @@ int8_t CO_SDO_process(
                 return -1;
             }
 
-            /* send response */
+            /* finish the communication and run mainline processing again */
             SDO->CANtxBuff->data[0] = 0xA1;
             SDO->state = CO_SDO_ST_IDLE;
             sendResponse = true;
+            if (timerNext_us != NULL)
+                *timerNext_us = 0;
             break;
         }
 
@@ -1171,9 +1186,12 @@ int8_t CO_SDO_process(
                     SDO->CANtxBuff->data[4U+i] = SDO->ODF_arg.data[i];
 
                 SDO->CANtxBuff->data[0] = 0x43U | ((4U-SDO->ODF_arg.dataLength) << 2U);
-                SDO->state = CO_SDO_ST_IDLE;
 
+                /* finish the communication and run mainline processing again */
+                SDO->state = CO_SDO_ST_IDLE;
                 sendResponse = true;
+                if (timerNext_us != NULL)
+                    *timerNext_us = 0;
             }
 
             /* Segmented transfer */
@@ -1255,7 +1273,11 @@ int8_t CO_SDO_process(
             /* verify end of transfer */
             if((SDO->bufferOffset == SDO->ODF_arg.dataLength) && (SDO->ODF_arg.lastSegment)){
                 SDO->CANtxBuff->data[0] |= 0x01;
+
+                /* finish the communication and run mainline processing again */
                 SDO->state = CO_SDO_ST_IDLE;
+                if (timerNext_us != NULL)
+                    *timerNext_us = 0;
             }
 
             /* send response */
@@ -1460,13 +1482,16 @@ int8_t CO_SDO_process(
                 return -1;
             }
 
+            /* finish the communication and run mainline processing again */
             SDO->state = CO_SDO_ST_IDLE;
+            if (timerNext_us != NULL)
+                *timerNext_us = 0;
             break;
         }
 
         case CO_SDO_ST_IDLE:
         {
-            /* Nothing to do it seems */
+            /* Nothing to do, this never happens. */
             break;
         }
 

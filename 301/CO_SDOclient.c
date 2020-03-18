@@ -621,6 +621,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
             }
         }
         SDO_C->timeoutTimer = 0;
+        timeDifference_us = 0;
         CO_FLAG_CLEAR(SDO_C->CANrxNew);
     }
 
@@ -636,7 +637,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
         return CO_SDOcli_endedWithTimeout;
     }
     else if (timerNext_us != NULL) {
-        /* check again after inhibit time elapsed */
+        /* check again after timeout time elapsed */
         uint32_t diff = SDO_C->SDOtimeoutTime_us - SDO_C->timeoutTimer;
         if (*timerNext_us > diff) {
             *timerNext_us = diff;
@@ -1132,6 +1133,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
             }
         }
         SDO_C->timeoutTimer = 0;
+        timeDifference_us = 0;
         CO_FLAG_CLEAR(SDO_C->CANrxNew);
     }
 
@@ -1149,7 +1151,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
         return CO_SDOcli_endedWithTimeout;
     }
     else if (timerNext_us != NULL) {
-        /* check again after inhibit time elapsed */
+        /* check again after timeout time elapsed */
         uint32_t diff = SDO_C->SDOtimeoutTime_us - SDO_C->timeoutTimer;
         if (*timerNext_us > diff) {
             *timerNext_us = diff;
