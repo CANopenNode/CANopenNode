@@ -28,10 +28,31 @@
 #define CO_DRIVER_H
 
 #include "CO_driver_target.h"
+#include "CO_config.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+/* Default stack configuration for most common configuration.
+ * For more information see file CO_config.h. */
+#ifndef CO_CONFIG_NMT
+#define CO_CONFIG_NMT 0
+#endif
+
+#ifndef CO_CONFIG_SDO_BUFFER_SIZE
+#define CO_CONFIG_SDO_BUFFER_SIZE 32
+#endif
+
+#ifndef CO_CONFIG_HB_CONS
+#define CO_CONFIG_HB_CONS 0
+#endif
+
+#ifndef CO_CONFIG_309
+#define CO_CONFIG_309 0
+#endif
+
 
 /**
  * @defgroup CO_driver Driver
@@ -86,74 +107,6 @@ extern "C" {
  * know some parts of the target microcontroller in detail (for example threads
  * (or interrupts), CAN module, etc.).
  */
-
-
-/**
- * @defgroup CO_STACK_CONFIG Stack configuration
- *
- * Definitions specify, which parts of the stack will be enabled. Values can be
- * overridden by CO_driver_target.h file for example.
- * @{
- */
-
-/**
- * Usage of CANopen LEDS.
- *
- * If >0, calculate CANopen blinking variables, which can be used for LEDs */
-#ifndef CO_CONFIG_NMT_LEDS
-#define CO_CONFIG_NMT_LEDS 0
-#endif
-
-/**
- * Size of the internal SDO buffer.
- *
- * Size must be at least equal to size of largest variable in
- * @ref CO_SDO_objectDictionary. If data type is domain, data length is not
- * limited to SDO buffer size. If block transfer is implemented, value should be
- * set to 889.
- *
- * Value can be in range from 7 to 889 bytes.
- */
-#ifndef CO_CONFIG_SDO_BUFFER_SIZE
-#define CO_CONFIG_SDO_BUFFER_SIZE 32
-#endif
-
-/**
- * Configuration of Heartbeat Consumer Callbacks usage.
- *
- * - value = 0: Don't include any Heartbeat consumer callback functions in the
- *   code.
- * - value = 1: Use function CO_HBconsumer_initCallbackNmtChanged(). It enables
- *   application to configure one callback, which will notify about NMT state
- *   change of the monitored node.
- * - value = 2: Use functions CO_HBconsumer_initCallbackHeartbeatStarted(),
- *   CO_HBconsumer_initCallbackTimeout() and
- *   CO_HBconsumer_initCallbackRemoteReset(). Those functions enable application
- *   to configure set of three callbacks, different for each monitored node.
- * - value = 3: Use all functions, from 1 and 2.
- */
-#ifndef CO_CONFIG_HB_CONS_CALLBACKS
-#define CO_CONFIG_HB_CONS_CALLBACKS 0
-#endif
-
-/**
- * Configuration of Standard CiA 309 usage.
- *
- * CiA 309 standard covers CANopen access from other networks. It enables
- * usage of the NMT master, SDO client and LSS master as a gateway device.
- *
- * Value can be one of the following:
- * - 0: Disabled.
- * - 1: Interface enabled
- * - 2: Modbus/TCP mapping (Not implemented)
- * - 3: ASCII mapping
- * - 4: Profinet (Not implemented)
- */
-#ifndef CO_CONFIG_309
-#define CO_CONFIG_309 0
-#endif
-
-/** @} */
 
 
 /* Macros and declarations in following part are only used for documentation. */

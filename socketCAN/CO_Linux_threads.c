@@ -116,6 +116,7 @@ void threadMainWait_init(uint32_t interval_us)
     /* Configure callback functions */
     CO_SDO_initCallback(CO->SDO[0], NULL, threadMainWait_callback);
     CO_EM_initCallback(CO->em, NULL, threadMainWait_callback);
+    CO_HBconsumer_initCallback(CO->HBcons, NULL, threadMainWait_callback);
 
     /* Initial value for time calculation */
     threadMainWait.start = CO_LinuxThreads_clock_gettime_us();

@@ -43,8 +43,8 @@ extern "C" {
 #endif
 
 /* Stack configuration override */
-#ifndef CO_CONFIG_NMT_LEDS
-#define CO_CONFIG_NMT_LEDS 1
+#ifndef CO_CONFIG_NMT
+#define CO_CONFIG_NMT CO_CONFIG_NMT_LEDS
 #endif
 
 

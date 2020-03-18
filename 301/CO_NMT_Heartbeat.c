@@ -104,7 +104,7 @@ CO_ReturnError_t CO_NMT_init(
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* blinking bytes and LEDS */
-#if CO_CONFIG_NMT_LEDS > 0
+#if CO_CONFIG_NMT & CO_CONFIG_NMT_LEDS
     NMT->LEDtimer               = 0;
     NMT->LEDflickering          = 0;
     NMT->LEDblinking            = 0;
@@ -223,7 +223,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         CANpassive = 1;
 
 
-#if CO_CONFIG_NMT_LEDS > 0
+#if CO_CONFIG_NMT & CO_CONFIG_NMT_LEDS
     NMT->LEDtimer += timeDifference_us;
     if (NMT->LEDtimer >= 50000) {
         NMT->LEDtimer -= 50000;

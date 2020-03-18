@@ -129,6 +129,7 @@ Flowchart of a typical CANopenNode implementation
 File structure
 --------------
  - **301/** - CANopen application layer and communication profile.
+   - **CO_config.h** - Configuration macros for CANopenNode.
    - **CO_driver.h** - Interface between CAN hardware and CANopenNode.
    - **CO_Emergency.h/.c** - CANopen Emergency protocol.
    - **CO_HBconsumer.h/.c** - CANopen Heartbeat consumer protocol.

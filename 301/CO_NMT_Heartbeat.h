@@ -129,7 +129,7 @@ typedef enum{
  * @ref CO_NMT_statusLEDdiodes. Object is initialized by CO_NMT_init().
  */
 typedef struct{
-#if CO_CONFIG_NMT_LEDS > 0 || defined CO_DOXYGEN
+#if (CO_CONFIG_NMT & CO_CONFIG_NMT_LEDS) || defined CO_DOXYGEN
     uint32_t            LEDtimer;       /**< 50ms led timer */
     int8_t              LEDflickering;  /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDblinking;    /**< See @ref CO_NMT_statusLEDdiodes */

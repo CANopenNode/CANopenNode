@@ -69,10 +69,6 @@ typedef struct {
     uint8_t nodeId;
     /** Of the remote node (Heartbeat payload) */
     CO_NMT_internalState_t NMTstate;
-#if (CO_CONFIG_HB_CONS_CALLBACKS & 1) || defined CO_DOXYGEN
-    /** Previous value of the remote node (Heartbeat payload) */
-    CO_NMT_internalState_t NMTstatePrev;
-#endif
     /** Current heartbeat state */
     CO_HBconsumer_state_t HBstate;
     /** Time since last heartbeat received */
@@ -81,7 +77,17 @@ typedef struct {
     uint32_t time_us;
     /** Indication if new Heartbeat message received from the CAN bus */
     volatile void *CANrxNew;
-#if (CO_CONFIG_HB_CONS_CALLBACKS & 2) || defined CO_DOXYGEN
+#if (CO_CONFIG_HB_CONS & CO_CONFIG_FLAG_CANRX_CALLBACK) || defined CO_DOXYGEN
+    /** From CO_HBconsumer_initCallback() or NULL */
+    void              (*pFunctSignalCanRx)(void *object);
+    /** From CO_HBconsumer_initCallback() or NULL */
+    void               *functSignalObjectCanRx;
+#endif
+#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK) || defined CO_DOXYGEN
+    /** Previous value of the remote node (Heartbeat payload) */
+    CO_NMT_internalState_t NMTstatePrev;
+#endif
+#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_MULTI_CALLBACK) || defined CO_DOXYGEN
     /** Callback for heartbeat state change to active event.
      *  From CO_HBconsumer_initCallbackHeartbeatStarted() or NULL. */
     void (*pFunctSignalHbStarted)(uint8_t nodeId, uint8_t idx, void *object);
@@ -121,7 +127,7 @@ typedef struct{
     bool_t              NMTisPreOrOperationalPrev; /**< previous state of var */
     CO_CANmodule_t     *CANdevRx;         /**< From CO_HBconsumer_init() */
     uint16_t            CANdevRxIdxStart; /**< From CO_HBconsumer_init() */
-#if (CO_CONFIG_HB_CONS_CALLBACKS & 1) || defined CO_DOXYGEN
+#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK) || defined CO_DOXYGEN
     /** Callback for remote NMT changed event.
      *  From CO_HBconsumer_initCallbackNmtChanged() or NULL. */
     void (*pFunctSignalNmtChanged)(uint8_t nodeId,
@@ -182,7 +188,25 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
         uint8_t                 nodeId,
         uint16_t                consumerTime_ms);
 
-#if (CO_CONFIG_HB_CONS_CALLBACKS & 1) || defined CO_DOXYGEN
+#if (CO_CONFIG_HB_CONS & CO_CONFIG_FLAG_CANRX_CALLBACK) || defined CO_DOXYGEN
+/**
+ * Initialize Heartbeat consumer callback function.
+ *
+ * Function initializes optional callback function, which should immediately
+ * start processing of CO_HBconsumer_process() function.
+ * Callback is called after HBconsumer message is received from the CAN bus.
+ *
+ * @param HBcons This object.
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_HBconsumer_initCallback(
+        CO_HBconsumer_t        *HBcons,
+        void                   *object,
+        void                  (*pFunctSignal)(void *object));
+#endif
+
+#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK) || defined CO_DOXYGEN
 /**
  * Initialize Heartbeat consumer NMT changed callback function.
  *
@@ -202,7 +226,7 @@ void CO_HBconsumer_initCallbackNmtChanged(
                                               void *object));
 #endif
 
-#if (CO_CONFIG_HB_CONS_CALLBACKS & 2) || defined CO_DOXYGEN
+#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_MULTI_CALLBACK) || defined CO_DOXYGEN
 /**
  * Initialize Heartbeat consumer started callback function.
  *
@@ -257,7 +281,7 @@ void CO_HBconsumer_initCallbackRemoteReset(
         uint8_t                 idx,
         void                   *object,
         void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
-#endif
+#endif /* CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_MULTI_CALLBACK */
 
 /**
  * Process Heartbeat consumer object.

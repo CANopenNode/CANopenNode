@@ -50,12 +50,13 @@
 extern "C" {
 #endif
 
-/* Stack configuration override */
+/* Stack configuration override from CO_driver.h.
+ * For more information see file CO_config.h. */
+#ifndef CO_CONFIG_HB_CONS
+#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CANRX_CALLBACK | CO_CONFIG_HB_CONS_CHANGE_CALLBACK
+#endif
 #ifndef CO_CONFIG_SDO_BUFFER_SIZE
 #define CO_CONFIG_SDO_BUFFER_SIZE 889
-#endif
-#ifndef CO_CONFIG_HB_CONS_CALLBACKS
-#define CO_CONFIG_HB_CONS_CALLBACKS 1
 #endif
 
 
