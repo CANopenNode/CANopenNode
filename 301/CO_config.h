@@ -59,10 +59,11 @@ extern "C" {
  *
  * Flag enables optional callback functions, which are part of some CANopenNode
  * objects. Callbacks can optionally be registered by application, which
- * configures threads in operating system. Callback are called after CAN message
- * is received and preprocessed by higher priority thread. Callback may
- * immediately start mainline processing function, which further processes
- * received CAN message.
+ * configures threads in operating system. Callbacks are called after something
+ * has been preprocessed by higher priority thread and must be further
+ * processed by lower priority thread. For example when CAN message is received
+ * and preprocessed, callback should wake up mainline processing function.
+ * See also @ref CO_process() function.
  *
  * If callback functions are used, they must be initialized separately, after
  * the object initialization.
@@ -89,7 +90,7 @@ extern "C" {
  *
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CANRX_CALLBACK - Enable custom callback after CAN receive.
- *   Callback is configured by CO_HBconsumer_initCallback().
+ *   Callback is configured by CO_HBconsumer_initCallbackPre().
  * - CO_CONFIG_HB_CONS_CHANGE_CALLBACK - Enable custom callback after NMT
  *   state of the monitored node changes. Callback is configured by
  *   CO_HBconsumer_initCallbackNmtChanged().
@@ -98,12 +99,15 @@ extern "C" {
  *   CO_HBconsumer_initCallbackHeartbeatStarted(),
  *   CO_HBconsumer_initCallbackTimeout() and
  *   CO_HBconsumer_initCallbackRemoteReset() functions.
+ * - CO_CONFIG_HB_CONS_QUERY_FUNCT - Enable functions for query HB state or
+ *   NMT state of the specific monitored node.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CANRX_CALLBACK | CO_CONFIG_HB_CONS_CHANGE_CALLBACK | CO_CONFIG_HB_CONS_MULTI_CALLBACK
+#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CANRX_CALLBACK | CO_CONFIG_HB_CONS_CHANGE_CALLBACK | CO_CONFIG_HB_CONS_MULTI_CALLBACK | CO_CONFIG_HB_CONS_QUERY_FUNCT
 #endif
 #define CO_CONFIG_HB_CONS_CHANGE_CALLBACK 0x01
 #define CO_CONFIG_HB_CONS_MULTI_CALLBACK 0x02
+#define CO_CONFIG_HB_CONS_QUERY_FUNCT 0x04
 
 
 /**

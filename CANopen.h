@@ -295,8 +295,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId);
  *        Output will be equal or lower to initial value. Calculation is based
  *        on various timers which expire in known time. Parameter should be
  *        used in combination with callbacks configured with
- *        CO_EM_initCallback() and CO_SDO_initCallback(). Those callbacks should
- *        also trigger calling of CO_process() function.
+ *        CO_***_initCallbackPre() functions. Those callbacks should also
+ *        trigger calling of CO_process() function.
+ *        See also @ref CO_CONFIG_FLAG_CANRX_CALLBACK configuration macro.
  *
  *        This is experimental feature and can be used for energy saving in case
  *        of low traffic on CAN bus. Parameter is ignored if NULL.

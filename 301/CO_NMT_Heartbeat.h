@@ -142,7 +142,7 @@ typedef struct{
     int8_t              LEDredError;    /**< See @ref CO_NMT_statusLEDdiodes */
 #endif /* CO_CONFIG_NMT_LEDS */
 
-    uint8_t             operatingState; /**< See @ref CO_NMT_internalState_t */
+    CO_NMT_internalState_t operatingState; /**< Current NMT operating state. */
     uint8_t             resetCommand;   /**< If different than zero, device will reset */
     uint8_t             nodeId;         /**< CANopen Node ID of this device */
     uint32_t            HBproducerTimer;/**< Internal timer for HB producer */
@@ -152,7 +152,7 @@ typedef struct{
     CO_CANtx_t         *NMT_TXbuff;     /**< CAN transmit buffer for NMT master message */
     CO_CANmodule_t     *HB_CANdevTx;    /**< From CO_NMT_init() */
     CO_CANtx_t         *HB_TXbuff;      /**< CAN transmit buffer for heartbeat message */
-    void              (*pFunctNMT)(CO_NMT_internalState_t state); /**< From CO_NMT_initCallback() or NULL */
+    void              (*pFunctNMT)(CO_NMT_internalState_t state); /**< From CO_NMT_initCallbackChange() or NULL */
 }CO_NMT_t;
 
 
@@ -208,7 +208,7 @@ CO_ReturnError_t CO_NMT_init(
  * @param NMT This object.
  * @param pFunctNMT Pointer to the callback function. Not called if NULL.
  */
-void CO_NMT_initCallback(
+void CO_NMT_initCallbackChange(
         CO_NMT_t               *NMT,
         void                  (*pFunctNMT)(CO_NMT_internalState_t state));
 

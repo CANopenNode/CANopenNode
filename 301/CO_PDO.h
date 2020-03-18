@@ -168,7 +168,7 @@ typedef struct{
     CO_SYNC_t          *SYNC;           /**< From CO_RPDO_init() */
     const CO_RPDOCommPar_t *RPDOCommPar;/**< From CO_RPDO_init() */
     const CO_RPDOMapPar_t  *RPDOMapPar; /**< From CO_RPDO_init() */
-    uint8_t            *operatingState; /**< From CO_RPDO_init() */
+    CO_NMT_internalState_t *operatingState; /**< From CO_RPDO_init() */
     uint8_t             nodeId;         /**< From CO_RPDO_init() */
     uint16_t            defaultCOB_ID;  /**< From CO_RPDO_init() */
     uint8_t             restrictionFlags;/**< From CO_RPDO_init() */
@@ -198,7 +198,7 @@ typedef struct{
     CO_SYNC_t          *SYNC;           /**< From CO_TPDO_init() */
     const CO_TPDOCommPar_t *TPDOCommPar;/**< From CO_TPDO_init() */
     const CO_TPDOMapPar_t  *TPDOMapPar; /**< From CO_TPDO_init() */
-    uint8_t            *operatingState; /**< From CO_TPDO_init() */
+    CO_NMT_internalState_t *operatingState; /**< From CO_TPDO_init() */
     uint8_t             nodeId;         /**< From CO_TPDO_init() */
     uint16_t            defaultCOB_ID;  /**< From CO_TPDO_init() */
     uint8_t             restrictionFlags;/**< From CO_TPDO_init() */
@@ -261,7 +261,7 @@ CO_ReturnError_t CO_RPDO_init(
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
         CO_SYNC_t              *SYNC,
-        uint8_t                *operatingState,
+        CO_NMT_internalState_t *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
         uint8_t                 restrictionFlags,
@@ -308,7 +308,7 @@ CO_ReturnError_t CO_TPDO_init(
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
         CO_SYNC_t              *SYNC,
-        uint8_t                *operatingState,
+        CO_NMT_internalState_t *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
         uint8_t                 restrictionFlags,

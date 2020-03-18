@@ -262,9 +262,9 @@ typedef struct{
     uint8_t            *bufReadPtr;         /**< Read pointer in the above buffer */
     uint8_t             bufFull;            /**< True if above buffer is full */
     uint8_t             wrongErrorReport;   /**< Error in arguments to CO_errorReport() */
-    /** From CO_EM_initCallback() or NULL */
+    /** From CO_EM_initCallbackPre() or NULL */
     void              (*pFunctSignal)(void *object);
-    /** From CO_EM_initCallback() or NULL */
+    /** From CO_EM_initCallbackPre() or NULL */
     void               *functSignalObject;
     /** From CO_EM_initCallbackRx() or NULL */
     void              (*pFunctSignalRx)(const uint16_t ident,
@@ -400,7 +400,7 @@ CO_ReturnError_t CO_EM_init(
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_EM_initCallback(
+void CO_EM_initCallbackPre(
         CO_EM_t               *em,
         void                   *object,
         void                  (*pFunctSignal)(void *object));

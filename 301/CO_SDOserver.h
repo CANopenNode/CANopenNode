@@ -613,9 +613,9 @@ typedef struct{
     bool_t              endOfTransfer;
     /** Variable indicates, if new SDO message received from CAN bus */
     volatile void      *CANrxNew;
-    /** From CO_SDO_initCallback() or NULL */
+    /** From CO_SDO_initCallbackPre() or NULL */
     void              (*pFunctSignal)(void *object);
-    /** From CO_SDO_initCallback() or NULL */
+    /** From CO_SDO_initCallbackPre() or NULL */
     void               *functSignalObject;
     /** From CO_SDO_init() */
     CO_CANmodule_t     *CANdevTx;
@@ -778,7 +778,7 @@ CO_ReturnError_t CO_SDO_init(
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_SDO_initCallback(
+void CO_SDO_initCallbackPre(
         CO_SDO_t               *SDO,
         void                   *object,
         void                  (*pFunctSignal)(void *object));

@@ -213,7 +213,7 @@ CO_ReturnError_t CO_SDOclient_init(
 
 
 /******************************************************************************/
-void CO_SDOclient_initCallback(
+void CO_SDOclient_initCallbackPre(
         CO_SDOclient_t         *SDOclient,
         void                   *object,
         void                  (*pFunctSignal)(void *object))

@@ -193,7 +193,7 @@ void CO_LSSmaster_changeTimeout(
 
 
 /******************************************************************************/
-void CO_LSSmaster_initCallback(
+void CO_LSSmaster_initCallbackPre(
         CO_LSSmaster_t         *LSSmaster,
         void                   *object,
         void                  (*pFunctSignal)(void *object))

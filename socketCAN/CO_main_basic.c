@@ -348,7 +348,7 @@ int main (int argc, char *argv[]) {
 
         /* initialize callbacks */
         CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
-        CO_NMT_initCallback(CO->NMT, NmtChangeCallback);
+        CO_NMT_initCallbackChange(CO->NMT, NmtChangeCallback);
         CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
                                              HeartbeatNmtChangedCallback);
 

@@ -39,7 +39,7 @@
  */
 static void CO_SYNC_receive(void *object, void *msg) {
     CO_SYNC_t *SYNC;
-    uint8_t operState;
+    CO_NMT_internalState_t operState;
 
     SYNC = (CO_SYNC_t*)object;   /* this is the correct pointer type of the first argument */
     operState = *SYNC->operatingState;
@@ -241,7 +241,7 @@ CO_ReturnError_t CO_SYNC_init(
         CO_SYNC_t              *SYNC,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        uint8_t                *operatingState,
+        CO_NMT_internalState_t *operatingState,
         uint32_t                COB_ID_SYNCMessage,
         uint32_t                communicationCyclePeriod,
         uint8_t                 synchronousCounterOverflowValue,

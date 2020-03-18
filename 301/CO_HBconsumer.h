@@ -78,9 +78,9 @@ typedef struct {
     /** Indication if new Heartbeat message received from the CAN bus */
     volatile void *CANrxNew;
 #if (CO_CONFIG_HB_CONS & CO_CONFIG_FLAG_CANRX_CALLBACK) || defined CO_DOXYGEN
-    /** From CO_HBconsumer_initCallback() or NULL */
+    /** From CO_HBconsumer_initCallbackPre() or NULL */
     void              (*pFunctSignalCanRx)(void *object);
-    /** From CO_HBconsumer_initCallback() or NULL */
+    /** From CO_HBconsumer_initCallbackPre() or NULL */
     void               *functSignalObjectCanRx;
 #endif
 #if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK) || defined CO_DOXYGEN
@@ -200,7 +200,7 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_HBconsumer_initCallback(
+void CO_HBconsumer_initCallbackPre(
         CO_HBconsumer_t        *HBcons,
         void                   *object,
         void                  (*pFunctSignal)(void *object));
@@ -299,6 +299,8 @@ void CO_HBconsumer_process(
         uint32_t                timeDifference_us,
         uint32_t               *timerNext_us);
 
+
+#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_QUERY_FUNCT) || defined CO_DOXYGEN
 /**
  * Get the heartbeat producer object index by node ID
  *
@@ -336,7 +338,7 @@ int8_t CO_HBconsumer_getNmtState(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx,
         CO_NMT_internalState_t *nmtState);
-
+#endif /* CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_QUERY_FUNCT */
 
 #ifdef __cplusplus
 }

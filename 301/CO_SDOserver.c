@@ -366,7 +366,7 @@ CO_ReturnError_t CO_SDO_init(
 
 
 /******************************************************************************/
-void CO_SDO_initCallback(
+void CO_SDO_initCallbackPre(
         CO_SDO_t               *SDO,
         void                   *object,
         void                  (*pFunctSignal)(void *object))

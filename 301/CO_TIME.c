@@ -37,7 +37,7 @@
  */
 static void CO_TIME_receive(void *object, void *msg){
     CO_TIME_t *TIME;
-    uint8_t operState;
+    CO_NMT_internalState_t operState;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     uint8_t *data = CO_CANrxMsg_readData(msg);
 
@@ -60,7 +60,7 @@ CO_ReturnError_t CO_TIME_init(
         CO_TIME_t              *TIME,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        uint8_t                *operatingState,
+        CO_NMT_internalState_t *operatingState,
         uint32_t                COB_ID_TIMEMessage,
         uint32_t                TIMECyclePeriod,
         CO_CANmodule_t         *CANdevRx,

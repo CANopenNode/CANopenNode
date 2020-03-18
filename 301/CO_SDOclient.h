@@ -136,9 +136,9 @@ typedef struct{
     volatile void      *CANrxNew;
     /** 8 data bytes of the received message */
     uint8_t             CANrxData[8];
-    /** From CO_SDOclient_initCallback() or NULL */
+    /** From CO_SDOclient_initCallbackPre() or NULL */
     void              (*pFunctSignal)(void *object);
-    /** From CO_SDOclient_initCallback() or NULL */
+    /** From CO_SDOclient_initCallbackPre() or NULL */
     void               *functSignalObject;
     /** From CO_SDOclient_init() */
     CO_CANmodule_t     *CANdevTx;
@@ -212,7 +212,7 @@ CO_ReturnError_t CO_SDOclient_init(
  * be NULL.
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_SDOclient_initCallback(
+void CO_SDOclient_initCallbackPre(
         CO_SDOclient_t         *SDOclient,
         void                   *object,
         void                  (*pFunctSignal)(void *object));

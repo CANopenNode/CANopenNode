@@ -119,7 +119,7 @@ typedef struct{
     volatile void   *CANrxNew;         /**< Indication if new LSS message is received from CAN bus. It needs to be cleared when received message is completely processed. */
     uint8_t          CANrxData[8];     /**< 8 data bytes of the received message */
 
-    void           (*pFunctSignal)(void *object); /**< From CO_LSSmaster_initCallback() or NULL */
+    void           (*pFunctSignal)(void *object); /**< From CO_LSSmaster_initCallbackPre() or NULL */
     void            *functSignalObject;/**< Pointer to object */
 
     CO_CANmodule_t  *CANdevTx;         /**< From #CO_LSSslave_init() */
@@ -196,7 +196,7 @@ void CO_LSSmaster_changeTimeout(
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_LSSmaster_initCallback(
+void CO_LSSmaster_initCallbackPre(
         CO_LSSmaster_t         *LSSmaster,
         void                   *object,
         void                  (*pFunctSignal)(void *object));

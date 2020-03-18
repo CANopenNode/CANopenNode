@@ -212,7 +212,7 @@ CO_ReturnError_t CO_EM_init(
 
 
 /******************************************************************************/
-void CO_EM_initCallback(
+void CO_EM_initCallbackPre(
         CO_EM_t                *em,
         void                   *object,
         void                  (*pFunctSignal)(void *object))

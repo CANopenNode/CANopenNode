@@ -216,7 +216,7 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
 
 #if CO_CONFIG_HB_CONS & CO_CONFIG_FLAG_CANRX_CALLBACK
 /******************************************************************************/
-void CO_HBconsumer_initCallback(
+void CO_HBconsumer_initCallbackPre(
         CO_HBconsumer_t        *HBcons,
         void                   *object,
         void                  (*pFunctSignal)(void *object))
@@ -446,6 +446,7 @@ void CO_HBconsumer_process(
 }
 
 
+#if CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_QUERY_FUNCT
 /******************************************************************************/
 int8_t CO_HBconsumer_getIdxByNodeId(
         CO_HBconsumer_t        *HBcons,
@@ -507,3 +508,4 @@ int8_t CO_HBconsumer_getNmtState(
     }
     return -1;
 }
+#endif /* CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_QUERY_FUNCT */

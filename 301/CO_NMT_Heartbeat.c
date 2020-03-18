@@ -48,7 +48,7 @@ static void CO_NMT_receive(void *object, void *msg){
 
     if((DLC == 2) && ((nodeId == 0) || (nodeId == NMT->nodeId))){
         uint8_t command = data[0];
-        uint8_t currentOperatingState = NMT->operatingState;
+        CO_NMT_internalState_t currentOperatingState = NMT->operatingState;
 
         switch(command){
             case CO_NMT_ENTER_OPERATIONAL:
@@ -73,7 +73,7 @@ static void CO_NMT_receive(void *object, void *msg){
         }
 
         if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
-            NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
+            NMT->pFunctNMT(NMT->operatingState);
         }
     }
 }
@@ -164,14 +164,14 @@ CO_ReturnError_t CO_NMT_init(
 
 
 /******************************************************************************/
-void CO_NMT_initCallback(
+void CO_NMT_initCallbackChange(
         CO_NMT_t               *NMT,
         void                  (*pFunctNMT)(CO_NMT_internalState_t state))
 {
     if(NMT != NULL){
         NMT->pFunctNMT = pFunctNMT;
         if(NMT->pFunctNMT != NULL){
-            NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
+            NMT->pFunctNMT(NMT->operatingState);
         }
     }
 }
@@ -189,7 +189,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 {
     uint8_t CANpassive;
 
-    uint8_t currentOperatingState = NMT->operatingState;
+    CO_NMT_internalState_t currentOperatingState = NMT->operatingState;
     uint32_t HBtime = (uint32_t)HBtime_ms * 1000;
 
     NMT->HBproducerTimer += timeDifference_us;
@@ -201,7 +201,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
          * not for synchronization, it is for health report. */
         NMT->HBproducerTimer = 0;
 
-        NMT->HB_TXbuff->data[0] = NMT->operatingState;
+        NMT->HB_TXbuff->data[0] = (uint8_t) NMT->operatingState;
         CO_CANsend(NMT->HB_CANdevTx, NMT->HB_TXbuff);
 
         if (NMT->operatingState == CO_NMT_INITIALIZING) {
@@ -351,7 +351,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 
     if (currentOperatingState != NMT->operatingState) {
         if (NMT->pFunctNMT != NULL) {
-            NMT->pFunctNMT((CO_NMT_internalState_t) NMT->operatingState);
+            NMT->pFunctNMT(NMT->operatingState);
         }
         /* execute next CANopen processing immediately */
         if (timerNext_us != NULL) {
@@ -380,7 +380,7 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
         CO_NMT_t               *NMT)
 {
     if(NMT != NULL){
-        return (CO_NMT_internalState_t) NMT->operatingState;
+        return NMT->operatingState;
     }
     return CO_NMT_INITIALIZING;
 }

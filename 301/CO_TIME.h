@@ -78,7 +78,7 @@ extern "C" {
  */
 typedef struct{
     CO_EM_t            *em;             /**< From CO_TIME_init() */
-    uint8_t            *operatingState; /**< From CO_TIME_init() */
+    CO_NMT_internalState_t *operatingState; /**< From CO_TIME_init() */
 	/** True, if device is TIME consumer. Calculated from _COB ID TIME Message_
     variable from Object dictionary (index 0x1012). */
     bool_t              isConsumer;
@@ -129,7 +129,7 @@ CO_ReturnError_t CO_TIME_init(
         CO_TIME_t              *TIME,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        uint8_t                *operatingState,
+        CO_NMT_internalState_t *operatingState,
         uint32_t                COB_ID_TIMEMessage,
         uint32_t                TIMECyclePeriod,
         CO_CANmodule_t         *CANdevRx,

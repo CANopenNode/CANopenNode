@@ -66,7 +66,7 @@ extern "C" {
  */
 typedef struct{
     CO_EM_t            *em;             /**< From CO_SYNC_init() */
-    uint8_t            *operatingState; /**< From CO_SYNC_init() */
+    CO_NMT_internalState_t *operatingState; /**< From CO_SYNC_init() */
     /** True, if device is SYNC producer. Calculated from _COB ID SYNC Message_
     variable from Object dictionary (index 0x1005). */
     bool_t              isProducer;
@@ -127,7 +127,7 @@ CO_ReturnError_t CO_SYNC_init(
         CO_SYNC_t              *SYNC,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        uint8_t                *operatingState,
+        CO_NMT_internalState_t *operatingState,
         uint32_t                COB_ID_SYNCMessage,
         uint32_t                communicationCyclePeriod,
         uint8_t                 synchronousCounterOverflowValue,
