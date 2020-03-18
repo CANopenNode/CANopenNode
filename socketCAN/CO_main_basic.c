@@ -263,7 +263,7 @@ int main (int argc, char *argv[]) {
     }
 
 
-    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, CO_ownNodeId, "starting");
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "starting");
 
 
     /* Allocate memory for CANopen objects */
@@ -308,7 +308,7 @@ int main (int argc, char *argv[]) {
     while(reset != CO_RESET_APP && reset != CO_RESET_QUIT && CO_endProgram == 0) {
 /* CANopen communication reset - initialize CANopen objects *******************/
 
-        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, CO_ownNodeId, "communication reset");
+        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "communication reset");
 
 
 #if CO_CONFIG_309 > 0
@@ -439,7 +439,7 @@ int main (int argc, char *argv[]) {
 
         reset = CO_RESET_NOT;
 
-        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, CO_ownNodeId, "running ...");
+        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "running ...");
 
 
         while(reset == CO_RESET_NOT && CO_endProgram == 0) {
@@ -493,7 +493,7 @@ int main (int argc, char *argv[]) {
     threadMainWait_close();
     CO_delete((void *)CANdevice0Index);
 
-    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, CO_ownNodeId, "finished");
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "finished");
 
     /* Flush all buffers (and reboot) */
     if(rebootEnable && reset == CO_RESET_APP) {

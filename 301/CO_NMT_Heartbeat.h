@@ -93,6 +93,7 @@ extern "C" {
  * Internal network state of the CANopen node
  */
 typedef enum{
+    CO_NMT_UNKNOWN                  = -1,   /**< Device state is unknown (for heartbeat consumer) */
     CO_NMT_INITIALIZING             = 0,    /**< Device is initializing */
     CO_NMT_PRE_OPERATIONAL          = 127,  /**< Device is in pre-operational state */
     CO_NMT_OPERATIONAL              = 5,    /**< Device is in operational state */

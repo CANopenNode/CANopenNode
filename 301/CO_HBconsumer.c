@@ -119,7 +119,7 @@ CO_ReturnError_t CO_HBconsumer_init(
     HBcons->monitoredNodes = monitoredNodes;
     HBcons->numberOfMonitoredNodes = numberOfMonitoredNodes;
     HBcons->allMonitoredActive = false;
-    HBcons->allMonitoredOperational = CO_NMT_INITIALIZING;
+    HBcons->allMonitoredOperational = CO_NMT_UNKNOWN;
     HBcons->NMTisPreOrOperationalPrev = false;
     HBcons->CANdevRx = CANdevRx;
     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
@@ -182,9 +182,9 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
         CO_HBconsNode_t * monitoredNode = &HBcons->monitoredNodes[idx];
         monitoredNode->nodeId = nodeId;
         monitoredNode->time_us = (int32_t)consumerTime_ms * 1000;
-        monitoredNode->NMTstate = CO_NMT_INITIALIZING;
+        monitoredNode->NMTstate = CO_NMT_UNKNOWN;
 #if CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK
-        monitoredNode->NMTstatePrev = CO_NMT_INITIALIZING;
+        monitoredNode->NMTstatePrev = CO_NMT_UNKNOWN;
 #endif
         CO_FLAG_CLEAR(monitoredNode->CANrxNew);
 
@@ -382,7 +382,7 @@ void CO_HBconsumer_process(
 #endif
                     CO_errorReport(HBcons->em, CO_EM_HEARTBEAT_CONSUMER,
                                    CO_EMC_HEARTBEAT, i);
-                    monitoredNode->NMTstate = CO_NMT_INITIALIZING;
+                    monitoredNode->NMTstate = CO_NMT_UNKNOWN;
                     monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
                 }
 
@@ -400,7 +400,7 @@ void CO_HBconsumer_process(
                 allMonitoredActiveCurrent = false;
             }
             if (monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
-                allMonitoredOperationalCurrent = CO_NMT_INITIALIZING;
+                allMonitoredOperationalCurrent = CO_NMT_UNKNOWN;
             }
 #if CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK
             /* Verify, if NMT state of monitored node changed */
@@ -419,9 +419,9 @@ void CO_HBconsumer_process(
     else if (NMTisPreOrOperational || HBcons->NMTisPreOrOperationalPrev) {
         /* (pre)operational state changed, clear variables */
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++) {
-            monitoredNode->NMTstate = CO_NMT_INITIALIZING;
+            monitoredNode->NMTstate = CO_NMT_UNKNOWN;
 #if CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK
-            monitoredNode->NMTstatePrev = CO_NMT_INITIALIZING;
+            monitoredNode->NMTstatePrev = CO_NMT_UNKNOWN;
 #endif
             CO_FLAG_CLEAR(monitoredNode->CANrxNew);
             if (monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) {
@@ -430,7 +430,7 @@ void CO_HBconsumer_process(
             monitoredNode++;
         }
         allMonitoredActiveCurrent = false;
-        allMonitoredOperationalCurrent = CO_NMT_INITIALIZING;
+        allMonitoredOperationalCurrent = CO_NMT_UNKNOWN;
     }
 
     /* Clear emergencies when all monitored nodes becomes active.

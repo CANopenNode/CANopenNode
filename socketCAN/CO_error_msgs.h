@@ -87,7 +87,7 @@ extern "C" {
 #define DBG_NO_CAN_DEVICE         "(%s) Can't find CAN device \"%s\"", __func__
 #define DBG_OBJECT_DICTIONARY     "(%s) Error in Object Dictionary \"%s\"", __func__
 #define DBG_CAN_OPEN              "(%s) CANopen error in %s, err=%d", __func__
-#define DBG_CAN_OPEN_INFO         "(%s) CANopen device, Node ID = %d(0x%02X), %s", __func__
+#define DBG_CAN_OPEN_INFO         "(%s) CANopen device, Node ID = 0x%02X, %s", __func__
 #define DBG_COMMAND_LOCAL_INFO    "(%s) Command interface on socket \"%s\" started", __func__
 #define DBG_COMMAND_TCP_INFO      "(%s) Command interface on tcp port \"%hu\" started", __func__
 
