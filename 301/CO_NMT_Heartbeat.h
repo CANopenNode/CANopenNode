@@ -143,6 +143,7 @@ typedef struct{
 #endif /* CO_CONFIG_NMT_LEDS */
 
     CO_NMT_internalState_t operatingState; /**< Current NMT operating state. */
+    CO_NMT_internalState_t operatingStatePrev; /**< Previous NMT operating state. */
     uint8_t             resetCommand;   /**< If different than zero, device will reset */
     uint8_t             nodeId;         /**< CANopen Node ID of this device */
     uint32_t            HBproducerTimer;/**< Internal timer for HB producer */

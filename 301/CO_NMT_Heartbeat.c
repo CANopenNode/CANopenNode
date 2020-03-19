@@ -131,6 +131,7 @@ CO_ReturnError_t CO_NMT_init(
 
     /* Configure object variables */
     NMT->operatingState         = CO_NMT_INITIALIZING;
+    NMT->operatingStatePrev     = CO_NMT_INITIALIZING;
     NMT->nodeId                 = nodeId;
     NMT->firstHBTime            = (int32_t)firstHBTime_ms * 1000;
     NMT->resetCommand           = 0;
@@ -234,11 +235,17 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 
     NMT->HBproducerTimer += timeDifference_us;
 
-    /* Heartbeat producer message & Bootup message */
-    if ((HBtime != 0 && NMT->HBproducerTimer >= HBtime) || NMT->operatingState == CO_NMT_INITIALIZING) {
-
-        /* Start from the beginning. If OS is slow, time sliding may occur. However, heartbeat is
-         * not for synchronization, it is for health report. */
+    /* Send heartbeat producer message if:
+     * - First start, send bootup message or
+     * - HB producer and Timer expired or
+     * - HB producer and NMT->operatingState changed, but not from initialised */
+    if ((NMT->operatingState == CO_NMT_INITIALIZING) ||
+        (HBtime != 0 && (NMT->HBproducerTimer >= HBtime ||
+                         NMT->operatingState != NMT->operatingStatePrev)
+        ))
+    {
+        /* Start from the beginning. If OS is slow, time sliding may occur. However,
+         * heartbeat is not for synchronization, it is for health report. */
         NMT->HBproducerTimer = 0;
 
         NMT->HB_TXbuff->data[0] = (uint8_t) NMT->operatingState;
@@ -255,7 +262,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
             else                           NMT->operatingState = CO_NMT_PRE_OPERATIONAL;
         }
     }
-
+    NMT->operatingStatePrev = NMT->operatingState;
 
     /* CAN passive flag */
     CANpassive = 0;

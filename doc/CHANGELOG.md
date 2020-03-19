@@ -19,6 +19,7 @@ Change Log
 - It is necessary to manually update CO_OD.c file - it must include: `301/CO_driver.h`, `CO_OD.h` and `301/CO_SDOserver.h`.
 - Added `void *object` argument to CO_*_initCallback() functions. API clarified.
 - Add emergency receive callback also for own emergency messages.
+- Heartbeat is send immediately after NMT state changes.
 ### Changed SocketCAN
 - ./stack/socketCAN removed from the project, ./stack/Neuberger-socketCAN moved to ./socketCAN
 - driver API updated
