@@ -35,18 +35,34 @@ extern "C" {
 #endif
 
 
-/* Default stack configuration for most common configuration.
- * For more information see file CO_config.h. */
+/* Default stack configuration for most common configuration, may be overridden
+ * by CO_driver_target.h. For more information see file CO_config.h. */
 #ifndef CO_CONFIG_NMT
 #define CO_CONFIG_NMT 0
+#endif
+
+#ifndef CO_CONFIG_SDO
+#define CO_CONFIG_SDO CO_CONFIG_SDO_SEGMENTED
 #endif
 
 #ifndef CO_CONFIG_SDO_BUFFER_SIZE
 #define CO_CONFIG_SDO_BUFFER_SIZE 32
 #endif
 
+#ifndef CO_CONFIG_EM
+#define CO_CONFIG_EM 0
+#endif
+
 #ifndef CO_CONFIG_HB_CONS
 #define CO_CONFIG_HB_CONS 0
+#endif
+
+#ifndef CO_CONFIG_SDO_CLI
+#define CO_CONFIG_SDO_CLI 0
+#endif
+
+#ifndef CO_CONFIG_LSS_MST
+#define CO_CONFIG_LSS_MST 0
 #endif
 
 #ifndef CO_CONFIG_309

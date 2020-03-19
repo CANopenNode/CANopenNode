@@ -123,7 +123,7 @@ static char *NmtState2Str(CO_NMT_internalState_t state)
 }
 
 /* callback for NMT change messages */
-static void NmtChangeCallback(CO_NMT_internalState_t state)
+static void NmtChangedCallback(CO_NMT_internalState_t state)
 {
     log_printf(LOG_NOTICE, DBG_NMT_CHANGE, NmtState2Str(state), state);
 }
@@ -346,9 +346,10 @@ int main (int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        /* initialize callbacks */
+        /* initialize part of threadMain and callbacks */
+        threadMainWait_init();
         CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
-        CO_NMT_initCallbackChange(CO->NMT, NmtChangeCallback);
+        CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
         CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
                                              HeartbeatNmtChangedCallback);
 
@@ -375,7 +376,7 @@ int main (int argc, char *argv[]) {
 
 
             /* Init threadMainWait structure and file descriptors */
-            threadMainWait_init(MAIN_THREAD_INTERVAL_US);
+            threadMainWait_initOnce(MAIN_THREAD_INTERVAL_US);
 
 
             /* Init threadRT structure and file descriptors */

@@ -29,6 +29,7 @@
 #include "301/CO_Emergency.h"
 
 
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
 /*
  * Read received message from CAN module.
  *
@@ -59,6 +60,7 @@ static void CO_EM_receive(void *object, void *msg) {
         }
     }
 }
+#endif
 
 /*
  * Function for accessing _Pre-Defined Error Field_ (index 0x1003) from SDO server.
@@ -151,7 +153,11 @@ CO_ReturnError_t CO_EM_init(
 
     /* verify arguments */
     if(em==NULL || emPr==NULL || SDO==NULL || errorStatusBits==NULL || errorStatusBitsSize<6U ||
-       errorRegister==NULL || preDefErr==NULL || CANdevTx==NULL || CANdevRx==NULL){
+       errorRegister==NULL || preDefErr==NULL || CANdevTx==NULL
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
+       || CANdevRx==NULL
+#endif
+    ){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -163,9 +169,13 @@ CO_ReturnError_t CO_EM_init(
     em->bufReadPtr              = em->buf;
     em->bufFull                 = 0U;
     em->wrongErrorReport        = 0U;
-    em->pFunctSignal            = NULL;
-    em->functSignalObject       = NULL;
+#if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
+    em->pFunctSignalPre         = NULL;
+    em->functSignalObjectPre    = NULL;
+#endif
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
     em->pFunctSignalRx          = NULL;
+#endif
     emPr->em                    = em;
     emPr->errorRegister         = errorRegister;
     emPr->preDefErr             = preDefErr;
@@ -182,6 +192,7 @@ CO_ReturnError_t CO_EM_init(
     CO_OD_configure(SDO, OD_H1003_PREDEF_ERR_FIELD, CO_ODF_1003, (void*)emPr, 0, 0U);
     CO_OD_configure(SDO, OD_H1014_COBID_EMERGENCY, CO_ODF_1014, (void*)&SDO->nodeId, 0, 0U);
 
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
     /* configure SDO server CAN reception */
     ret = CO_CANrxBufferInit(
             CANdevRx,               /* CAN device */
@@ -191,6 +202,7 @@ CO_ReturnError_t CO_EM_init(
             0,                      /* rtr */
             (void*)em,              /* object passed to receive function */
             CO_EM_receive);         /* this function will process received message */
+#endif
 
     /* configure emergency message CAN transmission */
     emPr->CANdev = CANdevTx;
@@ -211,6 +223,7 @@ CO_ReturnError_t CO_EM_init(
 }
 
 
+#if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
 /******************************************************************************/
 void CO_EM_initCallbackPre(
         CO_EM_t                *em,
@@ -218,12 +231,14 @@ void CO_EM_initCallbackPre(
         void                  (*pFunctSignal)(void *object))
 {
     if(em != NULL){
-        em->functSignalObject = object;
-        em->pFunctSignal = pFunctSignal;
+        em->functSignalObjectPre = object;
+        em->pFunctSignalPre = pFunctSignal;
     }
 }
+#endif
 
 
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
 /******************************************************************************/
 void CO_EM_initCallbackRx(
         CO_EM_t                *em,
@@ -237,6 +252,7 @@ void CO_EM_initCallbackRx(
         em->pFunctSignalRx = pFunctSignalRx;
     }
 }
+#endif
 
 
 /******************************************************************************/
@@ -300,6 +316,7 @@ void CO_EM_process(
             /* add error register */
             em->bufReadPtr[2] = *emPr->errorRegister;
 
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
             /* report also own emergency messages */
             if (em->pFunctSignalRx != NULL) {
                 uint16_t errorCode;
@@ -312,6 +329,7 @@ void CO_EM_process(
                                    em->bufReadPtr[3],
                                    infoCode);
             }
+#endif
 
             /* copy data to CAN emergency message */
             CO_memcpy(emPr->CANtxBuff->data, em->bufReadPtr, 8U);
@@ -414,10 +432,12 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
             if(em->bufWritePtr == em->bufReadPtr) em->bufFull = 1;
             CO_UNLOCK_EMCY();
 
+#if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
             /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
-            if(em->pFunctSignal != NULL) {
-                em->pFunctSignal(em->functSignalObject);
+            if(em->pFunctSignalPre != NULL) {
+                em->pFunctSignalPre(em->functSignalObjectPre);
             }
+#endif
         }
     }
 }
@@ -473,10 +493,12 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
             if(em->bufWritePtr == em->bufReadPtr) em->bufFull = 1;
             CO_UNLOCK_EMCY();
 
+#if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
             /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
-            if(em->pFunctSignal != NULL) {
-                em->pFunctSignal(em->functSignalObject);
+            if(em->pFunctSignalPre != NULL) {
+                em->pFunctSignalPre(em->functSignalObjectPre);
             }
+#endif
         }
     }
 }

@@ -70,44 +70,48 @@ extern "C" {
  *
  * This flag is common to multiple configuration macros.
  */
-#define CO_CONFIG_FLAG_CANRX_CALLBACK 0x0100
+#define CO_CONFIG_FLAG_CALLBACK_PRE 0x0100
 
 
 /**
- * Configuration of NMT
+ * Configuration of NMT_Heartbeat object
  *
  * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received NMT CAN message.
+ *   Callback is configured by CO_NMT_initCallbackPre().
+ * - CO_CONFIG_NMT_CALLBACK_CHANGE - Enable custom callback after NMT
+ *   state changes. Callback is configured by
+ *   CO_NMT_initCallbackChanged().
+ * - CO_CONFIG_NMT_MASTER - Enable simple NMT master
  * - CO_CONFIG_NMT_LEDS - Calculate CANopen blinking variables, which can
- * be used for LEDs.
+ *   be used for LEDs.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_NMT CO_CONFIG_NMT_LEDS
+#define CO_CONFIG_NMT CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_NMT_MASTER | CO_CONFIG_NMT_LEDS
 #endif
-#define CO_CONFIG_NMT_LEDS 0x01
+#define CO_CONFIG_NMT_CALLBACK_CHANGE 0x01
+#define CO_CONFIG_NMT_MASTER 0x02
+#define CO_CONFIG_NMT_LEDS 0x04
+
 
 /**
- * Configuration of Heartbeat Consumer
+ * Configuration of SDO server object
  *
  * Possible flags, can be ORed:
- * - #CO_CONFIG_FLAG_CANRX_CALLBACK - Enable custom callback after CAN receive.
- *   Callback is configured by CO_HBconsumer_initCallbackPre().
- * - CO_CONFIG_HB_CONS_CHANGE_CALLBACK - Enable custom callback after NMT
- *   state of the monitored node changes. Callback is configured by
- *   CO_HBconsumer_initCallbackNmtChanged().
- * - CO_CONFIG_HB_CONS_MULTI_CALLBACK - Enable multiple custom callbacks, which
- *   can be configured for each monitored node. Callback are configured by
- *   CO_HBconsumer_initCallbackHeartbeatStarted(),
- *   CO_HBconsumer_initCallbackTimeout() and
- *   CO_HBconsumer_initCallbackRemoteReset() functions.
- * - CO_CONFIG_HB_CONS_QUERY_FUNCT - Enable functions for query HB state or
- *   NMT state of the specific monitored node.
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received SDO CAN message.
+ *   Callback is configured by CO_SDO_initCallbackPre().
+ * - CO_CONFIG_SDO_SEGMENTED - Enable SDO server segmented transfer.
+ * - CO_CONFIG_SDO_BLOCK - Enable SDO server block transfer. If set, then
+ *   CO_CONFIG_SDO_SEGMENTED must also be set.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CANRX_CALLBACK | CO_CONFIG_HB_CONS_CHANGE_CALLBACK | CO_CONFIG_HB_CONS_MULTI_CALLBACK | CO_CONFIG_HB_CONS_QUERY_FUNCT
+#define CO_CONFIG_SDO CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_SDO_SEGMENTED | CO_CONFIG_SDO_BLOCK
 #endif
-#define CO_CONFIG_HB_CONS_CHANGE_CALLBACK 0x01
-#define CO_CONFIG_HB_CONS_MULTI_CALLBACK 0x02
-#define CO_CONFIG_HB_CONS_QUERY_FUNCT 0x04
+/* TODO with new OD */
+#define CO_CONFIG_SDO_SEGMENTED 0x01
+#define CO_CONFIG_SDO_BLOCK 0x02
 
 
 /**
@@ -123,6 +127,74 @@ extern "C" {
 #ifndef CO_CONFIG_SDO_BUFFER_SIZE
 #define CO_CONFIG_SDO_BUFFER_SIZE 32
 #endif
+
+
+/**
+ * Configuration of Emergency object
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   emergency condition by CO_errorReport() or CO_errorReset() call.
+ *   Callback is configured by CO_EM_initCallbackPre().
+ * - CO_CONFIG_EM_CONSUMER - Enable emergency consumer.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_EM CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_EM_CONSUMER
+#endif
+#define CO_CONFIG_EM_CONSUMER 0x01
+
+
+/**
+ * Configuration of Heartbeat Consumer
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received heartbeat CAN message.
+ *   Callback is configured by CO_HBconsumer_initCallbackPre().
+ * - CO_CONFIG_HB_CONS_CALLBACK_CHANGE - Enable custom callback after NMT
+ *   state of the monitored node changes. Callback is configured by
+ *   CO_HBconsumer_initCallbackNmtChanged().
+ * - CO_CONFIG_HB_CONS_CALLBACK_MULTI - Enable multiple custom callbacks, which
+ *   can be configured for each monitored node. Callback are configured by
+ *   CO_HBconsumer_initCallbackHeartbeatStarted(),
+ *   CO_HBconsumer_initCallbackTimeout() and
+ *   CO_HBconsumer_initCallbackRemoteReset() functions.
+ * - CO_CONFIG_HB_CONS_QUERY_FUNCT - Enable functions for query HB state or
+ *   NMT state of the specific monitored node.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_HB_CONS_CALLBACK_CHANGE | CO_CONFIG_HB_CONS_CALLBACK_MULTI | CO_CONFIG_HB_CONS_QUERY_FUNCT
+#endif
+#define CO_CONFIG_HB_CONS_CALLBACK_CHANGE 0x01
+#define CO_CONFIG_HB_CONS_CALLBACK_MULTI 0x02
+#define CO_CONFIG_HB_CONS_QUERY_FUNCT 0x04
+
+
+/**
+ * Configuration of SDO client object
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received SDO CAN message.
+ *   Callback is configured by CO_SDOclient_initCallbackPre().
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_SDO_CLI CO_CONFIG_FLAG_CALLBACK_PRE
+#endif
+
+
+/**
+ * Configuration of LSS master object
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received SDO CAN message.
+ *   Callback is configured by CO_LSSmaster_initCallbackPre().
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_LSS_MST CO_CONFIG_FLAG_CALLBACK_PRE
+#endif
+
 
 /**
  * Configuration of Standard CiA 309 usage.

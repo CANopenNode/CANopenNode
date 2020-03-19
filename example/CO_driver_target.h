@@ -34,7 +34,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#if __has_include("CO_driver_custom.h")
+#ifdef CO_DRIVER_CUSTOM
 #include "CO_driver_custom.h"
 #endif
 
@@ -42,9 +42,34 @@
 extern "C" {
 #endif
 
-/* Stack configuration override */
+/* Stack configuration override from CO_driver.h. Compile full stack.
+ * For more information see file CO_config.h. */
 #ifndef CO_CONFIG_NMT
-#define CO_CONFIG_NMT CO_CONFIG_NMT_LEDS
+#define CO_CONFIG_NMT CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_NMT_MASTER | CO_CONFIG_NMT_LEDS
+#endif
+
+#ifndef CO_CONFIG_SDO
+#define CO_CONFIG_SDO CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_SDO_SEGMENTED | CO_CONFIG_SDO_BLOCK
+#endif
+
+#ifndef CO_CONFIG_SDO_BUFFER_SIZE
+#define CO_CONFIG_SDO_BUFFER_SIZE 889
+#endif
+
+#ifndef CO_CONFIG_EM
+#define CO_CONFIG_EM CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_EM_CONSUMER
+#endif
+
+#ifndef CO_CONFIG_HB_CONS
+#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_HB_CONS_CALLBACK_CHANGE | CO_CONFIG_HB_CONS_CALLBACK_MULTI | CO_CONFIG_HB_CONS_QUERY_FUNCT
+#endif
+
+#ifndef CO_CONFIG_SDO_CLI
+#define CO_CONFIG_SDO_CLI CO_CONFIG_FLAG_CALLBACK_PRE
+#endif
+
+#ifndef CO_CONFIG_LSS_MST
+#define CO_CONFIG_LSS_MST CO_CONFIG_FLAG_CALLBACK_PRE
 #endif
 
 

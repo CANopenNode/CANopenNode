@@ -137,13 +137,18 @@ extern "C" {
  * @{
  */
 /* Definitions valid only for documentation. */
-/** Number of NMT objects, fixed to 1 (slave(CANrx) + master(CANtx)) */
+/** Number of NMT objects, fixed to 1 slave(CANrx) */
 #define CO_NO_NMT (1)
+/** Number of NMT master objects, 0 or 1 master(CANtx). It depends on
+ * @ref CO_CONFIG_EM setting. */
+#define CO_NO_NMT_MST (0...1)
 /** Number of SYNC objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
 #define CO_NO_SYNC (0...1)
-/** Number of Emergency objects, fixed to 1 (consumer(CANrx) +
- * producer(CANtx)) */
+/** Number of Emergency producer objects, fixed to 1 producer(CANtx) */
 #define CO_NO_EMERGENCY (1)
+/** Number of Emergency consumer objects, 0 or 1 consumer(CANrx). It depends on
+ * @ref CO_CONFIG_EM setting. */
+#define CO_NO_EM_CONS (0...1)
 /** Number of Time-stamp objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
 #define CO_NO_TIME (0...1)
 /** Number of RPDO objects, 1 to 512 consumers (CANrx) */
@@ -165,11 +170,31 @@ extern "C" {
 /** Number of Trace objects, 0 to many */
 #define CO_NO_TRACE (0...)
 /** @} */
+
 #else  /* CO_DOXYGEN */
 
 /* Valid Definitions for program. */
-#define CO_NO_NMT     1             /* NMT master/slave count (fixed) */
-#define CO_NO_HB_PROD 1             /* Heartbeat producer count (fixed) */
+/* NMT slave count (fixed) */
+#define CO_NO_NMT     1
+
+/* NMT master count depends on stack configuration */
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
+#define CO_NO_NMT_MST 1
+#else
+#define CO_NO_NMT_MST 0
+#endif
+
+/* Emergency consumer depends on stack configuration */
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
+#define CO_NO_EM_CONS 1
+#else
+#define CO_NO_EM_CONS 0
+#endif
+
+/* Heartbeat producer count (fixed) */
+#define CO_NO_HB_PROD 1
+
+/* Heartbeat consumer count depends on Object Dictionary configuration */
 #ifdef ODL_consumerHeartbeatTime_arrayLength
     #define CO_NO_HB_CONS ODL_consumerHeartbeatTime_arrayLength
 #else
@@ -297,7 +322,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId);
  *        used in combination with callbacks configured with
  *        CO_***_initCallbackPre() functions. Those callbacks should also
  *        trigger calling of CO_process() function.
- *        See also @ref CO_CONFIG_FLAG_CANRX_CALLBACK configuration macro.
+ *        See also @ref CO_CONFIG_FLAG_CALLBACK_PRE configuration macro.
  *
  *        This is experimental feature and can be used for energy saving in case
  *        of low traffic on CAN bus. Parameter is ignored if NULL.

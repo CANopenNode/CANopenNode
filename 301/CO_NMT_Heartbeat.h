@@ -130,7 +130,7 @@ typedef enum{
  * @ref CO_NMT_statusLEDdiodes. Object is initialized by CO_NMT_init().
  */
 typedef struct{
-#if (CO_CONFIG_NMT & CO_CONFIG_NMT_LEDS) || defined CO_DOXYGEN
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_LEDS) || defined CO_DOXYGEN
     uint32_t            LEDtimer;       /**< 50ms led timer */
     int8_t              LEDflickering;  /**< See @ref CO_NMT_statusLEDdiodes */
     int8_t              LEDblinking;    /**< See @ref CO_NMT_statusLEDdiodes */
@@ -148,11 +148,21 @@ typedef struct{
     uint32_t            HBproducerTimer;/**< Internal timer for HB producer */
     uint32_t            firstHBTime;    /**< From CO_NMT_init() */
     CO_EMpr_t          *emPr;           /**< From CO_NMT_init() */
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
     CO_CANmodule_t     *NMT_CANdevTx;   /**< From CO_NMT_init() */
     CO_CANtx_t         *NMT_TXbuff;     /**< CAN transmit buffer for NMT master message */
+#endif
     CO_CANmodule_t     *HB_CANdevTx;    /**< From CO_NMT_init() */
     CO_CANtx_t         *HB_TXbuff;      /**< CAN transmit buffer for heartbeat message */
-    void              (*pFunctNMT)(CO_NMT_internalState_t state); /**< From CO_NMT_initCallbackChange() or NULL */
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+    /** From CO_NMT_initCallbackPre() or NULL */
+    void              (*pFunctSignalPre)(void *object);
+    /** From CO_NMT_initCallbackPre() or NULL */
+    void               *functSignalObjectPre;
+#endif
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) || defined CO_DOXYGEN
+    void              (*pFunctNMT)(CO_NMT_internalState_t state); /**< From CO_NMT_initCallbackChanged() or NULL */
+#endif
 }CO_NMT_t;
 
 
@@ -194,6 +204,27 @@ CO_ReturnError_t CO_NMT_init(
         uint16_t                HB_txIdx,
         uint16_t                CANidTxHB);
 
+
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+/**
+ * Initialize NMT callback function after message preprocessed.
+ *
+ * Function initializes optional callback function, which should immediately
+ * start processing of CO_NMT_process() function.
+ * Callback is called after NMT message is received from the CAN bus.
+ *
+ * @param NMT This object.
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_NMT_initCallbackPre(
+        CO_NMT_t               *NMT,
+        void                   *object,
+        void                  (*pFunctSignal)(void *object));
+#endif
+
+
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) || defined CO_DOXYGEN
 /**
  * Initialize NMT callback function.
  *
@@ -208,9 +239,10 @@ CO_ReturnError_t CO_NMT_init(
  * @param NMT This object.
  * @param pFunctNMT Pointer to the callback function. Not called if NULL.
  */
-void CO_NMT_initCallbackChange(
+void CO_NMT_initCallbackChanged(
         CO_NMT_t               *NMT,
         void                  (*pFunctNMT)(CO_NMT_internalState_t state));
+#endif
 
 
 /**
@@ -251,6 +283,7 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
         CO_NMT_t               *NMT);
 
 
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
 /**
  * Send NMT master command.
  *
@@ -269,6 +302,7 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
 CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
                                     CO_NMT_command_t command,
                                     uint8_t nodeID);
+#endif
 
 /** @} */
 

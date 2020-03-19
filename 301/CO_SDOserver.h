@@ -613,10 +613,12 @@ typedef struct{
     bool_t              endOfTransfer;
     /** Variable indicates, if new SDO message received from CAN bus */
     volatile void      *CANrxNew;
+#if ((CO_CONFIG_SDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_SDO_initCallbackPre() or NULL */
-    void              (*pFunctSignal)(void *object);
+    void              (*pFunctSignalPre)(void *object);
     /** From CO_SDO_initCallbackPre() or NULL */
-    void               *functSignalObject;
+    void               *functSignalObjectPre;
+#endif
     /** From CO_SDO_init() */
     CO_CANmodule_t     *CANdevTx;
     /** CAN transmit buffer inside CANdev for CAN tx message */
@@ -766,6 +768,7 @@ CO_ReturnError_t CO_SDO_init(
         uint16_t                CANdevTxIdx);
 
 
+#if ((CO_CONFIG_SDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
 /**
  * Initialize SDOrx callback function.
  *
@@ -775,13 +778,14 @@ CO_ReturnError_t CO_SDO_init(
  * when new call without delay is necessary (SDO block transfer is in progress).
  *
  * @param SDO This object.
- * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
- * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ * @param object Pointer to object, which will be passed to pFunctSignalPre(). Can be NULL
+ * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
  */
 void CO_SDO_initCallbackPre(
         CO_SDO_t               *SDO,
         void                   *object,
-        void                  (*pFunctSignal)(void *object));
+        void                  (*pFunctSignalPre)(void *object));
+#endif
 
 
 /**

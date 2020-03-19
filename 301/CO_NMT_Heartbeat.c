@@ -48,7 +48,9 @@ static void CO_NMT_receive(void *object, void *msg){
 
     if((DLC == 2) && ((nodeId == 0) || (nodeId == NMT->nodeId))){
         uint8_t command = data[0];
+#if (CO_CONFIG_NMT) & (CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_FLAG_CALLBACK_PRE)
         CO_NMT_internalState_t currentOperatingState = NMT->operatingState;
+#endif
 
         switch(command){
             case CO_NMT_ENTER_OPERATIONAL:
@@ -72,9 +74,17 @@ static void CO_NMT_receive(void *object, void *msg){
                 break;
         }
 
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
         if(NMT->pFunctNMT!=NULL && currentOperatingState!=NMT->operatingState){
             NMT->pFunctNMT(NMT->operatingState);
         }
+#endif
+#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
+    /* Optional signal to RTOS, which can resume task, which handles NMT. */
+    if(NMT->pFunctSignalPre != NULL && currentOperatingState!=NMT->operatingState) {
+        NMT->pFunctSignalPre(NMT->functSignalObjectPre);
+    }
+#endif
     }
 }
 
@@ -96,15 +106,18 @@ CO_ReturnError_t CO_NMT_init(
         uint16_t                CANidTxHB)
 {
     /* verify arguments */
-    if (NMT == NULL || emPr == NULL || NMT_CANdevRx == NULL ||
-        NMT_CANdevTx == NULL || HB_CANdevTx == NULL) {
+    if (NMT == NULL || emPr == NULL || NMT_CANdevRx == NULL || HB_CANdevTx == NULL
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
+        || NMT_CANdevTx == NULL
+#endif
+    ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* blinking bytes and LEDS */
-#if CO_CONFIG_NMT & CO_CONFIG_NMT_LEDS
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_LEDS
     NMT->LEDtimer               = 0;
     NMT->LEDflickering          = 0;
     NMT->LEDblinking            = 0;
@@ -123,7 +136,13 @@ CO_ReturnError_t CO_NMT_init(
     NMT->resetCommand           = 0;
     NMT->HBproducerTimer        = 0;
     NMT->emPr                   = emPr;
+#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
+    NMT->pFunctSignalPre = NULL;
+    NMT->functSignalObjectPre = NULL;
+#endif
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
     NMT->pFunctNMT              = NULL;
+#endif
 
     /* configure NMT CAN reception */
     ret = CO_CANrxBufferInit(
@@ -135,6 +154,7 @@ CO_ReturnError_t CO_NMT_init(
             (void*)NMT,         /* object passed to receive function */
             CO_NMT_receive);    /* this function will process received message */
 
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
     /* configure NMT CAN transmission */
     NMT->NMT_CANdevTx = NMT_CANdevTx;
     NMT->NMT_TXbuff = CO_CANtxBufferInit(
@@ -144,6 +164,10 @@ CO_ReturnError_t CO_NMT_init(
             0,                  /* rtr */
             2,                  /* number of data bytes */
             0);                 /* synchronous message flag bit */
+    if (NMT->NMT_TXbuff == NULL) {
+        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+#endif
 
     /* configure HB CAN transmission */
     NMT->HB_CANdevTx = HB_CANdevTx;
@@ -155,7 +179,7 @@ CO_ReturnError_t CO_NMT_init(
             1,                  /* number of data bytes */
             0);                 /* synchronous message flag bit */
 
-    if (NMT->NMT_TXbuff == NULL || NMT->HB_TXbuff == NULL) {
+    if (NMT->HB_TXbuff == NULL) {
         ret = CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -163,8 +187,23 @@ CO_ReturnError_t CO_NMT_init(
 }
 
 
+#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
+void CO_NMT_initCallbackPre(
+        CO_NMT_t               *NMT,
+        void                   *object,
+        void                  (*pFunctSignal)(void *object))
+{
+    if (NMT != NULL) {
+        NMT->pFunctSignalPre = pFunctSignal;
+        NMT->functSignalObjectPre = object;
+    }
+}
+#endif
+
+
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
 /******************************************************************************/
-void CO_NMT_initCallbackChange(
+void CO_NMT_initCallbackChanged(
         CO_NMT_t               *NMT,
         void                  (*pFunctNMT)(CO_NMT_internalState_t state))
 {
@@ -175,6 +214,7 @@ void CO_NMT_initCallbackChange(
         }
     }
 }
+#endif
 
 
 /******************************************************************************/
@@ -223,7 +263,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         CANpassive = 1;
 
 
-#if CO_CONFIG_NMT & CO_CONFIG_NMT_LEDS
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_LEDS
     NMT->LEDtimer += timeDifference_us;
     if (NMT->LEDtimer >= 50000) {
         NMT->LEDtimer -= 50000;
@@ -350,9 +390,11 @@ CO_NMT_reset_cmd_t CO_NMT_process(
     }
 
     if (currentOperatingState != NMT->operatingState) {
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
         if (NMT->pFunctNMT != NULL) {
             NMT->pFunctNMT(NMT->operatingState);
         }
+#endif
         /* execute next CANopen processing immediately */
         if (timerNext_us != NULL) {
             *timerNext_us = 0;
@@ -386,6 +428,7 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
 }
 
 
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
 /******************************************************************************/
 CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
                                     CO_NMT_command_t command,
@@ -433,3 +476,4 @@ CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
 
     return error;
 }
+#endif

@@ -136,10 +136,12 @@ typedef struct{
     volatile void      *CANrxNew;
     /** 8 data bytes of the received message */
     uint8_t             CANrxData[8];
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_SDOclient_initCallbackPre() or NULL */
     void              (*pFunctSignal)(void *object);
     /** From CO_SDOclient_initCallbackPre() or NULL */
     void               *functSignalObject;
+#endif
     /** From CO_SDOclient_init() */
     CO_CANmodule_t     *CANdevTx;
     /** CAN transmit buffer inside CANdevTx for CAN tx message */
@@ -198,6 +200,7 @@ CO_ReturnError_t CO_SDOclient_init(
         uint16_t                CANdevTxIdx);
 
 
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
 /**
  * Initialize SDOclient callback function.
  *
@@ -216,6 +219,7 @@ void CO_SDOclient_initCallbackPre(
         CO_SDOclient_t         *SDOclient,
         void                   *object,
         void                  (*pFunctSignal)(void *object));
+#endif
 
 
 /**

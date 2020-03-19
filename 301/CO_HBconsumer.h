@@ -77,17 +77,17 @@ typedef struct {
     uint32_t time_us;
     /** Indication if new Heartbeat message received from the CAN bus */
     volatile void *CANrxNew;
-#if (CO_CONFIG_HB_CONS & CO_CONFIG_FLAG_CANRX_CALLBACK) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_HBconsumer_initCallbackPre() or NULL */
-    void              (*pFunctSignalCanRx)(void *object);
+    void              (*pFunctSignalPre)(void *object);
     /** From CO_HBconsumer_initCallbackPre() or NULL */
-    void               *functSignalObjectCanRx;
+    void               *functSignalObjectPre;
 #endif
-#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) || defined CO_DOXYGEN
     /** Previous value of the remote node (Heartbeat payload) */
     CO_NMT_internalState_t NMTstatePrev;
 #endif
-#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_MULTI_CALLBACK) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) || defined CO_DOXYGEN
     /** Callback for heartbeat state change to active event.
      *  From CO_HBconsumer_initCallbackHeartbeatStarted() or NULL. */
     void (*pFunctSignalHbStarted)(uint8_t nodeId, uint8_t idx, void *object);
@@ -127,7 +127,7 @@ typedef struct{
     bool_t              NMTisPreOrOperationalPrev; /**< previous state of var */
     CO_CANmodule_t     *CANdevRx;         /**< From CO_HBconsumer_init() */
     uint16_t            CANdevRxIdxStart; /**< From CO_HBconsumer_init() */
-#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) || defined CO_DOXYGEN
     /** Callback for remote NMT changed event.
      *  From CO_HBconsumer_initCallbackNmtChanged() or NULL. */
     void (*pFunctSignalNmtChanged)(uint8_t nodeId,
@@ -188,7 +188,7 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
         uint8_t                 nodeId,
         uint16_t                consumerTime_ms);
 
-#if (CO_CONFIG_HB_CONS & CO_CONFIG_FLAG_CANRX_CALLBACK) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
 /**
  * Initialize Heartbeat consumer callback function.
  *
@@ -206,7 +206,7 @@ void CO_HBconsumer_initCallbackPre(
         void                  (*pFunctSignal)(void *object));
 #endif
 
-#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_CHANGE_CALLBACK) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) || defined CO_DOXYGEN
 /**
  * Initialize Heartbeat consumer NMT changed callback function.
  *
@@ -226,7 +226,7 @@ void CO_HBconsumer_initCallbackNmtChanged(
                                               void *object));
 #endif
 
-#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_MULTI_CALLBACK) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) || defined CO_DOXYGEN
 /**
  * Initialize Heartbeat consumer started callback function.
  *
@@ -281,7 +281,7 @@ void CO_HBconsumer_initCallbackRemoteReset(
         uint8_t                 idx,
         void                   *object,
         void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
-#endif /* CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_MULTI_CALLBACK */
+#endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI */
 
 /**
  * Process Heartbeat consumer object.
@@ -300,7 +300,7 @@ void CO_HBconsumer_process(
         uint32_t               *timerNext_us);
 
 
-#if (CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_QUERY_FUNCT) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_QUERY_FUNCT) || defined CO_DOXYGEN
 /**
  * Get the heartbeat producer object index by node ID
  *
@@ -338,7 +338,7 @@ int8_t CO_HBconsumer_getNmtState(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx,
         CO_NMT_internalState_t *nmtState);
-#endif /* CO_CONFIG_HB_CONS & CO_CONFIG_HB_CONS_QUERY_FUNCT */
+#endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_QUERY_FUNCT */
 
 #ifdef __cplusplus
 }

@@ -93,9 +93,20 @@ void threadMain_process(CO_NMT_reset_cmd_t *reset);
 /**
  * Initialize mainline thread - blocking.
  *
+ * Function must be called always in communication reset section, after
+ * CO_CANopenInit().
+ */
+void threadMainWait_init(void);
+
+
+/**
+ * Initialize once mainline thread - blocking.
+ *
+ * Function must be called only once, before node starts operating.
+ *
  * @param interval_us interval of the threadMainWait_process()
  */
-void threadMainWait_init(uint32_t interval_us);
+void threadMainWait_initOnce(uint32_t interval_us);
 
 
 /**

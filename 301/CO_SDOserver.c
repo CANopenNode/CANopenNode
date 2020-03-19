@@ -42,6 +42,9 @@
 #if CO_CONFIG_SDO_BUFFER_SIZE < 7
     #error CO_CONFIG_SDO_BUFFER_SIZE must be greater than 7
 #endif
+#if ((CO_CONFIG_SDO) & CO_CONFIG_SDO_BLOCK) && !((CO_CONFIG_SDO) & CO_CONFIG_SDO_SEGMENTED)
+    #error CO_CONFIG_SDO_BLOCK is enabled, CO_CONFIG_SDO_SEGMENTED must be enabled also.
+#endif
 
 
 /* Helper functions. **********************************************************/
@@ -238,10 +241,12 @@ static void CO_SDO_receive(void *object, void *msg){
             }
         }
 
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_CALLBACK_PRE
         /* Optional signal to RTOS, which can resume task, which handles SDO server. */
-        if(CO_FLAG_READ(SDO->CANrxNew) && SDO->pFunctSignal != NULL) {
-            SDO->pFunctSignal(SDO->functSignalObject);
+        if(CO_FLAG_READ(SDO->CANrxNew) && SDO->pFunctSignalPre != NULL) {
+            SDO->pFunctSignalPre(SDO->functSignalObjectPre);
         }
+#endif
     }
 }
 
@@ -323,9 +328,10 @@ CO_ReturnError_t CO_SDO_init(
     SDO->SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 1000;
     SDO->state = CO_SDO_ST_IDLE;
     CO_FLAG_CLEAR(SDO->CANrxNew);
-    SDO->pFunctSignal = NULL;
-    SDO->functSignalObject = NULL;
-
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+    SDO->pFunctSignalPre = NULL;
+    SDO->functSignalObjectPre = NULL;
+#endif
 
     /* Configure Object dictionary entry at index 0x1200 */
     if(ObjDictIndex_SDOServerParameter == OD_H1200_SDO_SERVER_PARAM){
@@ -365,17 +371,19 @@ CO_ReturnError_t CO_SDO_init(
 }
 
 
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_CALLBACK_PRE
 /******************************************************************************/
 void CO_SDO_initCallbackPre(
         CO_SDO_t               *SDO,
         void                   *object,
-        void                  (*pFunctSignal)(void *object))
+        void                  (*pFunctSignalPre)(void *object))
 {
     if(SDO != NULL){
-        SDO->functSignalObject = object;
-        SDO->pFunctSignal = pFunctSignal;
+        SDO->functSignalObjectPre = object;
+        SDO->pFunctSignalPre = pFunctSignalPre;
     }
 }
+#endif
 
 
 /******************************************************************************/

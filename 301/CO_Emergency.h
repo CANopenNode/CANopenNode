@@ -262,16 +262,20 @@ typedef struct{
     uint8_t            *bufReadPtr;         /**< Read pointer in the above buffer */
     uint8_t             bufFull;            /**< True if above buffer is full */
     uint8_t             wrongErrorReport;   /**< Error in arguments to CO_errorReport() */
+#if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_EM_initCallbackPre() or NULL */
-    void              (*pFunctSignal)(void *object);
+    void              (*pFunctSignalPre)(void *object);
     /** From CO_EM_initCallbackPre() or NULL */
-    void               *functSignalObject;
+    void               *functSignalObjectPre;
+#endif
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) || defined CO_DOXYGEN
     /** From CO_EM_initCallbackRx() or NULL */
     void              (*pFunctSignalRx)(const uint16_t ident,
                                         const uint16_t errorCode,
                                         const uint8_t errorRegister,
                                         const uint8_t errorBit,
                                         const uint32_t infoCode);
+#endif
 }CO_EM_t;
 
 
@@ -387,6 +391,7 @@ CO_ReturnError_t CO_EM_init(
         uint16_t                CANidTxEM);
 
 
+#if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
 /**
  * Initialize Emergency callback function.
  *
@@ -404,8 +409,10 @@ void CO_EM_initCallbackPre(
         CO_EM_t               *em,
         void                   *object,
         void                  (*pFunctSignal)(void *object));
+#endif
 
 
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) || defined CO_DOXYGEN
 /**
  * Initialize Emergency received callback function.
  *
@@ -428,6 +435,7 @@ void CO_EM_initCallbackRx(
                                                 const uint8_t errorRegister,
                                                 const uint8_t errorBit,
                                                 const uint32_t infoCode));
+#endif
 
 
 /**

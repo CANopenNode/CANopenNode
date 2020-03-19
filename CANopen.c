@@ -68,7 +68,7 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #define CO_RXCAN_NMT      0
 #define CO_RXCAN_SYNC    (CO_RXCAN_NMT      + CO_NO_NMT)
 #define CO_RXCAN_EMERG   (CO_RXCAN_SYNC     + CO_NO_SYNC)
-#define CO_RXCAN_TIME    (CO_RXCAN_EMERG    + CO_NO_EMERGENCY)
+#define CO_RXCAN_TIME    (CO_RXCAN_EMERG    + CO_NO_EM_CONS)
 #define CO_RXCAN_RPDO    (CO_RXCAN_TIME     + CO_NO_TIME)
 #define CO_RXCAN_SDO_SRV (CO_RXCAN_RPDO     + CO_NO_RPDO)
 #define CO_RXCAN_SDO_CLI (CO_RXCAN_SDO_SRV  + CO_NO_SDO_SERVER)
@@ -76,7 +76,7 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #define CO_RXCAN_LSS     (CO_RXCAN_CONS_HB  + CO_NO_HB_CONS)
 #define CO_RXCAN_NO_MSGS (CO_NO_NMT         + \
                           CO_NO_SYNC        + \
-                          CO_NO_EMERGENCY   + \
+                          CO_NO_EM_CONS     + \
                           CO_NO_TIME        + \
                           CO_NO_RPDO        + \
                           CO_NO_SDO_SERVER  + \
@@ -87,7 +87,7 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 
 /* Indexes of CO_CANtx_t objects in CO_CANmodule_t and total number of them. **/
 #define CO_TXCAN_NMT      0
-#define CO_TXCAN_SYNC    (CO_TXCAN_NMT      + CO_NO_NMT)
+#define CO_TXCAN_SYNC    (CO_TXCAN_NMT      + CO_NO_NMT_MST)
 #define CO_TXCAN_EMERG   (CO_TXCAN_SYNC     + CO_NO_SYNC)
 #define CO_TXCAN_TIME    (CO_TXCAN_EMERG    + CO_NO_EMERGENCY)
 #define CO_TXCAN_TPDO    (CO_TXCAN_TIME     + CO_NO_TIME)
@@ -95,7 +95,7 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #define CO_TXCAN_SDO_CLI (CO_TXCAN_SDO_SRV  + CO_NO_SDO_SERVER)
 #define CO_TXCAN_HB      (CO_TXCAN_SDO_CLI  + CO_NO_SDO_CLIENT)
 #define CO_TXCAN_LSS     (CO_TXCAN_HB       + CO_NO_HB_PROD)
-#define CO_TXCAN_NO_MSGS (CO_NO_NMT         + \
+#define CO_TXCAN_NO_MSGS (CO_NO_NMT_MST     + \
                           CO_NO_SYNC        + \
                           CO_NO_EMERGENCY   + \
                           CO_NO_TIME        + \
@@ -656,7 +656,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                   OD_inhibitTimeEMCY,
                   timerNext_us);
 
-
     /* NMT_Heartbeat */
     reset = CO_NMT_process(co->NMT,
                            timeDifference_us,
@@ -665,7 +664,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                            OD_errorRegister,
                            OD_errorBehavior,
                            timerNext_us);
-
 
 #if CO_NO_TIME == 1
     /* TIME */

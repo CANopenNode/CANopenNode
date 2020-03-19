@@ -2052,11 +2052,11 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = CO_DOXYGEN \
+PREDEFINED             = CO_DOXYGEN=1 \
                          CO_NO_SYNC=1 \
                          CO_NO_SDO_CLIENT=1 \
                          CO_NO_NMT_MASTER=1 \
-                         CO_NO_LSS_SERVER \
+                         CO_NO_LSS_SERVER=1 \
                          CO_NO_LSS_CLIENT=1 \
                          CO_NO_TRACE=1
 

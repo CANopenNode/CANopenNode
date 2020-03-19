@@ -96,10 +96,12 @@ static void CO_LSSmaster_receive(void *object, void *msg)
 
         CO_FLAG_SET(LSSmaster->CANrxNew);
 
+#if (CO_CONFIG_LSS_MST) & CO_CONFIG_FLAG_CALLBACK_PRE
         /* Optional signal to RTOS, which can resume task, which handles further processing. */
         if(LSSmaster->pFunctSignal != NULL) {
             LSSmaster->pFunctSignal(LSSmaster->functSignalObject);
         }
+#endif
     }
 }
 
@@ -150,8 +152,10 @@ CO_ReturnError_t CO_LSSmaster_init(
     LSSmaster->timeoutTimer = 0;
     CO_FLAG_CLEAR(LSSmaster->CANrxNew);
     CO_memset(LSSmaster->CANrxData, 0, sizeof(LSSmaster->CANrxData));
+#if (CO_CONFIG_LSS_MST) & CO_CONFIG_FLAG_CALLBACK_PRE
     LSSmaster->pFunctSignal = NULL;
     LSSmaster->functSignalObject = NULL;
+#endif
 
     /* configure LSS CAN Slave response message reception */
     ret = CO_CANrxBufferInit(
@@ -192,6 +196,7 @@ void CO_LSSmaster_changeTimeout(
 }
 
 
+#if (CO_CONFIG_LSS_MST) & CO_CONFIG_FLAG_CALLBACK_PRE
 /******************************************************************************/
 void CO_LSSmaster_initCallbackPre(
         CO_LSSmaster_t         *LSSmaster,
@@ -203,6 +208,8 @@ void CO_LSSmaster_initCallbackPre(
         LSSmaster->pFunctSignal = pFunctSignal;
     }
 }
+#endif
+
 
 /*
  * Helper function - initiate switch state

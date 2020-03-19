@@ -56,6 +56,7 @@ void threadMain_init(void (*callback)(void*), void *object)
 {
     threadMain.start = CO_LinuxThreads_clock_gettime_us();
 
+    CO_NMT_initCallbackPre(CO->NMT, object, callback);
     CO_SDO_initCallbackPre(CO->SDO[0], object, callback);
     CO_EM_initCallbackPre(CO->em, object, callback);
     CO_HBconsumer_initCallbackPre(CO->HBcons, object, callback);
@@ -63,6 +64,7 @@ void threadMain_init(void (*callback)(void*), void *object)
 
 void threadMain_close(void)
 {
+    CO_NMT_initCallbackPre(CO->NMT, NULL, NULL);
     CO_SDO_initCallbackPre(CO->SDO[0], NULL, NULL);
     CO_EM_initCallbackPre(CO->em, NULL, NULL);
     CO_HBconsumer_initCallbackPre(CO->HBcons, NULL, NULL);
@@ -110,18 +112,22 @@ static void threadMainWait_callback(void *object)
     }
 }
 
-void threadMainWait_init(uint32_t interval_us)
+void threadMainWait_init(void)
 {
-    int32_t ret;
-    struct epoll_event ev;
-
     /* Configure callback functions */
+    CO_NMT_initCallbackPre(CO->NMT, NULL, threadMainWait_callback);
     CO_SDO_initCallbackPre(CO->SDO[0], NULL, threadMainWait_callback);
     CO_EM_initCallbackPre(CO->em, NULL, threadMainWait_callback);
     CO_HBconsumer_initCallbackPre(CO->HBcons, NULL, threadMainWait_callback);
 
     /* Initial value for time calculation */
     threadMainWait.start = CO_LinuxThreads_clock_gettime_us();
+}
+
+void threadMainWait_initOnce(uint32_t interval_us)
+{
+    int32_t ret;
+    struct epoll_event ev;
 
     /* Configure epoll for mainline */
     threadMainWait.epoll_fd = epoll_create(1);
@@ -171,6 +177,7 @@ void threadMainWait_init(uint32_t interval_us)
 
 void threadMainWait_close(void)
 {
+    CO_NMT_initCallbackPre(CO->NMT, NULL, NULL);
     CO_SDO_initCallbackPre(CO->SDO[0], NULL, NULL);
     CO_EM_initCallbackPre(CO->em, NULL, NULL);
     CO_HBconsumer_initCallbackPre(CO->HBcons, NULL, NULL);
