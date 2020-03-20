@@ -275,12 +275,14 @@ CO_NMT_reset_cmd_t CO_NMT_process(
     if (NMT->LEDtimer >= 50000) {
         NMT->LEDtimer -= 50000;
 
+#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
         if (timerNext_us != NULL) {
             uint32_t diff = 50000 - NMT->LEDtimer;
             if (*timerNext_us > diff) {
                 *timerNext_us = diff;
             }
         }
+#endif
 
         if (++NMT->LEDflickering >= 1) NMT->LEDflickering = -1;
 
@@ -402,12 +404,15 @@ CO_NMT_reset_cmd_t CO_NMT_process(
             NMT->pFunctNMT(NMT->operatingState);
         }
 #endif
+#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
         /* execute next CANopen processing immediately */
         if (timerNext_us != NULL) {
             *timerNext_us = 0;
         }
+#endif
     }
 
+#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
     /* Calculate, when next Heartbeat needs to be send and lower timerNext_us if necessary. */
     if (HBtime != 0 && timerNext_us != NULL) {
         if (NMT->HBproducerTimer < HBtime) {
@@ -419,6 +424,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
             *timerNext_us = 0;
         }
     }
+#endif
 
     return (CO_NMT_reset_cmd_t) NMT->resetCommand;
 }

@@ -900,6 +900,7 @@ int8_t CO_SDO_process(
             return -1;
         }
     }
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_TIMERNEXT
     else if (timerNext_us != NULL) {
         /* check again after timeout time elapsed */
         uint32_t diff = SDO->SDOtimeoutTime_us - SDO->timeoutTimer;
@@ -907,6 +908,7 @@ int8_t CO_SDO_process(
             *timerNext_us = diff;
         }
     }
+#endif
 
     /* return immediately if still idle */
     if(state == CO_SDO_ST_IDLE){
@@ -952,8 +954,10 @@ int8_t CO_SDO_process(
                 /* finish the communication and run mainline processing again */
                 SDO->state = CO_SDO_ST_IDLE;
                 sendResponse = true;
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_TIMERNEXT
                 if (timerNext_us != NULL)
                     *timerNext_us = 0;
+#endif
             }
 
             /* Segmented transfer */
@@ -1030,8 +1034,10 @@ int8_t CO_SDO_process(
 
                 /* finish the communication and run mainline processing again */
                 SDO->state = CO_SDO_ST_IDLE;
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_TIMERNEXT
                 if (timerNext_us != NULL)
                     *timerNext_us = 0;
+#endif
             }
 
             /* download segment response and alternate toggle bit */
@@ -1177,8 +1183,10 @@ int8_t CO_SDO_process(
             SDO->CANtxBuff->data[0] = 0xA1;
             SDO->state = CO_SDO_ST_IDLE;
             sendResponse = true;
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_TIMERNEXT
             if (timerNext_us != NULL)
                 *timerNext_us = 0;
+#endif
             break;
         }
 
@@ -1198,8 +1206,10 @@ int8_t CO_SDO_process(
                 /* finish the communication and run mainline processing again */
                 SDO->state = CO_SDO_ST_IDLE;
                 sendResponse = true;
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_TIMERNEXT
                 if (timerNext_us != NULL)
                     *timerNext_us = 0;
+#endif
             }
 
             /* Segmented transfer */
@@ -1284,8 +1294,10 @@ int8_t CO_SDO_process(
 
                 /* finish the communication and run mainline processing again */
                 SDO->state = CO_SDO_ST_IDLE;
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_TIMERNEXT
                 if (timerNext_us != NULL)
                     *timerNext_us = 0;
+#endif
             }
 
             /* send response */
@@ -1474,10 +1486,12 @@ int8_t CO_SDO_process(
             /* send response */
             CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
 
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_TIMERNEXT
             /* Inform OS to call this function again without delay. */
             if (timerNext_us != NULL) {
                 *timerNext_us = 0;
             }
+#endif
 
             /* don't call CO_FLAG_CLEAR, so return directly */
             return 1;
@@ -1492,8 +1506,10 @@ int8_t CO_SDO_process(
 
             /* finish the communication and run mainline processing again */
             SDO->state = CO_SDO_ST_IDLE;
+#if (CO_CONFIG_SDO) & CO_CONFIG_FLAG_TIMERNEXT
             if (timerNext_us != NULL)
                 *timerNext_us = 0;
+#endif
             break;
         }
 

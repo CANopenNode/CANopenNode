@@ -74,11 +74,24 @@ extern "C" {
 
 
 /**
+ * Enable calculation of timerNext_us variable.
+ *
+ * Calculation of the timerNext_us variable is useful for smooth operation on
+ * operating system. See also @ref CO_process() function.
+ *
+ * This flag is common to multiple configuration macros.
+ */
+#define CO_CONFIG_FLAG_TIMERNEXT 0x0200
+
+
+/**
  * Configuration of NMT_Heartbeat object
  *
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received NMT CAN message.
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_NMT_process().
  *   Callback is configured by CO_NMT_initCallbackPre().
  * - CO_CONFIG_NMT_CALLBACK_CHANGE - Enable custom callback after NMT
  *   state changes. Callback is configured by
@@ -88,7 +101,7 @@ extern "C" {
  *   be used for LEDs.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_NMT CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_NMT_MASTER | CO_CONFIG_NMT_LEDS
+#define CO_CONFIG_NMT CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_NMT_MASTER | CO_CONFIG_NMT_LEDS
 #endif
 #define CO_CONFIG_NMT_CALLBACK_CHANGE 0x01
 #define CO_CONFIG_NMT_MASTER 0x02
@@ -101,13 +114,15 @@ extern "C" {
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received SDO CAN message.
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_SDO_process().
  *   Callback is configured by CO_SDO_initCallbackPre().
  * - CO_CONFIG_SDO_SEGMENTED - Enable SDO server segmented transfer.
  * - CO_CONFIG_SDO_BLOCK - Enable SDO server block transfer. If set, then
  *   CO_CONFIG_SDO_SEGMENTED must also be set.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SDO CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_SDO_SEGMENTED | CO_CONFIG_SDO_BLOCK
+#define CO_CONFIG_SDO CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_SDO_SEGMENTED | CO_CONFIG_SDO_BLOCK
 #endif
 /* TODO with new OD */
 #define CO_CONFIG_SDO_SEGMENTED 0x01
@@ -136,10 +151,12 @@ extern "C" {
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   emergency condition by CO_errorReport() or CO_errorReset() call.
  *   Callback is configured by CO_EM_initCallbackPre().
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_EM_process().
  * - CO_CONFIG_EM_CONSUMER - Enable emergency consumer.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_EM CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_EM_CONSUMER
+#define CO_CONFIG_EM CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_EM_CONSUMER
 #endif
 #define CO_CONFIG_EM_CONSUMER 0x01
 
@@ -151,6 +168,8 @@ extern "C" {
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received heartbeat CAN message.
  *   Callback is configured by CO_HBconsumer_initCallbackPre().
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_HBconsumer_process().
  * - CO_CONFIG_HB_CONS_CALLBACK_CHANGE - Enable custom callback after NMT
  *   state of the monitored node changes. Callback is configured by
  *   CO_HBconsumer_initCallbackNmtChanged().
@@ -163,11 +182,35 @@ extern "C" {
  *   NMT state of the specific monitored node.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_HB_CONS_CALLBACK_CHANGE | CO_CONFIG_HB_CONS_CALLBACK_MULTI | CO_CONFIG_HB_CONS_QUERY_FUNCT
+#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_HB_CONS_CALLBACK_CHANGE | CO_CONFIG_HB_CONS_CALLBACK_MULTI | CO_CONFIG_HB_CONS_QUERY_FUNCT
 #endif
 #define CO_CONFIG_HB_CONS_CALLBACK_CHANGE 0x01
 #define CO_CONFIG_HB_CONS_CALLBACK_MULTI 0x02
 #define CO_CONFIG_HB_CONS_QUERY_FUNCT 0x04
+
+
+/**
+ * Configuration of PDO
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_TPDO_process().
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_PDO CO_CONFIG_FLAG_TIMERNEXT
+#endif
+
+
+/**
+ * Configuration of SYNC
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_SYNC_process().
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_SYNC CO_CONFIG_FLAG_TIMERNEXT
+#endif
 
 
 /**
@@ -177,9 +220,12 @@ extern "C" {
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received SDO CAN message.
  *   Callback is configured by CO_SDOclient_initCallbackPre().
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_SDOclientDownloadInitiate(), CO_SDOclientDownload(),
+ *   CO_SDOclientUploadInitiate(), CO_SDOclientUpload().
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SDO_CLI CO_CONFIG_FLAG_CALLBACK_PRE
+#define CO_CONFIG_SDO_CLI CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT
 #endif
 
 

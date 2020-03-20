@@ -386,6 +386,7 @@ void CO_HBconsumer_process(
                     monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
                 }
 
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_TIMERNEXT
                 else if (timerNext_us != NULL) {
                     /* Calculate timerNext_us for next timeout checking. */
                     uint32_t diff = monitoredNode->time_us
@@ -394,6 +395,7 @@ void CO_HBconsumer_process(
                         *timerNext_us = diff;
                     }
                 }
+#endif
             }
 
             if(monitoredNode->HBstate != CO_HBconsumer_ACTIVE) {

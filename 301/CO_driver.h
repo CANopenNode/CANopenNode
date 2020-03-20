@@ -57,6 +57,14 @@ extern "C" {
 #define CO_CONFIG_HB_CONS 0
 #endif
 
+#ifndef CO_CONFIG_PDO
+#define CO_CONFIG_PDO 0
+#endif
+
+#ifndef CO_CONFIG_SYNC
+#define CO_CONFIG_SYNC 0
+#endif
+
 #ifndef CO_CONFIG_SDO_CLI
 #define CO_CONFIG_SDO_CLI 0
 #endif

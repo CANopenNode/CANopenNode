@@ -343,7 +343,6 @@ uint8_t CO_SYNC_process(
 
         /* SYNC producer */
         if(SYNC->isProducer && SYNC->periodTime){
-            uint32_t diff;
             if(SYNC->timer >= SYNC->periodTime){
                 if(++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
                 SYNC->timer = 0;
@@ -351,17 +350,16 @@ uint8_t CO_SYNC_process(
                 SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
                 SYNC->CANtxBuff->data[0] = SYNC->counter;
                 CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
-                diff = SYNC->periodTime;
-            }else{
-                /* Calculate when next SYNC needs to be sent */
-                diff = SYNC->periodTime - SYNC->timer;
             }
-            /* Set lower timerNext_us if necessary. */
+#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
+            /* Calculate when next SYNC needs to be sent */
             if(timerNext_us != NULL){
+                uint32_t diff = SYNC->periodTime - SYNC->timer;
                 if(*timerNext_us > diff){
                     *timerNext_us = diff;
                 }
             }
+#endif
         }
 
         /* Synchronous PDOs are allowed only inside time window */
@@ -385,12 +383,14 @@ uint8_t CO_SYNC_process(
             if(SYNC->timer > SYNC->periodTimeoutTime) {
                 CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
             }
+#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
             else if(timerNext_us != NULL) {
                 uint32_t diff = SYNC->periodTimeoutTime - SYNC->timer;
                 if(*timerNext_us > diff){
                     *timerNext_us = diff;
                 }
             }
+#endif
         }
     }
     else {

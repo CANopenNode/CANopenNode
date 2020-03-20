@@ -991,6 +991,7 @@ void CO_TPDO_process(
                     TPDO->eventTimer = ((uint32_t) TPDO->TPDOCommPar->eventTimer) * 1000;
                 }
             }
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_TIMERNEXT
             if(timerNext_us != NULL){
                 if(TPDO->sendRequest && *timerNext_us > TPDO->inhibitTimer){
                     *timerNext_us = TPDO->inhibitTimer; /* Schedule for just beyond inhibit window */
@@ -998,6 +999,7 @@ void CO_TPDO_process(
                     *timerNext_us = TPDO->eventTimer; /* Schedule for next maximum event time */
                 }
             }
+#endif
         }
 
         /* Synchronous PDOs */

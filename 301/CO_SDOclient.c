@@ -372,10 +372,12 @@ CO_SDOclient_return_t CO_SDOclientDownloadInitiate(
     /* if nodeIDOfTheSDOServer == node-ID of this node, then exchange data with this node */
     if(SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId){
 
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
         /* Optional signal to RTOS. We can immediately continue SDO Client */
         if(timerNext_us != NULL) {
             *timerNext_us = 0;
         }
+#endif
 
         return CO_SDOcli_ok_communicationEnd;
     }
@@ -642,6 +644,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
         CO_SDOclient_abort(SDO_C, *pSDOabortCode);
         return CO_SDOcli_endedWithTimeout;
     }
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
     else if (timerNext_us != NULL) {
         /* check again after timeout time elapsed */
         uint32_t diff = SDO_C->SDOtimeoutTime_us - SDO_C->timeoutTimer;
@@ -649,6 +652,7 @@ CO_SDOclient_return_t CO_SDOclientDownload(
             *timerNext_us = diff;
         }
     }
+#endif
 
 /*  TX data ******************************************************************************************* */
     if(SDO_C->CANtxBuff->bufferFull) {
@@ -720,12 +724,14 @@ CO_SDOclient_return_t CO_SDOclientDownload(
             else if (SDO_C->block_seqno >= SDO_C->block_blksize) {
                 SDO_C->state = SDO_STATE_BLOCKDOWNLOAD_BLOCK_ACK;
             }
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
             else {
                 /* Inform OS to call this function again without delay. */
                 if (timerNext_us != NULL) {
                     *timerNext_us = 0;
                 }
             }
+#endif
 
             /*  tx data */
             SDO_C->timeoutTimer = 0;
@@ -830,10 +836,12 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(
     /* if nodeIDOfTheSDOServer == node-ID of this node, then exchange data with this node */
     if(SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId){
 
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
         /* Optional signal to RTOS. We can immediately continue SDO Client */
         if(timerNext_us != NULL) {
             *timerNext_us = 0;
         }
+#endif
 
         return CO_SDOcli_ok_communicationEnd;
     }
@@ -1156,6 +1164,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
         CO_SDOclient_abort(SDO_C, *pSDOabortCode);
         return CO_SDOcli_endedWithTimeout;
     }
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
     else if (timerNext_us != NULL) {
         /* check again after timeout time elapsed */
         uint32_t diff = SDO_C->SDOtimeoutTime_us - SDO_C->timeoutTimer;
@@ -1163,11 +1172,13 @@ CO_SDOclient_return_t CO_SDOclientUpload(
             *timerNext_us = diff;
         }
     }
+#endif
 
     /*  block TMO */
     if (SDO_C->timeoutTimerBLOCK >= SDO_C->SDOtimeoutTimeHalf_us) {
         SDO_C->state = SDO_STATE_BLOCKUPLOAD_BLOCK_ACK;
     }
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
     else if (timerNext_us != NULL) {
         /* check again after inhibit time elapsed */
         uint32_t diff = SDO_C->SDOtimeoutTimeHalf_us - SDO_C->timeoutTimerBLOCK;
@@ -1175,6 +1186,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(
             *timerNext_us = diff;
         }
     }
+#endif
 
 
 /*  TX data ******************************************************************************** */

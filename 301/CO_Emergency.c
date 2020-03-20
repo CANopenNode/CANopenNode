@@ -308,7 +308,6 @@ void CO_EM_process(
             (em->bufReadPtr != em->bufWritePtr || em->bufFull))
     {
         uint32_t preDEF;    /* preDefinedErrorField */
-        uint16_t diff;
 
         if (emPr->inhibitEmTimer >= emInhTime_us) {
             /* inhibit time elapsed, send message */
@@ -367,13 +366,16 @@ void CO_EM_process(
             CO_CANsend(emPr->CANdev, emPr->CANtxBuff);
 
         }
+#if (CO_CONFIG_EM) & CO_CONFIG_FLAG_TIMERNEXT
         else if (timerNext_us != NULL) {
+            uint32_t diff;
             /* check again after inhibit time elapsed */
             diff = emInhTime_us - emPr->inhibitEmTimer;
             if (*timerNext_us > diff) {
                 *timerNext_us = diff;
             }
         }
+#endif
     }
 
     return;
