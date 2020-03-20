@@ -58,7 +58,7 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_PDO
-#define CO_CONFIG_PDO 0
+#define CO_CONFIG_PDO CO_CONFIG_PDO_SYNC_ENABLE
 #endif
 
 #ifndef CO_CONFIG_SYNC

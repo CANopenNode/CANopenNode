@@ -165,7 +165,6 @@ typedef struct{
 typedef struct{
     CO_EM_t            *em;             /**< From CO_RPDO_init() */
     CO_SDO_t           *SDO;            /**< From CO_RPDO_init() */
-    CO_SYNC_t          *SYNC;           /**< From CO_RPDO_init() */
     const CO_RPDOCommPar_t *RPDOCommPar;/**< From CO_RPDO_init() */
     const CO_RPDOMapPar_t  *RPDOMapPar; /**< From CO_RPDO_init() */
     CO_NMT_internalState_t *operatingState; /**< From CO_RPDO_init() */
@@ -174,16 +173,22 @@ typedef struct{
     uint8_t             restrictionFlags;/**< From CO_RPDO_init() */
     /** True, if PDO is enabled and valid */
     bool_t              valid;
-    /** True, if PDO synchronous (transmissionType <= 240) */
-    bool_t              synchronous;
     /** Data length of the received PDO message. Calculated from mapping */
     uint8_t             dataLength;
     /** Pointers to 8 data objects, where PDO will be copied */
     uint8_t            *mapPointer[8];
+#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+    CO_SYNC_t          *SYNC;           /**< From CO_RPDO_init() */
+    /** True, if PDO synchronous (transmissionType <= 240) */
+    bool_t              synchronous;
     /** Variable indicates, if new PDO message received from CAN bus. */
     volatile void      *CANrxNew[2];
     /** 8 data bytes of the received message. */
     uint8_t             CANrxData[2][8];
+#else
+    volatile void      *CANrxNew[1];
+    uint8_t             CANrxData[1][8];
+#endif
     CO_CANmodule_t     *CANdevRx;       /**< From CO_RPDO_init() */
     uint16_t            CANdevRxIdx;    /**< From CO_RPDO_init() */
 }CO_RPDO_t;
@@ -195,7 +200,6 @@ typedef struct{
 typedef struct{
     CO_EM_t            *em;             /**< From CO_TPDO_init() */
     CO_SDO_t           *SDO;            /**< From CO_TPDO_init() */
-    CO_SYNC_t          *SYNC;           /**< From CO_TPDO_init() */
     const CO_TPDOCommPar_t *TPDOCommPar;/**< From CO_TPDO_init() */
     const CO_TPDOMapPar_t  *TPDOMapPar; /**< From CO_TPDO_init() */
     CO_NMT_internalState_t *operatingState; /**< From CO_TPDO_init() */
@@ -210,16 +214,19 @@ typedef struct{
     uint8_t             sendRequest;
     /** Pointers to 8 data objects, where PDO will be copied */
     uint8_t            *mapPointer[8];
-    /** Each flag bit is connected with one mapPointer. If flag bit
-    is true, CO_TPDO_process() functiuon will send PDO if
-    Change of State is detected on value pointed by that mapPointer */
-    uint8_t             sendIfCOSFlags;
-    /** SYNC counter used for PDO sending */
-    uint8_t             syncCounter;
     /** Inhibit timer used for inhibit PDO sending translated to microseconds */
     uint32_t            inhibitTimer;
     /** Event timer used for PDO sending translated to microseconds */
     uint32_t            eventTimer;
+    /** Each flag bit is connected with one mapPointer. If flag bit
+    is true, CO_TPDO_process() functiuon will send PDO if
+    Change of State is detected on value pointed by that mapPointer */
+    uint8_t             sendIfCOSFlags;
+#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+    /** SYNC counter used for PDO sending */
+    uint8_t             syncCounter;
+    CO_SYNC_t          *SYNC;           /**< From CO_TPDO_init() */
+#endif
     CO_CANmodule_t     *CANdevTx;       /**< From CO_TPDO_init() */
     CO_CANtx_t         *CANtxBuff;      /**< CAN transmit buffer inside CANdev */
     uint16_t            CANdevTxIdx;    /**< From CO_TPDO_init() */
@@ -234,7 +241,7 @@ typedef struct{
  * @param RPDO This object will be initialized.
  * @param em Emergency object.
  * @param SDO SDO server object.
- * @param SYNC SYNC object.
+ * @param SYNC void pointer to SYNC object or NULL.
  * @param operatingState Pointer to variable indicating CANopen device NMT internal state.
  * @param nodeId CANopen Node ID of this device. If default COB_ID is used, value will be added.
  * @param defaultCOB_ID Default COB ID for this PDO (without NodeId).
@@ -260,7 +267,7 @@ CO_ReturnError_t CO_RPDO_init(
         CO_RPDO_t              *RPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        CO_SYNC_t              *SYNC,
+        void                   *SYNC,
         CO_NMT_internalState_t *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
@@ -281,7 +288,7 @@ CO_ReturnError_t CO_RPDO_init(
  * @param TPDO This object will be initialized.
  * @param em Emergency object.
  * @param SDO SDO object.
- * @param SYNC SYNC object.
+ * @param SYNC void pointer to SYNC object or NULL.
  * @param operatingState Pointer to variable indicating CANopen device NMT internal state.
  * @param nodeId CANopen Node ID of this device. If default COB_ID is used, value will be added.
  * @param defaultCOB_ID Default COB ID for this PDO (without NodeId).
@@ -307,7 +314,7 @@ CO_ReturnError_t CO_TPDO_init(
         CO_TPDO_t              *TPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        CO_SYNC_t              *SYNC,
+        void                   *SYNC,
         CO_NMT_internalState_t *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
