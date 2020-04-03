@@ -259,7 +259,7 @@ void CO_NMT_initCallbackChanged(
  * @param errorBehavior pointer to _Error behavior_ array (object dictionary, index 0x1029).
  *        Object controls, if device should leave NMT operational state.
  *        Length of array must be 6. If pointer is NULL, no calculation is made.
- * @param timerNext_us [out] info to OS - see CO_process().
+ * @param [out] timerNext_us info to OS - see CO_process().
  *
  * @return #CO_NMT_reset_cmd_t
  */

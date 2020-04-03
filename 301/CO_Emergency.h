@@ -449,7 +449,7 @@ void CO_EM_initCallbackRx(
  * @param NMTisPreOrOperational True if this node is NMT_PRE_OPERATIONAL or NMT_OPERATIONAL.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param emInhTime _Inhibit time EMCY_ in [100*us] (object dictionary, index 0x1015).
- * @param timerNext_us [out] info to OS - see CO_process().
+ * @param [out] timerNext_us info to OS - see CO_process().
  */
 void CO_EM_process(
         CO_EMpr_t              *emPr,

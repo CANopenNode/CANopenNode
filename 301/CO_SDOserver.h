@@ -797,7 +797,7 @@ void CO_SDO_initCallbackPre(
  * @param NMTisPreOrOperational Different than zero, if #CO_NMT_internalState_t is
  * NMT_PRE_OPERATIONAL or NMT_OPERATIONAL.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
- * @param timerNext_us [out] info to OS - see CO_process().
+ * @param [out] timerNext_us info to OS - see CO_process().
  *
  * @return 0: SDO server is idle.
  * @return 1: SDO server is in transfer state.

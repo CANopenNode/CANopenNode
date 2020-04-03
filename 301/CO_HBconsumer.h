@@ -291,7 +291,7 @@ void CO_HBconsumer_initCallbackRemoteReset(
  * @param HBcons This object.
  * @param NMTisPreOrOperational True if this node is NMT_PRE_OPERATIONAL or NMT_OPERATIONAL.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
- * @param timerNext_us [out] info to OS - see CO_process().
+ * @param [out] timerNext_us info to OS - see CO_process().
  */
 void CO_HBconsumer_process(
         CO_HBconsumer_t        *HBcons,

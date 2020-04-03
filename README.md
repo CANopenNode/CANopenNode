@@ -44,7 +44,7 @@ Characteristics
  - [Multithreaded, real-time](#flowchart-of-a-typical-canopennode-implementation)
  - [Object Dictionary editor](#object-dictionary-editor)
  - Non-volatile storage.
- - [Power saving possible](#power-saving) (experimental)
+ - [Power saving possible](#power-saving)
  - [Bootloader possible](https://github.com/CANopenNode/CANopenNode/issues/111) (for firmware update)
 
 
@@ -231,7 +231,7 @@ then NMT operational state is not allowed.
 ### Power saving
 All CANopen objects calculates next timer info for OS. Calculation is based on
 various timers which expire in known time. Can be used to put microcontroller
-into sleep and wake at the calculated time. This is experimental.
+into sleep and wake at the calculated time.
 
 
 Change Log

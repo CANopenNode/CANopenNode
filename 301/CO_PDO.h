@@ -381,7 +381,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO, bool_t syncWas);
  * @param TPDO This object.
  * @param syncWas True, if CANopen SYNC message was just received or transmitted.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
- * @param timerNext_us [out] info to OS - see CO_process_SYNC_PDO().
+ * @param [out] timerNext_us info to OS - see CO_process_SYNC_PDO().
  */
 void CO_TPDO_process(
         CO_TPDO_t              *TPDO,

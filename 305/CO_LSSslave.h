@@ -301,8 +301,8 @@ CO_ReturnError_t CO_LSSslave_init(
  * @param LSSslave This object.
  * @param activeBitRate Currently active bit rate
  * @param activeNodeId Currently active node ID
- * @param pendingBitRate [out] Requested bit rate
- * @param pendingNodeId [out] Requested node id
+ * @param [out] pendingBitRate Requested bit rate
+ * @param [out] pendingNodeId Requested node id
  */
 void CO_LSSslave_process(
         CO_LSSslave_t          *LSSslave,
@@ -333,7 +333,7 @@ CO_LSS_state_t CO_LSSslave_getState(
  *
  * @param LSSslave This object.
  * @param timeDifference_us The amount of time elapsed since the last call
- * @param LEDon [out] LED state
+ * @param [out] LEDon LED state
  *
  * @return true if LSS is involved (unconfigured node or selected node)
  */

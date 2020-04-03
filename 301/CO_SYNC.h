@@ -146,7 +146,7 @@ CO_ReturnError_t CO_SYNC_init(
  * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param ObjDict_synchronousWindowLength _Synchronous window length_ variable from
  * Object dictionary (index 0x1007).
- * @param timerNext_us [out] info to OS - see CO_process_SYNC_PDO().
+ * @param [out] timerNext_us info to OS - see CO_process_SYNC_PDO().
  *
  * @return 0: No special meaning.
  * @return 1: New SYNC message recently received or was just transmitted.

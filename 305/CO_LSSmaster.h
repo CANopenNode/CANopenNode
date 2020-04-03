@@ -353,7 +353,7 @@ CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(
  * @param LSSmaster This object.
  * @param timeDifference_us Time difference from previous function call in
  * [microseconds]. Zero when request is started.
- * @param lssAddress [out] read result when function returns successfully
+ * @param [out] lssAddress read result when function returns successfully
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
@@ -376,7 +376,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
  * @param LSSmaster This object.
  * @param timeDifference_us Time difference from previous function call in
  * [microseconds]. Zero when request is started.
- * @param nodeId [out] read result when function returns successfully
+ * @param [out] nodeId read result when function returns successfully
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
