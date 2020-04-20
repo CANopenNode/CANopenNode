@@ -797,7 +797,9 @@ static void CO_SDO_abort(CO_SDO_t *SDO, uint32_t code){
     SDO->CANtxBuff->data[3] = SDO->ODF_arg.subIndex;
     CO_memcpySwap4(&SDO->CANtxBuff->data[4], &code);
     SDO->state = CO_SDO_ST_IDLE;
-    CO_SDO_process_done(SDO, NULL);
+    /* skip all received message in queue */
+    while (IS_CANrxNew(SDO->CANrxNew[SDO->CANrxProc]))
+        CO_SDO_process_done(SDO, NULL);
     CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
 }
 
