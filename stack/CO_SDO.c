@@ -848,8 +848,6 @@ int8_t CO_SDO_process(
             return -1;
         }
 
-        uint8_t CCS = CANrxData[0] >> 5;   /* Client command specifier */
-
         /* continue with previous SDO communication or start new */
         if(SDO->state != CO_SDO_ST_IDLE){
             state = SDO->state;
@@ -857,6 +855,7 @@ int8_t CO_SDO_process(
         else{
             uint32_t abortCode;
             uint16_t index;
+            uint8_t CCS = CANrxData[0] >> 5;   /* Client command specifier */
 
             /* Is client command specifier valid */
             if((CCS != CCS_DOWNLOAD_INITIATE) && (CCS != CCS_UPLOAD_INITIATE) &&
@@ -1448,15 +1447,11 @@ int8_t CO_SDO_process(
                 SDO->bufferOffset = 0U;
                 SDO->sequence = 0U;
                 SDO->endOfTransfer = false;
-
-                /* clear received flag here, no need to pass timerNext_ms */
-                CO_SDO_process_done(SDO, NULL);
-                isNew = false;
             }
 
             /* return, if all segments was already transfered or on end of transfer */
             if((SDO->sequence == SDO->blksize) || (SDO->endOfTransfer)){
-                return 1;/* don't call CLEAR_CANrxNew, so return directly */
+                break;
             }
 
             /* reset timeout */
@@ -1485,15 +1480,14 @@ int8_t CO_SDO_process(
             }
 
             /* send response */
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            sendResponse = true;
 
             /* Set timerNext_ms to 0 to inform OS to call this function again without delay. */
             if(timerNext_ms != NULL){
                 *timerNext_ms = 0;
             }
 
-            /* don't call process_done, so return directly */
-            return 1;
+            break;
         }
 
         case CO_SDO_ST_UPLOAD_BL_END:{
@@ -1519,8 +1513,12 @@ int8_t CO_SDO_process(
         }
     }
 
-    /* free buffer and send message */
-    CO_SDO_process_done(SDO, timerNext_ms);
+    /* free receive buffer if it is not empty */
+    if (isNew) {
+        CO_SDO_process_done(SDO, timerNext_ms);
+    }
+
+    /* send message */
     if(sendResponse) {
         CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
     }
