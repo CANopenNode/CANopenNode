@@ -1,9 +1,9 @@
 Change Log
 ==========
 
-[Unreleased split-driver]
+[Unreleased master]
 -------------------------
-- [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/master...split-driver)
+- [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/v1.3...master)
 - See {TODO diff} for example of change in user application interface.
 ### Removed
 - All drivers removed from this project, except Neuberger-socketCAN for Linux.
@@ -34,9 +34,9 @@ Change Log
 - All CANopen objects calculates next timer info for OS. Useful for energy saving.
 - Added file CO_config.h for stack configuration. Can be overridden by target specific or by custom definitions.
 
-[Unreleased master]
+[v1.3] - 2020-04-27
 -------------------
-- [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/v1.2...master)
+- [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/v1.2...v1.3)
 ### Changed
 - License changed to Apache 2.0.
 - NMT self start functionality (OD object 1F80) implemented to strictly folow standard. Default value for object 1F80 have to be updated in OD editor. See README.md.
@@ -84,8 +84,8 @@ Change Log
 
 Changelog written according to recommendations from https://keepachangelog.com/
 
-[Unreleased split-driver]: https://github.com/CANopenNode/CANopenNode/tree/split-driver
 [Unreleased master]: https://github.com/CANopenNode/CANopenNode
+[v1.3]: https://github.com/CANopenNode/CANopenNode/tree/v1.3
 [v1.2]: https://github.com/CANopenNode/CANopenNode/tree/v1.2
 [v1.1]: https://github.com/CANopenNode/CANopenNode/tree/v1.1
 [v1.0]: https://github.com/CANopenNode/CANopenNode/tree/v1.0
