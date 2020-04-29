@@ -27,11 +27,12 @@
 
 #include "CANopen.h"
 
-
-#include <stdlib.h> /*  for malloc, free */
+#include <stdlib.h>
 
 
 /* Global variables ***********************************************************/
+/* #define CO_USE_GLOBALS */    /* If defined, global variables will be used
+                                   instead of dynamically allocated. */
 extern const CO_OD_entry_t CO_OD[CO_OD_NoOfElements];   /* Object Dictionary */
 static CO_t COO;                    /* Pointers to CANopen objects */
 CO_t *CO = NULL;                    /* Pointer to COO */
@@ -107,7 +108,8 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
                           CO_NO_LSS_CLIENT)
 
 
-/******************************************************************************/
+/* Create objects from heap ***************************************************/
+#ifndef CO_USE_GLOBALS
 CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     int16_t i;
     uint16_t errCnt = 0;
@@ -117,20 +119,6 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     if (CO != NULL) {
         return CO_ERROR_NO;
     }
-
-    /* Verify parameters from CO_OD */
-    if (sizeof(OD_TPDOCommunicationParameter_t) != sizeof(CO_TPDOCommPar_t) ||
-        sizeof(OD_TPDOMappingParameter_t)       != sizeof(CO_TPDOMapPar_t)  ||
-        sizeof(OD_RPDOCommunicationParameter_t) != sizeof(CO_RPDOCommPar_t) ||
-        sizeof(OD_RPDOMappingParameter_t)       != sizeof(CO_RPDOMapPar_t)) {
-        return CO_ERROR_PARAMETERS;
-    }
-
-#if CO_NO_SDO_CLIENT != 0
-    if (sizeof(OD_SDOClientParameter_t)         != sizeof(CO_SDOclientPar_t)) {
-        return CO_ERROR_PARAMETERS;
-    }
-#endif
 
     /* globals */
     CO = &COO;
@@ -350,6 +338,143 @@ void CO_delete(void *CANptr) {
     /* globals */
     CO = NULL;
 }
+#endif /* #ifndef CO_USE_GLOBALS */
+
+
+/* Alternatively create objects as globals ************************************/
+#ifdef CO_USE_GLOBALS
+    static CO_CANmodule_t       COO_CANmodule;
+    static CO_CANrx_t           COO_CANmodule_rxArray0[CO_RXCAN_NO_MSGS];
+    static CO_CANtx_t           COO_CANmodule_txArray0[CO_TXCAN_NO_MSGS];
+    static CO_SDO_t             COO_SDO[CO_NO_SDO_SERVER];
+    static CO_OD_extension_t    COO_SDO_ODExtensions[CO_OD_NoOfElements];
+    static CO_EM_t              COO_EM;
+    static CO_EMpr_t            COO_EMpr;
+    static CO_NMT_t             COO_NMT;
+#if CO_NO_SYNC == 1
+    static CO_SYNC_t            COO_SYNC;
+#endif
+#if CO_NO_TIME == 1
+    static CO_TIME_t            COO_TIME;
+#endif
+    static CO_RPDO_t            COO_RPDO[CO_NO_RPDO];
+    static CO_TPDO_t            COO_TPDO[CO_NO_TPDO];
+    static CO_HBconsumer_t      COO_HBcons;
+    static CO_HBconsNode_t      COO_HBcons_monitoredNodes[CO_NO_HB_CONS];
+#if CO_NO_SDO_CLIENT != 0
+    static CO_SDOclient_t       COO_SDOclient[CO_NO_SDO_CLIENT];
+#endif
+#if CO_NO_LSS_SERVER == 1
+    static CO_LSSslave_t        COO_LSSslave;
+#endif
+#if CO_NO_LSS_CLIENT == 1
+    static CO_LSSmaster_t       COO_LSSmaster;
+#endif
+#if CO_NO_TRACE > 0
+  #ifndef CO_TRACE_BUFFER_SIZE_FIXED
+    #define CO_TRACE_BUFFER_SIZE_FIXED 100
+  #endif
+    static CO_trace_t           COO_trace[CO_NO_TRACE];
+    static uint32_t             COO_traceTimeBuffers[CO_NO_TRACE][CO_TRACE_BUFFER_SIZE_FIXED];
+    static int32_t              COO_traceValueBuffers[CO_NO_TRACE][CO_TRACE_BUFFER_SIZE_FIXED];
+#endif
+
+CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
+    int16_t i;
+
+    /* If CANopen was initialized before, return. */
+    if (CO != NULL) {
+        return CO_ERROR_NO;
+    }
+
+    /* globals */
+    CO = &COO;
+
+    /* CANmodule */
+    CO->CANmodule[0] = &COO_CANmodule;
+    CO_CANmodule_rxArray0 = &COO_CANmodule_rxArray0[0];
+    CO_CANmodule_txArray0 = &COO_CANmodule_txArray0[0];
+
+    /* SDOserver */
+    for (i = 0; i < CO_NO_SDO_SERVER; i++) {
+        CO->SDO[i] = &COO_SDO[i];
+    }
+    CO_SDO_ODExtensions = &COO_SDO_ODExtensions[0];
+
+    /* Emergency */
+    CO->em = &COO_EM;
+    CO->emPr = &COO_EMpr;
+
+    /* NMT_Heartbeat */
+    CO->NMT = &COO_NMT;
+
+#if CO_NO_SYNC == 1
+    /* SYNC */
+    CO->SYNC = &COO_SYNC;
+#else
+    CO->SYNC = NULL;
+#endif
+
+#if CO_NO_TIME == 1
+    /* TIME */
+    CO->TIME = &COO_TIME;
+#else
+    CO->TIME = NULL;
+#endif
+
+    /* RPDO */
+    for (i = 0; i < CO_NO_RPDO; i++) {
+        CO->RPDO[i] = &COO_RPDO[i];
+    }
+
+    /* TPDO */
+    for (i = 0; i < CO_NO_TPDO; i++) {
+        CO->TPDO[i] = &COO_TPDO[i];
+    }
+
+    /* Heartbeat consumer */
+    CO->HBcons = &COO_HBcons;
+    CO_HBcons_monitoredNodes = &COO_HBcons_monitoredNodes[0];
+
+#if CO_NO_SDO_CLIENT != 0
+    /* SDOclient */
+    for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
+        CO->SDOclient[i] = &COO_SDOclient[i];
+    }
+#endif
+
+#if CO_NO_LSS_SERVER == 1
+    /* LSSslave */
+    CO->LSSslave = &COO_LSSslave;
+#endif
+
+#if CO_NO_LSS_CLIENT == 1
+    /* LSSmaster */
+    CO->LSSmaster = &COO_LSSmaster;
+#endif
+
+#if CO_NO_TRACE > 0
+    /* Trace */
+    for (i = 0; i < CO_NO_TRACE; i++) {
+        CO->trace[i] = &COO_trace[i];
+        CO_traceTimeBuffers[i] = &COO_traceTimeBuffers[i][0];
+        CO_traceValueBuffers[i] = &COO_traceValueBuffers[i][0];
+        CO_traceBufferSize[i] = CO_TRACE_BUFFER_SIZE_FIXED;
+    }
+#endif
+
+    return CO_ERROR_NO;
+}
+
+
+/******************************************************************************/
+void CO_delete(void *CANptr) {
+    CO_CANsetConfigurationMode(CANptr);
+
+    /* globals */
+    CO = NULL;
+}
+#endif /* #ifdef CO_USE_GLOBALS */
 
 
 /******************************************************************************/
@@ -413,6 +538,20 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     if (nodeId < 1 || nodeId > 127) {
         return CO_ERROR_PARAMETERS;
     }
+
+    /* Verify parameters from CO_OD */
+    if (sizeof(OD_TPDOCommunicationParameter_t) != sizeof(CO_TPDOCommPar_t) ||
+        sizeof(OD_TPDOMappingParameter_t)       != sizeof(CO_TPDOMapPar_t)  ||
+        sizeof(OD_RPDOCommunicationParameter_t) != sizeof(CO_RPDOCommPar_t) ||
+        sizeof(OD_RPDOMappingParameter_t)       != sizeof(CO_RPDOMapPar_t)) {
+        return CO_ERROR_PARAMETERS;
+    }
+#if CO_NO_SDO_CLIENT != 0
+    if (sizeof(OD_SDOClientParameter_t)         != sizeof(CO_SDOclientPar_t)) {
+        return CO_ERROR_PARAMETERS;
+    }
+#endif
+
 
     /* SDOserver */
     for (i = 0; i < CO_NO_SDO_SERVER; i++) {
