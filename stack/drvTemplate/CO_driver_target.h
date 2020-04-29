@@ -170,16 +170,16 @@ extern "C" {
 /** @} */
 
 /**
- * @name Syncronisation functions
- * syncronisation for message buffer for communication between CAN receive and
+ * @name Synchronization functions
+ * synchronization for message buffer for communication between CAN receive and
  * message processing threads.
  *
- * If receive function runs inside IRQ, no further synchronsiation is needed.
- * Otherwise, some kind of synchronsiation has to be included. The following
+ * If receive function runs inside IRQ, no further synchronization is needed.
+ * Otherwise, some kind of synchronization has to be included. The following
  * example uses GCC builtin memory barrier __sync_synchronize(). A comprehensive
  * list can be found here: https://gist.github.com/leo-yuriev/ba186a6bf5cf3a27bae7
  * \code{.c}
-    #define CANrxMemoryBarrier() {__sync_synchronize();}
+    #define CANrxMemoryBarrier() __sync_synchronize()
  * \endcode
  * @{
  */
