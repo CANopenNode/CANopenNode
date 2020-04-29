@@ -27,8 +27,8 @@
 #ifndef CO_DRIVER_H
 #define CO_DRIVER_H
 
-#include "CO_driver_target.h"
 #include "CO_config.h"
+#include "CO_driver_target.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,11 +38,11 @@ extern "C" {
 /* Default stack configuration for most common configuration, may be overridden
  * by CO_driver_target.h. For more information see file CO_config.h. */
 #ifndef CO_CONFIG_NMT
-#define CO_CONFIG_NMT 0
+#define CO_CONFIG_NMT (0)
 #endif
 
 #ifndef CO_CONFIG_SDO
-#define CO_CONFIG_SDO CO_CONFIG_SDO_SEGMENTED
+#define CO_CONFIG_SDO (CO_CONFIG_SDO_SEGMENTED)
 #endif
 
 #ifndef CO_CONFIG_SDO_BUFFER_SIZE
@@ -50,33 +50,43 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_EM
-#define CO_CONFIG_EM 0
+#define CO_CONFIG_EM (0)
 #endif
 
 #ifndef CO_CONFIG_HB_CONS
-#define CO_CONFIG_HB_CONS 0
+#define CO_CONFIG_HB_CONS (0)
 #endif
 
 #ifndef CO_CONFIG_PDO
-#define CO_CONFIG_PDO CO_CONFIG_PDO_SYNC_ENABLE
+#define CO_CONFIG_PDO (CO_CONFIG_PDO_SYNC_ENABLE)
 #endif
 
 #ifndef CO_CONFIG_SYNC
-#define CO_CONFIG_SYNC 0
+#define CO_CONFIG_SYNC (0)
 #endif
 
 #ifndef CO_CONFIG_SDO_CLI
-#define CO_CONFIG_SDO_CLI 0
+#define CO_CONFIG_SDO_CLI (CO_CONFIG_SDO_CLI_SEGMENTED | \
+                           CO_CONFIG_SDO_CLI_LOCAL)
+#endif
+
+#ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
+#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
 #endif
 
 #ifndef CO_CONFIG_LSS_MST
-#define CO_CONFIG_LSS_MST 0
+#define CO_CONFIG_LSS_MST (0)
 #endif
 
-#ifndef CO_CONFIG_309
-#define CO_CONFIG_309 0
+#ifndef CO_CONFIG_GTW
+#define CO_CONFIG_GTW (0)
 #endif
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+#ifndef CO_CONFIG_GTWA_COMM_BUF_SIZE
+#define CO_CONFIG_GTWA_COMM_BUF_SIZE 100
+#endif
+#endif
 
 /**
  * @defgroup CO_driver Driver

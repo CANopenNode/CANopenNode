@@ -101,7 +101,7 @@ extern "C" {
  *   be used for LEDs.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_NMT CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_NMT_MASTER | CO_CONFIG_NMT_LEDS
+#define CO_CONFIG_NMT (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_NMT_MASTER | CO_CONFIG_NMT_LEDS)
 #endif
 #define CO_CONFIG_NMT_CALLBACK_CHANGE 0x01
 #define CO_CONFIG_NMT_MASTER 0x02
@@ -122,7 +122,7 @@ extern "C" {
  *   CO_CONFIG_SDO_SEGMENTED must also be set.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SDO CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_SDO_SEGMENTED | CO_CONFIG_SDO_BLOCK
+#define CO_CONFIG_SDO (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_SDO_SEGMENTED | CO_CONFIG_SDO_BLOCK)
 #endif
 /* TODO with new OD */
 #define CO_CONFIG_SDO_SEGMENTED 0x01
@@ -130,7 +130,7 @@ extern "C" {
 
 
 /**
- * Size of the internal SDO buffer.
+ * Size of the internal data buffer for the SDO server.
  *
  * Size must be at least equal to size of largest variable in
  * @ref CO_SDO_objectDictionary. If data type is domain, data length is not
@@ -139,7 +139,7 @@ extern "C" {
  *
  * Value can be in range from 7 to 889 bytes.
  */
-#ifndef CO_CONFIG_SDO_BUFFER_SIZE
+#ifdef CO_DOXYGEN
 #define CO_CONFIG_SDO_BUFFER_SIZE 32
 #endif
 
@@ -156,7 +156,7 @@ extern "C" {
  * - CO_CONFIG_EM_CONSUMER - Enable emergency consumer.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_EM CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_EM_CONSUMER
+#define CO_CONFIG_EM (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_EM_CONSUMER)
 #endif
 #define CO_CONFIG_EM_CONSUMER 0x01
 
@@ -182,7 +182,7 @@ extern "C" {
  *   NMT state of the specific monitored node.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_HB_CONS CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_HB_CONS_CALLBACK_CHANGE | CO_CONFIG_HB_CONS_CALLBACK_MULTI | CO_CONFIG_HB_CONS_QUERY_FUNCT
+#define CO_CONFIG_HB_CONS (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_HB_CONS_CALLBACK_CHANGE | CO_CONFIG_HB_CONS_CALLBACK_MULTI | CO_CONFIG_HB_CONS_QUERY_FUNCT)
 #endif
 #define CO_CONFIG_HB_CONS_CALLBACK_CHANGE 0x01
 #define CO_CONFIG_HB_CONS_CALLBACK_MULTI 0x02
@@ -198,7 +198,7 @@ extern "C" {
  * - CO_CONFIG_PDO_SYNC_ENABLE - Enable SYNC object inside PDO objects.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_PDO CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_PDO_SYNC_ENABLE
+#define CO_CONFIG_PDO (CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_PDO_SYNC_ENABLE)
 #endif
 #define CO_CONFIG_PDO_SYNC_ENABLE 0x01
 
@@ -211,7 +211,7 @@ extern "C" {
  *   inside CO_SYNC_process().
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SYNC CO_CONFIG_FLAG_TIMERNEXT
+#define CO_CONFIG_SYNC (CO_CONFIG_FLAG_TIMERNEXT)
 #endif
 
 
@@ -225,9 +225,34 @@ extern "C" {
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SDOclientDownloadInitiate(), CO_SDOclientDownload(),
  *   CO_SDOclientUploadInitiate(), CO_SDOclientUpload().
+ * - CO_CONFIG_SDO_CLI_SEGMENTED - Enable SDO server segmented transfer.
+ * - CO_CONFIG_SDO_CLI_BLOCK - Enable SDO server block transfer. If set, then
+ *   CO_CONFIG_SDO_CLI_SEGMENTED must also be set.
+ * - CO_CONFIG_SDO_CLI_LOCAL - Enable local transfer, if Node-ID of the SDO
+ *   server is the same as node-ID of the SDO client. (SDO client is the same
+ *   device as SDO server.) Transfer data directly without communication on CAN.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SDO_CLI CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT
+#define CO_CONFIG_SDO_CLI (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_SDO_CLI_SEGMENTED | CO_CONFIG_SDO_CLI_BLOCK | CO_CONFIG_SDO_CLI_LOCAL)
+#endif
+#define CO_CONFIG_SDO_CLI_SEGMENTED 0x01
+#define CO_CONFIG_SDO_CLI_BLOCK 0x02
+#define CO_CONFIG_SDO_CLI_LOCAL 0x04
+
+
+/**
+ * Size of the internal data buffer for the SDO client.
+ *
+ * Circular buffer is used for SDO communication. it can be read or written
+ * between successive SDO calls. So size of the buffer can be lower than size of
+ * the actual size of data transferred. If only segmented transfer is used, then
+ * buffer size can be as low as 7 bytes, if data are read/written each cycle. If
+ * block transfer is used, buffer size should be set to at least 889 bytes, so
+ * maximum blksize can be used. In that case data should be read/written proper
+ * time between cycles.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
 #endif
 
 
@@ -240,26 +265,39 @@ extern "C" {
  *   Callback is configured by CO_LSSmaster_initCallbackPre().
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_LSS_MST CO_CONFIG_FLAG_CALLBACK_PRE
+#define CO_CONFIG_LSS_MST (CO_CONFIG_FLAG_CALLBACK_PRE)
 #endif
 
 
 /**
- * Configuration of Standard CiA 309 usage.
+ * Configuration of gateway object usage.
  *
- * CiA 309 standard covers CANopen access from other networks. It enables
- * usage of the NMT master, SDO client and LSS master as a gateway device.
+ * Gateway object is covered by standard CiA 309 - CANopen access from other
+ * networks. It enables usage of the NMT master, SDO client and LSS master as a
+ * gateway device.
  *
- * Value can be one of the following:
- * - 0: Disabled.
- * - 1: Interface enabled
- * - 2: Modbus/TCP mapping (Not implemented)
- * - 3: ASCII mapping
- * - 4: Profinet (Not implemented)
+ * Possible flags, can be ORed:
+ * - CO_CONFIG_GTW_MULTI_NET - Enable multiple network interfaces in gateway
+ *   device. This functionality is currntly not implemented.
+ * - CO_CONFIG_GTW_ASCII - Enable gateway device with ASCII mapping (CiA 309-3)
  */
-#ifndef CO_CONFIG_309
-#define CO_CONFIG_309 0
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | CO_CONFIG_GTW_ASCII)
 #endif
+#define CO_CONFIG_GTW_MULTI_NET 0x01
+#define CO_CONFIG_GTW_ASCII 0x02
+
+
+/**
+ * Size of command buffer in ASCII gateway object.
+ *
+ * If large amount of data is transferred (block transfer), the this should be
+ * increased to 1000 or more. Buffer may be refilled between the block transfer.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GTWA_COMM_BUF_SIZE 100
+#endif
+
 
 /** @} */
 

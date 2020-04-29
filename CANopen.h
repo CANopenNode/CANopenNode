@@ -70,7 +70,7 @@ extern "C" {
  * @defgroup CO_CANopen_301 CANopen_301
  * @{
  *
- * CANopen application layer and communication profile.
+ * CANopen application layer and communication profile (CiA 301 v4.2.0)
  *
  * Definitions of data types, encoding rules, object dictionary objects and
  * CANopen communication services and protocols.
@@ -81,13 +81,28 @@ extern "C" {
  * @defgroup CO_CANopen_305 CANopen_305
  * @{
  *
- * CANopen layer setting services (LSS) and protocols.
+ * CANopen layer setting services (LSS) and protocols (CiA 305 DSP v3.0.0)
  *
  * Inquire or change three parameters on a CANopen device with LSS slave
  * capability by a CANopen device with LSS master capability via the CAN
  * network: the settings of Node-ID of the CANopen device, bit timing
  * parameters of the physical layer (bit rate) or LSS address compliant to the
  * identity object (1018h).
+ * @}
+ */
+
+/**
+ * @defgroup CO_CANopen_309 CANopen_309
+ * @{
+ *
+ * CANopen access from other networks (CiA 309)
+ *
+ * Standard defines the services and protocols to interface CANopen networks to
+ * other networks. Standard is organized as follows:
+ * - Part 1: General principles and services
+ * - Part 2: Modbus/TCP mapping
+ * - Part 3: ASCII mapping
+ * - Part 4: Amendment 7 to Fieldbus Integration into PROFINET IO
  * @}
  */
 
@@ -314,18 +329,15 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId);
  * @param co CANopen object.
  * @param timeDifference_us Time difference from previous function call in
  *                          microseconds.
- * @param timerNext_us [out] info to OS - maximum delay time after this function
+ * @param [out] timerNext_us info to OS - maximum delay time after this function
  *        should be called next time in [microseconds]. Value can be used for OS
  *        sleep time. Initial value must be set to maximum interval time.
  *        Output will be equal or lower to initial value. Calculation is based
  *        on various timers which expire in known time. Parameter should be
  *        used in combination with callbacks configured with
  *        CO_***_initCallbackPre() functions. Those callbacks should also
- *        trigger calling of CO_process() function.
- *        See also @ref CO_CONFIG_FLAG_CALLBACK_PRE configuration macro.
- *
- *        This is experimental feature and can be used for energy saving in case
- *        of low traffic on CAN bus. Parameter is ignored if NULL.
+ *        trigger calling of CO_process() function. Parameter is ignored if
+ *        NULL. See also @ref CO_CONFIG_FLAG_CALLBACK_PRE configuration macro.
  *
  * @return #CO_NMT_reset_cmd_t from CO_NMT_process().
  */
@@ -344,7 +356,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
  * @param co CANopen object.
  * @param timeDifference_us Time difference from previous function call in
  * microseconds.
- * @param timerNext_us [out] info to OS - see CO_process().
+ * @param [out] timerNext_us info to OS - see CO_process().
  *
  * @return True, if CANopen SYNC message was just received or transmitted.
  */
@@ -378,7 +390,7 @@ void CO_process_RPDO(CO_t *co, bool_t syncWas);
  * transmitted.
  * @param timeDifference_us Time difference from previous function call in
  * microseconds.
- * @param timerNext_us [out] info to OS - see CO_process().
+ * @param [out] timerNext_us info to OS - see CO_process().
  */
 void CO_process_TPDO(CO_t *co,
                      bool_t syncWas,
