@@ -790,18 +790,6 @@ typedef union{
 
 
 /**
- * Helper function like memset.
- *
- * Function fills destination with char "c".
- *
- * @param dest Destination location.
- * @param c set value.
- * @param size Number of data bytes to be copied (max 0xFFFF).
- */
-void CO_memset(uint8_t dest[], uint8_t c, const uint16_t size);
-
-
-/**
  * Helper function returns uint16 from byte array.
  *
  * @param data Location of source data.
