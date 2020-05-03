@@ -88,7 +88,7 @@ static void CO_LSSslave_serviceSwitchStateSelective(
 
                 /* send confirmation */
                 LSSslave->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL;
-                memset(&LSSslave->TXbuff->data[1], 0, 7);
+                memset(&LSSslave->TXbuff->data[1], 0, sizeof(LSSslave->TXbuff->data) - 1);
                 CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
             }
             break;
@@ -136,7 +136,7 @@ static void CO_LSSslave_serviceConfig(
             LSSslave->TXbuff->data[0] = CO_LSS_CFG_NODE_ID;
             LSSslave->TXbuff->data[1] = errorCode;
             /* we do not use spec-error, always 0 */
-            memset(&LSSslave->TXbuff->data[2], 0, 6);
+            memset(&LSSslave->TXbuff->data[2], 0, sizeof(LSSslave->TXbuff->data) - 2);
             CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
             break;
         case CO_LSS_CFG_BIT_TIMING:
@@ -170,7 +170,7 @@ static void CO_LSSslave_serviceConfig(
             LSSslave->TXbuff->data[0] = CO_LSS_CFG_BIT_TIMING;
             LSSslave->TXbuff->data[1] = errorCode;
             /* we do not use spec-error, always 0 */
-            memset(&LSSslave->TXbuff->data[2], 0, 6);
+            memset(&LSSslave->TXbuff->data[2], 0, sizeof(LSSslave->TXbuff->data) - 2);
             CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
             break;
         case CO_LSS_CFG_ACTIVATE_BIT_TIMING:
@@ -208,7 +208,7 @@ static void CO_LSSslave_serviceConfig(
             LSSslave->TXbuff->data[0] = CO_LSS_CFG_STORE;
             LSSslave->TXbuff->data[1] = errorCode;
             /* we do not use spec-error, always 0 */
-            memset(&LSSslave->TXbuff->data[2], 0, 6);
+            memset(&LSSslave->TXbuff->data[2], 0, sizeof(LSSslave->TXbuff->data) - 2);
             CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
             break;
         default:
@@ -252,7 +252,7 @@ static void CO_LSSslave_serviceInquire(
     /* send response */
     LSSslave->TXbuff->data[0] = service;
     CO_memcpySwap4(&LSSslave->TXbuff->data[1], &value);
-    memset(&LSSslave->TXbuff->data[5], 0, 4);
+    memset(&LSSslave->TXbuff->data[5], 0, sizeof(LSSslave->TXbuff->data) - 5);
     CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
 }
 
@@ -320,7 +320,7 @@ static void CO_LSSslave_serviceIdent(
     }
     if (ack) {
         LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
-        memset(&LSSslave->TXbuff->data[1], 0, 7);
+        memset(&LSSslave->TXbuff->data[1], 0, sizeof(LSSslave->TXbuff->data) - 1);
         CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
     }
 }
