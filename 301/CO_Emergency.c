@@ -333,8 +333,8 @@ void CO_EM_process(
 #endif
 
             /* copy data to CAN emergency message */
-            memcpy(emPr->CANtxBuff->data, em->bufReadPtr, 8);
-            memcpy(&preDEF, em->bufReadPtr, 4);
+            memcpy(emPr->CANtxBuff->data, em->bufReadPtr, sizeof(emPr->CANtxBuff->data));
+            memcpy(&preDEF, em->bufReadPtr, sizeof(preDEF));
             em->bufReadPtr += 8;
 
             /* Update read buffer pointer and reset inhibit timer */
@@ -429,7 +429,7 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
 
             /* copy data to the buffer, increment writePtr and verify buffer full */
             CO_LOCK_EMCY();
-            memcpy(em->bufWritePtr, bufCopy, 8);
+            memcpy(em->bufWritePtr, bufCopy, sizeof(bufCopy));
             em->bufWritePtr += 8;
 
             if(em->bufWritePtr == em->bufEnd) em->bufWritePtr = em->buf;
@@ -490,7 +490,7 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
 
             /* copy data to the buffer, increment writePtr and verify buffer full */
             CO_LOCK_EMCY();
-            memcpy(em->bufWritePtr, bufCopy, 8);
+            memcpy(em->bufWritePtr, bufCopy, sizeof(bufCopy));
             em->bufWritePtr += 8;
 
             if(em->bufWritePtr == em->bufEnd) em->bufWritePtr = em->buf;
