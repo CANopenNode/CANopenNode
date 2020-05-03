@@ -782,16 +782,6 @@ typedef struct{
 
 
 /**
- * Helper union for manipulating data bytes.
- */
-typedef union{
-    uint8_t  u8[8];  /**< 8 bytes */
-    uint16_t u16[4]; /**< 4 words */
-    uint32_t u32[2]; /**< 2 double words */
-}CO_bytes_t;
-
-
-/**
  * Helper function returns uint16 from byte array.
  *
  * @param data Location of source data.
