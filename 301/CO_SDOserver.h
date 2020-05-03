@@ -27,6 +27,8 @@
 #ifndef CO_SDO_SERVER_H
 #define CO_SDO_SERVER_H
 
+#include <string.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -796,10 +798,9 @@ typedef union{
  * @return Variable of type uint16_t.
  */
 static inline uint16_t CO_getUint16(const uint8_t data[]){
-    CO_bytes_t b;
-    b.u8[0] = data[0];
-    b.u8[1] = data[1];
-    return b.u16[0];
+    uint16_t value;
+    memcpy(&value, data, sizeof(value));
+    return value;
 }
 
 
