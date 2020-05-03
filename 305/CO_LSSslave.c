@@ -24,6 +24,8 @@
  * limitations under the License.
  */
 
+#include <string.h>
+
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h" /* for helper functions */
 #include "305/CO_LSSslave.h"
@@ -392,7 +394,7 @@ CO_ReturnError_t CO_LSSslave_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    CO_memcpy((uint8_t*)&LSSslave->lssAddress, (uint8_t*)&lssAddress, sizeof(LSSslave->lssAddress));
+    memcpy(&LSSslave->lssAddress, &lssAddress, sizeof(LSSslave->lssAddress));
     LSSslave->lssState = CO_LSS_STATE_WAITING;
     CO_memset((uint8_t*)&LSSslave->lssSelect, 0, sizeof(LSSslave->lssSelect));
 

@@ -26,6 +26,8 @@
  */
 
 
+#include <string.h>
+
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
@@ -49,7 +51,7 @@ static CO_SDO_abortCode_t CO_ODF_1010(CO_ODF_arg_t *ODF_arg){
 
     if(!ODF_arg->reading){
         /* don't change the old value */
-        CO_memcpy(ODF_arg->data, (const uint8_t*)ODF_arg->ODdataStorage, 4U);
+        memcpy(ODF_arg->data, ODF_arg->ODdataStorage, 4);
 
         if(ODF_arg->subIndex == 1U){
             if(value == 0x65766173UL){
@@ -86,7 +88,7 @@ static CO_SDO_abortCode_t CO_ODF_1011(CO_ODF_arg_t *ODF_arg){
 
     if(!ODF_arg->reading){
         /* don't change the old value */
-        CO_memcpy(ODF_arg->data, (const uint8_t*)ODF_arg->ODdataStorage, 4U);
+        memcpy(ODF_arg->data, ODF_arg->ODdataStorage, 4);
 
         if(ODF_arg->subIndex >= 1U){
             if(value == 0x64616F6CUL){
