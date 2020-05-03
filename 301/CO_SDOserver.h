@@ -824,10 +824,7 @@ static inline uint32_t CO_getUint32(const uint8_t data[]){
  * @param value Variable of type uint16_t to be written into data.
  */
 static inline void CO_setUint16(uint8_t data[], const uint16_t value){
-    CO_bytes_t b;
-    b.u16[0] = value;
-    data[0] = b.u8[0];
-    data[1] = b.u8[1];
+    memcpy(data, &value, sizeof(value));
 }
 
 
