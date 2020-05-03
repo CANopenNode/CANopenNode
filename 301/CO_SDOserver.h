@@ -790,17 +790,6 @@ typedef union{
 
 
 /**
- * Helper function like memcpy.
- *
- * Function copies n data bytes from source to destination.
- *
- * @param dest Destination location.
- * @param src Source location.
- * @param size Number of data bytes to be copied (max 0xFFFF).
- */
-void CO_memcpy(uint8_t dest[], const uint8_t src[], const uint16_t size);
-
-/**
  * Helper function like memset.
  *
  * Function fills destination with char "c".

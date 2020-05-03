@@ -48,13 +48,6 @@
 
 
 /* Helper functions. **********************************************************/
-void CO_memcpy(uint8_t dest[], const uint8_t src[], const uint16_t size){
-    uint16_t i;
-    for(i = 0; i < size; i++){
-        dest[i] = src[i];
-    }
-}
-
 void CO_memset(uint8_t dest[], uint8_t c, const uint16_t size){
     uint16_t i;
     for(i = 0; i < size; i++){
