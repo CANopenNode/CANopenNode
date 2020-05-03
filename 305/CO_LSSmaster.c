@@ -24,6 +24,8 @@
  * limitations under the License.
  */
 
+#include <string.h>
+
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h" /* for helper functions */
 #include "305/CO_LSSmaster.h"
@@ -151,7 +153,7 @@ CO_ReturnError_t CO_LSSmaster_init(
     LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     LSSmaster->timeoutTimer = 0;
     CO_FLAG_CLEAR(LSSmaster->CANrxNew);
-    CO_memset(LSSmaster->CANrxData, 0, sizeof(LSSmaster->CANrxData));
+    memset(LSSmaster->CANrxData, 0, sizeof(LSSmaster->CANrxData));
 #if (CO_CONFIG_LSS_MST) & CO_CONFIG_FLAG_CALLBACK_PRE
     LSSmaster->pFunctSignal = NULL;
     LSSmaster->functSignalObject = NULL;
@@ -227,7 +229,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectInitiate(
       LSSmaster->timeoutTimer = 0;
 
       CO_FLAG_CLEAR(LSSmaster->CANrxNew);
-      CO_memset(&LSSmaster->TXbuff->data[6], 0, 3);
+      memset(&LSSmaster->TXbuff->data[6], 0, 3);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_VENDOR;
       CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.vendorID);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
@@ -250,7 +252,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectInitiate(
       CO_FLAG_CLEAR(LSSmaster->CANrxNew);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_GLOBAL;
       LSSmaster->TXbuff->data[1] = CO_LSS_STATE_CONFIGURATION;
-      CO_memset(&LSSmaster->TXbuff->data[2], 0, 6);
+      memset(&LSSmaster->TXbuff->data[2], 0, 6);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
       /* This is non-confirmed service! */
@@ -343,7 +345,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateDeselect(
     CO_FLAG_CLEAR(LSSmaster->CANrxNew);
     LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_GLOBAL;
     LSSmaster->TXbuff->data[1] = CO_LSS_STATE_WAITING;
-    CO_memset(&LSSmaster->TXbuff->data[2], 0, 6);
+    memset(&LSSmaster->TXbuff->data[2], 0, 6);
     CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
     /* This is non-confirmed service! */
@@ -447,7 +449,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
         LSSmaster->TXbuff->data[0] = CO_LSS_CFG_BIT_TIMING;
         LSSmaster->TXbuff->data[1] = 0;
         LSSmaster->TXbuff->data[2] = bitTiming;
-        CO_memset(&LSSmaster->TXbuff->data[3], 0, 5);
+        memset(&LSSmaster->TXbuff->data[3], 0, 5);
         CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
         ret = CO_LSSmaster_WAIT_SLAVE;
@@ -492,7 +494,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
         LSSmaster->TXbuff->data[0] = CO_LSS_CFG_NODE_ID;
         LSSmaster->TXbuff->data[1] = nodeId;
-        CO_memset(&LSSmaster->TXbuff->data[2], 0, 6);
+        memset(&LSSmaster->TXbuff->data[2], 0, 6);
         CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
         ret = CO_LSSmaster_WAIT_SLAVE;
@@ -532,7 +534,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureStore(
 
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
         LSSmaster->TXbuff->data[0] = CO_LSS_CFG_STORE;
-        CO_memset(&LSSmaster->TXbuff->data[1], 0, 7);
+        memset(&LSSmaster->TXbuff->data[1], 0, 7);
         CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
         ret = CO_LSSmaster_WAIT_SLAVE;
@@ -571,7 +573,7 @@ CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
         LSSmaster->TXbuff->data[0] = CO_LSS_CFG_ACTIVATE_BIT_TIMING;
         CO_setUint16(&LSSmaster->TXbuff->data[1], switchDelay_ms);
-        CO_memset(&LSSmaster->TXbuff->data[3], 0, 5);
+        memset(&LSSmaster->TXbuff->data[3], 0, 5);
         CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
         /* This is non-confirmed service! */
@@ -590,7 +592,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_inquireInitiate(
 {
     CO_FLAG_CLEAR(LSSmaster->CANrxNew);
     LSSmaster->TXbuff->data[0] = cs;
-    CO_memset(&LSSmaster->TXbuff->data[1], 0, 7);
+    memset(&LSSmaster->TXbuff->data[1], 0, 7);
     CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
     return CO_LSSmaster_WAIT_SLAVE;
@@ -1051,7 +1053,7 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
         case CO_LSSmaster_FS_STATE_CHECK:
             ret = CO_LSSmaster_FsCheckWait(LSSmaster, timeDifference_us);
             if (ret == CO_LSSmaster_SCAN_FINISHED) {
-                CO_memset((uint8_t*)&fastscan->found, 0, sizeof(fastscan->found));
+                memset(&fastscan->found, 0, sizeof(fastscan->found));
 
                 /* start scanning procedure by triggering vendor ID scan */
                 CO_LSSmaster_FsScanInitiate(LSSmaster, timeDifference_us,

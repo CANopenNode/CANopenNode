@@ -44,7 +44,7 @@ static void CO_LSSslave_serviceSwitchStateGlobal(
     switch (mode) {
         case CO_LSS_STATE_WAITING:
             LSSslave->lssState = CO_LSS_STATE_WAITING;
-            CO_memset((uint8_t*)&LSSslave->lssSelect, 0, sizeof(LSSslave->lssSelect));
+            memset(&LSSslave->lssSelect, 0, sizeof(LSSslave->lssSelect));
             break;
         case CO_LSS_STATE_CONFIGURATION:
             LSSslave->lssState = CO_LSS_STATE_CONFIGURATION;
@@ -88,7 +88,7 @@ static void CO_LSSslave_serviceSwitchStateSelective(
 
                 /* send confirmation */
                 LSSslave->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL;
-                CO_memset(&LSSslave->TXbuff->data[1], 0, 7);
+                memset(&LSSslave->TXbuff->data[1], 0, 7);
                 CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
             }
             break;
@@ -136,7 +136,7 @@ static void CO_LSSslave_serviceConfig(
             LSSslave->TXbuff->data[0] = CO_LSS_CFG_NODE_ID;
             LSSslave->TXbuff->data[1] = errorCode;
             /* we do not use spec-error, always 0 */
-            CO_memset(&LSSslave->TXbuff->data[2], 0, 6);
+            memset(&LSSslave->TXbuff->data[2], 0, 6);
             CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
             break;
         case CO_LSS_CFG_BIT_TIMING:
@@ -170,7 +170,7 @@ static void CO_LSSslave_serviceConfig(
             LSSslave->TXbuff->data[0] = CO_LSS_CFG_BIT_TIMING;
             LSSslave->TXbuff->data[1] = errorCode;
             /* we do not use spec-error, always 0 */
-            CO_memset(&LSSslave->TXbuff->data[2], 0, 6);
+            memset(&LSSslave->TXbuff->data[2], 0, 6);
             CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
             break;
         case CO_LSS_CFG_ACTIVATE_BIT_TIMING:
@@ -208,7 +208,7 @@ static void CO_LSSslave_serviceConfig(
             LSSslave->TXbuff->data[0] = CO_LSS_CFG_STORE;
             LSSslave->TXbuff->data[1] = errorCode;
             /* we do not use spec-error, always 0 */
-            CO_memset(&LSSslave->TXbuff->data[2], 0, 6);
+            memset(&LSSslave->TXbuff->data[2], 0, 6);
             CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
             break;
         default:
@@ -252,7 +252,7 @@ static void CO_LSSslave_serviceInquire(
     /* send response */
     LSSslave->TXbuff->data[0] = service;
     CO_memcpySwap4(&LSSslave->TXbuff->data[1], &value);
-    CO_memset(&LSSslave->TXbuff->data[5], 0, 4);
+    memset(&LSSslave->TXbuff->data[5], 0, 4);
     CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
 }
 
@@ -302,8 +302,7 @@ static void CO_LSSslave_serviceIdent(
         /* Confirm, Reset */
         ack = true;
         LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;
-        CO_memset((uint8_t*)&LSSslave->lssFastscan, 0,
-            sizeof(LSSslave->lssFastscan));
+        memset(&LSSslave->lssFastscan, 0, sizeof(LSSslave->lssFastscan));
     }
     else if (LSSslave->fastscanPos == lssSub) {
         uint32_t mask = 0xFFFFFFFF << bitCheck;
@@ -321,7 +320,7 @@ static void CO_LSSslave_serviceIdent(
     }
     if (ack) {
         LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
-        CO_memset(&LSSslave->TXbuff->data[1], 0, 7);
+        memset(&LSSslave->TXbuff->data[1], 0, 7);
         CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
     }
 }
@@ -396,9 +395,9 @@ CO_ReturnError_t CO_LSSslave_init(
 
     memcpy(&LSSslave->lssAddress, &lssAddress, sizeof(LSSslave->lssAddress));
     LSSslave->lssState = CO_LSS_STATE_WAITING;
-    CO_memset((uint8_t*)&LSSslave->lssSelect, 0, sizeof(LSSslave->lssSelect));
+    memset(&LSSslave->lssSelect, 0, sizeof(LSSslave->lssSelect));
 
-    CO_memset((uint8_t*)&LSSslave->lssFastscan, 0, sizeof(LSSslave->lssFastscan));
+    memset(&LSSslave->lssFastscan, 0, sizeof(LSSslave->lssFastscan));
     LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;
 
     LSSslave->pendingBitRate = pendingBitRate;
