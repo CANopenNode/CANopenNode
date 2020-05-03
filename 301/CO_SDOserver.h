@@ -847,14 +847,7 @@ static inline void CO_setUint32(uint8_t data[], const uint32_t value){
  * @param src Source location.
  */
 #ifdef CO_LITTLE_ENDIAN
-static inline void CO_memcpySwap2(void* dest, const void* src){
-    char *cdest;
-    char *csrc;
-    cdest = (char *) dest;
-    csrc = (char *) src;
-    cdest[0] = csrc[0];
-    cdest[1] = csrc[1];
-}
+#define CO_memcpySwap2(dest, src) memcpy(dest, src, 2)
 #endif
 #ifdef CO_BIG_ENDIAN
 static inline void CO_memcpySwap2(void* dest, const void* src){
@@ -876,16 +869,7 @@ static inline void CO_memcpySwap2(void* dest, const void* src){
  * @param src Source location.
  */
 #ifdef CO_LITTLE_ENDIAN
-static inline void CO_memcpySwap4(void* dest, const void* src){
-    char *cdest;
-    char *csrc;
-    cdest = (char *) dest;
-    csrc = (char *) src;
-    cdest[0] = csrc[0];
-    cdest[1] = csrc[1];
-    cdest[2] = csrc[2];
-    cdest[3] = csrc[3];
-}
+#define CO_memcpySwap4(dest, src) memcpy(dest, src, 4)
 #endif
 #ifdef CO_BIG_ENDIAN
 static inline void CO_memcpySwap4(void* dest, const void* src){
@@ -909,20 +893,7 @@ static inline void CO_memcpySwap4(void* dest, const void* src){
  * @param src Source location.
  */
 #ifdef CO_LITTLE_ENDIAN
-static inline void CO_memcpySwap8(void* dest, const void* src){
-    char *cdest;
-    char *csrc;
-    cdest = (char *) dest;
-    csrc = (char *) src;
-    cdest[0] = csrc[0];
-    cdest[1] = csrc[1];
-    cdest[2] = csrc[2];
-    cdest[3] = csrc[3];
-    cdest[4] = csrc[4];
-    cdest[5] = csrc[5];
-    cdest[6] = csrc[6];
-    cdest[7] = csrc[7];
-}
+#define CO_memcpySwap8(dest, src) memcpy(dest, src, 8)
 #endif
 #ifdef CO_BIG_ENDIAN
 static inline void CO_memcpySwap8(void* dest, const void* src){
