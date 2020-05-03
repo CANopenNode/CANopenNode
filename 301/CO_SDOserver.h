@@ -811,12 +811,9 @@ static inline uint16_t CO_getUint16(const uint8_t data[]){
  * @return Variable of type uint32_t.
  */
 static inline uint32_t CO_getUint32(const uint8_t data[]){
-    CO_bytes_t b;
-    b.u8[0] = data[0];
-    b.u8[1] = data[1];
-    b.u8[2] = data[2];
-    b.u8[3] = data[3];
-    return b.u32[0];
+    uint32_t value;
+    memcpy(&value, data, sizeof(value));
+    return value;
 }
 
 
