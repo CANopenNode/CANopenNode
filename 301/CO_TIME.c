@@ -23,6 +23,8 @@
  * limitations under the License.
  */
 
+#include <string.h>
+
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
@@ -47,7 +49,7 @@ static void CO_TIME_receive(void *object, void *msg){
 
     if((operState == CO_NMT_OPERATIONAL) || (operState == CO_NMT_PRE_OPERATIONAL)){
         // Process Time from msg buffer
-        CO_memcpy((uint8_t*)&TIME->Time.ullValue, data, DLC);
+        memcpy(&TIME->Time.ullValue, data, DLC);
         CO_FLAG_SET(TIME->CANrxNew);
     }
     else{
@@ -156,7 +158,7 @@ uint8_t CO_TIME_process(
             if(TIME->timer >= TIME->periodTime){
                 TIME->timer = 0;
                 ret = 1;
-                CO_memcpy(TIME->TXbuff->data, (const uint8_t*)&TIME->Time.ullValue, TIME_MSG_LENGTH);
+                memcpy(TIME->TXbuff->data, &TIME->Time.ullValue, TIME_MSG_LENGTH);
                 CO_CANsend(TIME->CANdevTx, TIME->TXbuff);
             }
         }

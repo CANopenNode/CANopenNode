@@ -27,6 +27,8 @@
 #ifndef CO_SDO_SERVER_H
 #define CO_SDO_SERVER_H
 
+#include <string.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -780,45 +782,16 @@ typedef struct{
 
 
 /**
- * Helper union for manipulating data bytes.
- */
-typedef union{
-    uint8_t  u8[8];  /**< 8 bytes */
-    uint16_t u16[4]; /**< 4 words */
-    uint32_t u32[2]; /**< 2 double words */
-}CO_bytes_t;
-
-
-/**
- * Helper function like memcpy.
- *
- * Function copies n data bytes from source to destination.
- *
- * @param dest Destination location.
- * @param src Source location.
- * @param size Number of data bytes to be copied (max 0xFFFF).
- */
-void CO_memcpy(uint8_t dest[], const uint8_t src[], const uint16_t size);
-
-/**
- * Helper function like memset.
- *
- * Function fills destination with char "c".
- *
- * @param dest Destination location.
- * @param c set value.
- * @param size Number of data bytes to be copied (max 0xFFFF).
- */
-void CO_memset(uint8_t dest[], uint8_t c, const uint16_t size);
-
-
-/**
  * Helper function returns uint16 from byte array.
  *
  * @param data Location of source data.
  * @return Variable of type uint16_t.
  */
-uint16_t CO_getUint16(const uint8_t data[]);
+static inline uint16_t CO_getUint16(const uint8_t data[]){
+    uint16_t value;
+    memcpy(&value, data, sizeof(value));
+    return value;
+}
 
 
 /**
@@ -827,7 +800,11 @@ uint16_t CO_getUint16(const uint8_t data[]);
  * @param data Location of source data.
  * @return Variable of type uint32_t.
  */
-uint32_t CO_getUint32(const uint8_t data[]);
+static inline uint32_t CO_getUint32(const uint8_t data[]){
+    uint32_t value;
+    memcpy(&value, data, sizeof(value));
+    return value;
+}
 
 
 /**
@@ -836,7 +813,9 @@ uint32_t CO_getUint32(const uint8_t data[]);
  * @param data Location of destination data.
  * @param value Variable of type uint16_t to be written into data.
  */
-void CO_setUint16(uint8_t data[], const uint16_t value);
+static inline void CO_setUint16(uint8_t data[], const uint16_t value){
+    memcpy(data, &value, sizeof(value));
+}
 
 
 /**
@@ -845,7 +824,9 @@ void CO_setUint16(uint8_t data[], const uint16_t value);
  * @param data Location of destination data.
  * @param value Variable of type uint32_t to be written into data.
  */
-void CO_setUint32(uint8_t data[], const uint32_t value);
+static inline void CO_setUint32(uint8_t data[], const uint32_t value){
+    memcpy(data, &value, sizeof(value));
+}
 
 
 /**
@@ -855,7 +836,19 @@ void CO_setUint32(uint8_t data[], const uint32_t value);
  * @param dest Destination location.
  * @param src Source location.
  */
-void CO_memcpySwap2(void* dest, const void* src);
+#ifdef CO_LITTLE_ENDIAN
+#define CO_memcpySwap2(dest, src) memcpy(dest, src, 2)
+#endif
+#ifdef CO_BIG_ENDIAN
+static inline void CO_memcpySwap2(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[1];
+    cdest[1] = csrc[0];
+}
+#endif
 
 
 /**
@@ -865,7 +858,21 @@ void CO_memcpySwap2(void* dest, const void* src);
  * @param dest Destination location.
  * @param src Source location.
  */
-void CO_memcpySwap4(void* dest, const void* src);
+#ifdef CO_LITTLE_ENDIAN
+#define CO_memcpySwap4(dest, src) memcpy(dest, src, 4)
+#endif
+#ifdef CO_BIG_ENDIAN
+static inline void CO_memcpySwap4(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[3];
+    cdest[1] = csrc[2];
+    cdest[2] = csrc[1];
+    cdest[3] = csrc[0];
+}
+#endif
 
 
 /**
@@ -875,7 +882,25 @@ void CO_memcpySwap4(void* dest, const void* src);
  * @param dest Destination location.
  * @param src Source location.
  */
-void CO_memcpySwap8(void* dest, const void* src);
+#ifdef CO_LITTLE_ENDIAN
+#define CO_memcpySwap8(dest, src) memcpy(dest, src, 8)
+#endif
+#ifdef CO_BIG_ENDIAN
+static inline void CO_memcpySwap8(void* dest, const void* src){
+    char *cdest;
+    char *csrc;
+    cdest = (char *) dest;
+    csrc = (char *) src;
+    cdest[0] = csrc[7];
+    cdest[1] = csrc[6];
+    cdest[2] = csrc[5];
+    cdest[3] = csrc[4];
+    cdest[4] = csrc[3];
+    cdest[5] = csrc[2];
+    cdest[6] = csrc[1];
+    cdest[7] = csrc[0];
+}
+#endif
 
 
 /**
