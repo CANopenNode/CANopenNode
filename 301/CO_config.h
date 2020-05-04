@@ -210,11 +210,14 @@ extern "C" {
  * Configuration of SYNC
  *
  * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received SYNC CAN message.
+ *   Callback is configured by CO_SYNC_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SYNC_process().
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SYNC (CO_CONFIG_FLAG_TIMERNEXT)
+#define CO_CONFIG_SYNC (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT)
 #endif
 
 

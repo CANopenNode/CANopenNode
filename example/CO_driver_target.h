@@ -84,7 +84,8 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_SYNC
-#define CO_CONFIG_SYNC (CO_CONFIG_FLAG_TIMERNEXT)
+#define CO_CONFIG_SYNC (CO_CONFIG_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_SDO_CLI

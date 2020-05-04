@@ -67,6 +67,13 @@ static void CO_SYNC_receive(void *object, void *msg) {
         }
         if(CO_FLAG_READ(SYNC->CANrxNew)) {
             SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
+
+#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE
+            /* Optional signal to RTOS, which can resume task, which handles SYNC. */
+            if(SYNC->pFunctSignalPre != NULL) {
+                SYNC->pFunctSignalPre(SYNC->functSignalObjectPre);
+            }
+#endif
         }
     }
 }
@@ -285,6 +292,11 @@ CO_ReturnError_t CO_SYNC_init(
     SYNC->CANdevRx = CANdevRx;
     SYNC->CANdevRxIdx = CANdevRxIdx;
 
+#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE
+    SYNC->pFunctSignalPre = NULL;
+    SYNC->functSignalObjectPre = NULL;
+#endif
+
     /* Configure Object dictionary entry at index 0x1005, 0x1006 and 0x1019 */
     CO_OD_configure(SDO, OD_H1005_COBID_SYNC,        CO_ODF_1005, (void*)SYNC, 0, 0);
     CO_OD_configure(SDO, OD_H1006_COMM_CYCL_PERIOD,  CO_ODF_1006, (void*)SYNC, 0, 0);
@@ -317,6 +329,21 @@ CO_ReturnError_t CO_SYNC_init(
 
     return ret;
 }
+
+
+#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE
+/******************************************************************************/
+void CO_SYNC_initCallbackPre(
+        CO_SYNC_t              *SYNC,
+        void                   *object,
+        void                  (*pFunctSignalPre)(void *object))
+{
+    if(SYNC != NULL){
+        SYNC->functSignalObjectPre = object;
+        SYNC->pFunctSignalPre = pFunctSignalPre;
+    }
+}
+#endif
 
 
 /******************************************************************************/

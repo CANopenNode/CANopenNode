@@ -96,6 +96,12 @@ typedef struct{
     uint32_t            timer;
     /** Set to nonzero value, if SYNC with wrong data length is received from CAN */
     uint16_t            receiveError;
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+    /** From CO_SYNC_initCallbackPre() or NULL */
+    void              (*pFunctSignalPre)(void *object);
+    /** From CO_SYNC_initCallbackPre() or NULL */
+    void               *functSignalObjectPre;
+#endif
     CO_CANmodule_t     *CANdevRx;       /**< From CO_SYNC_init() */
     uint16_t            CANdevRxIdx;    /**< From CO_SYNC_init() */
     CO_CANmodule_t     *CANdevTx;       /**< From CO_SYNC_init() */
@@ -135,6 +141,25 @@ CO_ReturnError_t CO_SYNC_init(
         uint16_t                CANdevRxIdx,
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx);
+
+
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+/**
+ * Initialize SYNC callback function.
+ *
+ * Function initializes optional callback function, which should immediately
+ * start processing of CO_SYNC_process() function.
+ * Callback is called after SYNC message is received from the CAN bus.
+ *
+ * @param SYNC This object.
+ * @param object Pointer to object, which will be passed to pFunctSignalPre(). Can be NULL
+ * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
+ */
+void CO_SYNC_initCallbackPre(
+        CO_SYNC_t              *SYNC,
+        void                   *object,
+        void                  (*pFunctSignalPre)(void *object));
+#endif
 
 
 /**
