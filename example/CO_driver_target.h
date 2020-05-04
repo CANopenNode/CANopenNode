@@ -78,7 +78,8 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_PDO
-#define CO_CONFIG_PDO (CO_CONFIG_FLAG_TIMERNEXT | \
+#define CO_CONFIG_PDO (CO_CONFIG_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_FLAG_TIMERNEXT | \
                        CO_CONFIG_PDO_SYNC_ENABLE)
 #endif
 

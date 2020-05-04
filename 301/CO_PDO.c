@@ -64,6 +64,13 @@ static void CO_PDO_receive(void *object, void *msg){
         /* copy data into appropriate buffer and set 'new message' flag */
         memcpy(RPDO->CANrxData[index], data, sizeof(RPDO->CANrxData[index]));
         CO_FLAG_SET(RPDO->CANrxNew[index]);
+
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+        /* Optional signal to RTOS, which can resume task, which handles RPDO. */
+        if(RPDO->pFunctSignalPre != NULL) {
+            RPDO->pFunctSignalPre(RPDO->functSignalObjectPre);
+        }
+#endif
     }
 }
 
@@ -754,6 +761,10 @@ CO_ReturnError_t CO_RPDO_init(
     RPDO->nodeId = nodeId;
     RPDO->defaultCOB_ID = defaultCOB_ID;
     RPDO->restrictionFlags = restrictionFlags;
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+    RPDO->pFunctSignalPre = NULL;
+    RPDO->functSignalObjectPre = NULL;
+#endif
 
     /* Configure Object dictionary entry at index 0x1400+ and 0x1600+ */
     CO_OD_configure(SDO, idx_RPDOCommPar, CO_ODF_RPDOcom, (void*)RPDO, 0, 0);
@@ -772,6 +783,21 @@ CO_ReturnError_t CO_RPDO_init(
 
     return CO_ERROR_NO;
 }
+
+
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+/******************************************************************************/
+void CO_RPDO_initCallbackPre(
+        CO_RPDO_t              *RPDO,
+        void                   *object,
+        void                  (*pFunctSignalPre)(void *object))
+{
+    if(RPDO != NULL){
+        RPDO->functSignalObjectPre = object;
+        RPDO->pFunctSignalPre = pFunctSignalPre;
+    }
+}
+#endif
 
 
 /******************************************************************************/
