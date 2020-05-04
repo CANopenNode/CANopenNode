@@ -131,7 +131,7 @@ static CO_ReturnError_t disableRx(CO_CANmodule_t *CANmodule)
 static CO_ReturnError_t setRxFilters(CO_CANmodule_t *CANmodule)
 {
     int ret;
-    int i;
+    size_t i;
     int count;
     CO_ReturnError_t retval;
 
