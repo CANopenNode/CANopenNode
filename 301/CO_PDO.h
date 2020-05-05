@@ -189,6 +189,12 @@ typedef struct{
     volatile void      *CANrxNew[1];
     uint8_t             CANrxData[1][8];
 #endif
+#if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+    /** From CO_RPDO_initCallbackPre() or NULL */
+    void              (*pFunctSignalPre)(void *object);
+    /** From CO_RPDO_initCallbackPre() or NULL */
+    void               *functSignalObjectPre;
+#endif
     CO_CANmodule_t     *CANdevRx;       /**< From CO_RPDO_init() */
     uint16_t            CANdevRxIdx;    /**< From CO_RPDO_init() */
 }CO_RPDO_t;
@@ -278,6 +284,25 @@ CO_ReturnError_t CO_RPDO_init(
         uint16_t                idx_RPDOMapPar,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdx);
+
+
+#if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+/**
+ * Initialize RPDO callback function.
+ *
+ * Function initializes optional callback function, which should immediately
+ * start processing of CO_RPDO_process() function.
+ * Callback is called after RPDO message is received from the CAN bus.
+ *
+ * @param RPDO This object.
+ * @param object Pointer to object, which will be passed to pFunctSignalPre(). Can be NULL
+ * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
+ */
+void CO_RPDO_initCallbackPre(
+        CO_RPDO_t              *RPDO,
+        void                   *object,
+        void                  (*pFunctSignalPre)(void *object));
+#endif
 
 
 /**

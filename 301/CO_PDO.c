@@ -24,6 +24,8 @@
  */
 
 
+#include <string.h>
+
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
@@ -54,33 +56,19 @@ static void CO_PDO_receive(void *object, void *msg){
         (DLC >= RPDO->dataLength))
     {
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-        if(RPDO->SYNC && RPDO->synchronous && RPDO->SYNC->CANrxToggle) {
-            /* copy data into second buffer and set 'new message' flag */
-            RPDO->CANrxData[1][0] = data[0];
-            RPDO->CANrxData[1][1] = data[1];
-            RPDO->CANrxData[1][2] = data[2];
-            RPDO->CANrxData[1][3] = data[3];
-            RPDO->CANrxData[1][4] = data[4];
-            RPDO->CANrxData[1][5] = data[5];
-            RPDO->CANrxData[1][6] = data[6];
-            RPDO->CANrxData[1][7] = data[7];
-
-            CO_FLAG_SET(RPDO->CANrxNew[1]);
-        }
-        else {
+        const size_t index = RPDO->SYNC && RPDO->synchronous && RPDO->SYNC->CANrxToggle;
+#else
+        const size_t index = 0;
 #endif
-            /* copy data into default buffer and set 'new message' flag */
-            RPDO->CANrxData[0][0] = data[0];
-            RPDO->CANrxData[0][1] = data[1];
-            RPDO->CANrxData[0][2] = data[2];
-            RPDO->CANrxData[0][3] = data[3];
-            RPDO->CANrxData[0][4] = data[4];
-            RPDO->CANrxData[0][5] = data[5];
-            RPDO->CANrxData[0][6] = data[6];
-            RPDO->CANrxData[0][7] = data[7];
 
-            CO_FLAG_SET(RPDO->CANrxNew[0]);
-#if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
+        /* copy data into appropriate buffer and set 'new message' flag */
+        memcpy(RPDO->CANrxData[index], data, sizeof(RPDO->CANrxData[index]));
+        CO_FLAG_SET(RPDO->CANrxNew[index]);
+
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+        /* Optional signal to RTOS, which can resume task, which handles RPDO. */
+        if(RPDO->pFunctSignalPre != NULL) {
+            RPDO->pFunctSignalPre(RPDO->functSignalObjectPre);
         }
 #endif
     }
@@ -773,6 +761,10 @@ CO_ReturnError_t CO_RPDO_init(
     RPDO->nodeId = nodeId;
     RPDO->defaultCOB_ID = defaultCOB_ID;
     RPDO->restrictionFlags = restrictionFlags;
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+    RPDO->pFunctSignalPre = NULL;
+    RPDO->functSignalObjectPre = NULL;
+#endif
 
     /* Configure Object dictionary entry at index 0x1400+ and 0x1600+ */
     CO_OD_configure(SDO, idx_RPDOCommPar, CO_ODF_RPDOcom, (void*)RPDO, 0, 0);
@@ -791,6 +783,21 @@ CO_ReturnError_t CO_RPDO_init(
 
     return CO_ERROR_NO;
 }
+
+
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+/******************************************************************************/
+void CO_RPDO_initCallbackPre(
+        CO_RPDO_t              *RPDO,
+        void                   *object,
+        void                  (*pFunctSignalPre)(void *object))
+{
+    if(RPDO != NULL){
+        RPDO->functSignalObjectPre = object;
+        RPDO->pFunctSignalPre = pFunctSignalPre;
+    }
+}
+#endif
 
 
 /******************************************************************************/
