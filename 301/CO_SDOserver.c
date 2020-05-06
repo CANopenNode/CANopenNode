@@ -533,7 +533,18 @@ uint32_t CO_SDO_readOD(CO_SDO_t *SDO, uint16_t SDOBufferSize){
 
     /* copy data from OD to SDO buffer if not domain */
     if(ODdata != NULL){
-        while(length--) *(SDObuffer++) = *(ODdata++);
+        #if UINT8_16BITS
+            int i = 0;
+            for(i = 0; i < length / 2; i++) {
+                SDObuffer[2*i]     = ODdata[i] & 0x00FF;
+                SDObuffer[2*i + 1] = ODdata[i] >> 8;
+            }
+            if(length % 2) {
+                SDObuffer[2*i] = ODdata[i] & 0x00FF ;
+            }
+        #else
+            while(length--) *(SDObuffer++) = *(ODdata++);
+        #endif
     }
     /* if domain, Object dictionary function MUST exist */
     else{
@@ -646,9 +657,19 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
 
     /* copy data from SDO buffer to OD if not domain */
     if((ODdata != NULL) && !exception_1003){
-        while(length--){
-            *(ODdata++) = *(SDObuffer++);
-        }
+        #if UINT8_16BITS
+            int i = 0;
+            for(i = 0; i < length / 2; i++) {
+                ((uint16_t *)ODdata)[i] = (SDObuffer[2*i + 1] << 8) | SDObuffer[2*i];
+            }
+            if(length % 2) {
+                ((uint16_t *)ODdata)[i] = SDObuffer[2*i];
+            }
+        #else  
+            while(length--){
+                *(ODdata++) = *(SDObuffer++);
+            }
+        #endif
     }
 
     CO_UNLOCK_OD();
