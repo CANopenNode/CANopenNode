@@ -99,6 +99,12 @@ typedef struct{
     uint32_t            timer;
     /** Set to nonzero value, if TIME with wrong data length is received from CAN */
     uint16_t            receiveError;
+#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+    /** From CO_TIME_initCallbackPre() or NULL */
+    void              (*pFunctSignalPre)(void *object);
+    /** From CO_TIME_initCallbackPre() or NULL */
+    void               *functSignalObjectPre;
+#endif
     CO_CANmodule_t     *CANdevRx;       /**< From CO_TIME_init() */
     uint16_t            CANdevRxIdx;    /**< From CO_TIME_init() */
 	CO_CANmodule_t     *CANdevTx;       /**< From CO_TIME_init() */
@@ -136,6 +142,24 @@ CO_ReturnError_t CO_TIME_init(
         uint16_t                CANdevRxIdx,
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx);
+
+#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+/**
+ * Initialize TIME callback function.
+ *
+ * Function initializes optional callback function, which should immediately
+ * start processing of CO_TIME_process() function.
+ * Callback is called after TIME message is received from the CAN bus.
+ *
+ * @param TIME This object.
+ * @param object Pointer to object, which will be passed to pFunctSignalPre(). Can be NULL
+ * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
+ */
+void CO_TIME_initCallbackPre(
+        CO_TIME_t              *TIME,
+        void                   *object,
+        void                  (*pFunctSignalPre)(void *object));
+#endif
 
 /**
  * Process TIME communication.

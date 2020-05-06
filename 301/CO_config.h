@@ -263,6 +263,18 @@ extern "C" {
 
 
 /**
+ * Configuration of TIME
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received TIME CAN message.
+ *   Callback is configured by CO_TIME_initCallbackPre().
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_TIME (CO_CONFIG_FLAG_CALLBACK_PRE)
+#endif
+
+/**
  * Configuration of LSS master object
  *
  * Possible flags, can be ORed:
