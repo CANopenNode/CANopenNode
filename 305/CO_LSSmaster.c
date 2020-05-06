@@ -811,6 +811,8 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanInitiate(
         CO_LSSmaster_scantype_t          scan,
         CO_LSS_fastscan_lss_sub_next     lssSub)
 {
+    (void)timeDifference_us;    /* unused */
+
     LSSmaster->fsLssSub = lssSub;
     LSSmaster->fsIdNumber = 0;
 
@@ -900,6 +902,8 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyInitiate(
         uint32_t                         idNumberCheck,
         CO_LSS_fastscan_lss_sub_next     lssNext)
 {
+    (void)timeDifference_us;    /* unused */
+
     switch (scan) {
         case CO_LSSmaster_FS_SCAN:
             /* ID obtained by scan */
