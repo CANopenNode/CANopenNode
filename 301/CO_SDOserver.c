@@ -451,13 +451,14 @@ void* CO_OD_getDataPointer(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
 
 /******************************************************************************/
 uint8_t* CO_OD_getFlagsPointer(CO_SDO_t *SDO, uint16_t entryNo, uint8_t subIndex){
-    CO_OD_extension_t* ext;
-
-    if((entryNo == 0xFFFFU) || (SDO->ODExtensions == 0)){
-        return 0;
+    if(entryNo == 0xFFFF || SDO->ODExtensions == NULL){
+        return NULL;
     }
 
-    ext = &SDO->ODExtensions[entryNo];
+    CO_OD_extension_t* ext = &SDO->ODExtensions[entryNo];
+    if (ext->flags == NULL){
+        return NULL;
+    }
 
     return &ext->flags[subIndex];
 }
