@@ -9,7 +9,7 @@ Change Log
 - All drivers removed from this project, except Neuberger-socketCAN for Linux.
 ### Changed
 - Directory structure rearranged. Before was all CANopen object files in `stack` directory, now they are in separate directories according to standard (`301`, `305`, `extra`, `socketCAN` for Linux driver). Include directives for that files now contain directory path. `CO_SDO` renamed to `CO_SDOserver` and `CO_SDOmaster` renamed to `CO_SDOclient`. Change of the project files will be necessary.
-- Driver interface clarified. Before was pair of CO_driver.h/.c files for each microcontroller, now there is common CO_driver.h file. Drivers for other microcontrollers will be separate projects. Each driver must have own CO_driver_target.h file and function definitions from C_driver.h file. See documentation in CO_driver.h, example/CO_driver_target.h and example/CO_driver.c. There was no other mayor changes in driver interface.
+- Driver interface clarified. Before was pair of CO_driver.h/.c files for each microcontroller, now there is common CO_driver.h file. Drivers for other microcontrollers will be separate projects. Each driver must have own CO_driver_target.h file and function definitions from C_driver.h file. See documentation in CO_driver.h, example/CO_driver_target.h and example/CO_driver.c. There was no other major changes in driver interface.
 - Time base is now microsecond in all functions.
 - CANopen.h/.c files simplified and changed. `CO_USE_GLOBALS` and `CO_init()` removed. Interface to those functions changed.
 - `CO_NMT_sendCommand()` master function renamed and moved from CANopen.c into CO_NMT_Heartbeat.c.

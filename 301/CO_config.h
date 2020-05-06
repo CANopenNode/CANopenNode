@@ -90,9 +90,9 @@ extern "C" {
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received NMT CAN message.
+ *   Callback is configured by CO_NMT_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_NMT_process().
- *   Callback is configured by CO_NMT_initCallbackPre().
  * - CO_CONFIG_NMT_CALLBACK_CHANGE - Enable custom callback after NMT
  *   state changes. Callback is configured by
  *   CO_NMT_initCallbackChanged().
@@ -114,9 +114,9 @@ extern "C" {
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received SDO CAN message.
+ *   Callback is configured by CO_SDO_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SDO_process().
- *   Callback is configured by CO_SDO_initCallbackPre().
  * - CO_CONFIG_SDO_SEGMENTED - Enable SDO server segmented transfer.
  * - CO_CONFIG_SDO_BLOCK - Enable SDO server block transfer. If set, then
  *   CO_CONFIG_SDO_SEGMENTED must also be set.
