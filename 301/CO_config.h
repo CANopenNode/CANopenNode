@@ -199,11 +199,17 @@ extern "C" {
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_TPDO_process().
  * - CO_CONFIG_PDO_SYNC_ENABLE - Enable SYNC object inside PDO objects.
+ * - CO_CONFIG_RPDO_CALLS_EXTENSION - Enable calling configured extension
+ *   callbacks when received RPDO CAN message modifies OD entries.
+ * - CO_CONFIG_TPDO_CALLS_EXTENSION - Enable calling configured extension
+ *   callbacks before TPDO CAN message is sent.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_PDO (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_PDO_SYNC_ENABLE)
+#define CO_CONFIG_PDO (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_RPDO_CALLS_EXTENSION | CO_CONFIG_TPDO_CALLS_EXTENSION)
 #endif
 #define CO_CONFIG_PDO_SYNC_ENABLE 0x01
+#define CO_CONFIG_RPDO_CALLS_EXTENSION 0x02
+#define CO_CONFIG_TPDO_CALLS_EXTENSION 0x04
 
 
 /**
