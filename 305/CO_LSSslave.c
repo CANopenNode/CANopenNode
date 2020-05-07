@@ -38,6 +38,8 @@ static void CO_LSSslave_serviceSwitchStateGlobal(
     CO_LSS_cs_t service,
     void *msg)
 {
+    (void)service;  /* unused */
+
     uint8_t *data = CO_CANrxMsg_readData(msg);
     uint8_t mode = data[1];
 
@@ -224,6 +226,8 @@ static void CO_LSSslave_serviceInquire(
     CO_LSS_cs_t service,
     void *msg)
 {
+    (void)msg;  /* unused */
+
     uint32_t value;
 
     if(LSSslave->lssState != CO_LSS_STATE_CONFIGURATION) {
@@ -485,6 +489,8 @@ void CO_LSSslave_process(
         uint16_t               *pendingBitRate,
         uint8_t                *pendingNodeId)
 {
+    (void)activeBitRate;    /* unused */
+
     LSSslave->activeNodeID = activeNodeId;
     *pendingBitRate = LSSslave->pendingBitRate;
     *pendingNodeId = LSSslave->pendingNodeID;
