@@ -347,13 +347,13 @@ void CO_SYNC_initCallbackPre(
 
 
 /******************************************************************************/
-uint8_t CO_SYNC_process(
+CO_SYNC_status_t CO_SYNC_process(
         CO_SYNC_t              *SYNC,
         uint32_t                timeDifference_us,
         uint32_t                ObjDict_synchronousWindowLength,
         uint32_t               *timerNext_us)
 {
-    uint8_t ret = 0;
+    CO_SYNC_status_t ret = CO_SYNC_NONE;
     uint32_t timerNew;
 
     if(*SYNC->operatingState == CO_NMT_OPERATIONAL || *SYNC->operatingState == CO_NMT_PRE_OPERATIONAL){
@@ -364,7 +364,7 @@ uint8_t CO_SYNC_process(
         /* was SYNC just received */
         if(CO_FLAG_READ(SYNC->CANrxNew)){
             SYNC->timer = 0;
-            ret = 1;
+            ret = CO_SYNC_RECEIVED;
             CO_FLAG_CLEAR(SYNC->CANrxNew);
         }
 
@@ -373,7 +373,7 @@ uint8_t CO_SYNC_process(
             if(SYNC->timer >= SYNC->periodTime){
                 if(++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
                 SYNC->timer = 0;
-                ret = 1;
+                ret = CO_SYNC_RECEIVED;
                 SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
                 SYNC->CANtxBuff->data[0] = SYNC->counter;
                 CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
@@ -393,7 +393,7 @@ uint8_t CO_SYNC_process(
         if(ObjDict_synchronousWindowLength){
             if(SYNC->timer > ObjDict_synchronousWindowLength){
                 if(SYNC->curentSyncTimeIsInsideWindow){
-                    ret = 2;
+                    ret = CO_SYNC_OUTSIDE_WINDOW;
                 }
                 SYNC->curentSyncTimeIsInsideWindow = false;
             }

@@ -109,6 +109,11 @@ typedef struct{
     uint16_t            CANdevTxIdx;    /**< From CO_SYNC_init() */
 }CO_SYNC_t;
 
+typedef enum {
+    CO_SYNC_NONE            = 0, /**< SYNC not received */
+    CO_SYNC_RECEIVED        = 1, /**< SYNC received */
+    CO_SYNC_OUTSIDE_WINDOW  = 2, /**< SYNC received outside SYNC window */
+}CO_SYNC_status_t;
 
 /**
  * Initialize SYNC object.
@@ -173,11 +178,9 @@ void CO_SYNC_initCallbackPre(
  * Object dictionary (index 0x1007).
  * @param [out] timerNext_us info to OS - see CO_process_SYNC_PDO().
  *
- * @return 0: No special meaning.
- * @return 1: New SYNC message recently received or was just transmitted.
- * @return 2: SYNC time was just passed out of window.
+ * @return #CO_SYNC_status_t: CO_SYNC_NONE, CO_SYNC_RECEIVED or CO_SYNC_OUTSIDE_WINDOW.
  */
-uint8_t CO_SYNC_process(
+CO_SYNC_status_t CO_SYNC_process(
         CO_SYNC_t              *SYNC,
         uint32_t                timeDifference_us,
         uint32_t                ObjDict_synchronousWindowLength,
