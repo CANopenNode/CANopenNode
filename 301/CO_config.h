@@ -90,9 +90,9 @@ extern "C" {
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received NMT CAN message.
+ *   Callback is configured by CO_NMT_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_NMT_process().
- *   Callback is configured by CO_NMT_initCallbackPre().
  * - CO_CONFIG_NMT_CALLBACK_CHANGE - Enable custom callback after NMT
  *   state changes. Callback is configured by
  *   CO_NMT_initCallbackChanged().
@@ -114,9 +114,9 @@ extern "C" {
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received SDO CAN message.
+ *   Callback is configured by CO_SDO_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SDO_process().
- *   Callback is configured by CO_SDO_initCallbackPre().
  * - CO_CONFIG_SDO_SEGMENTED - Enable SDO server segmented transfer.
  * - CO_CONFIG_SDO_BLOCK - Enable SDO server block transfer. If set, then
  *   CO_CONFIG_SDO_SEGMENTED must also be set.
@@ -199,11 +199,17 @@ extern "C" {
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_TPDO_process().
  * - CO_CONFIG_PDO_SYNC_ENABLE - Enable SYNC object inside PDO objects.
+ * - CO_CONFIG_RPDO_CALLS_EXTENSION - Enable calling configured extension
+ *   callbacks when received RPDO CAN message modifies OD entries.
+ * - CO_CONFIG_TPDO_CALLS_EXTENSION - Enable calling configured extension
+ *   callbacks before TPDO CAN message is sent.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_PDO (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_PDO_SYNC_ENABLE)
+#define CO_CONFIG_PDO (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_RPDO_CALLS_EXTENSION | CO_CONFIG_TPDO_CALLS_EXTENSION)
 #endif
 #define CO_CONFIG_PDO_SYNC_ENABLE 0x01
+#define CO_CONFIG_RPDO_CALLS_EXTENSION 0x02
+#define CO_CONFIG_TPDO_CALLS_EXTENSION 0x04
 
 
 /**
@@ -261,6 +267,18 @@ extern "C" {
 #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
 #endif
 
+
+/**
+ * Configuration of TIME
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received TIME CAN message.
+ *   Callback is configured by CO_TIME_initCallbackPre().
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_TIME (CO_CONFIG_FLAG_CALLBACK_PRE)
+#endif
 
 /**
  * Configuration of LSS master object

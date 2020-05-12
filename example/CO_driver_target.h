@@ -80,7 +80,9 @@ extern "C" {
 #ifndef CO_CONFIG_PDO
 #define CO_CONFIG_PDO (CO_CONFIG_FLAG_CALLBACK_PRE | \
                        CO_CONFIG_FLAG_TIMERNEXT | \
-                       CO_CONFIG_PDO_SYNC_ENABLE)
+                       CO_CONFIG_PDO_SYNC_ENABLE | \
+                       CO_CONFIG_RPDO_CALLS_EXTENSION | \
+                       CO_CONFIG_TPDO_CALLS_EXTENSION)
 #endif
 
 #ifndef CO_CONFIG_SYNC
@@ -98,6 +100,10 @@ extern "C" {
 
 #ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
 #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000
+#endif
+
+#ifndef CO_CONFIG_TIME
+#define CO_CONFIG_TIME (CO_CONFIG_FLAG_CALLBACK_PRE)
 #endif
 
 #ifndef CO_CONFIG_LSS_MST

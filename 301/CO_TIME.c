@@ -46,11 +46,17 @@ static void CO_TIME_receive(void *object, void *msg){
     TIME = (CO_TIME_t*)object;   /* this is the correct pointer type of the first argument */
     operState = *TIME->operatingState;
 
-
     if((operState == CO_NMT_OPERATIONAL) || (operState == CO_NMT_PRE_OPERATIONAL)){
         // Process Time from msg buffer
         memcpy(&TIME->Time.ullValue, data, DLC);
         CO_FLAG_SET(TIME->CANrxNew);
+
+#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
+        /* Optional signal to RTOS, which can resume task, which handles TIME. */
+        if(TIME->pFunctSignalPre != NULL) {
+            TIME->pFunctSignalPre(TIME->functSignalObjectPre);
+        }
+#endif
     }
     else{
         TIME->receiveError = (uint16_t)DLC;
@@ -96,6 +102,11 @@ CO_ReturnError_t CO_TIME_init(
     TIME->em = em;
     TIME->operatingState = operatingState;
 
+#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
+    TIME->pFunctSignalPre = NULL;
+    TIME->functSignalObjectPre = NULL;
+#endif
+
 
     /* configure TIME consumer message reception */
     TIME->CANdevRx = CANdevRx;
@@ -130,6 +141,20 @@ CO_ReturnError_t CO_TIME_init(
 
     return ret;
 }
+
+#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
+/******************************************************************************/
+void CO_TIME_initCallbackPre(
+        CO_TIME_t              *TIME,
+        void                   *object,
+        void                  (*pFunctSignalPre)(void *object))
+{
+    if(TIME != NULL){
+        TIME->functSignalObjectPre = object;
+        TIME->pFunctSignalPre = pFunctSignalPre;
+    }
+}
+#endif
 
 /******************************************************************************/
 uint8_t CO_TIME_process(
