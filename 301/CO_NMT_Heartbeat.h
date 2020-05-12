@@ -27,6 +27,9 @@
 #ifndef CO_NMT_HEARTBEAT_H
 #define CO_NMT_HEARTBEAT_H
 
+#include "301/CO_SDOserver.h"
+#include "301/CO_Emergency.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

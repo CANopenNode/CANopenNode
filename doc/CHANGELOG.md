@@ -20,6 +20,7 @@ Change Log
 - Added `void *object` argument to CO_*_initCallback() functions. API clarified.
 - Add emergency receive callback also for own emergency messages.
 - Heartbeat is send immediately after NMT state changes.
+- SDO client is rewritten. Now includes read/write fifo interface to transfer data.
 ### Changed SocketCAN
 - ./stack/socketCAN removed from the project, ./stack/Neuberger-socketCAN moved to ./socketCAN
 - driver API updated
@@ -33,13 +34,15 @@ Change Log
 - Documentation added to `doc` directory: CHANGELOG.md, deviceSupport.md, gettingStarted.md, LSSusage.md and traceUsage.md.
 - All CANopen objects calculates next timer info for OS. Useful for energy saving.
 - Added file CO_config.h for stack configuration. Can be overridden by target specific or by custom definitions.
+- CO_fifo.h/c for fifo data buffer, used with rewritten SDO client, etc.
+- CANopen gateway-ascii command interface according to CiA309-3 as a microcontroller independent module. It includes NMT master, LSS master and SDO client interface. Interface is non-blocking, it is added to mainline. Example for Linux stdio and socket is included.
 
 [v1.3] - 2020-04-27
 -------------------
 - [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/v1.2...v1.3)
 ### Changed
 - License changed to Apache 2.0.
-- NMT self start functionality (OD object 1F80) implemented to strictly folow standard. Default value for object 1F80 have to be updated in OD editor. See README.md.
+- NMT self start functionality (OD object 1F80) implemented to strictly follow standard. Default value for object 1F80 have to be updated in OD editor. See README.md.
 ### Fixed
 - Various fixes.
 - neuberger-socketCAN fixed.

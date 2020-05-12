@@ -302,24 +302,40 @@ extern "C" {
  *
  * Possible flags, can be ORed:
  * - CO_CONFIG_GTW_MULTI_NET - Enable multiple network interfaces in gateway
- *   device. This functionality is currntly not implemented.
+ *   device. This functionality is currently not implemented.
  * - CO_CONFIG_GTW_ASCII - Enable gateway device with ASCII mapping (CiA 309-3)
+ * - CO_CONFIG_GTW_ASCII_ERROR_DESC - Print error description as additional
+ *   comments in gateway-ascii device for SDO and gateway errors.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | CO_CONFIG_GTW_ASCII)
+#define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | CO_CONFIG_GTW_ASCII | CO_CONFIG_GTW_ASCII_ERROR_DESC | CO_CONFIG_GTW_ASCII_PRINT_HELP)
 #endif
 #define CO_CONFIG_GTW_MULTI_NET 0x01
 #define CO_CONFIG_GTW_ASCII 0x02
+#define CO_CONFIG_GTW_ASCII_ERROR_DESC 0x04
+#define CO_CONFIG_GTW_ASCII_PRINT_HELP 0x08
+
+
+/**
+ * Number of loops of #CO_SDOclientDownload() in case of block download
+ *
+ * If SDO clint has block download in progress and OS has buffer for CAN tx
+ * messages, then #CO_SDOclientDownload() functionion can be called multiple
+ * times within own loop (up to 127). This can speed-up SDO block transfer.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GTW_BLOCK_DL_LOOP 1
+#endif
 
 
 /**
  * Size of command buffer in ASCII gateway object.
  *
- * If large amount of data is transferred (block transfer), the this should be
+ * If large amount of data is transferred (block transfer), then this should be
  * increased to 1000 or more. Buffer may be refilled between the block transfer.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_GTWA_COMM_BUF_SIZE 100
+#define CO_CONFIG_GTWA_COMM_BUF_SIZE 200
 #endif
 
 

@@ -46,13 +46,13 @@ extern "C" {
 /*
  * Message definitions for Linux CANopen socket driver (notice and errors)
  */
-#define CAN_NOT_FOUND             "CAN Interface \"%s\" not found"
-#define CAN_INIT_FAILED           "CAN Interface  \"%s\" Init failed"
-#define CAN_NAMETOINDEX           "Interface \"%s\" -> Index %d"
+#define CAN_NOT_FOUND             "(%s) CAN Interface \"%s\" not found", __func__
+#define CAN_INIT_FAILED           "(%s) CAN Interface  \"%s\" Init failed", __func__
+#define CAN_BINDING_FAILED        "(%s) Binding CAN Interface \"%s\" failed", __func__
+#define CAN_ERROR_FILTER_FAILED   "(%s) Setting CAN Interface \"%s\" error filter failed", __func__
+#define CAN_FILTER_FAILED         "(%s) Setting CAN Interface \"%s\" message filter failed", __func__
+#define CAN_NAMETOINDEX           "CAN Interface \"%s\" -> Index %d"
 #define CAN_SOCKET_BUF_SIZE       "CAN Interface \"%s\" Buffer set to %d messages (%d Bytes)"
-#define CAN_BINDING_FAILED        "Binding CAN Interface \"%s\" failed"
-#define CAN_ERROR_FILTER_FAILED   "Setting CAN Interface \"%s\" error filter failed"
-#define CAN_FILTER_FAILED         "Setting CAN Interface \"%s\" message filter failed"
 #define CAN_RX_SOCKET_QUEUE_OVERFLOW "CAN Interface \"%s\" has lost %d messages"
 #define CAN_BUSOFF                "CAN Interface \"%s\" changed to \"Bus Off\". Switching to Listen Only mode..."
 #define CAN_NOACK                 "CAN Interface \"%s\" no \"ACK\" received.  Switching to Listen Only mode..."
@@ -81,15 +81,21 @@ extern "C" {
 #define DBG_EMERGENCY_RX          "CANopen Emergency message from node 0x%02X: errorCode=0x%04X, errorRegister=0x%02X, errorBit=0x%02X, infoCode=0x%08X"
 #define DBG_NMT_CHANGE            "CANopen NMT state changed to: \"%s\" (%d)"
 #define DBG_HB_CONS_NMT_CHANGE    "CANopen Remote node ID = 0x%02X: NMT state changed to: \"%s\" (%d)"
-#define DBG_NOT_TCP_PORT          "(%s) -t argument \'%s\' is not a valid tcp port", __func__
+#define DBG_ARGUMENT_UNKNOWN      "(%s) Unknown %s argument: \"%s\"", __func__
+#define DBG_NOT_TCP_PORT          "(%s) -c argument \"%s\" is not a valid tcp port", __func__
 #define DBG_WRONG_NODE_ID         "(%s) Wrong node ID \"%d\"", __func__
 #define DBG_WRONG_PRIORITY        "(%s) Wrong RT priority \"%d\"", __func__
 #define DBG_NO_CAN_DEVICE         "(%s) Can't find CAN device \"%s\"", __func__
 #define DBG_OBJECT_DICTIONARY     "(%s) Error in Object Dictionary \"%s\"", __func__
 #define DBG_CAN_OPEN              "(%s) CANopen error in %s, err=%d", __func__
-#define DBG_CAN_OPEN_INFO         "(%s) CANopen device, Node ID = 0x%02X, %s", __func__
-#define DBG_COMMAND_LOCAL_INFO    "(%s) Command interface on socket \"%s\" started", __func__
-#define DBG_COMMAND_TCP_INFO      "(%s) Command interface on tcp port \"%hu\" started", __func__
+#define DBG_CAN_OPEN_INFO         "CANopen device, Node ID = 0x%02X, %s"
+
+/* CO_Linux_threads */
+#define DBG_COMMAND_LOCAL_BIND    "(%s) Can't bind local socket to path \"%s\"", __func__
+#define DBG_COMMAND_TCP_BIND      "(%s) Can't bind tcp socket to port \"%d\"", __func__
+#define DBG_COMMAND_STDIO_INFO    "CANopen command interface on \"standard IO\" started"
+#define DBG_COMMAND_LOCAL_INFO    "CANopen command interface on local socket \"%s\" started"
+#define DBG_COMMAND_TCP_INFO      "CANopen command interface on tcp port \"%d\" started"
 
 
 #ifdef __cplusplus

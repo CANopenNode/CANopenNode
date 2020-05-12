@@ -15,194 +15,156 @@ CANopen network usually has one device with master functionalities for network c
 
 CANopenNode on Linux
 --------------------
-CANopenNode should run on any Linux machine. Examples below was tested on Debian based machines, including **Ubuntu** and **Raspberry PI**. It is possible to run tests described below without real CAN interface, because Linux kernel already contains virtual CAN interface.
+CANopenNode should run on any Linux machine. Examples below was tested on Debian based machines, including Ubuntu and Raspberry PI. It is possible to run tests described below without real CAN interface, because Linux kernel already contains virtual CAN interface.
+All necessary Linux specific files are included in socketCAN directory of CANopenNode and Makefile is included in base directory.
 
-----
+### Preparation
+We will use Linux command line interface (Terminal) for all examples below. Open the terminal and cd to your working directory.
+First install supporting packages: [can-utils](https://github.com/linux-can/can-utils), which is very useful tool for working with CAN interface and [git](https://git-scm.com/), which is recommended for working with repositories.
+Then clone [CANopenNode](https://github.com/CANopenNode/CANopenNode) from Github and build the executable program.
 
-TODO update all below. (This is currently part of https://github.com/CANopenNode/CANopenSocket, but will become part of CANopenNode.)
+    sudo apt-get install git
+    sudo apt-get install can-utils
+    git clone https://github.com/CANopenNode/CANopenNode.git
+    cd CANopenNode
+    make
 
-CANopenSocket consists of two applications: **canopend**, which runs in background, and **canopencomm**, command interface for SDO and NMT master.
+Now prepare CAN virtual device and run _candump_, which will show all CAN traffic. Use a second terminal:
 
-
-### canopend
-**canopend** is an implementation of CANopen device with master functionality. It runs within three threads. Realtime thread processes CANopen SYNC and PDO objects. Mainline thread processes other non time critical objects. Both are nonblocking. Command interface thread is blocking. It accepts commands from socket connection from external application and executes master SDO and NMT tasks.
-
-
-### canopencomm
-**canopencomm** is the other end of the Command interface. It accepts text commands form arguments or from standard input or from file. It sends commands to *canopend* via socket, line after line. Received result is printed to standard output. It is implementation of the CiA 309 standard.
-
-
-Getting started
----------------
-We will run two instances of *CANopend*. First will be basic node with ID=4,
-second, with nodeID = 3, will have master functionality.
-
-
-### Get the project
-
-Clone the project from git repository and get submodules:
-
-    $ git clone https://github.com/CANopenNode/CANopenSocket.git
-    $ cd CANopenSocket
-    $ git submodule init
-    $ git submodule update
-
-(If you want to work on submodule CANopenNode, you can `cd CANopenNode`,
-and apply git commands directly on it. Initially is in head detached state,
-so you have to `git checkout master` first. Then you can control submodule
-separately, for example `git remote add {yourName} {url-of-your-git-repository}`,
-and `git pull {yourName} {yourbranch}`)
+    sudo modprobe vcan
+    sudo ip link add dev vcan0 type vcan
+    sudo ip link set up vcan0
+    candump vcan0
 
 
-### First terminal: CAN dump
+### First CANopen device
+Go to the first terminal, where we have recently build executable, named _canopend_.
+First print help, then run the program with some options.
 
-Prepare CAN virtual (or real) device:
+    ./canopend --help
+    ./canopend vcan0 -i 4 -s od4_storage -a od4_storage_auto
 
-    $ sudo modprobe vcan
-    $ sudo ip link add dev vcan0 type vcan
-    $ sudo ip link set up vcan0
+You are now running a fully functional CANopen device on virtual CAN network. It is running in background until you terminate the process (with CTRL+C for example) or it receives a reset message from CAN network. By default process also shows some info messages on terminal, for example changes of NMT state or emergency messages, own and remote.
 
-Run candump from [can-utils](https://github.com/linux-can/can-utils):
-
-    $ sudo apt-get install can-utils
-    $ candump vcan0
-
-It will show all CAN traffic on vcan0.
-
-
-### Second terminal: canopend
-
-Start second terminal, compile and start *canopend*.
-
-    $ cd CANopenSocket/canopend
-    $ make
-    $ app/canopend --help
-    $ app/canopend vcan0 -i 4 -s od4_storage -a od4_storage_auto
-
-You should now see CAN messages on CAN dump terminal. Wait few seconds and
-press CTRL-C.
+On the second terminal you can see some CAN traffic. After _canopend_ startup, first messages are:
 
     vcan0  704   [1]  00                        # Bootup message.
     vcan0  084   [8]  00 50 01 2F F3 FF FF FF   # Emergency message.
-    vcan0  704   [1]  7F                        # Heartbeat messages
-    vcan0  704   [1]  7F                        # one per second.
+    vcan0  704   [1]  7F                        # Heartbeat messages each second
+    vcan0  704   [1]  7F
 
-Heartbeat messages shows pre-operational state (0x7F). If you follow byte 4 of the
-Emergency message into [CANopenNode/stack/CO_Emergency.h],
-CO_EM_errorStatusBits, you will see under 0x2F "CO_EM_NON_VOLATILE_MEMORY",
-which is generic, critical error with access to non volatile device memory.
-This byte is CANopenNode specific. You can observe also first two bytes,
-which shows standard error code (0x5000 - Device Hardware) or third byte,
-which shows error register. If error register is different than zero, then
-node is not able to enter operational and PDOs can not be exchanged with it.
+Bootup and Heartbeat messages of node 4 have CAN-ID equal to 0x704. CAN-ID is 11-bit standard CAN identifier. 0x7F in heartbeat message means, that node is in NMT pre-operational state.
 
-You can follow the reason of the problem inside the source code. However,
-there are missing non-default storage files. Add them and run it again.
+Also, both, first and second terminal shows, that there is an Emergency message after the bootup. Also Heartbeat messages shows NMT pre-operational state.
 
-    $ echo - > od4_storage
-    $ echo - > od4_storage_auto
-    $ app/canopend vcan0 -i 4 -s od4_storage -a od4_storage_auto
+The easiest way to find the reason of the emergency message is to check the byte 4 (errorBit). It has value of 0x2F. Go to CANopenNode source code and open the file "301/CO_Emergency.h", section "Error status bits". 0x2F means "CO_EM_NON_VOLATILE_MEMORY", which is generic, critical error with access to non volatile device memory.
+
+This byte is CANopenNode specific. You can observe also first two bytes, which shows standard error code (0x5000 - Device Hardware) or third byte, which shows error register. If error register is different than zero, then node may be prohibited to enter operational and PDOs can not be exchanged with it.
+
+You can follow the reason of the problem inside the source code. However, there are missing non-default storage files. Go to the first terminal, terminate the application with CTRL+C, add files and run _canopend_ again.
+
+    echo "-" > od4_storage
+    echo "-" > od4_storage_auto
+    ./canopend vcan0 -i 4 -s od4_storage -a od4_storage_auto
+
+Second terminal now shows operational state (0x05) and one pre-defined PDO message with CAN-ID 0x184 and two bytes of data. To learn more about PDOs, how to configure communication and mapping parameters and how to use them see other sources of CANopen documentation. For example, you can read the article of PDO re-mapping procedure in [CAN newsletter magazine, June 2016](http://can-newsletter.org/engineering/engineering-miscellaneous/160601_can-newsletter-magazine-june-2016).
 
     vcan0  704   [1]  00
-    vcan0  184   [2]  00 00                     # PDO message
+    vcan0  184   [2]  00 00     # PDO message
     vcan0  704   [1]  05
 
-Now there is operational state (0x05) and there shows one PDO on CAN
-address 0x184. To learn more about PDOs, how to configure communication
-and mapping parameters and how to use them see other sources of CANopen
-documentation (For example article of PDO re-mapping procedure in [CAN
-newsletter magazine, June 2016](http://can-newsletter.org/engineering/engineering-miscellaneous/160601_can-newsletter-magazine-june-2016) ).
 
-Start also second instance of *canopend* (master on nodeID=3) in the same
-window (*canopend terminal*). Use default od_storage files and default
-socket for command interface.
+### Second CANopen device
+Open the third terminal and cd to the same directory as is in the first terminal. First generate default storage files. Then start second instance of _canopend_ with NodeID = 3. Use default od_storage files and enable command interface on standard IO (terminal).
 
-    $ # press CTRL-Z
-    $ bg
-    $ app/canopend vcan0 -i 3 -c ""
+    echo "-" > od_storage
+    echo "-" > od_storage_auto
+    ./canopend vcan0 -i3 -c "stdio"
+
+Now you should see in second terminal (_candump_) two CANopen devices sending heartbeats in one second interval each. One with node-ID = 4 and one with node-ID = 3. Both should be operational.
 
 
-### Third terminal: canopencomm
+### CANopen command interface
+Second instance of _canopend_ was started with command interface enabled. This is CANopen gateway interface with ascii mapping, as specified in standard CiA309-3. This enables usage of CANopen master functionalities via basic terminal. Go to third terminal, type "help" and press enter to see its functionalities.
 
-Start third terminal, compile and start canopencomm.
+    help
 
-    $ cd CANopenSocket/canopencomm
-    $ make
-    $ ./canopencomm --help
+#### SDO client
+For example read Heartbeat producer parameter on CANopen device with ID=4. Parameter is located at index 0x1017, subindex 0, it is 16-bit integer. (It is basically unsigned 16 bit integer (u16), but i16 give us more readable output in our case.)
 
-#### SDO master
+    [1] 4 read 0x1017 0 i16
 
-Play with it and also observe CAN dump terminal. First Heartbeat at
-index 0x1017, subindex 0, 16-bit integer, on nodeID 4.
+You should see the response, which says that Heartbeats are transmitted in 1000 ms intervals:
 
-    $ ./canopencomm [1] 4 read 0x1017 0 i16
-    $ ./canopencomm [1] 4 write 0x1017 0 i16 5000
+    [1] 1000
 
-In CAN dump you can see some SDO communication. You will notice, that
-Heartbeats from node 4 are coming in 5 second interval now. You can do
-the same also for node 3. Now store Object dictionary, so it will preserve
-variables on next start of the program.
+In CAN dump you can see some SDO communication. SDO communication can be quite complicated, if observing on _candump_, especially if larger data is split between multiple segments. However, there is no need to know the details, everything should work correctly in the background. Details about SDO communication can be found in CiA301 standard and partly also in 301/CO_SDOserver.h file, description of CO_SDO_state_t enumerator.
 
-    $ ./canopencomm 4 w 0x1010 1 u32 0x65766173
+    [2] 4 write 0x1017 0 u16 5000
+    [2] OK      #response
 
-You can read more about Object dictionary variables for this
-CANopenNode in [canopend/CANopenSocket.html].
+In _candump_ you will notice, that heartbeats from node 4 are coming in 5 second interval now. You can do the same also for node 3, but you won't see anything on _candump_, because data are written into itself directly. In "stdio" you can omit sequence number, to make typing easier.
+
+    3 w 0x1017 0 u16 2500
+    [0] OK
+
+Now store Object dictionary on node-ID 4, so it will preserve variables on next start of the program.
+
+    4 w 0x1010 1 u32 0x65766173
+    [0] OK
+
+More details about Object dictionary variables can be found in CiA301 standard or in example/IO.html file.
 
 
 #### NMT master
-If node is operational (started), it can exchange all objects, including
-PDO, SDO, etc. In pre-operational, PDOs are disabled, SDOs works. In stopped
-only NMT messages are accepted.
+If node is operational (started), it can exchange all objects, including PDO, SDO, etc. In NMT pre-operational, PDOs are disabled, SDOs works. In stopped only NMT messages are accepted. Try following commands and observe _candump_.
 
-    $ ./canopencomm 4 preop
-    $ ./canopencomm 4 start
-    $ ./canopencomm 4 stop
-    $ ./canopencomm 4 r 0x1017 0 i16 		# time out
-    $ ./canopencomm 4 reset communication
-    $ ./canopencomm 4 reset node
-    $ ./canopencomm 3 reset node
+    set node 4
+    [0] OK
 
-In *canopend terminal* you see, that both devices finished. Further commands
-are not possible. If you set so, last command can also reset computer.
+    preop
+    [0] OK
 
-#### Combining NMT commands into a single file
+    start
+    [0] OK
 
-Create a `commands.txt` file, and for its content enter your commands.
-Example:
+    stop
+    [0] OK
 
-    [1] 3 start
-    [2] 4 start
+    r 0x1017 0 i16
+    [0] ERROR: 0x05040000 #SDO protocol timed out.
 
-Make canopencomm use that file:
+    reset communication
+    [0] OK
 
-    $ ./canopencomm -f commands.txt
-    [1] OK
-    [2] OK
+    reset node
+    [0] OK
+
+    3 reset communication
+    [0] OK
+
+    3 reset node
+    [0] OK
+
+
+#### Other communication channels
+We used simple stdio for command interface. In Linux also sockets can be used, either local or tcp. See `./canopend --help` for options. Simple Linux tool for establishing socket connection is _netcat_ or _nc_. For example `nc -U /tmp/CO_command_socket` for local socket or `nc <host> 60000` for tcp socket. There are also some tools from [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) project.
+
+Please be careful when exposing your CANopen network to the outside world, it is your responsibility, if something dangerous happen.
 
 
 ### Next steps
-Now you can learn more skills on CANopen from some other sources:
-books, data sheet of some CANopen device, standard CiA 301(it's free), etc.
-Then you can enter the big world of [CANopen devices](http://can-newsletter.org/hardware).
+Now you can enter the big world of [CANopen devices](http://can-newsletter.org/hardware).
 
-
-Accessing real CANopen devices is the same as described above for virtual CAN interface.
-Some tested USB to CAN interfaces, which are natively integrated into Linux are:
-
+Accessing real CANopen devices is the same as described above for virtual CAN interface. Some tested USB to CAN interfaces, which are native integrated into Linux kernel are:
  - Simple serial [USBtin](http://www.fischl.de/usbtin/) - Start with: `sudo slcand -f -o -c -s8 /dev/ttyACM0 can0; sudo ip link set up can0`
- - [EMS CPC-USB](http://www.ems-wuensche.com/product/datasheet/html/can-usb-adapter-converter-interface-cpcusb.html) - Start with: `sudo ip link set up can0 type can bitrate 250000`
- - [PCAN-USB FD](http://www.peak-system.com/PCAN-USB-FD.365.0.html?&L=1) - Needs newer Linux kernel, supports CAN flexible data rate.
+ - [EMS CPC-USB](https://www.ems-wuensche.com/?post_type=product&p=746) or [PCAN-USB FD](http://www.peak-system.com/PCAN-USB-FD.365.0.html?&L=1) - Start with: `sudo ip link set up can0 type can bitrate 250000`
  - You can get the idea of other supported CAN interfaces in [Linux kernel source](https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can) (Kconfig files).
- - Beaglebone or Paspberry PI or similar has CAN capes available. On RPI worked
-   also the above USB interfaces, but it was necessary to compile the kernel.
+ - Beaglebone or Paspberry PI or similar has CAN capes available. On RPI worked also the above USB interfaces, but it was necessary to compile the kernel.
 
 
-With [CANopenNode](https://github.com/CANopenNode/CANopenNode) you can also design your
-own device. There are many very useful and high quality specifications for different
-[device profiles](http://www.can-cia.org/standardization/specifications/),
-some of them are public and free to download.
+With [CANopenNode](https://github.com/CANopenNode/CANopenNode) you can also design your own device. There are many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download.
 
 
-Here we played with virtual CAN interface and result shows as pixels on
-screen. If you connect real CAN interface to your computer, things may
+Here we played with virtual CAN interface and result shows as pixels on screen. If you connect real CAN interface to your computer, things may
 become dangerous. Keep control and safety on your machines!

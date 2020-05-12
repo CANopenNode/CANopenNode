@@ -128,10 +128,10 @@ int CO_OD_storage_saveSecure(
         FILE *fp = fopen(filename, "w");
         if(fp != NULL) {
 
-            CO_LOCK_OD();
+            //CO_LOCK_OD();
             fwrite((const void *)odAddress, 1, odSize, fp);
             CRC = crc16_ccitt((unsigned char*)odAddress, odSize, 0);
-            CO_UNLOCK_OD();
+            //CO_UNLOCK_OD();
 
             fwrite((const void *)&CRC, 1, 2, fp);
             fclose(fp);

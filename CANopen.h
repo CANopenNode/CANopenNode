@@ -136,6 +136,9 @@ extern "C" {
 #if CO_NO_LSS_CLIENT != 0
     #include "305/CO_LSSmaster.h"
 #endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    #include "309/CO_gateway_ascii.h"
+#endif
 #if CO_NO_TRACE != 0
     #include "extra/CO_trace.h"
 #endif
@@ -240,6 +243,9 @@ typedef struct {
 #endif
 #if CO_NO_LSS_CLIENT == 1
     CO_LSSmaster_t *LSSmaster;       /**< LSS master object */
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
+    CO_GTWA_t *gtwa;                /**< Gateway-ascii object (CiA309-3) */
 #endif
 #if CO_NO_TRACE > 0
     CO_trace_t *trace[CO_NO_TRACE]; /**< Trace object for recording variables */

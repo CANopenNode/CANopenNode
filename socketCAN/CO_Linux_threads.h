@@ -34,6 +34,20 @@ extern "C" {
 #endif
 
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+/**
+ * Command interface type for gateway-ascii
+ */
+typedef enum {
+    CO_COMMAND_IF_DISABLED = -100,
+    CO_COMMAND_IF_STDIO = -2,
+    CO_COMMAND_IF_LOCAL_SOCKET = -1,
+    CO_COMMAND_IF_TCP_SOCKET_MIN = 0,
+    CO_COMMAND_IF_TCP_SOCKET_MAX = 0xFFFF
+} CO_commandInterface_t;
+#endif
+
+
 /**
  * @defgroup CO_socketCAN socketCAN
  * @{
@@ -104,9 +118,15 @@ void threadMainWait_init(void);
  *
  * Function must be called only once, before node starts operating.
  *
- * @param interval_us interval of the threadMainWait_process()
+ * @param interval_us Interval of the threadMainWait_process()
+ * @param commandInterface Command interface type from CO_commandInterface_t
+ * @param socketTimeout_ms Timeout for established socket connection in [ms]
+ * @param localSocketPath File path, if commandInterface is local socket
  */
-void threadMainWait_initOnce(uint32_t interval_us);
+void threadMainWait_initOnce(uint32_t interval_us,
+                             int32_t commandInterface,
+                             uint32_t socketTimeout_ms,
+                             char *localSocketPath);
 
 
 /**
@@ -169,7 +189,7 @@ void CANrx_threadTmr_close(void);
  *
  * @return Number of interval timer passes since last call.
  */
-void CANrx_threadTmr_process(void);
+uint32_t CANrx_threadTmr_process(void);
 
 /** @} */
 

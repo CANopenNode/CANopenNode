@@ -54,8 +54,8 @@
 
 /* Use DS309-3 standard - ASCII command interface to CANopen: NMT master,
  * LSS master and SDO client */
-#if CO_CONFIG_309 > 0
-#include "CO_command.h"
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+#include "309/CO_gateway_ascii.h"
 #endif
 
 /* Interval of mainline and real-time thread in microseconds */
@@ -67,12 +67,6 @@
 #endif
 
 
-#if CO_CONFIG_309 > 0
-/* Mutex is locked, when CAN is not valid (configuration state). May be used
- * from command interface. RT threads may use CO->CANmodule[0]->CANnormal instead. */
-pthread_mutex_t             CO_CAN_VALID_mtx = PTHREAD_MUTEX_INITIALIZER;
-#endif
-
 /* Other variables and objects */
 static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
 static int                  CO_ownNodeId = -1;  /* Use value from Object Dictionary or set to 1..127 by arguments */
@@ -80,9 +74,6 @@ static CO_OD_storage_t      odStor;             /* Object Dictionary storage obj
 static CO_OD_storage_t      odStorAuto;         /* Object Dictionary storage object for CO_OD_EEPROM */
 static char                *odStorFile_rom    = "od_storage";       /* Name of the file */
 static char                *odStorFile_eeprom = "od_storage_auto";  /* Name of the file */
-#if CO_CONFIG_309 > 0
-static in_port_t            CO_command_socket_tcp_port = 60000; /* default port when used in tcp gateway mode */
-#endif
 #if CO_NO_TRACE > 0
 static CO_time_t            CO_time;            /* Object for current time */
 #endif
@@ -152,19 +143,19 @@ printf(
 "  -s <ODstorage file> Set Filename for OD storage ('od_storage' is default).\n"
 "  -a <ODstorageAuto>  Set Filename for automatic storage variables from\n"
 "                      Object dictionary. ('od_storage_auto' is default).\n");
-#if CO_CONFIG_309 > 0
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
 printf(
-"  -c <Socket path>    Enable command interface for master functionality. \n"
-"                      If socket path is specified as empty string \"\",\n"
-"                      default '%s' will be used.\n"
-"                      Note that location of socket path may affect security.\n"
-"                      See 'canopencomm/canopencomm --help' for more info.\n"
-, CO_command_socketPath);
-printf(
-"  -t <port>           Enable command interface for master functionality over\n"
-"                      tcp, listen to <port>.\n"
-"                      Note that using this mode may affect security.\n"
-);
+"  -c <interface>      Enable command interface for master functionality.\n"
+"                      One of three types of interfaces can be specified as:\n"
+"                   1. \"stdio\" - Standard IO of a program (terminal).\n"
+"                   2. \"local-<file path>\" - Local socket interface on file\n"
+"                      path, for example \"local-/tmp/CO_command_socket\".\n"
+"                   3. \"tcp-<port>\" - Tcp socket interface on specified \n"
+"                      port, for example \"tcp-60000\".\n"
+"                      Note that this option may affect security of the CAN.\n"
+"  -T <timeout_time>   If -c is specified as local or tcp socket, then this\n"
+"                      parameter specifies socket timeout time in milliseconds.\n"
+"                      Default is 0 - no timeout on established connection.\n");
 #endif
 printf(
 "\n"
@@ -188,9 +179,15 @@ int main (int argc, char *argv[]) {
     char* CANdevice = NULL;         /* CAN device, configurable by arguments. */
     bool_t nodeIdFromArgs = false;  /* True, if program arguments are used for CANopen Node Id */
     bool_t rebootEnable = false;    /* Configurable by arguments */
-#if CO_CONFIG_309 > 0
-    typedef enum CMD_MODE {CMD_NONE, CMD_LOCAL, CMD_REMOTE} cmdMode_t;
-    cmdMode_t commandEnable = CMD_NONE;   /* Configurable by arguments */
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    /* values from CO_commandInterface_t */
+    int32_t commandInterface = CO_COMMAND_IF_DISABLED;
+    /* local socket path if commandInterface == CO_COMMAND_IF_LOCAL_SOCKET */
+    char *localSocketPath = NULL;
+    uint32_t socketTimeout_ms = 0;
+#else
+    #define commandInterface 0
+    #define localSocketPath NULL
 #endif
 
     /* configure system log */
@@ -202,37 +199,51 @@ int main (int argc, char *argv[]) {
         printUsage(argv[0]);
         exit(EXIT_SUCCESS);
     }
-    while((opt = getopt(argc, argv, "i:p:rc:t:s:a:")) != -1) {
+    while((opt = getopt(argc, argv, "i:p:rc:T:s:a:")) != -1) {
+        const char comm_stdio[] = "stdio";
+        const char comm_local[] = "local-";
+        const char comm_tcp[] = "tcp-";
         switch (opt) {
             case 'i':
                 CO_ownNodeId = strtol(optarg, NULL, 0);
                 nodeIdFromArgs = true;
                 break;
-            case 'p': rtPriority = strtol(optarg, NULL, 0); break;
-            case 'r': rebootEnable = true;                  break;
-#if CO_CONFIG_309 > 0
-            case 'c':
-                /* In case of empty string keep default name, just enable interface. */
-                if(strlen(optarg) != 0) {
-                    CO_command_socketPath = optarg;
-                }
-                commandEnable = CMD_LOCAL;
+            case 'p': rtPriority = strtol(optarg, NULL, 0);
                 break;
-            case 't':
-                /* In case of empty string keep default port, just enable interface. */
-                if(strlen(optarg) != 0) {
-                  //CO_command_socket_tcp_port = optarg;
-                  int scanResult = sscanf(optarg, "%hu", &CO_command_socket_tcp_port);
-                  if(scanResult != 1){ //expect one argument to be extracted
-                      log_printf(LOG_CRIT, DBG_NOT_TCP_PORT, optarg);
-                      exit(EXIT_FAILURE);
-                  }
+            case 'r': rebootEnable = true;
+                break;
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+            case 'c':
+                if (strcmp(optarg, comm_stdio) == 0) {
+                    commandInterface = CO_COMMAND_IF_STDIO;
                 }
-                commandEnable = CMD_REMOTE;
+                else if (strncmp(optarg, comm_local, strlen(comm_local)) == 0) {
+                    commandInterface = CO_COMMAND_IF_LOCAL_SOCKET;
+                    localSocketPath = &optarg[6];
+                }
+                else if (strncmp(optarg, comm_tcp, strlen(comm_tcp)) == 0) {
+                    const char *portStr = &optarg[4];
+                    uint16_t port;
+                    int nMatch = sscanf(portStr, "%hu", &port);
+                    if(nMatch != 1) {
+                        log_printf(LOG_CRIT, DBG_NOT_TCP_PORT, portStr);
+                        exit(EXIT_FAILURE);
+                    }
+                    commandInterface = port;
+                }
+                else {
+                    log_printf(LOG_CRIT, DBG_ARGUMENT_UNKNOWN, "-c", optarg);
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 'T':
+                socketTimeout_ms = strtoul(optarg, NULL, 0);
                 break;
 #endif
-            case 's': odStorFile_rom = optarg;              break;
-            case 'a': odStorFile_eeprom = optarg;           break;
+            case 's': odStorFile_rom = optarg;
+                break;
+            case 'a': odStorFile_eeprom = optarg;
+                break;
             default:
                 printUsage(argv[0]);
                 exit(EXIT_FAILURE);
@@ -311,11 +322,6 @@ int main (int argc, char *argv[]) {
         log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "communication reset");
 
 
-#if CO_CONFIG_309 > 0
-        /* Wait other threads (command interface). */
-        pthread_mutex_lock(&CO_CAN_VALID_mtx);
-#endif
-
         /* Wait rt_thread. */
         if(!firstRun) {
             CO_LOCK_OD();
@@ -376,8 +382,8 @@ int main (int argc, char *argv[]) {
 
 
             /* Init threadMainWait structure and file descriptors */
-            threadMainWait_initOnce(MAIN_THREAD_INTERVAL_US);
-
+            threadMainWait_initOnce(MAIN_THREAD_INTERVAL_US, commandInterface,
+                                    socketTimeout_ms, localSocketPath);
 
             /* Init threadRT structure and file descriptors */
             CANrx_threadTmr_init(TMR_THREAD_INTERVAL_US);
@@ -397,26 +403,6 @@ int main (int argc, char *argv[]) {
                 }
             }
 
-#if CO_CONFIG_309 > 0
-            /* Initialize socket command interface */
-            switch(commandEnable) {
-              case CMD_LOCAL:
-                if(CO_command_init() != 0) {
-                    CO_errExit("Socket command interface initialization failed");
-                }
-                log_printf(LOG_INFO, DBG_COMMAND_LOCAL_INFO, CO_command_socketPath);
-                break;
-              case CMD_REMOTE:
-                if(CO_command_init_tcp(CO_command_socket_tcp_port) != 0) {
-                    CO_errExit("Socket command interface initialization failed");
-                }
-                log_printf(LOG_INFO, DBG_COMMAND_TCP_INFO, CO_command_socket_tcp_port);
-                break;
-              default:
-                break;
-            }
-#endif
-
 #ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
             app_programStart();
@@ -432,11 +418,6 @@ int main (int argc, char *argv[]) {
 
         /* start CAN */
         CO_CANsetNormalMode(CO->CANmodule[0]);
-
-#if CO_CONFIG_309 > 0
-        pthread_mutex_unlock(&CO_CAN_VALID_mtx);
-#endif
-
 
         reset = CO_RESET_NOT;
 
@@ -458,22 +439,6 @@ int main (int argc, char *argv[]) {
 
 /* program exit ***************************************************************/
     /* join threads */
-#if CO_CONFIG_309 > 0
-    switch (commandEnable)
-    {
-      case CMD_LOCAL:
-        if (CO_command_clear() != 0) {
-          CO_errExit("Socket command interface removal failed");
-        }
-        break;
-      case CMD_REMOTE:
-        //nothing to do yet
-        break;
-      default:
-        break;
-    }
-#endif
-
     CO_endProgram = 1;
     if (pthread_join(rt_thread_id, NULL) != 0) {
         log_printf(LOG_CRIT, DBG_ERRNO, "pthread_join()");
@@ -517,6 +482,7 @@ static void* rt_thread(void* arg) {
     /* Endless loop */
     while(CO_endProgram == 0) {
 
+        /* function may skip some milliseconds. Number of missed is returned */
         CANrx_threadTmr_process();
 
 #if CO_NO_TRACE > 0

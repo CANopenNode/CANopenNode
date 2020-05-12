@@ -26,12 +26,12 @@
  */
 
 
+#ifndef CO_DRIVER_TARGET
+#define CO_DRIVER_TARGET
+
 /* This file contains device and application specific definitions.
  * It is included from CO_driver.h, which contains documentation
  * for common definitions below. */
-
-#ifndef CO_DRIVER_TARGET
-#define CO_DRIVER_TARGET
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -41,7 +41,7 @@
 #include <linux/can.h>
 #include <net/if.h>
 
-#if __has_include("CO_driver_custom.h")
+#ifdef CO_DRIVER_CUSTOM
 #include "CO_driver_custom.h"
 #endif
 #include "CO_error.h"
@@ -117,7 +117,10 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_GTW
-#define CO_CONFIG_GTW (CO_CONFIG_GTW_ASCII)
+#define CO_CONFIG_GTW (CO_CONFIG_GTW_ASCII | \
+                       CO_CONFIG_GTW_ASCII_ERROR_DESC | \
+                       CO_CONFIG_GTW_ASCII_PRINT_HELP)
+#define CO_CONFIG_GTW_BLOCK_DL_LOOP 3
 #define CO_CONFIG_GTWA_COMM_BUF_SIZE 2000
 #endif
 
@@ -194,8 +197,15 @@ extern "C" {
 #ifdef __BYTE_ORDER
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     #define CO_LITTLE_ENDIAN
+    #define CO_SWAP_16(x) x
+    #define CO_SWAP_32(x) x
+    #define CO_SWAP_64(x) x
 #else
     #define CO_BIG_ENDIAN
+    #include <byteswap.h>
+    #define CO_SWAP_16(x) bswap_16(x)
+    #define CO_SWAP_32(x) bswap_32(x)
+    #define CO_SWAP_64(x) bswap_64(x)
 #endif
 #endif
 /* #define CO_USE_LEDS */
@@ -204,7 +214,7 @@ extern "C" {
 /* int8_t to uint64_t are defined in stdint.h */
 typedef unsigned char           bool_t;
 typedef float                   float32_t;
-typedef long double             float64_t;
+typedef double                  float64_t;
 typedef char                    char_t;
 typedef unsigned char           oChar_t;
 typedef unsigned char           domain_t;

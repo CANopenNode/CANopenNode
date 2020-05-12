@@ -112,19 +112,25 @@ extern "C" {
 
 #ifndef CO_CONFIG_GTW
 #define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | \
-                       CO_CONFIG_GTW_ASCII)
+                       CO_CONFIG_GTW_ASCII | \
+                       CO_CONFIG_GTW_ASCII_ERROR_DESC | \
+                       CO_CONFIG_GTW_ASCII_PRINT_HELP)
+#define CO_CONFIG_GTW_BLOCK_DL_LOOP 1
 #define CO_CONFIG_GTWA_COMM_BUF_SIZE 2000
 #endif
 
 
-/* Basic definitions */
+/* Basic definitions. If big endian, CO_SWAP_xx macros must swap bytes. */
 #define CO_LITTLE_ENDIAN
+#define CO_SWAP_16(x) x
+#define CO_SWAP_32(x) x
+#define CO_SWAP_64(x) x
 /* NULL is defined in stddef.h */
 /* true and false are defined in stdbool.h */
 /* int8_t to uint64_t are defined in stdint.h */
 typedef unsigned char           bool_t;
 typedef float                   float32_t;
-typedef long double             float64_t;
+typedef double                  float64_t;
 typedef char                    char_t;
 typedef unsigned char           oChar_t;
 typedef unsigned char           domain_t;

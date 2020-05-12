@@ -82,12 +82,6 @@ extern "C" {
 #define CO_CONFIG_GTW (0)
 #endif
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
-#ifndef CO_CONFIG_GTWA_COMM_BUF_SIZE
-#define CO_CONFIG_GTWA_COMM_BUF_SIZE 100
-#endif
-#endif
-
 /**
  * @defgroup CO_driver Driver
  * @ingroup CO_CANopen_301
@@ -100,7 +94,7 @@ extern "C" {
  * multiple threads. Reception of CAN messages is pre-processed with very fast
  * functions. Time critical objects, such as PDO or SYNC are processed in
  * real-time thread and other objects are processed in normal thread. See
- * Flowchart in [README.md](README.md) for more information.
+ * Flowchart in [README.md](index.html) for more information.
  *
  * @anchor CO_obj
  * #### CANopenNode Object
@@ -164,6 +158,12 @@ extern "C" {
  */
 /** CO_LITTLE_ENDIAN or CO_BIG_ENDIAN must be defined */
 #define CO_LITTLE_ENDIAN
+/** Macro must swap bytes, if CO_BIG_ENDIAN is defined */
+#define CO_SWAP_16(x) x
+/** Macro must swap bytes, if CO_BIG_ENDIAN is defined */
+#define CO_SWAP_32(x) x
+/** Macro must swap bytes, if CO_BIG_ENDIAN is defined */
+#define CO_SWAP_64(x) x
 /** NULL, for general usage */
 #define NULL (0)
 /** Logical true, for general use */
@@ -191,7 +191,7 @@ typedef unsigned long long int uint64_t;
 /** REAL32 in CANopen (0008h), single precision floating point value, 32-bit */
 typedef float float32_t;
 /** REAL64 in CANopen (0011h), double precision floating point value, 64-bit */
-typedef long double float64_t;
+typedef double float64_t;
 /** VISIBLE_STRING in CANopen (0009h), string of signed 8-bit values */
 typedef char char_t;
 /** OCTET_STRING in CANopen (000Ah), string of unsigned 8-bit values */
@@ -377,7 +377,7 @@ typedef struct {
  * @defgroup CO_critical_sections Critical sections
  * @{
  * CANopenNode is designed to run in different threads, as described in
- * [README.md](README.md). Threads are implemented differently in different
+ * [README.md](index.html). Threads are implemented differently in different
  * systems. In microcontrollers threads are interrupts with different
  * priorities, for example. It is necessary to protect sections, where different
  * threads access to the same resource. In simple systems interrupts or

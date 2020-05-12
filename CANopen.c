@@ -42,6 +42,9 @@ static CO_CANtx_t          *CO_CANmodule_txArray0;
 static CO_OD_extension_t   *CO_SDO_ODExtensions;
 static CO_HBconsNode_t     *CO_HBcons_monitoredNodes;
 
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) && !defined CO_GTWA_ENABLE
+#define CO_GTWA_ENABLE      true
+#endif
 #if CO_NO_TRACE > 0
 static uint32_t            *CO_traceTimeBuffers[CO_NO_TRACE];
 static int32_t             *CO_traceValueBuffers[CO_NO_TRACE];
@@ -224,6 +227,13 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO_memoryUsed += sizeof(CO_LSSmaster_t);
 #endif
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    /* Gateway-ascii */
+    CO->gtwa = (CO_GTWA_t *)calloc(1, sizeof(CO_GTWA_t));
+    if (CO->gtwa == NULL) errCnt++;
+    CO_memoryUsed += sizeof(CO_GTWA_t);
+#endif
+
 #if CO_NO_TRACE > 0
     /* Trace */
     for (i = 0; i < CO_NO_TRACE; i++) {
@@ -274,6 +284,11 @@ void CO_delete(void *CANptr) {
         free(CO_traceTimeBuffers[i]);
         free(CO_traceValueBuffers[i]);
     }
+#endif
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    /* Gateway-ascii */
+    free(CO->gtwa);
 #endif
 
 #if CO_NO_LSS_CLIENT == 1
@@ -370,6 +385,9 @@ void CO_delete(void *CANptr) {
 #if CO_NO_LSS_CLIENT == 1
     static CO_LSSmaster_t       COO_LSSmaster;
 #endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    static CO_GTWA_t            COO_gtwa;
+#endif
 #if CO_NO_TRACE > 0
   #ifndef CO_TRACE_BUFFER_SIZE_FIXED
     #define CO_TRACE_BUFFER_SIZE_FIXED 100
@@ -451,6 +469,11 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 #if CO_NO_LSS_CLIENT == 1
     /* LSSmaster */
     CO->LSSmaster = &COO_LSSmaster;
+#endif
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    /* Gateway-ascii */
+    CO->gtwa = &COO_gtwa;
 #endif
 
 #if CO_NO_TRACE > 0
@@ -710,12 +733,11 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 
     if (err) return err;
 
-
 #if CO_NO_SDO_CLIENT != 0
     /* SDOclient */
     for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
         err = CO_SDOclient_init(CO->SDOclient[i],
-                                CO->SDO[0],
+                                (void *)CO->SDO[0],
                                 (CO_SDOclientPar_t *)&OD_SDOClientParameter[i],
                                 CO->CANmodule[0],
                                 CO_RXCAN_SDO_CLI + i,
@@ -738,7 +760,17 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                             CO_CAN_ID_LSS_SRV);
 
     if (err) return err;
+#endif
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    /* Gateway-ascii */
+    err = CO_GTWA_init(CO->gtwa,
+                       CO->SDOclient[0],
+                       500,
+                       false,
+                       CO->NMT);
+
+    if (err) return err;
 #endif
 
 #if CO_NO_TRACE > 0
@@ -815,6 +847,14 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                           NMTisPreOrOperational,
                           timeDifference_us,
                           timerNext_us);
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    /* Gateway-ascii */
+    CO_GTWA_process(CO->gtwa,
+                    CO_GTWA_ENABLE,
+                    timeDifference_us,
+                    timerNext_us);
+#endif
 
     return reset;
 }

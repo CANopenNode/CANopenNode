@@ -93,7 +93,7 @@
    #define CO_NO_TIME                     1   //Associated objects: 1012-1013
    #define CO_NO_EMERGENCY                1   //Associated objects: 1014, 1015
    #define CO_NO_SDO_SERVER               1   //Associated objects: 1200
-   #define CO_NO_SDO_CLIENT               0
+   #define CO_NO_SDO_CLIENT               1   //Associated objects: 1280
    #define CO_NO_RPDO                     4   //Associated objects: 1400, 1401, 1402, 1403, 1600, 1601, 1602, 1603
    #define CO_NO_TPDO                     4   //Associated objects: 1800, 1801, 1802, 1803, 1A00, 1A01, 1A02, 1A03
    #define CO_NO_NMT_MASTER               0
@@ -104,7 +104,7 @@
 /*******************************************************************************
    OBJECT DICTIONARY
 *******************************************************************************/
-   #define CO_OD_NoOfElements             56
+   #define CO_OD_NoOfElements             57
 
 
 /*******************************************************************************
@@ -123,6 +123,13 @@
                UNSIGNED32     COB_IDClientToServer;
                UNSIGNED32     COB_IDServerToClient;
                }              OD_SDOServerParameter_t;
+
+/*1280[1]   */ typedef struct{
+               UNSIGNED8      maxSubIndex;
+               UNSIGNED32     COB_IDClientToServer;
+               UNSIGNED32     COB_IDServerToClient;
+               UNSIGNED8      nodeIDOfTheSDOServer;
+               }              OD_SDOClientParameter_t;
 
 /*1400[4]   */ typedef struct{
                UNSIGNED8      maxSubIndex;
@@ -195,6 +202,7 @@ struct sCO_OD_RAM{
 /*1003      */ UNSIGNED32     preDefinedErrorField[8];
 /*1010      */ UNSIGNED32     storeParameters[1];
 /*1011      */ UNSIGNED32     restoreDefaultParameters[1];
+/*1280[1]   */ OD_SDOClientParameter_t SDOClientParameter[1];
 /*2100      */ OCTET_STRING   errorStatusBits[10];
 /*2103      */ UNSIGNED16     SYNCCounter;
 /*2104      */ UNSIGNED16     SYNCTime;
@@ -345,6 +353,9 @@ extern struct sCO_OD_ROM CO_OD_ROM;
 
 /*1200[1], Data Type: OD_SDOServerParameter_t, Array[1] */
       #define OD_SDOServerParameter                      CO_OD_ROM.SDOServerParameter
+
+/*1280[1], Data Type: OD_SDOClientParameter_t, Array[1] */
+      #define OD_SDOClientParameter                      CO_OD_RAM.SDOClientParameter
 
 /*1400[4], Data Type: OD_RPDOCommunicationParameter_t, Array[4] */
       #define OD_RPDOCommunicationParameter              CO_OD_ROM.RPDOCommunicationParameter
