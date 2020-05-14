@@ -237,8 +237,8 @@ extern "C" {
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SDOclientDownloadInitiate(), CO_SDOclientDownload(),
  *   CO_SDOclientUploadInitiate(), CO_SDOclientUpload().
- * - CO_CONFIG_SDO_CLI_SEGMENTED - Enable SDO server segmented transfer.
- * - CO_CONFIG_SDO_CLI_BLOCK - Enable SDO server block transfer. If set, then
+ * - CO_CONFIG_SDO_CLI_SEGMENTED - Enable SDO client segmented transfer.
+ * - CO_CONFIG_SDO_CLI_BLOCK - Enable SDO client block transfer. If set, then
  *   CO_CONFIG_SDO_CLI_SEGMENTED must also be set.
  * - CO_CONFIG_SDO_CLI_LOCAL - Enable local transfer, if Node-ID of the SDO
  *   server is the same as node-ID of the SDO client. (SDO client is the same
