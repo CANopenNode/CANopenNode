@@ -32,9 +32,7 @@
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) || defined CO_DOXYGEN
 #include "301/CO_SDOserver.h"
 #endif
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) || defined CO_DOXYGEN
 #include "301/CO_fifo.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
