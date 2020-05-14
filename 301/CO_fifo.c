@@ -654,6 +654,8 @@ size_t CO_fifo_readR642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readHex2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
+    (void)end;    /* unused */
+
     size_t len = 0;
 
     if (fifo != NULL && count > 3) {

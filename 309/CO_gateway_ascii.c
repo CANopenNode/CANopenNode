@@ -211,6 +211,7 @@ static bool_t checkNet(CO_GTWA_t *gtwa, int32_t net,
     }
     return e;
 #else
+    (void)errCode;    /* unused */
     #define CO_CONFIG_GTW_NET_MIN 0
     #define CO_CONFIG_GTW_NET_MAX 0xFFFF
     gtwa->net = (uint16_t)net;

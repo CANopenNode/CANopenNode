@@ -866,24 +866,21 @@ bool_t CO_process_SYNC(CO_t *co,
                        uint32_t timeDifference_us,
                        uint32_t *timerNext_us)
 {
-    bool_t syncWas;
-    CO_SYNC_status_t sync_process;
-
-    sync_process = CO_SYNC_process(co->SYNC,
+    const CO_SYNC_status_t sync_process = CO_SYNC_process(co->SYNC,
                                    timeDifference_us,
                                    OD_synchronousWindowLength,
                                    timerNext_us);
 
+    bool_t syncWas = false;
+
     switch (sync_process) {
     case CO_SYNC_NONE:
-        syncWas = false;
         break;
     case CO_SYNC_RECEIVED:
         syncWas = true;
         break;
     case CO_SYNC_OUTSIDE_WINDOW:
         CO_CANclearPendingSyncPDOs(co->CANmodule[0]);
-        syncWas = false;
         break;
     }
 
