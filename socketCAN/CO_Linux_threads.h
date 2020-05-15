@@ -66,6 +66,9 @@ typedef enum {
  *
  * The "threads" specified here do not fork threads themselves, but require
  * that two threads are provided by the calling application.
+ *
+ * Main references for Linux functions used here are Linux man pages and the
+ * book: The Linux Programming Interface by Michael Kerrisk.
  */
 
 

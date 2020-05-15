@@ -26,9 +26,6 @@
 
 
 #include "301/CO_SDOclient.h"
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
-#include "301/crc16-ccitt.h"
-#endif
 
 
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) && \
@@ -1225,7 +1222,14 @@ CO_SDOclient_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             SDO_C->timeoutTimer += timeDifference_us;
         }
         if (SDO_C->timeoutTimer >= SDO_C->SDOtimeoutTime_us) {
-            abortCode = CO_SDO_AB_TIMEOUT;
+            if (SDO_C->state == CO_SDO_ST_UPLOAD_SEGMENT_REQ ||
+                SDO_C->state == CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP
+            ) {
+                /* application didn't empty buffer */
+                abortCode = CO_SDO_AB_GENERAL;
+            } else {
+                abortCode = CO_SDO_AB_TIMEOUT;
+            }
             SDO_C->state = CO_SDO_ST_ABORT;
         }
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT

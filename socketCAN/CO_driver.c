@@ -174,6 +174,7 @@ static CO_ReturnError_t setRxFilters(CO_CANmodule_t *CANmodule)
 /******************************************************************************/
 void CO_CANsetConfigurationMode(void *CANptr)
 {
+    (void)CANptr;
     /* Can't do anything because no reference to CANmodule_t is provided */
 }
 
@@ -208,6 +209,7 @@ CO_ReturnError_t CO_CANmodule_init(
     int32_t ret;
     uint16_t i;
     struct epoll_event ev;
+    (void)CANbitRate;
 
     /* verify arguments */
     if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
@@ -749,6 +751,7 @@ CO_ReturnError_t CO_CANCheckSend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
 /******************************************************************************/
 void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
 {
+    (void)CANmodule;
     /* Messages are either written to the socket queue or dropped */
 }
 
@@ -756,6 +759,7 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
 /******************************************************************************/
 void CO_CANverifyErrors(CO_CANmodule_t *CANmodule)
 {
+  (void)CANmodule;
   /* socketCAN doesn't support microcontroller-like error counters. If an
    * error has occured, a special can message is created by the driver and
    * received by the application like a regular message.

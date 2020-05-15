@@ -111,8 +111,7 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_GTW
-#define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | \
-                       CO_CONFIG_GTW_ASCII | \
+#define CO_CONFIG_GTW (CO_CONFIG_GTW_ASCII | \
                        CO_CONFIG_GTW_ASCII_ERROR_DESC | \
                        CO_CONFIG_GTW_ASCII_PRINT_HELP)
 #define CO_CONFIG_GTW_BLOCK_DL_LOOP 1

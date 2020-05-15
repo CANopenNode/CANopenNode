@@ -84,8 +84,9 @@ help                                     # Print this help.
 
 Datatypes:
 b                  # Boolean.
-u8, u16, u32, u64  # Unsigned integers.
 i8, i16, i32, i64  # Signed integers.
+u8, u16, u32, u64  # Unsigned integers.
+x8, x16, x32, x64  # Unsigned integers, displayed as hexadecimal, non-standard.
 r32, r64           # Real numbers.
 t, td              # Time of day, time difference.
 vs                 # Visible string (between double quotes if multi-word).
@@ -230,7 +231,7 @@ typedef struct {
      * description of parameters see #CO_fifo_cpyTok2U8 */
     size_t (*dataTypeScan)(CO_fifo_t *dest,
                            CO_fifo_t *src,
-                           uint8_t *status);
+                           CO_fifo_st *status);
 } CO_GTWA_dataType_t;
 
 

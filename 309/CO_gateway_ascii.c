@@ -108,8 +108,9 @@ static const char *CO_GTWA_helpString =
 "\n" \
 "Datatypes:\n" \
 "b                  # Boolean.\n" \
-"u8, u16, u32, u64  # Unsigned integers.\n" \
 "i8, i16, i32, i64  # Signed integers.\n" \
+"u8, u16, u32, u64  # Unsigned integers.\n" \
+"x8, x16, x32, x64  # Unsigned integers, displayed as hexadecimal, non-standard.\n" \
 "r32, r64           # Real numbers.\n" \
 "t, td              # Time of day, time difference.\n" \
 "vs                 # Visible string (between double quotes if multi-word).\n" \
@@ -223,14 +224,18 @@ static bool_t checkNet(CO_GTWA_t *gtwa, int32_t net,
 static const CO_GTWA_dataType_t dataTypes[] = {
     {"hex", 0, CO_fifo_readHex2a, CO_fifo_cpyTok2Hex},  /* hex, non-standard */
     {"b",   1, CO_fifo_readU82a,  CO_fifo_cpyTok2U8},   /* BOOLEAN */
-    {"u8",  1, CO_fifo_readU82a,  CO_fifo_cpyTok2U8},   /* UNSIGNED8 */
-    {"u16", 2, CO_fifo_readU162a, CO_fifo_cpyTok2U16},  /* UNSIGNED16 */
-    {"u32", 4, CO_fifo_readU322a, CO_fifo_cpyTok2U32},  /* UNSIGNED32 */
-    {"u64", 8, CO_fifo_readU642a, CO_fifo_cpyTok2U64},  /* UNSIGNED64 */
     {"i8",  1, CO_fifo_readI82a,  CO_fifo_cpyTok2I8},   /* INTEGER8 */
     {"i16", 2, CO_fifo_readI162a, CO_fifo_cpyTok2I16},  /* INTEGER16 */
     {"i32", 4, CO_fifo_readI322a, CO_fifo_cpyTok2I32},  /* INTEGER32 */
     {"i64", 8, CO_fifo_readI642a, CO_fifo_cpyTok2I64},  /* INTEGER64 */
+    {"u8",  1, CO_fifo_readU82a,  CO_fifo_cpyTok2U8},   /* UNSIGNED8 */
+    {"u16", 2, CO_fifo_readU162a, CO_fifo_cpyTok2U16},  /* UNSIGNED16 */
+    {"u32", 4, CO_fifo_readU322a, CO_fifo_cpyTok2U32},  /* UNSIGNED32 */
+    {"u64", 8, CO_fifo_readU642a, CO_fifo_cpyTok2U64},  /* UNSIGNED64 */
+    {"x8",  1, CO_fifo_readX82a,  CO_fifo_cpyTok2U8},   /* UNSIGNED8 */
+    {"x16", 2, CO_fifo_readX162a, CO_fifo_cpyTok2U16},  /* UNSIGNED16 */
+    {"x32", 4, CO_fifo_readX322a, CO_fifo_cpyTok2U32},  /* UNSIGNED32 */
+    {"x64", 8, CO_fifo_readX642a, CO_fifo_cpyTok2U64},  /* UNSIGNED64 */
     {"r32", 4, CO_fifo_readR322a, CO_fifo_cpyTok2R32},  /* REAL32 */
     {"r64", 8, CO_fifo_readR642a, CO_fifo_cpyTok2R64},  /* REAL64 */
 //    {"t",   0, CO_GWA_dtpHex, CO_DWA_dtsHex},         /* TIME_OF_DAY */
@@ -626,7 +631,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         else if (strcmp(token, "w") == 0 || strcmp(token, "write") == 0) {
             uint16_t idx;
             uint8_t subidx;
-            uint8_t status;
+            CO_fifo_st status;
             CO_SDOclient_return_t SDO_ret;
             size_t size;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 1, &respErrorCode);
@@ -681,13 +686,13 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                                                    &gtwa->commFifo,
                                                    &status);
             /* set to true, if command delimiter was found */
-            closed = (status & 0x01) == 1;
+            closed = ((status & CO_fifo_st_closed) == 0) ? 0 : 1;
             /* set to true, if data are copied only partially */
-            gtwa->SDOdataCopyStatus = (status & 0x02) != 0;
+            gtwa->SDOdataCopyStatus = (status & CO_fifo_st_partial) != 0;
 
             /* is syntax error in command or size is zero or not the last token
              * in command */
-            if ((status & 0xF0) != 0 || size == 0
+            if ((status & CO_fifo_st_errMask) != 0 || size == 0
                 || (gtwa->SDOdataCopyStatus == false && closed != 1)
             ) {
                 err = true;
@@ -1009,17 +1014,17 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
         /* copy data to the SDO buffer if more data available */
         if (gtwa->SDOdataCopyStatus) {
-            uint8_t status;
+            CO_fifo_st status;
             gtwa->SDOdataType->dataTypeScan(&gtwa->SDO_C->bufFifo,
                                             &gtwa->commFifo,
                                             &status);
             /* set to true, if command delimiter was found */
-            closed = (status & 0x01) == 1;
+            closed = ((status & CO_fifo_st_closed) == 0) ? 0 : 1;
             /* set to true, if data are copied only partially */
-            gtwa->SDOdataCopyStatus = (status & 0x02) != 0;
+            gtwa->SDOdataCopyStatus = (status & CO_fifo_st_partial) != 0;
 
             /* is syntax error in command or not the last token in command */
-            if ((status & 0xF0) != 0
+            if ((status & CO_fifo_st_errMask) != 0
                 || (gtwa->SDOdataCopyStatus == false && closed != 1)
             ) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;

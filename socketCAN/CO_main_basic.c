@@ -85,6 +85,7 @@ static void* rt_thread(void* arg);
 /* Signal handler */
 volatile sig_atomic_t CO_endProgram = 0;
 static void sigHandler(int sig) {
+    (void)sig;
     CO_endProgram = 1;
 }
 
@@ -124,6 +125,7 @@ static void HeartbeatNmtChangedCallback(uint8_t nodeId,
                                         CO_NMT_internalState_t state,
                                         void *object)
 {
+    (void)object;
     log_printf(LOG_NOTICE, DBG_HB_CONS_NMT_CHANGE,
                nodeId, NmtState2Str(state), state);
 }
@@ -478,7 +480,7 @@ int main (int argc, char *argv[]) {
  * Realtime thread for CAN receive and threadTmr
  ******************************************************************************/
 static void* rt_thread(void* arg) {
-
+    (void)arg;
     /* Endless loop */
     while(CO_endProgram == 0) {
 

@@ -40,6 +40,7 @@
 #include <fcntl.h>
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
 #include <stdio.h>
+#include <ctype.h>
 #include <limits.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -103,6 +104,7 @@ static struct {
 
 static void threadMainWait_callback(void *object)
 {
+    (void)object;
     /* send event to wake threadMainWait_process() */
     uint64_t u = 1;
     ssize_t s;
@@ -412,7 +414,8 @@ uint32_t threadMainWait_process(CO_NMT_reset_cmd_t *reset)
                 bool_t closed = (buf[s-1] == '\n'); /* is command closed? */
 
                 if (buf[0] != '[' && (space - s) >= strlen(sequence)
-                    && s > 1 && closed && tmw.freshCommand
+                    && isgraph(buf[0]) && buf[0] != '#'
+                    && closed && tmw.freshCommand
                 ) {
                     CO_GTWA_write(CO->gtwa, sequence, strlen(sequence));
                 }

@@ -401,6 +401,14 @@ size_t CO_fifo_readU162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 size_t CO_fifo_readU322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 /** Read uint64_t variable from fifo as ascii string, see CO_fifo_readU82a */
 size_t CO_fifo_readU642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
+/** Read uint8_t variable from fifo as ascii string, see CO_fifo_readU82a */
+size_t CO_fifo_readX82a (CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
+/** Read uint16_t variable from fifo as ascii string, see CO_fifo_readU82a */
+size_t CO_fifo_readX162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
+/** Read uint32_t variable from fifo as ascii string, see CO_fifo_readU82a */
+size_t CO_fifo_readX322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
+/** Read uint64_t variable from fifo as ascii string, see CO_fifo_readU82a */
+size_t CO_fifo_readX642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 /** Read int8_t variable from fifo as ascii string, see CO_fifo_readU82a */
 size_t CO_fifo_readI82a (CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 /** Read int16_t variable from fifo as ascii string, see CO_fifo_readU82a */
@@ -423,48 +431,60 @@ size_t CO_fifo_readHex2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 size_t CO_fifo_readVs2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 
 
+/** Bitfields for status argument from CO_fifo_cpyTok2U8 function and similar */
+typedef enum {
+    /** Bit is set, if command delimiter is reached in src */
+    CO_fifo_st_closed  = 0x01U,
+    /** Bit is set, if copy was partial and more data are available. If unset
+     * and no error, then all data was successfully copied. */
+    CO_fifo_st_partial = 0x02U,
+    /** Bit is set, if no valid token found */
+    CO_fifo_st_errTok  = 0x10U,
+    /** Bit is set, if value is not valid or out of limits */
+    CO_fifo_st_errVal  = 0x20U,
+    /** Bit is set, if destination buffer is to small */
+    CO_fifo_st_errBuf  = 0x40U,
+    /** Bit is set, if internal error */
+    CO_fifo_st_errInt  = 0x80U,
+    /** Bitmask for error bits */
+    CO_fifo_st_errMask = 0xF0U
+} CO_fifo_st;
+
 /**
  * Read ascii string from src fifo and copy as uint8_t variable to dest fifo.
  *
  * @param dest destination fifo buffer object.
  * @param src source fifo buffer object.
- * @param [out] status bitfield with the following bits:
- *  - bit0: if 1, command delimiter is reached in src
- *  - bit1: if 1, copy was partial, more data are available. If 0 and no error
- *          bit is set, then all data was successfully copied.
- *  - bit4: if 1, error: no valid token found
- *  - bit5: if 1, error: value is not valid or out of limits
- *  - bit6: if 1, error: destination buffer to small
- *  - bit7: if 1, error: internal
+ * @param [out] status bitfield of the CO_fifo_st type.
  *
  * @return Number of bytes written into dest.
  */
-size_t CO_fifo_cpyTok2U8 (CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2U8 (CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to uint16_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to uint32_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to uint64_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to int8_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2I8 (CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2I8 (CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to int16_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to int32_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to int64_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to float32_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy ascii string to float64_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy bytes written as two hex digits into to data. Bytes may be space
  * separated. See CO_fifo_cpyTok2U8 for parameters. */
-size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy visible string to data. A visible string must be enclosed with double
  * quotes, if it contains space. If a double quote is used within the string,
  * the quotes are escaped by a second quotes. See CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
+size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 
 #endif /* CO_CONFIG_FIFO_ASCII_COMMANDS > 0 */
 

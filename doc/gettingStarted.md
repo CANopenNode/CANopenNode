@@ -18,6 +18,9 @@ CANopenNode on Linux
 CANopenNode should run on any Linux machine. Examples below was tested on Debian based machines, including Ubuntu and Raspberry PI. It is possible to run tests described below without real CAN interface, because Linux kernel already contains virtual CAN interface.
 All necessary Linux specific files are included in socketCAN directory of CANopenNode and Makefile is included in base directory.
 
+Windows or Mac users, who don't have Linux installed, can use [VirtualBox](https://www.virtualbox.org/) and install [Ubuntu](https://ubuntu.com/download/desktop) or similar.
+
+
 ### Preparation
 We will use Linux command line interface (Terminal) for all examples below. Open the terminal and cd to your working directory.
 First install supporting packages: [can-utils](https://github.com/linux-can/can-utils), which is very useful tool for working with CAN interface and [git](https://git-scm.com/), which is recommended for working with repositories.
@@ -90,9 +93,9 @@ Second instance of _canopend_ was started with command interface enabled. This i
     help
 
 #### SDO client
-For example read Heartbeat producer parameter on CANopen device with ID=4. Parameter is located at index 0x1017, subindex 0, it is 16-bit integer. (It is basically unsigned 16 bit integer (u16), but i16 give us more readable output in our case.)
+For example read Heartbeat producer parameter on CANopen device with ID=4. Parameter is located at index 0x1017, subindex 0, it is 16-bit unsigned integer.
 
-    [1] 4 read 0x1017 0 i16
+    [1] 4 read 0x1017 0 u16
 
 You should see the response, which says that Heartbeats are transmitted in 1000 ms intervals:
 
