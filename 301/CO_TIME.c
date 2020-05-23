@@ -31,6 +31,8 @@
 #include "301/CO_NMT_Heartbeat.h"
 #include "301/CO_TIME.h"
 
+#define DIV_ROUND_UP(_n, _d) (((_n) + (_d) - 1) / (_d))
+
 /*
  * Read received message from CAN module.
  *
@@ -166,7 +168,7 @@ uint8_t CO_TIME_process(
 
     if(*TIME->operatingState == CO_NMT_OPERATIONAL || *TIME->operatingState == CO_NMT_PRE_OPERATIONAL){
         /* update TIME timer, no overflow */
-        uint32_t timeDifference_ms = (timeDifference_us+500) / 1000; //this should be optimized
+        uint32_t timeDifference_ms = DIV_ROUND_UP(timeDifference_us, 1000);
         timerNew = TIME->timer + timeDifference_ms;
         if(timerNew > TIME->timer)
             TIME->timer = timerNew;
