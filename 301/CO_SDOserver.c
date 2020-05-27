@@ -71,15 +71,7 @@ static void CO_SDO_receive(void *object, void *msg){
     if((DLC == 8U) && (!CO_FLAG_READ(SDO->CANrxNew))){
         if(SDO->state != CO_SDO_ST_DOWNLOAD_BL_SUBBLOCK) {
             /* copy data and set 'new message' flag */
-            SDO->CANrxData[0] = data[0];
-            SDO->CANrxData[1] = data[1];
-            SDO->CANrxData[2] = data[2];
-            SDO->CANrxData[3] = data[3];
-            SDO->CANrxData[4] = data[4];
-            SDO->CANrxData[5] = data[5];
-            SDO->CANrxData[6] = data[6];
-            SDO->CANrxData[7] = data[7];
-
+            memcpy(SDO->CANrxData, data, DLC);
             CO_FLAG_SET(SDO->CANrxNew);
         }
         else {
@@ -704,8 +696,7 @@ int8_t CO_SDO_process(
         }
 
         /* clear response buffer */
-        SDO->CANtxBuff->data[0] = SDO->CANtxBuff->data[1] = SDO->CANtxBuff->data[2] = SDO->CANtxBuff->data[3] = 0;
-        SDO->CANtxBuff->data[4] = SDO->CANtxBuff->data[5] = SDO->CANtxBuff->data[6] = SDO->CANtxBuff->data[7] = 0;
+        memset(SDO->CANtxBuff->data, 0, sizeof(SDO->CANtxBuff->data));
 
         /* Is abort from client? */
         if((CO_FLAG_READ(SDO->CANrxNew)) && (SDO->CANrxData[0] == CCS_ABORT)){
