@@ -70,7 +70,7 @@ extern "C" {
  *
  * This flag is common to multiple configuration macros.
  */
-#define CO_CONFIG_FLAG_CALLBACK_PRE 0x0100
+#define CO_CONFIG_FLAG_CALLBACK_PRE 0x1000
 
 
 /**
@@ -81,7 +81,7 @@ extern "C" {
  *
  * This flag is common to multiple configuration macros.
  */
-#define CO_CONFIG_FLAG_TIMERNEXT 0x0200
+#define CO_CONFIG_FLAG_TIMERNEXT 0x2000
 
 
 /**
@@ -304,16 +304,26 @@ extern "C" {
  * - CO_CONFIG_GTW_MULTI_NET - Enable multiple network interfaces in gateway
  *   device. This functionality is currently not implemented.
  * - CO_CONFIG_GTW_ASCII - Enable gateway device with ASCII mapping (CiA 309-3)
+ * - CO_CONFIG_GTW_ASCII_SDO - Enable SDO client
+ * - CO_CONFIG_GTW_ASCII_NMT - Enable NMT master
+ * - CO_CONFIG_GTW_ASCII_LSS - Enable LSS master
+ * - CO_CONFIG_GTW_ASCII_LOG - Enable non-standard message log read
  * - CO_CONFIG_GTW_ASCII_ERROR_DESC - Print error description as additional
  *   comments in gateway-ascii device for SDO and gateway errors.
+ * - CO_CONFIG_GTW_ASCII_PRINT_HELP - use non-standard command "help" to print
+ *   help usage.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | CO_CONFIG_GTW_ASCII | CO_CONFIG_GTW_ASCII_ERROR_DESC | CO_CONFIG_GTW_ASCII_PRINT_HELP)
+#define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | CO_CONFIG_GTW_ASCII | CO_CONFIG_GTW_ASCII_SDO | CO_CONFIG_GTW_ASCII_NMT | CO_CONFIG_GTW_ASCII_LSS | CO_CONFIG_GTW_ASCII_LOG | CO_CONFIG_GTW_ASCII_ERROR_DESC | CO_CONFIG_GTW_ASCII_PRINT_HELP)
 #endif
 #define CO_CONFIG_GTW_MULTI_NET 0x01
 #define CO_CONFIG_GTW_ASCII 0x02
-#define CO_CONFIG_GTW_ASCII_ERROR_DESC 0x04
-#define CO_CONFIG_GTW_ASCII_PRINT_HELP 0x08
+#define CO_CONFIG_GTW_ASCII_SDO 0x04
+#define CO_CONFIG_GTW_ASCII_NMT 0x08
+#define CO_CONFIG_GTW_ASCII_LSS 0x10
+#define CO_CONFIG_GTW_ASCII_LOG 0x20
+#define CO_CONFIG_GTW_ASCII_ERROR_DESC 0x40
+#define CO_CONFIG_GTW_ASCII_PRINT_HELP 0x80
 
 
 /**

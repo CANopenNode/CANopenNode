@@ -765,10 +765,10 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
     /* Gateway-ascii */
     err = CO_GTWA_init(CO->gtwa,
-                       CO->SDOclient[0],
+                       (void *)CO->SDOclient[0],
                        500,
                        false,
-                       CO->NMT);
+                       (void *)CO->NMT);
 
     if (err) return err;
 #endif

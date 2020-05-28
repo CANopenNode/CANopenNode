@@ -529,8 +529,10 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
 
     return tokenSize;
 }
+#endif /* #if CO_CONFIG_FIFO_ASCII_COMMANDS == 1 */
 
 
+#if CO_CONFIG_FIFO_ASCII_DATATYPES == 1
 /******************************************************************************/
 size_t CO_fifo_readU82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint8_t n;
@@ -1205,4 +1207,4 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return destSpaceStart - destSpace;
 }
 
-#endif /* CO_CONFIG_FIFO_ASCII_COMMANDS == 1 */
+#endif /* CO_CONFIG_FIFO_ASCII_DATATYPES == 1 */

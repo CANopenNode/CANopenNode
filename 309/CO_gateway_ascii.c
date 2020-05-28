@@ -33,15 +33,19 @@
 
 /******************************************************************************/
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
-                              CO_SDOclient_t* SDO_C,
+                              void* SDO_C,
                               uint16_t SDOtimeoutTimeDefault,
                               bool_t SDOblockTransferEnableDefault,
-                              CO_NMT_t *NMT)
+                              void *NMT)
 {
     /* verify arguments */
     if (gtwa == NULL
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
         || SDO_C == NULL || SDOtimeoutTimeDefault == 0
+#endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
         || NMT == NULL
+#endif
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -49,10 +53,14 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
     /* initialize variables */
     gtwa->readCallback = NULL;
     gtwa->readCallbackObject = NULL;
-    gtwa->SDO_C = SDO_C;
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+    gtwa->SDO_C = (CO_SDOclient_t *)SDO_C;
     gtwa->SDOtimeoutTime = SDOtimeoutTimeDefault;
     gtwa->SDOblockTransferEnable = SDOblockTransferEnableDefault;
-    gtwa->NMT = NMT;
+#endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
+    gtwa->NMT = (CO_NMT_t *)NMT;
+#endif
     gtwa->net_default = -1;
     gtwa->node_default = -1;
     gtwa->state = CO_GTWA_ST_IDLE;
@@ -220,6 +228,8 @@ static bool_t checkNet(CO_GTWA_t *gtwa, int32_t net,
 #endif
 }
 
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
 /* data types for SDO read or write */
 static const CO_GTWA_dataType_t dataTypes[] = {
     {"hex", 0, CO_fifo_readHex2a, CO_fifo_cpyTok2Hex},  /* hex, non-standard */
@@ -264,6 +274,7 @@ static const CO_GTWA_dataType_t *CO_GTWA_getDataType(char *token, bool_t *err) {
     *err = true;
     return NULL;
 }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
 
 /* transfer response buffer and verify if all bytes was read */
@@ -332,6 +343,7 @@ static const errorDescs_t errorDescs[] = {
     {505, "LSS command failed because of media error."},
     {600, "Running out of memory."}
 };
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
 static const errorDescs_t errorDescsSDO[] = {
     {0x00000000, "No abort."},
     {0x05030000, "Toggle bit not altered."},
@@ -366,6 +378,7 @@ static const errorDescs_t errorDescsSDO[] = {
     {0x08000023, "Object dictionary not present or dynamic generation fails."},
     {0x08000024, "No data available."}
 };
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 #endif /* CO_CONFIG_GTW_ASCII_ERROR_DESC_STRINGS */
 
 static void responseWithError(CO_GTWA_t *gtwa,
@@ -387,6 +400,7 @@ static void responseWithError(CO_GTWA_t *gtwa,
     respBufTransfer(gtwa);
 }
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
 static void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                  CO_SDO_abortCode_t abortCode)
 {
@@ -405,6 +419,7 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                  gtwa->sequence, abortCode, desc);
     respBufTransfer(gtwa);
 }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
 #else /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_ERROR_DESC */
 static inline void responseWithError(CO_GTWA_t *gtwa,
@@ -415,6 +430,7 @@ static inline void responseWithError(CO_GTWA_t *gtwa,
     respBufTransfer(gtwa);
 }
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
 static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                         CO_SDO_abortCode_t abortCode)
 {
@@ -422,6 +438,7 @@ static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                  gtwa->sequence, abortCode);
     respBufTransfer(gtwa);
 }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_ERROR_DESC */
 
 
@@ -580,8 +597,107 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         /* command is case insensitive */
         convertToLower(token, sizeof(token));
 
+        /* set command - multiple sub commands */
+        if (strcmp(token, "set") == 0) {
+            if (closed != 0) {
+                err = true;
+                break;
+            }
+
+            /* command 2 */
+            closed = -1;
+            CO_fifo_readToken(&gtwa->commFifo, token, tokenSize, &closed, &err);
+            if (err) break;
+
+            convertToLower(token, sizeof(token));
+            if (strcmp(token, "network") == 0) {
+                uint16_t value;
+
+                if (closed != 0) {
+                    err = true;
+                    break;
+                }
+
+                /* value */
+                closed = 1;
+                CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
+                                  &closed, &err);
+                value = (uint16_t)getU32(token, CO_CONFIG_GTW_NET_MIN,
+                                         CO_CONFIG_GTW_NET_MAX, &err);
+                if (err) break;
+
+                gtwa->net_default = value;
+                responseWithOK(gtwa);
+            }
+            else if (strcmp(token, "node") == 0) {
+                bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
+                uint8_t value;
+
+                if (closed != 0 || NodeErr) {
+                    err = true;
+                    break;
+                }
+
+                /* value */
+                closed = 1;
+                CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
+                                  &closed, &err);
+                value = (uint8_t)getU32(token, 1, 127, &err);
+                if (err) break;
+
+                gtwa->node_default = value;
+                responseWithOK(gtwa);
+            }
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+            else if (strcmp(token, "sdo_timeout") == 0) {
+                bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
+                uint16_t value;
+
+                if (closed != 0 || NodeErr) {
+                    err = true;
+                    break;
+                }
+
+                /* value */
+                closed = 1;
+                CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
+                                  &closed, &err);
+                value = (uint16_t)getU32(token, 1, 0xFFFF, &err);
+                if (err) break;
+
+                gtwa->SDOtimeoutTime = value;
+                responseWithOK(gtwa);
+            }
+            else if (strcmp(token, "sdo_block") == 0) {
+                bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
+                uint16_t value;
+
+                if (closed != 0 || NodeErr) {
+                    err = true;
+                    break;
+                }
+
+                /* value */
+                closed = 1;
+                CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
+                                  &closed, &err);
+                value = (uint16_t)getU32(token, 0, 1, &err);
+                if (err) break;
+
+                gtwa->SDOblockTransferEnable = value==1 ? true : false;
+                responseWithOK(gtwa);
+            }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
+            else {
+                respErrorCode = CO_GTWA_respErrorReqNotSupported;
+                err = true;
+                break;
+            }
+        }
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
         /* Upload SDO command - 'r[ead] <index> <subindex> <datatype>' */
-        if (strcmp(token, "r") == 0 || strcmp(token, "read") == 0) {
+        else if (strcmp(token, "r") == 0 || strcmp(token, "read") == 0) {
             uint16_t idx;
             uint8_t subidx;
             CO_SDOclient_return_t SDO_ret;
@@ -727,7 +843,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             gtwa->stateTimeoutTmr = 0;
             gtwa->state = CO_GTWA_ST_WRITE;
         }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
         /* NMT start node */
         else if (strcmp(token, "start") == 0) {
             CO_ReturnError_t ret;
@@ -835,102 +953,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 break;
             }
         }
-
-        /* set command - multiple sub commands */
-        else if (strcmp(token, "set") == 0) {
-            if (closed != 0) {
-                err = true;
-                break;
-            }
-
-            /* command 2 */
-            closed = -1;
-            CO_fifo_readToken(&gtwa->commFifo, token, tokenSize, &closed, &err);
-            if (err) break;
-
-            convertToLower(token, sizeof(token));
-            if (strcmp(token, "network") == 0) {
-                uint16_t value;
-
-                if (closed != 0) {
-                    err = true;
-                    break;
-                }
-
-                /* value */
-                closed = 1;
-                CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
-                                  &closed, &err);
-                value = (uint16_t)getU32(token, CO_CONFIG_GTW_NET_MIN,
-                                         CO_CONFIG_GTW_NET_MAX, &err);
-                if (err) break;
-
-                gtwa->net_default = value;
-                responseWithOK(gtwa);
-            }
-            else if (strcmp(token, "node") == 0) {
-                bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
-                uint8_t value;
-
-                if (closed != 0 || NodeErr) {
-                    err = true;
-                    break;
-                }
-
-                /* value */
-                closed = 1;
-                CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
-                                  &closed, &err);
-                value = (uint8_t)getU32(token, 1, 127, &err);
-                if (err) break;
-
-                gtwa->node_default = value;
-                responseWithOK(gtwa);
-            }
-            else if (strcmp(token, "sdo_timeout") == 0) {
-                bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
-                uint16_t value;
-
-                if (closed != 0 || NodeErr) {
-                    err = true;
-                    break;
-                }
-
-                /* value */
-                closed = 1;
-                CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
-                                  &closed, &err);
-                value = (uint16_t)getU32(token, 1, 0xFFFF, &err);
-                if (err) break;
-
-                gtwa->SDOtimeoutTime = value;
-                responseWithOK(gtwa);
-            }
-            else if (strcmp(token, "sdo_block") == 0) {
-                bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
-                uint16_t value;
-
-                if (closed != 0 || NodeErr) {
-                    err = true;
-                    break;
-                }
-
-                /* value */
-                closed = 1;
-                CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
-                                  &closed, &err);
-                value = (uint16_t)getU32(token, 0, 1, &err);
-                if (err) break;
-
-                gtwa->SDOblockTransferEnable = value==1 ? true : false;
-                responseWithOK(gtwa);
-            }
-            else {
-                respErrorCode = CO_GTWA_respErrorReqNotSupported;
-                err = true;
-                break;
-            }
-        }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT */
 
         /* TODO LSS */
 
@@ -969,6 +992,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         gtwa->state = CO_GTWA_ST_IDLE;
     }
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
     /* SDO upload state */
     else if (gtwa->state == CO_GTWA_ST_READ) {
         CO_SDO_abortCode_t abortCode;
@@ -1093,6 +1117,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
         }
     }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
     /* Print help string (in multiple segments if necessary) */

@@ -112,6 +112,10 @@ extern "C" {
 
 #ifndef CO_CONFIG_GTW
 #define CO_CONFIG_GTW (CO_CONFIG_GTW_ASCII | \
+                       CO_CONFIG_GTW_ASCII_SDO | \
+                       CO_CONFIG_GTW_ASCII_NMT | \
+                       CO_CONFIG_GTW_ASCII_LSS | \
+                       CO_CONFIG_GTW_ASCII_LOG | \
                        CO_CONFIG_GTW_ASCII_ERROR_DESC | \
                        CO_CONFIG_GTW_ASCII_PRINT_HELP)
 #define CO_CONFIG_GTW_BLOCK_DL_LOOP 1

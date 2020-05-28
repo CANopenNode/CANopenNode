@@ -29,9 +29,13 @@
 
 #include "301/CO_driver.h"
 #include "301/CO_fifo.h"
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
 #include "301/CO_SDOserver.h"
 #include "301/CO_SDOclient.h"
+#endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
 #include "301/CO_NMT_Heartbeat.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -209,6 +213,7 @@ typedef enum {
 } CO_GTWA_state_t;
 
 
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
 /*
  * CANopen Gateway-ascii data types structure
  */
@@ -233,6 +238,7 @@ typedef struct {
                            CO_fifo_t *src,
                            CO_fifo_st *status);
 } CO_GTWA_dataType_t;
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
 
 /**
@@ -283,6 +289,7 @@ typedef struct {
     CO_GTWA_state_t state;
     /** Timeout timer for the current state */
     uint32_t stateTimeoutTmr;
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
     /** SDO client object from CO_GTWA_init() */
     CO_SDOclient_t *SDO_C;
     /** Timeout time for SDO transfer in milliseconds, if no response */
@@ -293,8 +300,11 @@ typedef struct {
     bool_t SDOdataCopyStatus;
     /** Data type of variable in current SDO communication */
     const CO_GTWA_dataType_t *SDOdataType;
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
     /** NMT object from CO_GTWA_init() */
     CO_NMT_t *NMT;
+#endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) || defined CO_DOXYGEN
     /** Offset, when printing help text */
     size_t helpStringOffset;
@@ -314,17 +324,17 @@ typedef struct {
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT
  */
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
-                              CO_SDOclient_t* SDO_C,
+                              void* SDO_C,
                               uint16_t SDOtimeoutTimeDefault,
                               bool_t SDOblockTransferEnableDefault,
-                              CO_NMT_t *NMT);
+                              void *NMT);
 
 
 /**
  * Initialize read callback in Gateway-ascii object
  *
- * Callback will used for transfer data to output stream of the application. It
- * will be called from CO_GTWA_process() zero or multiple times, depending on
+ * Callback will be used for transfer data to output stream of the application.
+ * It will be called from CO_GTWA_process() zero or multiple times, depending on
  * the data available. If readCallback is uninitialized or NULL, then output
  * data will be purged.
  *

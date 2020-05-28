@@ -32,18 +32,23 @@
 
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
-#ifndef CO_CONFIG_FIFO_ALT_READ
-#define CO_CONFIG_FIFO_ALT_READ 1
-#endif
-#ifndef CO_CONFIG_FIFO_CRC16_CCITT
-#define CO_CONFIG_FIFO_CRC16_CCITT 1
-#endif
+ #ifndef CO_CONFIG_FIFO_ALT_READ
+  #define CO_CONFIG_FIFO_ALT_READ 1
+ #endif
+ #ifndef CO_CONFIG_FIFO_CRC16_CCITT
+  #define CO_CONFIG_FIFO_CRC16_CCITT 1
+ #endif
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK */
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
-#ifndef CO_CONFIG_FIFO_ASCII_COMMANDS
-#define CO_CONFIG_FIFO_ASCII_COMMANDS 1
-#endif
+ #ifndef CO_CONFIG_FIFO_ASCII_COMMANDS
+  #define CO_CONFIG_FIFO_ASCII_COMMANDS 1
+ #endif
+ #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+  #ifndef CO_CONFIG_FIFO_ASCII_DATATYPES
+   #define CO_CONFIG_FIFO_ASCII_DATATYPES 1
+  #endif
+ #endif
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
 
 
@@ -82,7 +87,7 @@ typedef struct {
     /** Location in the buffer, which will be next read. */
     size_t altReadPtr;
 #endif
-#if CO_CONFIG_FIFO_ASCII_COMMANDS > 0 || defined CO_DOXYGEN
+#if CO_CONFIG_FIFO_ASCII_DATATYPES > 0 || defined CO_DOXYGEN
     /** helper variable, set to false in CO_fifo_reset(), used in some
      * functions. */
     bool_t started;
@@ -113,7 +118,7 @@ static inline void CO_fifo_reset(CO_fifo_t *fifo) {
     if (fifo != NULL) {
         fifo->readPtr = 0;
         fifo->writePtr = 0;
-#if CO_CONFIG_FIFO_ASCII_COMMANDS > 0
+#if CO_CONFIG_FIFO_ASCII_DATATYPES > 0
         fifo->started = false;
 #endif
     }
@@ -382,8 +387,10 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                          size_t count,
                          char *closed,
                          bool_t *err);
+#endif /* CO_CONFIG_FIFO_ASCII_COMMANDS > 0 */
 
 
+#if CO_CONFIG_FIFO_ASCII_DATATYPES > 0 || defined CO_DOXYGEN
 /**
  * Read uint8_t variable from fifo and output as ascii string.
  *
@@ -486,7 +493,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
  * the quotes are escaped by a second quotes. See CO_fifo_cpyTok2U8 */
 size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 
-#endif /* CO_CONFIG_FIFO_ASCII_COMMANDS > 0 */
+#endif /* CO_CONFIG_FIFO_ASCII_DATATYPES > 0 */
 
 #ifdef __cplusplus
 }
