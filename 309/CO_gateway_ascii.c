@@ -120,7 +120,7 @@ static const char *CO_GTWA_helpString =
 "\n" \
 "Response:\n" \
 "\"[\"<sequence>\"]\" OK | <value> |\n" \
-"                 ERROR: <SDO-abort-code> | ERROR: <internal-error-code>\n" \
+"                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>\n" \
 "\n" \
 "Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same is\n" \
 "response. String is not null terminated, <CR> is optional in command.\n" \
@@ -382,7 +382,7 @@ static void responseWithError(CO_GTWA_t *gtwa,
         }
     }
 
-    gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] ERROR: %d #%s\r\n",
+    gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] ERROR:%d #%s\r\n",
                                  gtwa->sequence, respErrorCode, desc);
     respBufTransfer(gtwa);
 }
@@ -401,7 +401,7 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
         }
     }
 
-    gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] ERROR: 0x%08X #%s\r\n",
+    gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] ERROR:0x%08X #%s\r\n",
                                  gtwa->sequence, abortCode, desc);
     respBufTransfer(gtwa);
 }
@@ -410,7 +410,7 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
 static inline void responseWithError(CO_GTWA_t *gtwa,
                                      CO_GTWA_respErrorCode_t respErrorCode)
 {
-    gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] ERROR: %d\r\n",
+    gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] ERROR:%d\r\n",
                                  gtwa->sequence, respErrorCode);
     respBufTransfer(gtwa);
 }
@@ -418,7 +418,7 @@ static inline void responseWithError(CO_GTWA_t *gtwa,
 static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                         CO_SDO_abortCode_t abortCode)
 {
-    gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] ERROR: 0x%08X\r\n",
+    gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] ERROR:0x%08X\r\n",
                                  gtwa->sequence, abortCode);
     respBufTransfer(gtwa);
 }
@@ -428,6 +428,21 @@ static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
 static inline void responseWithOK(CO_GTWA_t *gtwa) {
     gtwa->respBufCount = sprintf(gtwa->respBuf, "[%d] OK\r\n", gtwa->sequence);
     respBufTransfer(gtwa);
+}
+
+
+static inline void convertToLower(char *token, size_t maxCount) {
+    size_t i;
+    char *c = &token[0];
+
+    for (i = 0; i < maxCount; i++) {
+        if (*c == 0) {
+            break;
+        } else {
+            *c = tolower(*c);
+        }
+        c++;
+    }
 }
 
 
@@ -562,6 +577,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
         if (err) break;
 
+        /* command is case insensitive */
+        convertToLower(token, sizeof(token));
 
         /* Upload SDO command - 'r[ead] <index> <subindex> <datatype>' */
         if (strcmp(token, "r") == 0 || strcmp(token, "read") == 0) {
@@ -596,6 +613,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 closed = 1;
                 CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
                                   &closed, &err);
+                convertToLower(token, sizeof(token));
                 gtwa->SDOdataType = CO_GTWA_getDataType(token, &err);
                 if (err) break;
             }
@@ -658,6 +676,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             closed = 0;
             CO_fifo_readToken(&gtwa->commFifo, token, tokenSize,
                               &closed, &err);
+            convertToLower(token, sizeof(token));
             gtwa->SDOdataType = CO_GTWA_getDataType(token, &err);
             if (err) break;
 
@@ -793,6 +812,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             CO_fifo_readToken(&gtwa->commFifo, token, tokenSize, &closed, &err);
             if (err) break;
 
+            convertToLower(token, sizeof(token));
             if (strcmp(token, "node") == 0) {
                 command2 = CO_NMT_RESET_NODE;
             } else if (strcmp(token, "comm") == 0 ||
@@ -828,6 +848,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             CO_fifo_readToken(&gtwa->commFifo, token, tokenSize, &closed, &err);
             if (err) break;
 
+            convertToLower(token, sizeof(token));
             if (strcmp(token, "network") == 0) {
                 uint16_t value;
 

@@ -42,7 +42,7 @@ extern "C" {
  * @ingroup CO_CANopen_309
  * @{
  *
- * CANopen access from other networks - ASCII mapping (CiA 309-3 DS v2.1.0)
+ * CANopen access from other networks - ASCII mapping (CiA 309-3 DSP v3.0.0)
  *
  * This module enables ascii command interface (CAN gateway), which can be used
  * for master interaction with CANopen network. Some sort of string input/output
@@ -96,7 +96,7 @@ hex                # Hexagonal data, optionally space separated, non-standard.
 
 Response:
 "["<sequence>"]" OK | <value> |
-                 ERROR: <SDO-abort-code> | ERROR: <internal-error-code>
+                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>
 
 Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same is
 response. String is not null terminated, <CR> is optional in command.
