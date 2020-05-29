@@ -36,7 +36,8 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
                               void* SDO_C,
                               uint16_t SDOtimeoutTimeDefault,
                               bool_t SDOblockTransferEnableDefault,
-                              void *NMT)
+                              void *NMT,
+                              void *LSS)
 {
     /* verify arguments */
     if (gtwa == NULL
@@ -45,6 +46,9 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
         || NMT == NULL
+#endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+        || LSS == NULL
 #endif
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -60,6 +64,9 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
     gtwa->NMT = (CO_NMT_t *)NMT;
+#endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+    gtwa->LSS = (CO_LSSmaster_t *)LSS;
 #endif
     gtwa->net_default = -1;
     gtwa->node_default = -1;

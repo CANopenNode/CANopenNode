@@ -96,10 +96,7 @@
    #define CO_NO_SDO_CLIENT               1   //Associated objects: 1280
    #define CO_NO_RPDO                     4   //Associated objects: 1400, 1401, 1402, 1403, 1600, 1601, 1602, 1603
    #define CO_NO_TPDO                     4   //Associated objects: 1800, 1801, 1802, 1803, 1A00, 1A01, 1A02, 1A03
-   #define CO_NO_NMT_MASTER               0
    #define CO_NO_TRACE                    0
-   #define CO_NO_LSS_SERVER               0
-   #define CO_NO_LSS_CLIENT               0
 
 /*******************************************************************************
    OBJECT DICTIONARY

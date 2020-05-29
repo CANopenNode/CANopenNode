@@ -74,8 +74,8 @@ extern "C" {
 #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
 #endif
 
-#ifndef CO_CONFIG_LSS_MST
-#define CO_CONFIG_LSS_MST (0)
+#ifndef CO_CONFIG_LSS
+#define CO_CONFIG_LSS (0)
 #endif
 
 #ifndef CO_CONFIG_GTW

@@ -36,6 +36,9 @@
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
 #include "301/CO_NMT_Heartbeat.h"
 #endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+#include "305/CO_LSSmaster.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -308,6 +311,10 @@ typedef struct {
     /** NMT object from CO_GTWA_init() */
     CO_NMT_t *NMT;
 #endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
+    /** LSS object from CO_GTWA_init() */
+    CO_LSSmaster_t *LSS;
+#endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) || defined CO_DOXYGEN
     /** Message log buffer of usable size @ref CO_CONFIG_GTWA_LOG_BUF_SIZE */
     char logBuf[CO_CONFIG_GTWA_LOG_BUF_SIZE + 1];
@@ -329,6 +336,7 @@ typedef struct {
  * @param SDOtimeoutTimeDefault in milliseconds, 500 typically
  * @param SDOblockTransferEnableDefault true or false
  * @param NMT NMT object
+ * @param LSS LSS master object
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT
  */
@@ -336,7 +344,8 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
                               void* SDO_C,
                               uint16_t SDOtimeoutTimeDefault,
                               bool_t SDOblockTransferEnableDefault,
-                              void *NMT);
+                              void *NMT,
+                              void *LSS);
 
 
 /**

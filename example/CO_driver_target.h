@@ -106,8 +106,9 @@ extern "C" {
 #define CO_CONFIG_TIME (CO_CONFIG_FLAG_CALLBACK_PRE)
 #endif
 
-#ifndef CO_CONFIG_LSS_MST
-#define CO_CONFIG_LSS_MST (CO_CONFIG_FLAG_CALLBACK_PRE)
+#ifndef CO_CONFIG_LSS
+#define CO_CONFIG_LSS (CO_CONFIG_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_LSS_MASTER)
 #endif
 
 #ifndef CO_CONFIG_GTW

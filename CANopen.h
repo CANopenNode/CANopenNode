@@ -127,21 +127,6 @@ extern "C" {
     #include "301/CO_TIME.h"
     #include "301/CO_PDO.h"
     #include "301/CO_HBconsumer.h"
-#if CO_NO_SDO_CLIENT != 0
-    #include "301/CO_SDOclient.h"
-#endif
-#if CO_NO_LSS_SERVER != 0
-    #include "305/CO_LSSslave.h"
-#endif
-#if CO_NO_LSS_CLIENT != 0
-    #include "305/CO_LSSmaster.h"
-#endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
-    #include "309/CO_gateway_ascii.h"
-#endif
-#if CO_NO_TRACE != 0
-    #include "extra/CO_trace.h"
-#endif
     #include "CO_OD.h"
 
 
@@ -158,7 +143,7 @@ extern "C" {
 /** Number of NMT objects, fixed to 1 slave(CANrx) */
 #define CO_NO_NMT (1)
 /** Number of NMT master objects, 0 or 1 master(CANtx). It depends on
- * @ref CO_CONFIG_EM setting. */
+ * @ref CO_CONFIG_NMT setting. */
 #define CO_NO_NMT_MST (0...1)
 /** Number of SYNC objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
 #define CO_NO_SYNC (0...1)
@@ -181,9 +166,11 @@ extern "C" {
 #define CO_NO_HB_PROD (1)
 /** Number of HB consumer objects, from 0 to 127 consumers(CANrx) */
 #define CO_NO_HB_CONS (0...127)
-/** Number of LSS slave objects, 0 or 1 (CANrx + CANtx) */
+/** Number of LSS slave objects, 0 or 1 (CANrx + CANtx). It depends on
+ * @ref CO_CONFIG_LSS setting. */
 #define CO_NO_LSS_SLAVE (0...1)
-/** Number of LSS master objects, 0 or 1 (CANrx + CANtx) */
+/** Number of LSS master objects, 0 or 1 (CANrx + CANtx). It depends on
+ * @ref CO_CONFIG_LSS setting. */
 #define CO_NO_LSS_MASTER (0...1)
 /** Number of Trace objects, 0 to many */
 #define CO_NO_TRACE (0...)
@@ -218,7 +205,38 @@ extern "C" {
 #else
     #define CO_NO_HB_CONS 0
 #endif
+
+/* LSS slave count depends on stack configuration */
+#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
+#define CO_NO_LSS_SLAVE 1
+#else
+#define CO_NO_LSS_SLAVE 0
+#endif
+
+/* LSS master count depends on stack configuration */
+#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
+#define CO_NO_LSS_MASTER 1
+#else
+#define CO_NO_LSS_MASTER 0
+#endif
 #endif /* CO_DOXYGEN */
+
+
+#if CO_NO_SDO_CLIENT != 0
+    #include "301/CO_SDOclient.h"
+#endif
+#if CO_NO_LSS_SLAVE != 0
+    #include "305/CO_LSSslave.h"
+#endif
+#if CO_NO_LSS_MASTER != 0
+    #include "305/CO_LSSmaster.h"
+#endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    #include "309/CO_gateway_ascii.h"
+#endif
+#if CO_NO_TRACE != 0
+    #include "extra/CO_trace.h"
+#endif
 
 
 /**
@@ -238,10 +256,10 @@ typedef struct {
 #if CO_NO_SDO_CLIENT != 0
     CO_SDOclient_t *SDOclient[CO_NO_SDO_CLIENT]; /**< SDO client object */
 #endif
-#if CO_NO_LSS_SERVER == 1
+#if CO_NO_LSS_SLAVE == 1
     CO_LSSslave_t *LSSslave;         /**< LSS slave object */
 #endif
-#if CO_NO_LSS_CLIENT == 1
+#if CO_NO_LSS_MASTER == 1
     CO_LSSmaster_t *LSSmaster;       /**< LSS master object */
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
@@ -299,7 +317,7 @@ CO_ReturnError_t CO_CANinit(void *CANptr,
                             uint16_t bitRate);
 
 
-#if CO_NO_LSS_SERVER == 1
+#if CO_NO_LSS_SLAVE == 1
 /**
  * Initialize CANopen LSS slave
  *
@@ -312,7 +330,7 @@ CO_ReturnError_t CO_CANinit(void *CANptr,
  */
 CO_ReturnError_t CO_LSSinit(uint8_t nodeId,
                             uint16_t bitRate);
-#endif /* CO_NO_LSS_SERVER == 1 */
+#endif /* CO_NO_LSS_SLAVE == 1 */
 
 
 /**

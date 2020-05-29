@@ -280,17 +280,22 @@ extern "C" {
 #define CO_CONFIG_TIME (CO_CONFIG_FLAG_CALLBACK_PRE)
 #endif
 
+
 /**
- * Configuration of LSS master object
+ * Configuration of LSS objects
  *
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received SDO CAN message.
  *   Callback is configured by CO_LSSmaster_initCallbackPre().
+ * - CO_CONFIG_LSS_SLAVE - Enable LSS slave
+ * - CO_CONFIG_LSS_MASTER - Enable LSS master
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_LSS_MST (CO_CONFIG_FLAG_CALLBACK_PRE)
+#define CO_CONFIG_LSS (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER)
 #endif
+#define CO_CONFIG_LSS_SLAVE 0x01
+#define CO_CONFIG_LSS_MASTER 0x02
 
 
 /**

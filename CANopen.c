@@ -62,9 +62,9 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
     || (CO_NO_TPDO < 1 || CO_NO_TPDO > 0x200)              \
     || ODL_consumerHeartbeatTime_arrayLength      == 0     \
     || ODL_errorStatusBits_stringLength           < 10     \
-    || CO_NO_LSS_SERVER                           >  1     \
-    || CO_NO_LSS_CLIENT                           >  1     \
-    || (CO_NO_LSS_SERVER > 0 && CO_NO_LSS_CLIENT > 0)
+    || CO_NO_LSS_SLAVE                            >  1     \
+    || CO_NO_LSS_MASTER                           >  1     \
+    || (CO_NO_LSS_SLAVE > 0 && CO_NO_LSS_MASTER > 0)
 #error Features from CO_OD.h file are not corectly configured for this project!
 #endif
 
@@ -86,8 +86,8 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
                           CO_NO_SDO_SERVER  + \
                           CO_NO_SDO_CLIENT  + \
                           CO_NO_HB_CONS     + \
-                          CO_NO_LSS_SERVER  + \
-                          CO_NO_LSS_CLIENT)
+                          CO_NO_LSS_SLAVE   + \
+                          CO_NO_LSS_MASTER)
 
 /* Indexes of CO_CANtx_t objects in CO_CANmodule_t and total number of them. **/
 #define CO_TXCAN_NMT      0
@@ -107,8 +107,8 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
                           CO_NO_SDO_SERVER  + \
                           CO_NO_SDO_CLIENT  + \
                           CO_NO_HB_PROD     + \
-                          CO_NO_LSS_SERVER  + \
-                          CO_NO_LSS_CLIENT)
+                          CO_NO_LSS_SLAVE   + \
+                          CO_NO_LSS_MASTER)
 
 
 /* Create objects from heap ***************************************************/
@@ -213,14 +213,14 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO_memoryUsed += sizeof(CO_SDOclient_t) * CO_NO_SDO_CLIENT;
 #endif
 
-#if CO_NO_LSS_SERVER == 1
+#if CO_NO_LSS_SLAVE == 1
     /* LSSslave */
     CO->LSSslave = (CO_LSSslave_t *)calloc(1, sizeof(CO_LSSslave_t));
     if (CO->LSSslave == NULL) errCnt++;
     CO_memoryUsed += sizeof(CO_LSSslave_t);
 #endif
 
-#if CO_NO_LSS_CLIENT == 1
+#if CO_NO_LSS_MASTER == 1
     /* LSSmaster */
     CO->LSSmaster = (CO_LSSmaster_t *)calloc(1, sizeof(CO_LSSmaster_t));
     if (CO->LSSmaster == NULL) errCnt++;
@@ -291,12 +291,12 @@ void CO_delete(void *CANptr) {
     free(CO->gtwa);
 #endif
 
-#if CO_NO_LSS_CLIENT == 1
+#if CO_NO_LSS_MASTER == 1
     /* LSSmaster */
     free(CO->LSSmaster);
 #endif
 
-#if CO_NO_LSS_SERVER == 1
+#if CO_NO_LSS_SLAVE == 1
     /* LSSslave */
     free(CO->LSSslave);
 #endif
@@ -379,10 +379,10 @@ void CO_delete(void *CANptr) {
 #if CO_NO_SDO_CLIENT != 0
     static CO_SDOclient_t       COO_SDOclient[CO_NO_SDO_CLIENT];
 #endif
-#if CO_NO_LSS_SERVER == 1
+#if CO_NO_LSS_SLAVE == 1
     static CO_LSSslave_t        COO_LSSslave;
 #endif
-#if CO_NO_LSS_CLIENT == 1
+#if CO_NO_LSS_MASTER == 1
     static CO_LSSmaster_t       COO_LSSmaster;
 #endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
@@ -461,12 +461,12 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     }
 #endif
 
-#if CO_NO_LSS_SERVER == 1
+#if CO_NO_LSS_SLAVE == 1
     /* LSSslave */
     CO->LSSslave = &COO_LSSslave;
 #endif
 
-#if CO_NO_LSS_CLIENT == 1
+#if CO_NO_LSS_MASTER == 1
     /* LSSmaster */
     CO->LSSmaster = &COO_LSSmaster;
 #endif
@@ -523,7 +523,7 @@ CO_ReturnError_t CO_CANinit(void *CANptr,
 
 
 /******************************************************************************/
-#if CO_NO_LSS_SERVER == 1
+#if CO_NO_LSS_SLAVE == 1
 CO_ReturnError_t CO_LSSinit(uint8_t nodeId,
                             uint16_t bitRate)
 {
@@ -549,7 +549,7 @@ CO_ReturnError_t CO_LSSinit(uint8_t nodeId,
 
     return err;
 }
-#endif /* CO_NO_LSS_SERVER == 1 */
+#endif /* CO_NO_LSS_SLAVE == 1 */
 
 
 /******************************************************************************/
@@ -748,7 +748,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     }
 #endif
 
-#if CO_NO_LSS_CLIENT == 1
+#if CO_NO_LSS_MASTER == 1
     /* LSSmaster */
     err = CO_LSSmaster_init(CO->LSSmaster,
                             CO_LSSmaster_DEFAULT_TIMEOUT,
@@ -768,7 +768,8 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                        (void *)CO->SDOclient[0],
                        500,
                        false,
-                       (void *)CO->NMT);
+                       (void *)CO->NMT,
+                       (void *)CO->LSSmaster);
 
     if (err) return err;
 #endif
