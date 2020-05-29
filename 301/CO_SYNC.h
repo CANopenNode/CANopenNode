@@ -109,11 +109,14 @@ typedef struct{
     uint16_t            CANdevTxIdx;    /**< From CO_SYNC_init() */
 }CO_SYNC_t;
 
+
+/** Return value for #CO_SYNC_process */
 typedef enum {
     CO_SYNC_NONE            = 0, /**< SYNC not received */
     CO_SYNC_RECEIVED        = 1, /**< SYNC received */
-    CO_SYNC_OUTSIDE_WINDOW  = 2, /**< SYNC received outside SYNC window */
-}CO_SYNC_status_t;
+    CO_SYNC_OUTSIDE_WINDOW  = 2  /**< SYNC received outside SYNC window */
+} CO_SYNC_status_t;
+
 
 /**
  * Initialize SYNC object.

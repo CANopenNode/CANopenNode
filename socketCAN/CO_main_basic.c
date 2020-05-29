@@ -31,6 +31,9 @@
 #include <sched.h>
 #include <signal.h>
 #include <errno.h>
+#include <stdarg.h>
+#include <syslog.h>
+#include <time.h>
 #include <sys/epoll.h>
 #include <net/if.h>
 #include <linux/reboot.h>
@@ -87,6 +90,34 @@ volatile sig_atomic_t CO_endProgram = 0;
 static void sigHandler(int sig) {
     (void)sig;
     CO_endProgram = 1;
+}
+
+/* Message logging function */
+void log_printf(int priority, const char *format, ...) {
+    va_list ap;
+
+    va_start(ap, format);
+    vsyslog(priority, format, ap);
+    va_end(ap);
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+    if (CO != NULL) {
+        char buf[200];
+        time_t timer;
+        struct tm* tm_info;
+        size_t len;
+
+        timer = time(NULL);
+        tm_info = localtime(&timer);
+        len = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S: ", tm_info);
+
+        va_start(ap, format);
+        vsnprintf(buf + len, sizeof(buf) - len - 2, format, ap);
+        va_end(ap);
+        strcat(buf, "\r\n");
+        CO_GTWA_log_print(CO->gtwa, buf);
+    }
+#endif
 }
 
 /* callback for emergency messages */

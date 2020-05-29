@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <syslog.h>
 #include <linux/can/raw.h>
 #include <linux/can/error.h>
 #include <linux/net_tstamp.h>

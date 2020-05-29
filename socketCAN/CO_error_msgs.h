@@ -33,17 +33,6 @@ extern "C" {
 
 
 /*
- * Message logging function.
- */
-#ifndef log_printf
-#include <syslog.h>
-
-#define log_printf(macropar_prio, macropar_message, ...) \
-        syslog(macropar_prio, macropar_message, ##__VA_ARGS__)
-#endif
-
-
-/*
  * Message definitions for Linux CANopen socket driver (notice and errors)
  */
 #define CAN_NOT_FOUND             "(%s) CAN Interface \"%s\" not found", __func__

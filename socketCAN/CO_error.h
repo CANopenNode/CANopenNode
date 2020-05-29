@@ -55,8 +55,11 @@ extern "C" {
 /**
  * Message logging function.
  *
- * Default usage is to print messages into system log with syslog() call. By
- * default system stores messages in /var/log/syslog file.
+ * Function must be defined by application. It should record log message to some
+ * place, for example syslog() call in Linux or logging functionality in
+ * CANopen gateway @ref CO_CANopen_309_3.
+ *
+ * By default system stores messages in /var/log/syslog file.
  * Log can optionally be configured before, for example to filter out less
  * critical errors than LOG_NOTICE, specify program name, print also process PID
  * and print also to standard error, set 'user' type of program, use:
@@ -69,9 +72,7 @@ extern "C" {
  *                 LOG_NOTICE, LOG_INFO, LOG_DEBUG
  * @param format format string as in printf
  */
-#ifdef CO_DOXYGEN
 void log_printf(int priority, const char *format, ...);
-#endif
 
 
 /**

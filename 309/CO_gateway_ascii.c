@@ -73,6 +73,12 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
                  &gtwa->commBuf[0],
                  CO_CONFIG_GTWA_COMM_BUF_SIZE + 1);
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+    CO_fifo_init(&gtwa->logFifo,
+                 &gtwa->logBuf[0],
+                 CO_CONFIG_GTWA_LOG_BUF_SIZE + 1);
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) */
+
     return CO_ERROR_NO;
 }
 
@@ -89,6 +95,20 @@ void CO_GTWA_initRead(CO_GTWA_t* gtwa,
         gtwa->readCallbackObject = readCallbackObject;
     }
 }
+
+
+/******************************************************************************/
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
+    if (gtwa != NULL && message != NULL) {
+        const char *c;
+
+        for (c = &message[0]; *c != 0; c++) {
+            CO_fifo_putc_ov(&gtwa->logFifo, *c);
+        }
+    }
+}
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
 
 
 /*******************************************************************************
@@ -113,6 +133,7 @@ static const char *CO_GTWA_helpString =
 "[<net>] set sdo_block <value>            # Enable/disable SDO block transfer.\n" \
 "\n" \
 "help                                     # Print this help.\n" \
+"log                                      # Print message log.\n" \
 "\n" \
 "Datatypes:\n" \
 "b                  # Boolean.\n" \
@@ -955,7 +976,16 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT */
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
         /* TODO LSS */
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS */
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+        /* Print message log */
+        else if (strcmp(token, "log") == 0) {
+            gtwa->state = CO_GTWA_ST_LOG;
+        }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
         /* Print help */
@@ -963,7 +993,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             gtwa->helpStringOffset = 0;
             gtwa->state = CO_GTWA_ST_HELP;
         }
-#endif
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP */
 
         /* Unrecognized command */
         else {
@@ -1118,6 +1148,22 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
     }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+    /* print message log */
+    else if (gtwa->state == CO_GTWA_ST_LOG) {
+        do {
+            gtwa->respBufCount = CO_fifo_read(&gtwa->logFifo, gtwa->respBuf,
+                                              CO_GTWA_RESP_BUF_SIZE, NULL);
+            respBufTransfer(gtwa);
+
+            if (CO_fifo_getOccupied(&gtwa->logFifo) == 0) {
+                gtwa->state = CO_GTWA_ST_IDLE;
+                break;
+            }
+        } while (gtwa->respHold == false);
+    }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
     /* Print help string (in multiple segments if necessary) */

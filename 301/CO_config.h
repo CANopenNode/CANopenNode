@@ -349,6 +349,14 @@ extern "C" {
 #endif
 
 
+/**
+ * Size of message log buffer in ASCII gateway object.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GTWA_LOG_BUF_SIZE 2000
+#endif
+
+
 /** @} */
 
 #ifdef __cplusplus

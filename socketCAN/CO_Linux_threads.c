@@ -33,6 +33,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <syslog.h>
 #include <time.h>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
@@ -67,11 +68,12 @@ static inline uint64_t CO_LinuxThreads_clock_gettime_us(void)
 /* write response string from gateway-ascii object */
 static size_t gtwa_write_response(void *object, const char *buf, size_t count) {
     int* fd = (int *)object;
-    size_t nWritten = 0;
+    /* nWritten = count -> in case of error (non-existing fd) data are purged */
+    size_t nWritten = count;
 
     if (fd != NULL && *fd >= 0) {
         ssize_t n = write(*fd, (const void *)buf, count);
-        if (n > 0) {
+        if (n >= 0) {
             nWritten = (size_t)n;
         }
         else {

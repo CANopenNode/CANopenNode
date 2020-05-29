@@ -149,7 +149,7 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
     size_t i;
     char *bufDest;
 
-    if (fifo == NULL || buf == NULL) {
+    if (fifo == NULL || fifo->buf == NULL || buf == NULL) {
         return 0;
     }
 

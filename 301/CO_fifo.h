@@ -170,7 +170,7 @@ static inline size_t CO_fifo_getOccupied(CO_fifo_t *fifo) {
  * @return true, if write was successful (enough space in fifo buffer)
  */
 static inline bool_t CO_fifo_putc(CO_fifo_t *fifo, const char c) {
-    if (fifo != NULL) {
+    if (fifo != NULL && fifo->buf != NULL) {
         size_t writePtrNext = fifo->writePtr + 1;
         if (writePtrNext != fifo->readPtr &&
             !(writePtrNext == fifo->bufSize && fifo->readPtr == 0))
@@ -181,6 +181,26 @@ static inline bool_t CO_fifo_putc(CO_fifo_t *fifo, const char c) {
         }
     }
     return false;
+}
+
+
+/**
+ * Put one character into CO_fifo_t buffer object
+ *
+ * Overwrite old characters, if run out of space
+ *
+ * @param fifo This object
+ * @param c Character to put
+ */
+static inline void CO_fifo_putc_ov(CO_fifo_t *fifo, const char c) {
+    if (fifo != NULL && fifo->buf != NULL) {
+        fifo->buf[fifo->writePtr] = c;
+
+        if (++fifo->writePtr == fifo->bufSize) fifo->writePtr = 0;
+        if (fifo->readPtr == fifo->writePtr) {
+            if (++fifo->readPtr == fifo->bufSize) fifo->readPtr = 0;
+        }
+    }
 }
 
 

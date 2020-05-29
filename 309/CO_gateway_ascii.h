@@ -85,6 +85,7 @@ Command strings start with '"["<sequence>"]"' followed by:
 [<net>] set sdo_block <value>            # Enable/disable SDO block transfer.
 
 help                                     # Print this help.
+log                                      # Print message log.
 
 Datatypes:
 b                  # Boolean.
@@ -208,6 +209,8 @@ typedef enum {
     CO_GTWA_ST_READ = 0x10U,
     /** SDO 'write' (download) */
     CO_GTWA_ST_WRITE = 0x11U,
+    /** print message log */
+    CO_GTWA_ST_LOG = 0x80U,
     /** print 'help' text */
     CO_GTWA_ST_HELP = 0x90U
 } CO_GTWA_state_t;
@@ -305,6 +308,12 @@ typedef struct {
     /** NMT object from CO_GTWA_init() */
     CO_NMT_t *NMT;
 #endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) || defined CO_DOXYGEN
+    /** Message log buffer of usable size @ref CO_CONFIG_GTWA_LOG_BUF_SIZE */
+    char logBuf[CO_CONFIG_GTWA_LOG_BUF_SIZE + 1];
+    /** CO_fifo_t object for message log (not pointer) */
+    CO_fifo_t logFifo;
+#endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) || defined CO_DOXYGEN
     /** Offset, when printing help text */
     size_t helpStringOffset;
@@ -384,6 +393,23 @@ static inline size_t CO_GTWA_write(CO_GTWA_t* gtwa,
 {
     return CO_fifo_write(&gtwa->commFifo, buf, count, NULL);
 }
+
+
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) || defined CO_DOXYGEN
+/**
+ * Print message log string into fifo buffer
+ *
+ * This function enables recording of system log messages including CANopen
+ * events. Function can be called by application for recording any message.
+ * Message is copied to internal fifo buffer. In case fifo is full, old messages
+ * will be owerwritten. Message log fifo can be read with non-standard command
+ * "log". After log is read, it is emptied.
+ *
+ * @param gtwa This object
+ * @param message Null terminated string
+ */
+void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message);
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
 
 
 /**
