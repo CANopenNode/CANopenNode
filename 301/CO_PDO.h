@@ -23,6 +23,14 @@
  * limitations under the License.
  */
 
+#include "301/CO_driver.h"
+#include "301/CO_SDOserver.h"
+#include "301/CO_Emergency.h"
+#include "301/CO_NMT_Heartbeat.h"
+#if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
+#include "301/CO_SYNC.h"
+#endif
+
 
 #ifndef CO_PDO_H
 #define CO_PDO_H
@@ -273,7 +281,9 @@ CO_ReturnError_t CO_RPDO_init(
         CO_RPDO_t              *RPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        void                   *SYNC,
+#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+        CO_SYNC_t              *SYNC,
+#endif
         CO_NMT_internalState_t *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
@@ -339,7 +349,9 @@ CO_ReturnError_t CO_TPDO_init(
         CO_TPDO_t              *TPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        void                   *SYNC,
+#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+        CO_SYNC_t              *SYNC,
+#endif
         CO_NMT_internalState_t *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,

@@ -167,8 +167,6 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO->SYNC = (CO_SYNC_t *)calloc(1, sizeof(CO_SYNC_t));
     if (CO->SYNC == NULL) errCnt++;
     CO_memoryUsed += sizeof(CO_SYNC_t);
-#else
-    CO->SYNC = NULL;
 #endif
 
 #if CO_NO_TIME == 1
@@ -429,8 +427,6 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 #if CO_NO_SYNC == 1
     /* SYNC */
     CO->SYNC = &COO_SYNC;
-#else
-    CO->SYNC = NULL;
 #endif
 
 #if CO_NO_TIME == 1
@@ -686,7 +682,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
         err = CO_RPDO_init(CO->RPDO[i],
                            CO->em,
                            CO->SDO[0],
-                           (void *)CO->SYNC,
+#if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
+                           CO->SYNC,
+#endif
                            &CO->NMT->operatingState,
                            nodeId,
                            ((i < 4) ? (CO_CAN_ID_RPDO_1 + i * 0x100) : 0),
@@ -706,7 +704,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
         err = CO_TPDO_init(CO->TPDO[i],
                            CO->em,
                            CO->SDO[0],
-                           (void *)CO->SYNC,
+#if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
+                           CO->SYNC,
+#endif
                            &CO->NMT->operatingState,
                            nodeId,
                            ((i < 4) ? (CO_CAN_ID_TPDO_1 + i * 0x100) : 0),
@@ -765,14 +765,20 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
     /* Gateway-ascii */
     err = CO_GTWA_init(CO->gtwa,
-                       (void *)CO->SDOclient[0],
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+                       CO->SDOclient[0],
                        500,
                        false,
-                       (void *)CO->NMT,
-                       (void *)CO->LSSmaster);
-
-    if (err) return err;
 #endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
+                       CO->NMT,
+#endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+                       CO->LSSmaster,
+#endif
+                       0);
+    if (err) return err;
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
 
 #if CO_NO_TRACE > 0
     /* Trace */

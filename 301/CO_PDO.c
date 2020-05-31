@@ -26,13 +26,6 @@
 
 #include <string.h>
 
-#include "301/CO_driver.h"
-#include "301/CO_SDOserver.h"
-#include "301/CO_Emergency.h"
-#include "301/CO_NMT_Heartbeat.h"
-#if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-#include "301/CO_SYNC.h"
-#endif
 #include "301/CO_PDO.h"
 
 /*
@@ -731,7 +724,9 @@ CO_ReturnError_t CO_RPDO_init(
         CO_RPDO_t              *RPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        void                   *SYNC,
+#if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
+        CO_SYNC_t              *SYNC,
+#endif
         CO_NMT_internalState_t *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
@@ -753,7 +748,7 @@ CO_ReturnError_t CO_RPDO_init(
     RPDO->em = em;
     RPDO->SDO = SDO;
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-    RPDO->SYNC = (CO_SYNC_t *)SYNC;
+    RPDO->SYNC = SYNC;
 #endif
     RPDO->RPDOCommPar = RPDOCommPar;
     RPDO->RPDOMapPar = RPDOMapPar;
@@ -805,7 +800,9 @@ CO_ReturnError_t CO_TPDO_init(
         CO_TPDO_t              *TPDO,
         CO_EM_t                *em,
         CO_SDO_t               *SDO,
-        void                   *SYNC,
+#if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
+        CO_SYNC_t              *SYNC,
+#endif
         CO_NMT_internalState_t *operatingState,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
@@ -827,7 +824,7 @@ CO_ReturnError_t CO_TPDO_init(
     TPDO->em = em;
     TPDO->SDO = SDO;
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-    TPDO->SYNC = (CO_SYNC_t *)SYNC;
+    TPDO->SYNC = SYNC;
 #endif
     TPDO->TPDOCommPar = TPDOCommPar;
     TPDO->TPDOMapPar = TPDOMapPar;

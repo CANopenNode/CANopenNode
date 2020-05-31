@@ -123,7 +123,6 @@ extern "C" {
     #include "301/CO_SDOserver.h"
     #include "301/CO_Emergency.h"
     #include "301/CO_NMT_Heartbeat.h"
-    #include "301/CO_SYNC.h"
     #include "301/CO_TIME.h"
     #include "301/CO_PDO.h"
     #include "301/CO_HBconsumer.h"
@@ -222,6 +221,9 @@ extern "C" {
 #endif /* CO_DOXYGEN */
 
 
+#if CO_NO_SYNC == 1 || defined CO_DOXYGEN
+    #include "301/CO_SYNC.h"
+#endif
 #if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
     #include "301/CO_SDOclient.h"
 #endif
@@ -248,7 +250,9 @@ typedef struct {
     CO_EM_t *em;                     /**< Emergency report object */
     CO_EMpr_t *emPr;                 /**< Emergency process object */
     CO_NMT_t *NMT;                   /**< NMT object */
+#if CO_NO_SYNC == 1 || defined CO_DOXYGEN
     CO_SYNC_t *SYNC;                 /**< SYNC object */
+#endif
     CO_TIME_t *TIME;                 /**< TIME object */
     CO_RPDO_t *RPDO[CO_NO_RPDO];     /**< RPDO objects */
     CO_TPDO_t *TPDO[CO_NO_TPDO];     /**< TPDO objects */

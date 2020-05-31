@@ -378,11 +378,18 @@ typedef struct {
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT
  */
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
-                              void* SDO_C,
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
+                              CO_SDOclient_t* SDO_C,
                               uint16_t SDOtimeoutTimeDefault,
                               bool_t SDOblockTransferEnableDefault,
-                              void *NMT,
-                              void *LSSmaster);
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
+                              CO_NMT_t *NMT,
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
+                              CO_LSSmaster_t *LSSmaster,
+#endif
+                              uint8_t dummy);
 
 
 /**

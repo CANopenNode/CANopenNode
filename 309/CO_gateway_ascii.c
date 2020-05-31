@@ -35,12 +35,20 @@
 
 /******************************************************************************/
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
-                              void* SDO_C,
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
+                              CO_SDOclient_t* SDO_C,
                               uint16_t SDOtimeoutTimeDefault,
                               bool_t SDOblockTransferEnableDefault,
-                              void *NMT,
-                              void *LSSmaster)
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
+                              CO_NMT_t *NMT,
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
+                              CO_LSSmaster_t *LSSmaster,
+#endif
+                              uint8_t dummy)
 {
+    (void)dummy;
     /* verify arguments */
     if (gtwa == NULL
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
@@ -60,15 +68,15 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
     gtwa->readCallback = NULL;
     gtwa->readCallbackObject = NULL;
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
-    gtwa->SDO_C = (CO_SDOclient_t *)SDO_C;
+    gtwa->SDO_C = SDO_C;
     gtwa->SDOtimeoutTime = SDOtimeoutTimeDefault;
     gtwa->SDOblockTransferEnable = SDOblockTransferEnableDefault;
 #endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
-    gtwa->NMT = (CO_NMT_t *)NMT;
+    gtwa->NMT = NMT;
 #endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
-    gtwa->LSSmaster = (CO_LSSmaster_t *)LSSmaster;
+    gtwa->LSSmaster = LSSmaster;
 #endif
     gtwa->net_default = -1;
     gtwa->node_default = -1;
