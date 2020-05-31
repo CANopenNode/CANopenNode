@@ -54,7 +54,7 @@ typedef enum {
   CO_LSSmaster_COMMAND_INQUIRE_PRODUCT,
   CO_LSSmaster_COMMAND_INQUIRE_REV,
   CO_LSSmaster_COMMAND_INQUIRE_SERIAL,
-  CO_LSSmaster_COMMAND_INQUIRE_NODE_ID,
+  CO_LSSmaster_COMMAND_INQUIRE,
   CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN,
 } CO_LSSmaster_command_t;
 
@@ -107,7 +107,7 @@ static void CO_LSSmaster_receive(void *object, void *msg)
  * or after the timeout expired. Only if no message has been received we have
  * to check for timeouts
  */
-static CO_LSSmaster_return_t CO_LSSmaster_check_timeout(
+static inline CO_LSSmaster_return_t CO_LSSmaster_check_timeout(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us)
 {
@@ -709,14 +709,15 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
 
 
 /******************************************************************************/
-CO_LSSmaster_return_t CO_LSSmaster_InquireNodeId(
+CO_LSSmaster_return_t CO_LSSmaster_Inquire(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
-        uint8_t                *nodeId)
+        CO_LSS_cs_t             lssInquireCs,
+        uint32_t               *value)
 {
   CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
 
-  if (LSSmaster==NULL || nodeId==NULL){
+  if (LSSmaster==NULL || value==NULL){
       return CO_LSSmaster_ILLEGAL_ARGUMENT;
   }
 
@@ -725,19 +726,15 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireNodeId(
        LSSmaster->state==CO_LSSmaster_STATE_CFG_GLOBAL) &&
        LSSmaster->command == CO_LSSmaster_COMMAND_WAITING) {
 
-      LSSmaster->command = CO_LSSmaster_COMMAND_INQUIRE_NODE_ID;
+      LSSmaster->command = CO_LSSmaster_COMMAND_INQUIRE;
       LSSmaster->timeoutTimer = 0;
 
-      ret = CO_LSSmaster_inquireInitiate(LSSmaster, CO_LSS_INQUIRE_NODE_ID);
+      ret = CO_LSSmaster_inquireInitiate(LSSmaster, lssInquireCs);
   }
   /* Check for reply */
-  else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE_NODE_ID) {
-      uint32_t tmp = 0;
-
+  else if (LSSmaster->command == CO_LSSmaster_COMMAND_INQUIRE) {
       ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_us,
-              CO_LSS_INQUIRE_NODE_ID, &tmp);
-
-      *nodeId = tmp & 0xff;
+                                          lssInquireCs, value);
   }
 
   if (ret != CO_LSSmaster_WAIT_SLAVE) {

@@ -144,36 +144,36 @@ extern "C" {
 #define CO_NO_NMT (1)
 /** Number of NMT master objects, 0 or 1 master(CANtx). It depends on
  * @ref CO_CONFIG_NMT setting. */
-#define CO_NO_NMT_MST (0...1)
+#define CO_NO_NMT_MST (0 - 1)
 /** Number of SYNC objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
-#define CO_NO_SYNC (0...1)
+#define CO_NO_SYNC (0 - 1)
 /** Number of Emergency producer objects, fixed to 1 producer(CANtx) */
 #define CO_NO_EMERGENCY (1)
 /** Number of Emergency consumer objects, 0 or 1 consumer(CANrx). It depends on
  * @ref CO_CONFIG_EM setting. */
-#define CO_NO_EM_CONS (0...1)
+#define CO_NO_EM_CONS (0 - 1)
 /** Number of Time-stamp objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
-#define CO_NO_TIME (0...1)
+#define CO_NO_TIME (0 - 1)
 /** Number of RPDO objects, 1 to 512 consumers (CANrx) */
-#define CO_NO_RPDO (1...512)
+#define CO_NO_RPDO (1 - 512)
 /** Number of TPDO objects, 1 to 512 producers (CANtx) */
-#define CO_NO_TPDO (1...512)
+#define CO_NO_TPDO (1 - 512)
 /** Number of SDO server objects, from 1 to 128 (CANrx + CANtx) */
-#define CO_NO_SDO_SERVER (1...128)
+#define CO_NO_SDO_SERVER (1 - 128)
 /** Number of SDO client objects, from 0 to 128 (CANrx + CANtx) */
-#define CO_NO_SDO_CLIENT (0...128)
+#define CO_NO_SDO_CLIENT (0 - 128)
 /** Number of HB producer objects, fixed to 1 producer(CANtx) */
 #define CO_NO_HB_PROD (1)
 /** Number of HB consumer objects, from 0 to 127 consumers(CANrx) */
-#define CO_NO_HB_CONS (0...127)
+#define CO_NO_HB_CONS (0 - 127)
 /** Number of LSS slave objects, 0 or 1 (CANrx + CANtx). It depends on
  * @ref CO_CONFIG_LSS setting. */
-#define CO_NO_LSS_SLAVE (0...1)
+#define CO_NO_LSS_SLAVE (0 - 1)
 /** Number of LSS master objects, 0 or 1 (CANrx + CANtx). It depends on
  * @ref CO_CONFIG_LSS setting. */
-#define CO_NO_LSS_MASTER (0...1)
+#define CO_NO_LSS_MASTER (0 - 1)
 /** Number of Trace objects, 0 to many */
-#define CO_NO_TRACE (0...)
+#define CO_NO_TRACE (0 - )
 /** @} */
 
 #else  /* CO_DOXYGEN */
@@ -222,19 +222,19 @@ extern "C" {
 #endif /* CO_DOXYGEN */
 
 
-#if CO_NO_SDO_CLIENT != 0
+#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
     #include "301/CO_SDOclient.h"
 #endif
-#if CO_NO_LSS_SLAVE != 0
+#if CO_NO_LSS_SLAVE != 0 || defined CO_DOXYGEN
     #include "305/CO_LSSslave.h"
 #endif
-#if CO_NO_LSS_MASTER != 0
+#if CO_NO_LSS_MASTER != 0 || defined CO_DOXYGEN
     #include "305/CO_LSSmaster.h"
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
     #include "309/CO_gateway_ascii.h"
 #endif
-#if CO_NO_TRACE != 0
+#if CO_NO_TRACE != 0 || defined CO_DOXYGEN
     #include "extra/CO_trace.h"
 #endif
 
@@ -253,19 +253,19 @@ typedef struct {
     CO_RPDO_t *RPDO[CO_NO_RPDO];     /**< RPDO objects */
     CO_TPDO_t *TPDO[CO_NO_TPDO];     /**< TPDO objects */
     CO_HBconsumer_t *HBcons;         /**< Heartbeat consumer object*/
-#if CO_NO_SDO_CLIENT != 0
+#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
     CO_SDOclient_t *SDOclient[CO_NO_SDO_CLIENT]; /**< SDO client object */
 #endif
-#if CO_NO_LSS_SLAVE == 1
+#if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN
     CO_LSSslave_t *LSSslave;         /**< LSS slave object */
 #endif
-#if CO_NO_LSS_MASTER == 1
+#if CO_NO_LSS_MASTER == 1 || defined CO_DOXYGEN
     CO_LSSmaster_t *LSSmaster;       /**< LSS master object */
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
     CO_GTWA_t *gtwa;                /**< Gateway-ascii object (CiA309-3) */
 #endif
-#if CO_NO_TRACE > 0
+#if CO_NO_TRACE > 0 || defined CO_DOXYGEN
     CO_trace_t *trace[CO_NO_TRACE]; /**< Trace object for recording variables */
 #endif
 } CO_t;
@@ -317,7 +317,7 @@ CO_ReturnError_t CO_CANinit(void *CANptr,
                             uint16_t bitRate);
 
 
-#if CO_NO_LSS_SLAVE == 1
+#if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN
 /**
  * Initialize CANopen LSS slave
  *
@@ -370,7 +370,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                               uint32_t *timerNext_us);
 
 
-#if CO_NO_SYNC == 1
+#if CO_NO_SYNC == 1 || defined CO_DOXYGEN
 /**
  * Process CANopen SYNC objects.
  *

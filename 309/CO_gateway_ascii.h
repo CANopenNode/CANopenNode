@@ -1,9 +1,10 @@
 /**
- * CANopen access from other networks - ASCII mapping (CiA 309-3 DS v2.1.0)
+ * CANopen access from other networks - ASCII mapping (CiA 309-3 DS v3.0.0)
  *
  * @file        CO_gateway_ascii.h
  * @ingroup     CO_CANopen_309_3
  * @author      Janez Paternoster
+ * @author      Martin Wagner
  * @copyright   2020 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
@@ -212,6 +213,24 @@ typedef enum {
     CO_GTWA_ST_READ = 0x10U,
     /** SDO 'write' (download) */
     CO_GTWA_ST_WRITE = 0x11U,
+    /** LSS 'lss_switch_glob' */
+    CO_GTWA_ST_LSS_SWITCH_GLOB = 0x20U,
+    /** LSS 'lss_switch_sel' */
+    CO_GTWA_ST_LSS_SWITCH_SEL = 0x21U,
+    /** LSS 'lss_set_node' */
+    CO_GTWA_ST_LSS_SET_NODE = 0x22U,
+    /** LSS 'lss_conf_bitrate' */
+    CO_GTWA_ST_LSS_CONF_BITRATE = 0x23U,
+    /** LSS 'lss_store' */
+    CO_GTWA_ST_LSS_STORE = 0x24U,
+    /** LSS 'lss_inquire_addr' or 'lss_get_node' */
+    CO_GTWA_ST_LSS_INQUIRE = 0x25U,
+    /** LSS 'lss_inquire_addr', all parameters */
+    CO_GTWA_ST_LSS_INQUIRE_ADDR_ALL = 0x26U,
+    /** LSS '_lss_fastscan' */
+    CO_GTWA_ST__LSS_FASTSCAN = 0x30U,
+    /** LSS 'lss_allnodes' */
+    CO_GTWA_ST_LSS_ALLNODES = 0x31U,
     /** print message log */
     CO_GTWA_ST_LOG = 0x80U,
     /** print 'help' text */
@@ -312,8 +331,26 @@ typedef struct {
     CO_NMT_t *NMT;
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
-    /** LSS object from CO_GTWA_init() */
-    CO_LSSmaster_t *LSS;
+    /** LSSmaster object from CO_GTWA_init() */
+    CO_LSSmaster_t *LSSmaster;
+    /** 128 bit number, uniquely identifying each node */
+    CO_LSS_address_t lssAddress;
+    /** LSS Node-ID parameter */
+    uint8_t lssNID;
+    /** LSS bitrate parameter */
+    uint16_t lssBitrate;
+    /** LSS inquire parameter */
+    CO_LSS_cs_t lssInquireCs;
+    /** LSS fastscan parameter */
+    CO_LSSmaster_fastscan_t lssFastscan;
+    /** LSS allnodes sub state parameter */
+    uint8_t lssSubState;
+    /** LSS allnodes node count parameter */
+    uint8_t lssNodeCount;
+    /** LSS allnodes store parameter */
+    bool_t lssStore;
+    /** LSS allnodes timeout parameter */
+    uint16_t lssTimeout_ms;
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) || defined CO_DOXYGEN
     /** Message log buffer of usable size @ref CO_CONFIG_GTWA_LOG_BUF_SIZE */
@@ -336,7 +373,7 @@ typedef struct {
  * @param SDOtimeoutTimeDefault in milliseconds, 500 typically
  * @param SDOblockTransferEnableDefault true or false
  * @param NMT NMT object
- * @param LSS LSS master object
+ * @param LSSmaster LSS master object
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT
  */
@@ -345,7 +382,7 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
                               uint16_t SDOtimeoutTimeDefault,
                               bool_t SDOblockTransferEnableDefault,
                               void *NMT,
-                              void *LSS);
+                              void *LSSmaster);
 
 
 /**

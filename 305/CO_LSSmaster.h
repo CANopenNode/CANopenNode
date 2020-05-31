@@ -131,7 +131,9 @@ typedef struct{
  * Default timeout for LSS slave in ms. This is the same as for SDO. For more
  * info about LSS timeout see #CO_LSSmaster_changeTimeout()
  */
+#ifndef CO_LSSmaster_DEFAULT_TIMEOUT
 #define CO_LSSmaster_DEFAULT_TIMEOUT 1000U /* ms */
+#endif
 
 
 /**
@@ -364,9 +366,10 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
 
 
 /**
- * Request LSS inquire node ID
+ * Request LSS inquire node ID or part of LSS address
  *
- * The node ID value is read from the node.
+ * The node-ID, identity vendor-ID, product-code, revision-number or
+ * serial-number value is read from the node.
  *
  * This function needs one specific node to be selected.
  *
@@ -376,14 +379,16 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
  * @param LSSmaster This object.
  * @param timeDifference_us Time difference from previous function call in
  * [microseconds]. Zero when request is started.
- * @param [out] nodeId read result when function returns successfully
+ * @param lssInquireCs One of CO_LSS_INQUIRE_xx commands from #CO_LSS_cs_t.
+ * @param [out] value read result when function returns successfully
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
-CO_LSSmaster_return_t CO_LSSmaster_InquireNodeId(
+CO_LSSmaster_return_t CO_LSSmaster_Inquire(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
-        uint8_t                *nodeId);
+        CO_LSS_cs_t             lssInquireCs,
+        uint32_t               *value);
 
 
 /**

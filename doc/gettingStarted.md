@@ -78,13 +78,13 @@ Second terminal now shows operational state (0x05) and one pre-defined PDO messa
 
 
 ### Second CANopen device
-Open the third terminal and cd to the same directory as is in the first terminal. First generate default storage files. Then start second instance of _canopend_ with NodeID = 3. Use default od_storage files and enable command interface on standard IO (terminal).
+Open the third terminal and cd to the same directory as is in the first terminal. First generate default storage files. Then start second instance of _canopend_ with NodeID = 1. Use default od_storage files and enable command interface on standard IO (terminal).
 
     echo "-" > od_storage
     echo "-" > od_storage_auto
-    ./canopend vcan0 -i3 -c "stdio"
+    ./canopend vcan0 -i1 -c "stdio"
 
-Now you should see in second terminal (_candump_) two CANopen devices sending heartbeats in one second interval each. One with node-ID = 4 and one with node-ID = 3. Both should be operational.
+Now you should see in second terminal (_candump_) two CANopen devices sending heartbeats in one second interval each. One with node-ID = 4 and one with node-ID = 1. Both should be operational.
 
 
 ### CANopen command interface
@@ -106,9 +106,9 @@ In CAN dump you can see some SDO communication. SDO communication can be quite c
     [2] 4 write 0x1017 0 u16 5000
     [2] OK      #response
 
-In _candump_ you will notice, that heartbeats from node 4 are coming in 5 second interval now. You can do the same also for node 3, but you won't see anything on _candump_, because data are written into itself directly. In "stdio" you can omit sequence number, to make typing easier.
+In _candump_ you will notice, that heartbeats from node 4 are coming in 5 second interval now. You can do the same also for node 1, but you won't see anything on _candump_, because data are written into itself directly. In "stdio" you can omit sequence number, to make typing easier.
 
-    3 w 0x1017 0 u16 2500
+    1 w 0x1017 0 u16 2500
     [0] OK
 
 Now store Object dictionary on node-ID 4, so it will preserve variables on next start of the program.
@@ -143,10 +143,10 @@ If node is operational (started), it can exchange all objects, including PDO, SD
     reset node
     [0] OK
 
-    3 reset communication
+    1 reset communication
     [0] OK
 
-    3 reset node
+    1 reset node
     [0] OK
 
 
@@ -159,15 +159,19 @@ Please be careful when exposing your CANopen network to the outside world, it is
 ### Next steps
 Now you can enter the big world of [CANopen devices](http://can-newsletter.org/hardware).
 
-Accessing real CANopen devices is the same as described above for virtual CAN interface. Some tested USB to CAN interfaces, which are native integrated into Linux kernel are:
+You can also build your own CANopen device with your favourite microcontroller, see *deviceSupport.md*. There is also a bare-metal demo for [PIC microcontrollers](https://github.com/CANopenNode/CANopenPIC), most complete example is for PIC32.
+
+Assigning Node-ID or CAN bitrate to unconfigured nodes, which support LSS configuration, is described in *LSSusage.md*.
+
+Some further CANopenNode related Linux tools are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket).
+
+Accessing real CANopen devices is the same as described above for virtual CAN interface. Some tested USB to CAN interfaces, which are native in Linux kernel are:
  - Simple serial [USBtin](http://www.fischl.de/usbtin/) - Start with: `sudo slcand -f -o -c -s8 /dev/ttyACM0 can0; sudo ip link set up can0`
  - [EMS CPC-USB](https://www.ems-wuensche.com/?post_type=product&p=746) or [PCAN-USB FD](http://www.peak-system.com/PCAN-USB-FD.365.0.html?&L=1) - Start with: `sudo ip link set up can0 type can bitrate 250000`
  - You can get the idea of other supported CAN interfaces in [Linux kernel source](https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can) (Kconfig files).
- - Beaglebone or Paspberry PI or similar has CAN capes available. On RPI worked also the above USB interfaces, but it was necessary to compile the kernel.
-
+ - Raspberry PI or similar has CAN capes available.
 
 With [CANopenNode](https://github.com/CANopenNode/CANopenNode) you can also design your own device. There are many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download.
-
 
 Here we played with virtual CAN interface and result shows as pixels on screen. If you connect real CAN interface to your computer, things may
 become dangerous. Keep control and safety on your machines!
