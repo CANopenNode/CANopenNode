@@ -33,6 +33,21 @@
 #ifndef CO_OD_H
 #define CO_OD_H
 
+/* If CO_USE_STATIC_ALLOCATION is defined, either on the compiler command line
+ * or forced here, you are requesting CANopenNode to NOT use dynamicly allocated
+ * memory for its data, but to use staticly allocated global variables.
+ * (It implies defining CO_USE_GLOBALS in CANopen.c)
+ * If defined it is required to declare the ODExtensions array in this file.
+ *
+ * In case you only define CO_USE_GLOBALS, make sure CO_OD_NoOfElements is defined
+ * here as a constant number macro. The CO_USE_STATIC_ALLOCATION was introduced
+ * to remove the need to specify the specific number of elements in the OD here.
+ */
+//#define CO_USE_STATIC_ALLOCATION
+
+#ifdef CO_USE_STATIC_ALLOCATION
+#include "301/CO_SDOserver.h"
+#endif
 
 /*******************************************************************************
    CANopen DATA DYPES
@@ -101,8 +116,10 @@
 /*******************************************************************************
    OBJECT DICTIONARY
 *******************************************************************************/
-   #define CO_OD_NoOfElements             57
-
+extern const uint16_t CO_OD_NoOfElements;
+#ifdef CO_USE_STATIC_ALLOCATION
+    extern CO_OD_extension_t COO_SDO_ODExtensions[];
+#endif
 
 /*******************************************************************************
    TYPE DEFINITIONS FOR RECORDS

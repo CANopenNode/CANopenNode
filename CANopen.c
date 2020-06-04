@@ -33,7 +33,18 @@
 /* Global variables ***********************************************************/
 /* #define CO_USE_GLOBALS */    /* If defined, global variables will be used
                                    instead of dynamically allocated. */
-extern const CO_OD_entry_t CO_OD[CO_OD_NoOfElements];   /* Object Dictionary */
+
+#ifdef CO_USE_STATIC_ALLOCATION
+    /* When CO_USE_STATIC_ALLOCATION is defined this implies that the global
+     * (and staticly) allocated variables will be used.
+     * CO_USE_STATIC_ALLOCATION also implies that the Object Dictionary
+     * extensions array is already staticly allocated in CO_OD.c and we do
+     * not (and can not) define it in this file.
+     */
+    #define CO_USE_GLOBALS
+#endif
+
+extern const CO_OD_entry_t CO_OD[];   /* Object Dictionary */
 static CO_t COO;                    /* Pointers to CANopen objects */
 CO_t *CO = NULL;                    /* Pointer to COO */
 
@@ -362,7 +373,14 @@ void CO_delete(void *CANptr) {
     static CO_CANrx_t           COO_CANmodule_rxArray0[CO_RXCAN_NO_MSGS];
     static CO_CANtx_t           COO_CANmodule_txArray0[CO_TXCAN_NO_MSGS];
     static CO_SDO_t             COO_SDO[CO_NO_SDO_SERVER];
-    static CO_OD_extension_t    COO_SDO_ODExtensions[CO_OD_NoOfElements];
+#ifndef CO_USE_STATIC_ALLOCATION
+    /* In case of static allocation this variable MUST be defined in the object
+     * dictionary.
+     * But in case we force the use of globals we must define it ourselves and 
+     * then we require that CO_OD_NoOfElements is predefined.
+     */
+    static CO_OD_extension_t COO_SDO_ODExtensions[CO_OD_NoOfElements];
+#endif
     static CO_EM_t              COO_EM;
     static CO_EMpr_t            COO_EMpr;
     static CO_NMT_t             COO_NMT;
