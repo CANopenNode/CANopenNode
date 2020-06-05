@@ -56,8 +56,7 @@ extern "C" {
 #define CO_CONFIG_NMT (CO_CONFIG_FLAG_CALLBACK_PRE | \
                        CO_CONFIG_FLAG_TIMERNEXT | \
                        CO_CONFIG_NMT_CALLBACK_CHANGE | \
-                       CO_CONFIG_NMT_MASTER | \
-                       CO_CONFIG_NMT_LEDS)
+                       CO_CONFIG_NMT_MASTER)
 #endif
 
 #ifndef CO_CONFIG_SDO
@@ -112,8 +111,15 @@ extern "C" {
 #define CO_CONFIG_TIME (CO_CONFIG_FLAG_CALLBACK_PRE)
 #endif
 
+#ifndef CO_CONFIG_LEDS
+#define CO_CONFIG_LEDS (CO_CONFIG_FLAG_TIMERNEXT | \
+                        CO_CONFIG_LEDS_ENABLE)
+#endif
+
 #ifndef CO_CONFIG_LSS
 #define CO_CONFIG_LSS (CO_CONFIG_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_LSS_SLAVE | \
+                       CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND | \
                        CO_CONFIG_LSS_MASTER)
 #endif
 
@@ -124,7 +130,8 @@ extern "C" {
                        CO_CONFIG_GTW_ASCII_LSS | \
                        CO_CONFIG_GTW_ASCII_LOG | \
                        CO_CONFIG_GTW_ASCII_ERROR_DESC | \
-                       CO_CONFIG_GTW_ASCII_PRINT_HELP)
+                       CO_CONFIG_GTW_ASCII_PRINT_HELP | \
+                       CO_CONFIG_GTW_ASCII_PRINT_LEDS)
 #define CO_CONFIG_GTW_BLOCK_DL_LOOP 3
 #define CO_CONFIG_GTWA_COMM_BUF_SIZE 2000
 #define CO_CONFIG_GTWA_LOG_BUF_SIZE 10000

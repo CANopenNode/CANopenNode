@@ -50,6 +50,9 @@ static uint32_t            *CO_traceTimeBuffers[CO_NO_TRACE];
 static int32_t             *CO_traceValueBuffers[CO_NO_TRACE];
 static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #endif
+#ifndef CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS
+#define CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS 0
+#endif
 
 
 /* Verify number of CANopenNode objects from CO_OD.h **************************/
@@ -209,6 +212,13 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
         if (CO->SDOclient[i] == NULL) errCnt++;
     }
     CO_memoryUsed += sizeof(CO_SDOclient_t) * CO_NO_SDO_CLIENT;
+#endif
+
+#if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
+    /* LEDs */
+    CO->LEDs = (CO_LEDs_t *)calloc(1, sizeof(CO_LEDs_t));
+    if (CO->LEDs == NULL) errCnt++;
+    CO_memoryUsed += sizeof(CO_LEDs_t);
 #endif
 
 #if CO_NO_LSS_SLAVE == 1
@@ -377,6 +387,9 @@ void CO_delete(void *CANptr) {
 #if CO_NO_SDO_CLIENT != 0
     static CO_SDOclient_t       COO_SDOclient[CO_NO_SDO_CLIENT];
 #endif
+#if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
+    static CO_LEDs_t            COO_LEDs;
+#endif
 #if CO_NO_LSS_SLAVE == 1
     static CO_LSSslave_t        COO_LSSslave;
 #endif
@@ -455,6 +468,11 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
         CO->SDOclient[i] = &COO_SDOclient[i];
     }
+#endif
+
+#if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
+    /* LEDs */
+    CO->LEDs = &COO_LEDs;
 #endif
 
 #if CO_NO_LSS_SLAVE == 1
@@ -571,6 +589,18 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     }
 #endif
 
+#if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
+    /* LEDs */
+    err = CO_LEDs_init(CO->LEDs);
+
+    if (err) return err;
+#endif
+
+#if CO_NO_LSS_SLAVE == 1
+    if (CO->nodeIdUnconfiguredLSS) {
+        return CO_ERROR_NO;
+    }
+#endif
 
     /* SDOserver */
     for (i = 0; i < CO_NO_SDO_SERVER; i++) {
@@ -776,6 +806,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
                        CO->LSSmaster,
 #endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+                       CO->LEDs,
+#endif
                        0);
     if (err) return err;
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
@@ -814,6 +847,34 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     uint8_t i;
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
+
+#if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
+    CO_LEDs_process(co->LEDs,
+                    timeDifference_us,
+                    CO_isError(co->em, CO_EM_CAN_TX_BUS_OFF),
+    #if CO_NO_LSS_SLAVE == 1
+                    co->nodeIdUnconfiguredLSS,
+    #else
+                    0,
+    #endif
+                    0, /* RPDO event timer timeout */
+                    CO_isError(co->em, CO_EM_SYNC_TIME_OUT),
+                    CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER)
+                    || CO_isError(co->em, CO_EM_HB_CONSUMER_REMOTE_RESET),
+                    CO_isError(co->em, CO_EM_CAN_BUS_WARNING)
+                    || CO_isError(co->em, CO_EM_CAN_TX_BUS_PASSIVE)
+                    || CO_isError(co->em, CO_EM_CAN_RX_BUS_PASSIVE),
+                    OD_errorRegister != 0,
+                    co->NMT->operatingState,
+    #if CO_NO_LSS_SLAVE == 1
+                    CO_LSSslave_getState(co->LSSslave)
+                    == CO_LSS_STATE_CONFIGURATION,
+    #else
+                    0,
+    #endif
+                    CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS,
+                    timerNext_us);
+#endif /* (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE */
 
     if (co->NMT->operatingState == CO_NMT_PRE_OPERATIONAL ||
         co->NMT->operatingState == CO_NMT_OPERATIONAL)

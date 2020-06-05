@@ -32,6 +32,7 @@ SOURCES = \
 	$(CANOPEN_SRC)/301/CO_SDOclient.c \
 	$(CANOPEN_SRC)/301/crc16-ccitt.c \
 	$(CANOPEN_SRC)/301/CO_fifo.c \
+	$(CANOPEN_SRC)/303/CO_LEDs.c \
 	$(CANOPEN_SRC)/305/CO_LSSslave.c \
 	$(CANOPEN_SRC)/305/CO_LSSmaster.c \
 	$(CANOPEN_SRC)/309/CO_gateway_ascii.c \

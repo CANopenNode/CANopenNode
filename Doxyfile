@@ -784,6 +784,7 @@ INPUT                  = README.md \
                          doc \
                          CANopen.h \
                          301 \
+                         303 \
                          305 \
                          309 \
                          extra \

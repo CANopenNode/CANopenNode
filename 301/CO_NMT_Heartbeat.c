@@ -23,11 +23,8 @@
  * limitations under the License.
  */
 
-
-#include "301/CO_driver.h"
-#include "301/CO_SDOserver.h"
-#include "301/CO_Emergency.h"
 #include "301/CO_NMT_Heartbeat.h"
+
 
 /*
  * Read received message from CAN module.
@@ -105,6 +102,8 @@ CO_ReturnError_t CO_NMT_init(
         uint16_t                HB_txIdx,
         uint16_t                CANidTxHB)
 {
+    CO_ReturnError_t ret = CO_ERROR_NO;
+
     /* verify arguments */
     if (NMT == NULL || emPr == NULL || NMT_CANdevRx == NULL || HB_CANdevTx == NULL
 #if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
@@ -114,36 +113,15 @@ CO_ReturnError_t CO_NMT_init(
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    CO_ReturnError_t ret = CO_ERROR_NO;
-
-    /* blinking bytes and LEDS */
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_LEDS
-    NMT->LEDtimer               = 0;
-    NMT->LEDflickering          = 0;
-    NMT->LEDblinking            = 0;
-    NMT->LEDsingleFlash         = 0;
-    NMT->LEDdoubleFlash         = 0;
-    NMT->LEDtripleFlash         = 0;
-    NMT->LEDquadrupleFlash      = 0;
-    NMT->LEDgreenRun            = -1;
-    NMT->LEDredError            = 1;
-#endif /* CO_CONFIG_NMT_LEDS */
+    /* clear the object */
+    memset(NMT, 0, sizeof(CO_NMT_t));
 
     /* Configure object variables */
     NMT->operatingState         = CO_NMT_INITIALIZING;
     NMT->operatingStatePrev     = CO_NMT_INITIALIZING;
     NMT->nodeId                 = nodeId;
     NMT->firstHBTime            = (int32_t)firstHBTime_ms * 1000;
-    NMT->resetCommand           = 0;
-    NMT->HBproducerTimer        = 0;
     NMT->emPr                   = emPr;
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
-    NMT->pFunctSignalPre = NULL;
-    NMT->functSignalObjectPre = NULL;
-#endif
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
-    NMT->pFunctNMT              = NULL;
-#endif
 
     /* configure NMT CAN reception */
     ret = CO_CANrxBufferInit(
@@ -229,7 +207,6 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         uint32_t               *timerNext_us)
 {
     uint8_t CANpassive;
-
     CO_NMT_internalState_t currentOperatingState = NMT->operatingState;
     uint32_t HBtime = (uint32_t)HBtime_ms * 1000;
 
@@ -242,8 +219,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(
     if ((NMT->operatingState == CO_NMT_INITIALIZING) ||
         (HBtime != 0 && (NMT->HBproducerTimer >= HBtime ||
                          NMT->operatingState != NMT->operatingStatePrev)
-        ))
-    {
+    )) {
         /* Start from the beginning. If OS is slow, time sliding may occur. However,
          * heartbeat is not for synchronization, it is for health report. */
         NMT->HBproducerTimer = 0;
@@ -268,85 +244,6 @@ CO_NMT_reset_cmd_t CO_NMT_process(
     CANpassive = 0;
     if(CO_isError(NMT->emPr->em, CO_EM_CAN_TX_BUS_PASSIVE) || CO_isError(NMT->emPr->em, CO_EM_CAN_RX_BUS_PASSIVE))
         CANpassive = 1;
-
-
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_LEDS
-    NMT->LEDtimer += timeDifference_us;
-    if (NMT->LEDtimer >= 50000) {
-        NMT->LEDtimer -= 50000;
-
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
-        if (timerNext_us != NULL) {
-            uint32_t diff = 50000 - NMT->LEDtimer;
-            if (*timerNext_us > diff) {
-                *timerNext_us = diff;
-            }
-        }
-#endif
-
-        if (++NMT->LEDflickering >= 1) NMT->LEDflickering = -1;
-
-        if (++NMT->LEDblinking >= 4) NMT->LEDblinking = -4;
-
-        if (++NMT->LEDsingleFlash >= 4) NMT->LEDsingleFlash = -20;
-
-        switch (++NMT->LEDdoubleFlash) {
-            case    4: NMT->LEDdoubleFlash = -104; break;
-            case -100: NMT->LEDdoubleFlash =  100; break;
-            case  104: NMT->LEDdoubleFlash =  -20; break;
-            default: break;
-        }
-
-        switch (++NMT->LEDtripleFlash) {
-            case    4: NMT->LEDtripleFlash = -104; break;
-            case -100: NMT->LEDtripleFlash =  100; break;
-            case  104: NMT->LEDtripleFlash = -114; break;
-            case -110: NMT->LEDtripleFlash =  110; break;
-            case  114: NMT->LEDtripleFlash =  -20; break;
-            default: break;
-        }
-
-        switch (++NMT->LEDquadrupleFlash) {
-            case    4: NMT->LEDquadrupleFlash = -104; break;
-            case -100: NMT->LEDquadrupleFlash =  100; break;
-            case  104: NMT->LEDquadrupleFlash = -114; break;
-            case -110: NMT->LEDquadrupleFlash =  110; break;
-            case  114: NMT->LEDquadrupleFlash = -124; break;
-            case -120: NMT->LEDquadrupleFlash =  120; break;
-            case  124: NMT->LEDquadrupleFlash =  -20; break;
-            default: break;
-        }
-    }
-
-    /* CANopen green RUN LED (DR 303-3) */
-    switch(NMT->operatingState){
-        case CO_NMT_STOPPED:          NMT->LEDgreenRun = NMT->LEDsingleFlash;   break;
-        case CO_NMT_PRE_OPERATIONAL:  NMT->LEDgreenRun = NMT->LEDblinking;      break;
-        case CO_NMT_OPERATIONAL:      NMT->LEDgreenRun = 1;                     break;
-        default: break;
-    }
-
-
-    /* CANopen red ERROR LED (DR 303-3) */
-    if(CO_isError(NMT->emPr->em, CO_EM_CAN_TX_BUS_OFF))
-        NMT->LEDredError = 1;
-
-    else if(CO_isError(NMT->emPr->em, CO_EM_SYNC_TIME_OUT))
-        NMT->LEDredError = NMT->LEDtripleFlash;
-
-    else if(CO_isError(NMT->emPr->em, CO_EM_HEARTBEAT_CONSUMER) || CO_isError(NMT->emPr->em, CO_EM_HB_CONSUMER_REMOTE_RESET))
-        NMT->LEDredError = NMT->LEDdoubleFlash;
-
-    else if(CANpassive || CO_isError(NMT->emPr->em, CO_EM_CAN_BUS_WARNING))
-        NMT->LEDredError = NMT->LEDsingleFlash;
-
-    else if(errorRegister)
-        NMT->LEDredError = (NMT->LEDblinking>=0)?-1:1;
-
-    else
-        NMT->LEDredError = -1;
-#endif /* CO_CONFIG_NMT_LEDS */
-
 
     /* in case of error enter pre-operational state */
     if(errorBehavior && (NMT->operatingState == CO_NMT_OPERATIONAL)){
@@ -427,17 +324,6 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 #endif
 
     return (CO_NMT_reset_cmd_t) NMT->resetCommand;
-}
-
-
-/******************************************************************************/
-CO_NMT_internalState_t CO_NMT_getInternalState(
-        CO_NMT_t               *NMT)
-{
-    if(NMT != NULL){
-        return NMT->operatingState;
-    }
-    return CO_NMT_INITIALIZING;
 }
 
 

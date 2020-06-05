@@ -97,15 +97,12 @@ extern "C" {
  *   state changes. Callback is configured by
  *   CO_NMT_initCallbackChanged().
  * - CO_CONFIG_NMT_MASTER - Enable simple NMT master
- * - CO_CONFIG_NMT_LEDS - Calculate CANopen blinking variables, which can
- *   be used for LEDs.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_NMT (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_NMT_MASTER | CO_CONFIG_NMT_LEDS)
+#define CO_CONFIG_NMT (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_NMT_CALLBACK_CHANGE | CO_CONFIG_NMT_MASTER0)
 #endif
 #define CO_CONFIG_NMT_CALLBACK_CHANGE 0x01
 #define CO_CONFIG_NMT_MASTER 0x02
-#define CO_CONFIG_NMT_LEDS 0x04
 
 
 /**
@@ -282,20 +279,37 @@ extern "C" {
 
 
 /**
+ * Configuration of LEDs object
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_NMT_process().
+ * - CO_CONFIG_LEDS_ENABLE - Enable calculation of the CANopen LED indicators.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_LEDS (CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_LEDS_ENABLE)
+#endif
+#define CO_CONFIG_LEDS_ENABLE 0x01
+
+
+/**
  * Configuration of LSS objects
  *
  * Possible flags, can be ORed:
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received SDO CAN message.
+ *   received CAN message.
  *   Callback is configured by CO_LSSmaster_initCallbackPre().
  * - CO_CONFIG_LSS_SLAVE - Enable LSS slave
+ * - CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND - Send LSS fastscan respond
+ *   directly from CO_LSSslave_receive() function.
  * - CO_CONFIG_LSS_MASTER - Enable LSS master
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_LSS (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER)
+#define CO_CONFIG_LSS (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND | CO_CONFIG_LSS_MASTER )
 #endif
 #define CO_CONFIG_LSS_SLAVE 0x01
-#define CO_CONFIG_LSS_MASTER 0x02
+#define CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND 0x02
+#define CO_CONFIG_LSS_MASTER 0x10
 
 
 /**
@@ -317,9 +331,11 @@ extern "C" {
  *   comments in gateway-ascii device for SDO and gateway errors.
  * - CO_CONFIG_GTW_ASCII_PRINT_HELP - use non-standard command "help" to print
  *   help usage.
+ * - CO_CONFIG_GTW_ASCII_PRINT_LEDS - Display "red" and "green" CANopen status
+ *   LED diodes on terminal.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | CO_CONFIG_GTW_ASCII | CO_CONFIG_GTW_ASCII_SDO | CO_CONFIG_GTW_ASCII_NMT | CO_CONFIG_GTW_ASCII_LSS | CO_CONFIG_GTW_ASCII_LOG | CO_CONFIG_GTW_ASCII_ERROR_DESC | CO_CONFIG_GTW_ASCII_PRINT_HELP)
+#define CO_CONFIG_GTW (CO_CONFIG_GTW_MULTI_NET | CO_CONFIG_GTW_ASCII | CO_CONFIG_GTW_ASCII_SDO | CO_CONFIG_GTW_ASCII_NMT | CO_CONFIG_GTW_ASCII_LSS | CO_CONFIG_GTW_ASCII_LOG | CO_CONFIG_GTW_ASCII_ERROR_DESC | CO_CONFIG_GTW_ASCII_PRINT_HELP | CO_CONFIG_GTW_ASCII_PRINT_LEDS)
 #endif
 #define CO_CONFIG_GTW_MULTI_NET 0x01
 #define CO_CONFIG_GTW_ASCII 0x02
@@ -329,6 +345,7 @@ extern "C" {
 #define CO_CONFIG_GTW_ASCII_LOG 0x20
 #define CO_CONFIG_GTW_ASCII_ERROR_DESC 0x40
 #define CO_CONFIG_GTW_ASCII_PRINT_HELP 0x80
+#define CO_CONFIG_GTW_ASCII_PRINT_LEDS 0x100
 
 
 /**

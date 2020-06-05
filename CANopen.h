@@ -78,6 +78,16 @@ extern "C" {
  */
 
 /**
+ * @defgroup CO_CANopen_303 CANopen_303
+ * @{
+ *
+ * CANopen recommendation for indicator specification (CiA 303-3 v1.4.0)
+ *
+ * Description of communication related indicators - green and red LED diodes.
+ * @}
+ */
+
+/**
  * @defgroup CO_CANopen_305 CANopen_305
  * @{
  *
@@ -230,6 +240,9 @@ extern "C" {
 #if CO_NO_LSS_SLAVE != 0 || defined CO_DOXYGEN
     #include "305/CO_LSSslave.h"
 #endif
+#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
+    #include "303/CO_LEDs.h"
+#endif
 #if CO_NO_LSS_MASTER != 0 || defined CO_DOXYGEN
     #include "305/CO_LSSmaster.h"
 #endif
@@ -259,6 +272,9 @@ typedef struct {
     CO_HBconsumer_t *HBcons;         /**< Heartbeat consumer object*/
 #if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
     CO_SDOclient_t *SDOclient[CO_NO_SDO_CLIENT]; /**< SDO client object */
+#endif
+#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
+    CO_LEDs_t *LEDs;                 /**< LEDs object */
 #endif
 #if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN
     CO_LSSslave_t *LSSslave;         /**< LSS slave object */

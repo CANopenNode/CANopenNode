@@ -39,6 +39,8 @@
 
 /* Global variables and objects */
     volatile uint16_t   CO_timer1ms = 0U;   /* variable increments each millisecond */
+    uint8_t LED_red, LED_green;
+
 
 
 /* main ***********************************************************************/
@@ -116,6 +118,8 @@ int main (void){
 
             /* CANopen process */
             reset = CO_process(CO, (uint32_t)timer1msDiff*1000, NULL);
+            LED_red = CO_LED_RED(CO->LEDs, CO_LED_CANopen);
+            LED_green = CO_LED_GREEN(CO->LEDs, CO_LED_CANopen);
 
             /* Nonblocking application code may go here. */
 

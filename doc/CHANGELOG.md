@@ -21,6 +21,7 @@ Change Log
 - Add emergency receive callback also for own emergency messages.
 - Heartbeat is send immediately after NMT state changes.
 - SDO client is rewritten. Now includes read/write fifo interface to transfer data.
+- LED indicator indication (CiA303-3) moved from NMT into own files. Now fully comply to standard.
 ### Changed SocketCAN
 - ./stack/socketCAN removed from the project, ./stack/Neuberger-socketCAN moved to ./socketCAN
 - driver API updated

@@ -27,6 +27,7 @@
 #ifndef CO_NMT_HEARTBEAT_H
 #define CO_NMT_HEARTBEAT_H
 
+#include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
 
@@ -64,32 +65,7 @@ extern "C" {
  *     0  | #CO_NMT_internalState_t
  *
  * @see #CO_Default_CAN_ID_t
- *
- * ###Status LED diodes
- * Macros for @ref CO_NMT_statusLEDdiodes are also implemented in this object.
  */
-
-
-/**
- * @defgroup CO_NMT_statusLEDdiodes Status LED diodes
- * @{
- *
- * Macros for status LED diodes.
- *
- * Helper macros for implementing status LED diodes are used by stack and can
- * also be used by the application. If macro returns 1 LED should be ON,
- * otherwise OFF. Function CO_NMT_blinkingProcess50ms() must be called cyclically
- * to update the variables.
- */
-    #define LED_FLICKERING(NMT)     (((NMT)->LEDflickering>=0)     ? 1 : 0) /**< 10HZ (100MS INTERVAL) */
-    #define LED_BLINKING(NMT)       (((NMT)->LEDblinking>=0)       ? 1 : 0) /**< 2.5HZ (400MS INTERVAL) */
-    #define LED_SINGLE_FLASH(NMT)   (((NMT)->LEDsingleFlash>=0)    ? 1 : 0) /**< 200MS ON, 1000MS OFF */
-    #define LED_DOUBLE_FLASH(NMT)   (((NMT)->LEDdoubleFlash>=0)    ? 1 : 0) /**< 200MS ON, 200MS OFF, 200MS ON, 1000MS OFF */
-    #define LED_TRIPLE_FLASH(NMT)   (((NMT)->LEDtripleFlash>=0)    ? 1 : 0) /**< 200MS ON, 200MS OFF, 200MS ON, 200MS OFF, 200MS ON, 1000MS OFF */
-    #define LED_QUADRUPLE_FLASH(NMT)(((NMT)->LEDquadrupleFlash>=0) ? 1 : 0) /**< 200MS ON, 200MS OFF, 200MS ON, 200MS OFF, 200MS ON, 200MS OFF, 200MS ON, 1000MS OFF */
-    #define LED_GREEN_RUN(NMT)      (((NMT)->LEDgreenRun>=0)       ? 1 : 0) /**< CANOPEN RUN LED ACCORDING TO CIA DR 303-3 */
-    #define LED_RED_ERROR(NMT)      (((NMT)->LEDredError>=0)       ? 1 : 0) /**< CANopen error LED according to CiA DR 303-3 */
-/** @} */
 
 
 /**
@@ -129,22 +105,9 @@ typedef enum{
 
 
 /**
- * NMT consumer and Heartbeat producer object. It includes also variables for
- * @ref CO_NMT_statusLEDdiodes. Object is initialized by CO_NMT_init().
+ * NMT consumer and Heartbeat producer object, initialized by CO_NMT_init()
  */
 typedef struct{
-#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_LEDS) || defined CO_DOXYGEN
-    uint32_t            LEDtimer;       /**< 50ms led timer */
-    int8_t              LEDflickering;  /**< See @ref CO_NMT_statusLEDdiodes */
-    int8_t              LEDblinking;    /**< See @ref CO_NMT_statusLEDdiodes */
-    int8_t              LEDsingleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
-    int8_t              LEDdoubleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
-    int8_t              LEDtripleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
-    int8_t              LEDquadrupleFlash; /**< See @ref CO_NMT_statusLEDdiodes */
-    int8_t              LEDgreenRun;    /**< See @ref CO_NMT_statusLEDdiodes */
-    int8_t              LEDredError;    /**< See @ref CO_NMT_statusLEDdiodes */
-#endif /* CO_CONFIG_NMT_LEDS */
-
     CO_NMT_internalState_t operatingState; /**< Current NMT operating state. */
     CO_NMT_internalState_t operatingStatePrev; /**< Previous NMT operating state. */
     uint8_t             resetCommand;   /**< If different than zero, device will reset */
@@ -283,8 +246,9 @@ CO_NMT_reset_cmd_t CO_NMT_process(
  *
  * @return #CO_NMT_internalState_t
  */
-CO_NMT_internalState_t CO_NMT_getInternalState(
-        CO_NMT_t               *NMT);
+static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
+    return (NMT == NULL) ? CO_NMT_INITIALIZING : NMT->operatingState;
+}
 
 
 #if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN

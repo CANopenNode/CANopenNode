@@ -75,7 +75,11 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_LSS
-#define CO_CONFIG_LSS (0)
+#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE)
+#endif
+
+#ifndef CO_CONFIG_LEDS
+#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE)
 #endif
 
 #ifndef CO_CONFIG_GTW
