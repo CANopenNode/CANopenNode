@@ -46,6 +46,9 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
                               CO_LSSmaster_t *LSSmaster,
 #endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) || defined CO_DOXYGEN
+                              CO_LEDs_t *LEDs,
+#endif
                               uint8_t dummy)
 {
     (void)dummy;
@@ -60,13 +63,17 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
         || LSSmaster == NULL
 #endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+        || LEDs == NULL
+#endif
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
+    /* clear the object */
+    memset(gtwa, 0, sizeof(CO_GTWA_t));
+
     /* initialize variables */
-    gtwa->readCallback = NULL;
-    gtwa->readCallbackObject = NULL;
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
     gtwa->SDO_C = SDO_C;
     gtwa->SDOtimeoutTime = SDOtimeoutTimeDefault;
@@ -78,12 +85,12 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
     gtwa->LSSmaster = LSSmaster;
 #endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+    gtwa->LEDs = LEDs;
+#endif
     gtwa->net_default = -1;
     gtwa->node_default = -1;
     gtwa->state = CO_GTWA_ST_IDLE;
-    gtwa->timeDifference_us_cumulative = 0;
-    gtwa->respBufOffset = 0;
-    gtwa->respBufCount = 0;
     gtwa->respHold = false;
 
     CO_fifo_init(&gtwa->commFifo,
@@ -132,9 +139,9 @@ void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
  * HELPER FUNCTIONS
  ******************************************************************************/
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
-/* help string */
-static const char *CO_GTWA_helpString =
-"Command strings start with '\"[\"<sequence>\"]\"' followed by:\n" \
+/* help strings */
+static const char CO_GTWA_helpString[] =
+"\nCommand strings start with '\"[\"<sequence>\"]\"' followed by:\n" \
 "[[<net>] <node>] r[ead] <index> <subindex> [<datatype>]        # SDO upload.\n" \
 "[[<net>] <node>] w[rite] <index> <subindex> <datatype> <value> # SDO download.\n" \
 "\n" \
@@ -149,10 +156,25 @@ static const char *CO_GTWA_helpString =
 "[<net>] set sdo_timeout <value>          # Configure SDO time-out.\n" \
 "[<net>] set sdo_block <value>            # Enable/disable SDO block transfer.\n" \
 "\n" \
-"help                                     # Print this help.\n" \
+"help [datatype|lss]                      # Print this or datatype or lss help.\n" \
+"led                                      # Print status LED diodes.\n" \
 "log                                      # Print message log.\n" \
 "\n" \
-"Datatypes:\n" \
+"Response:\n" \
+"\"[\"<sequence>\"]\" OK | <value> |\n" \
+"                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>\n" \
+"\n" \
+"* Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same\n" \
+"  is response. String is not null terminated, <CR> is optional in command.\n" \
+"* Comments started with '#' are ignored. They may be on the beginning of the\n" \
+"  line or after the command string.\n" \
+"* 'sdo_timeout' is in milliseconds, 500 by default. Block transfer is\n" \
+"  disabled by default.\n" \
+"* If '<net>' or '<node>' is not specified within commands, then value defined\n" \
+"  by 'set network' or 'set node' command is used.\r\n";
+
+static const char CO_GTWA_helpStringDatatypes[] =
+"\nDatatypes:\n" \
 "b                  # Boolean.\n" \
 "i8, i16, i32, i64  # Signed integers.\n" \
 "u8, u16, u32, u64  # Unsigned integers.\n" \
@@ -160,26 +182,44 @@ static const char *CO_GTWA_helpString =
 "r32, r64           # Real numbers.\n" \
 "t, td              # Time of day, time difference.\n" \
 "vs                 # Visible string (between double quotes if multi-word).\n" \
-"os, us, d          # Octet string, unicode string, domain (mime-base64\n" \
-"                   # (RFC2045) based, one line).\n" \
-"hex                # Hexagonal data, optionally space separated, non-standard.\n" \
+"os, us             # Octet, unicode string, (mime-base64 (RFC2045) based, line).\n" \
+"d                  # domain (mime-base64 (RFC2045) based, one line).\n" \
+"hex                # Hexagonal data, optionally space separated, non-standard.\r\n";
+
+static const char CO_GTWA_helpStringLss[] =
+"\nLSS commands:\n" \
+"lss_switch_glob <0|1>                  # Switch state global command.\n" \
+"lss_switch_sel <vendorID> <product code> \\\n" \
+"               <revisionNo> <serialNo> #Switch state selective.\n" \
+"lss_set_node <node>                    # Configure node-ID.\n" \
+"lss_conf_bitrate <table_selector=0> \\\n" \
+"                 <table_index>         # Configure bit-rate.\n" \
+"lss_activate_bitrate <switch_delay_ms> # Activate new bit-rate.\n" \
+"lss_store                              # LSS store configuration.\n" \
+"lss_inquire_addr [<LSSSUB=0..3>]       # Inquire LSS address.\n" \
+"lss_get_node                           # Inquire node-ID.\n" \
+"_lss_fastscan [<timeout_ms>]           # Identify fastscan, non-standard.\n" \
+"lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\\n" \
+"        <scanType0=0..2> <vendorId> <scanType1=0..2> <productCode>\\\n" \
+"        <scanType2=0..2> <revisionNo> <scanType3=0..2> <serialNo>]]\n" \
+"                                       # Node-ID configuration of all nodes.\n" \
 "\n" \
-"Response:\n" \
-"\"[\"<sequence>\"]\" OK | <value> |\n" \
-"                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>\n" \
+"<table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,\n" \
+"               4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto\n" \
 "\n" \
-"Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same is\n" \
-"response. String is not null terminated, <CR> is optional in command.\n" \
-"\n" \
-"Comments started with '#' are ignored. They may be on the beginning of the\n" \
-"line or after the command string.\n" \
-"\n" \
-"'sdo_timeout' is in milliseconds, 500 by default. Block transfer is disabled\n" \
-"by default.\n" \
-"\n" \
-"If '<net>' or '<node>' is not specified within commands, then value defined by\n" \
-"'set network' or 'set node' command is used.\r\n";
+"All LSS commands start with '\"[\"<sequence>\"]\" [<net>]'.\r\n";
 #endif
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+#define CO_GTWA_LED_PRINTOUTS_SIZE 5
+static const char *CO_GTWA_LED_PRINTOUTS[CO_GTWA_LED_PRINTOUTS_SIZE] = {
+    " CANopen status LEDs: R  G         \r",
+    " CANopen status LEDs: R  G*        \r",
+    " CANopen status LEDs: R* G         \r",
+    " CANopen status LEDs: R* G*        \r",
+    "                                   \r"
+};
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS */
 
 
 /* Get uint32 number from token, verify limits and set *err if necessary */
@@ -1260,7 +1300,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             /* continue with state machine */
             gtwa->state = CO_GTWA_ST__LSS_FASTSCAN;
         }
-        /*  LSS complete node-ID configuration command - 'lss_allnodes
+        /* LSS complete node-ID configuration command - 'lss_allnodes
          * [<timeout_ms> [<nodeStart=1..127> <store=0|1>
          * <scanType0=0..2> <vendorId> <scanType1=0..2> <productCode>
          * <scanType2=0..2> <revisionNo> <scanType3=0..2> <serialNo>]]' */
@@ -1361,6 +1401,10 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
         /* Print message log */
         else if (strcmp(tok, "log") == 0) {
+            if (closed == 0) {
+                err = true;
+                break;
+            }
             gtwa->state = CO_GTWA_ST_LOG;
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
@@ -1368,10 +1412,44 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
         /* Print help */
         else if (strcmp(tok, "help") == 0) {
+            if (closed == 1) {
+                gtwa->helpString = CO_GTWA_helpString;
+            }
+            else {
+                /* get second token */
+                closed = 1;
+                CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
+                if (err) break;
+
+                convertToLower(tok, sizeof(tok));
+                if (strcmp(tok, "datatype") == 0) {
+                    gtwa->helpString = CO_GTWA_helpStringDatatypes;
+                }
+                else if (strcmp(tok, "lss") == 0) {
+                    gtwa->helpString = CO_GTWA_helpStringLss;
+                }
+                else {
+                    err = true;
+                    break;
+                }
+            }
+            /* continue with state machine */
             gtwa->helpStringOffset = 0;
             gtwa->state = CO_GTWA_ST_HELP;
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP */
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+        /* Print status led diodes */
+        else if (strcmp(tok, "led") == 0) {
+            if (closed == 0) {
+                err = true;
+                break;
+            }
+            gtwa->ledStringPreviousIndex = 0xFF;
+            gtwa->state = CO_GTWA_ST_LED;
+        }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS */
 
         /* Unrecognized command */
         else {
@@ -1817,15 +1895,15 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     /* Print help string (in multiple segments if necessary) */
     else if (gtwa->state == CO_GTWA_ST_HELP) {
         size_t lenBuf = CO_GTWA_RESP_BUF_SIZE;
-        size_t lenHelp = strlen(CO_GTWA_helpString);
+        size_t lenHelp = strlen(gtwa->helpString);
 
         do {
             size_t lenHelpRemain = lenHelp - gtwa->helpStringOffset;
             size_t lenCopied = lenBuf < lenHelpRemain ? lenBuf : lenHelpRemain;
 
             memcpy(gtwa->respBuf,
-                    &CO_GTWA_helpString[gtwa->helpStringOffset],
-                    lenCopied);
+                   &gtwa->helpString[gtwa->helpStringOffset],
+                   lenCopied);
 
             gtwa->respBufCount = lenCopied;
             gtwa->helpStringOffset += lenCopied;
@@ -1838,6 +1916,31 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         } while (gtwa->respHold == false);
     }
 #endif
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+    /* print CANopen status LED diodes */
+    else if (gtwa->state == CO_GTWA_ST_LED) {
+        uint8_t i;
+
+        if (CO_fifo_CommSearch(&gtwa->commFifo, false)) {
+            gtwa->state = CO_GTWA_ST_IDLE;
+            i = 4;
+        }
+        else {
+            i = CO_LED_RED(gtwa->LEDs, CO_LED_CANopen) * 2 +
+                CO_LED_GREEN(gtwa->LEDs, CO_LED_CANopen);
+        }
+        if (i > (CO_GTWA_LED_PRINTOUTS_SIZE - 1))
+            i = CO_GTWA_LED_PRINTOUTS_SIZE - 1;
+
+        if (i != gtwa->ledStringPreviousIndex) {
+            gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                                          "%s", CO_GTWA_LED_PRINTOUTS[i]);
+            respBufTransfer(gtwa);
+            gtwa->ledStringPreviousIndex = i;
+        }
+    }
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS */
 
     /* illegal state */
     else if (gtwa->state != CO_GTWA_ST_IDLE) {

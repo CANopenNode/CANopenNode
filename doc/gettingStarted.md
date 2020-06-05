@@ -91,6 +91,7 @@ Now you should see in second terminal (_candump_) two CANopen devices sending he
 Second instance of _canopend_ was started with command interface enabled. This is CANopen gateway interface with ascii mapping, as specified in standard CiA309-3. This enables usage of CANopen master functionalities via basic terminal. Go to third terminal, type "help" and press enter to see its functionalities.
 
     help
+    help datatype
 
 #### SDO client
 For example read Heartbeat producer parameter on CANopen device with ID=4. Parameter is located at index 0x1017, subindex 0, it is 16-bit unsigned integer.

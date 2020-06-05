@@ -40,6 +40,9 @@
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
 #include "305/CO_LSSmaster.h"
 #endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+#include "303/CO_LEDs.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,8 +91,22 @@ Command strings start with '"["<sequence>"]"' followed by:
 [<net>] set sdo_timeout <value>          # Configure SDO time-out.
 [<net>] set sdo_block <value>            # Enable/disable SDO block transfer.
 
-help                                     # Print this help.
+help [datatype|lss]                      # Print this or datatype or lss help.
+led                                      # Print status LED diodes.
 log                                      # Print message log.
+
+Response:
+"["<sequence>"]" OK | <value> |
+                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>
+
+* Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same
+  is response. String is not null terminated, <CR> is optional in command.
+* Comments started with '#' are ignored. They may be on the beginning of the
+  line or after the command string.
+* 'sdo_timeout' is in milliseconds, 500 by default. Block transfer is
+  disabled by default.
+* If '<net>' or '<node>' is not specified within commands, then value defined
+  by 'set network' or 'set node' command is used.
 
 Datatypes:
 b                  # Boolean.
@@ -99,25 +116,31 @@ x8, x16, x32, x64  # Unsigned integers, displayed as hexadecimal, non-standard.
 r32, r64           # Real numbers.
 t, td              # Time of day, time difference.
 vs                 # Visible string (between double quotes if multi-word).
-os, us, d          # Octet string, unicode string, domain (mime-base64
-                   # (RFC2045) based, one line).
+os, us             # Octet, unicode string, (mime-base64 (RFC2045) based, line).
+d                  # domain (mime-base64 (RFC2045) based, one line).
 hex                # Hexagonal data, optionally space separated, non-standard.
 
-Response:
-"["<sequence>"]" OK | <value> |
-                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>
+LSS commands:
+lss_switch_glob <0|1>                  # Switch state global command.
+lss_switch_sel <vendorID> <product code> \\
+               <revisionNo> <serialNo> #Switch state selective.
+lss_set_node <node>                    # Configure node-ID.
+lss_conf_bitrate <table_selector=0> \\
+                 <table_index>         # Configure bit-rate.
+lss_activate_bitrate <switch_delay_ms> # Activate new bit-rate.
+lss_store                              # LSS store configuration.
+lss_inquire_addr [<LSSSUB=0..3>]       # Inquire LSS address.
+lss_get_node                           # Inquire node-ID.
+_lss_fastscan [<timeout_ms>]           # Identify fastscan, non-standard.
+lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\
+        <scanType0=0..2> <vendorId> <scanType1=0..2> <productCode>\\
+        <scanType2=0..2> <revisionNo> <scanType3=0..2> <serialNo>]]
+                                       # Node-ID configuration of all nodes.
 
-Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same is
-response. String is not null terminated, <CR> is optional in command.
+<table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,
+               4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto
 
-Comments started with '#' are ignored. They may be on the beginning of the
-line or after the command string.
-
-'sdo_timeout' is in milliseconds, 500 by default. Block transfer is disabled
-by default.
-
-If '<net>' or '<node>' is not specified within commands, then value defined by
-'set network' or 'set node' command is used.
+All LSS commands start with '"["<sequence>"]" [<net>]'.
  * @endcode
  *
  * This help text is the same as variable contents in CO_GTWA_helpString.
@@ -231,10 +254,12 @@ typedef enum {
     CO_GTWA_ST__LSS_FASTSCAN = 0x30U,
     /** LSS 'lss_allnodes' */
     CO_GTWA_ST_LSS_ALLNODES = 0x31U,
-    /** print message log */
+    /** print message 'log' */
     CO_GTWA_ST_LOG = 0x80U,
     /** print 'help' text */
-    CO_GTWA_ST_HELP = 0x90U
+    CO_GTWA_ST_HELP = 0x81U,
+    /** print 'status' of the node */
+    CO_GTWA_ST_LED = 0x82U
 } CO_GTWA_state_t;
 
 
@@ -360,7 +385,13 @@ typedef struct {
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) || defined CO_DOXYGEN
     /** Offset, when printing help text */
+    const char *helpString;
     size_t helpStringOffset;
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) || defined CO_DOXYGEN
+    /** CO_LEDs_t object for CANopen status LEDs imitation from CO_GTWA_init()*/
+    CO_LEDs_t *LEDs;
+    uint8_t ledStringPreviousIndex;
 #endif
 } CO_GTWA_t;
 
@@ -374,6 +405,8 @@ typedef struct {
  * @param SDOblockTransferEnableDefault true or false
  * @param NMT NMT object
  * @param LSSmaster LSS master object
+ * @param LEDs LEDs object
+ * @param dummy dummy argument, set to 0
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT
  */
@@ -388,6 +421,9 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
                               CO_LSSmaster_t *LSSmaster,
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) || defined CO_DOXYGEN
+                              CO_LEDs_t *LEDs,
 #endif
                               uint8_t dummy);
 
