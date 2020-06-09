@@ -133,14 +133,14 @@ lss_inquire_addr [<LSSSUB=0..3>]       # Inquire LSS address.
 lss_get_node                           # Inquire node-ID.
 _lss_fastscan [<timeout_ms>]           # Identify fastscan, non-standard.
 lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\
-        <scanType0=0..2> <vendorId> <scanType1=0..2> <productCode>\\
-        <scanType2=0..2> <revisionNo> <scanType3=0..2> <serialNo>]]
+                [<scanType0> <vendorId> <scanType1> <productCode>\\
+                 <scanType2> <revisionNo> <scanType3> <serialNo>]]]
                                        # Node-ID configuration of all nodes.
 
-<table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,
-               4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto
-
-All LSS commands start with '"["<sequence>"]" [<net>]'.
+* All LSS commands start with '\"[\"<sequence>\"]\" [<net>]'.
+* <table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,
+                 4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto
+* <scanType>: 0=fastscan, 1=ignore, 2=match value in next parameter
  * @endcode
  *
  * This help text is the same as variable contents in CO_GTWA_helpString.

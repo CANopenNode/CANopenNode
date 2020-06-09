@@ -258,6 +258,7 @@ extern "C" {
  * CANopen object with pointers to all CANopenNode objects.
  */
 typedef struct {
+    bool_t nodeIdUnconfigured;       /**< True in unconfigured LSS slave */
     CO_CANmodule_t *CANmodule[1];    /**< CAN module objects */
     CO_SDO_t *SDO[CO_NO_SDO_SERVER]; /**< SDO object */
     CO_EM_t *em;                     /**< Emergency report object */
@@ -341,15 +342,16 @@ CO_ReturnError_t CO_CANinit(void *CANptr,
 /**
  * Initialize CANopen LSS slave
  *
- * Function must be called in the communication reset section.
+ * Function must be called before CO_CANopenInit.
  *
- * @param nodeId Node ID of the CANopen device (1 ... 127) or
- *               CO_LSS_NODE_ID_ASSIGNMENT
- * @param bitRate CAN bit rate.
+ * See #CO_LSSslave_init() for description of parameters.
+ *
+ * @param [in,out] pendingNodeID Pending node ID or 0xFF(unconfigured)
+ * @param [in,out] pendingBitRate Pending bit rate of the CAN interface
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
  */
-CO_ReturnError_t CO_LSSinit(uint8_t nodeId,
-                            uint16_t bitRate);
+CO_ReturnError_t CO_LSSinit(uint8_t *pendingNodeID,
+                            uint16_t *pendingBitRate);
 #endif /* CO_NO_LSS_SLAVE == 1 */
 
 
@@ -358,7 +360,10 @@ CO_ReturnError_t CO_LSSinit(uint8_t nodeId,
  *
  * Function must be called in the communication reset section.
  *
- * @param nodeId Node ID of the CANopen device (1 ... 127).
+ * @param nodeId CANopen Node ID (1 ... 127) or 0xFF(unconfigured). In the
+ * CANopen initialization it is the same as pendingBitRate from CO_LSSinit().
+ * If it is unconfigured, then some CANopen objects will not be initialized nor
+ * processed.
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
  */
 CO_ReturnError_t CO_CANopenInit(uint8_t nodeId);

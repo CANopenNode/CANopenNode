@@ -95,16 +95,6 @@ typedef enum {
 } CO_LSS_cs_t;
 
 /**
- * Macro to get service type group from command specifier
- * @{*/
-#define CO_LSS_CS_SERVICE_IS_SWITCH_GLOBAL(cs) (cs == CO_LSS_SWITCH_STATE_GLOBAL)
-#define CO_LSS_CS_SERVICE_IS_SWITCH_STATE_SELECTIVE(cs) (cs >= CO_LSS_SWITCH_STATE_SEL_VENDOR && cs <= CO_LSS_SWITCH_STATE_SEL)
-#define CO_LSS_CS_SERVICE_IS_CONFIG(cs) (cs >= CO_LSS_CFG_NODE_ID && cs <= CO_LSS_CFG_STORE)
-#define CO_LSS_CS_SERVICE_IS_INQUIRE(cs) (cs >= CO_LSS_INQUIRE_VENDOR && cs <= CO_LSS_INQUIRE_NODE_ID)
-#define CO_LSS_CS_SERVICE_IS_IDENT(cs) (cs==CO_LSS_IDENT_SLAVE || cs==CO_LSS_IDENT_FASTSCAN)
-/**@}*/
-
-/**
  * Error codes for Configure node ID protocol
  */
 typedef enum {

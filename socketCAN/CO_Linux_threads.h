@@ -61,8 +61,7 @@ typedef enum {
  * CANopenNode runs in two threads:
  * - timer based real-time thread for CAN receive, SYNC and PDO, see
  *   CANrx_threadTmr_process()
- * - mainline thread for other processing, see threadMain_process() or
- *   threadMainWait_process()
+ * - mainline thread for other processing, see threadMainWait_process()
  *
  * The "threads" specified here do not fork threads themselves, but require
  * that two threads are provided by the calling application.
@@ -73,47 +72,16 @@ typedef enum {
 
 
 /**
- * Initialize mainline thread - basic.
- *
- * @param callback this function is called to indicate #threadMain_process() has
- * work to do
- * @param object this pointer is given to _callback()_
- */
-void threadMain_init(void (*callback)(void*), void *object);
-
-
-/**
- * Cleanup mainline thread - basic.
- */
-void threadMain_close(void);
-
-
-/**
- * Process mainline thread - basic.
- *
- * threadMain is non-realtime thread for CANopenNode processing. It is
- * initialized by threadMain_init(). There is no configuration for CANopen
- * objects. There is also no configuration for epool or interval timer or
- * eventfd. These must be specified externally. For more complete function see
- * threadMainWait_process(), they are included.
- *
- * threadMain_process() calls CO_process() function for processing mainline
- * CANopen objects. It is non-blocking and should be called cyclically in 50 ms
- * intervals (typically). Function must also be called immediately after
- * callback provided in threadMain_init() is called.
- *
- * @param reset return value from CO_process() function.
- */
-void threadMain_process(CO_NMT_reset_cmd_t *reset);
-
-
-/**
  * Initialize mainline thread - blocking.
  *
  * Function must be called always in communication reset section, after
  * CO_CANopenInit().
+ *
+ * @param CANopenConfiguredOK True, if node has successfully passed NMT
+ * initialization - it has a valid CANopen node-id, all CANopen objects
+ * are configured and CANopen runs normally.
  */
-void threadMainWait_init(void);
+void threadMainWait_init(bool_t CANopenConfiguredOK);
 
 
 /**

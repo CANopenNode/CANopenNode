@@ -71,8 +71,12 @@
 
 
 /* Other variables and objects */
+volatile static bool_t      CANopenConfiguredOK = false; /* Indication if CANopen modules are configured */
 static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
-static int                  CO_ownNodeId = -1;  /* Use value from Object Dictionary or set to 1..127 by arguments */
+static uint8_t              CO_pendingNodeId = 0xFF;/* Use value from Object Dictionary or by arguments (set to 1..127
+                                                     * or unconfigured=0xFF). Can be changed by LSS slave. */
+static uint8_t              CO_activeNodeId = 0xFF;/* Copied from CO_pendingNodeId in the communication reset section */
+static uint16_t             CO_pendingBitRate = 0;  /* CAN bitrate, not used here */
 static CO_OD_storage_t      odStor;             /* Object Dictionary storage object for CO_OD_ROM */
 static CO_OD_storage_t      odStorAuto;         /* Object Dictionary storage object for CO_OD_EEPROM */
 static char                *odStorFile_rom    = "od_storage";       /* Name of the file */
@@ -127,7 +131,7 @@ static void EmergencyRxCallback(const uint16_t ident,
                                 const uint8_t errorBit,
                                 const uint32_t infoCode)
 {
-    int16_t nodeIdRx = ident ? (ident&0x7F) : CO_ownNodeId;
+    int16_t nodeIdRx = ident ? (ident&0x7F) : CO_activeNodeId;
 
     log_printf(LOG_NOTICE, DBG_EMERGENCY_RX, nodeIdRx, errorCode,
                errorRegister, errorBit, infoCode);
@@ -161,6 +165,14 @@ static void HeartbeatNmtChangedCallback(uint8_t nodeId,
                nodeId, NmtState2Str(state), state);
 }
 
+/* callback for storing node id and bitrate */
+static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
+    (void)object;
+    OD_CANNodeID = id;
+    OD_CANBitRate = bitRate;
+    return true;
+}
+
 /* Print usage */
 static void printUsage(char *progName) {
 printf(
@@ -168,8 +180,8 @@ printf(
 printf(
 "\n"
 "Options:\n"
-"  -i <Node ID>        CANopen Node-id (1..127). If not specified, value from\n"
-"                      Object dictionary (0x2101) is used.\n"
+"  -i <Node ID>        CANopen Node-id (1..127) or 0xFF(unconfigured). If not\n"
+"                      specified, value from Object dictionary (0x2101) is used.\n"
 "  -p <RT priority>    Real-time priority of RT thread (1 .. 99). If not set or\n"
 "                      set to -1, then normal scheduler is used for RT thread.\n"
 "  -r                  Enable reboot on CANopen NMT reset_node command. \n"
@@ -238,7 +250,7 @@ int main (int argc, char *argv[]) {
         const char comm_tcp[] = "tcp-";
         switch (opt) {
             case 'i':
-                CO_ownNodeId = strtol(optarg, NULL, 0);
+                CO_pendingNodeId = (uint8_t)strtol(optarg, NULL, 0);
                 nodeIdFromArgs = true;
                 break;
             case 'p': rtPriority = strtol(optarg, NULL, 0);
@@ -288,8 +300,17 @@ int main (int argc, char *argv[]) {
         CANdevice0Index = if_nametoindex(CANdevice);
     }
 
-    if(nodeIdFromArgs && (CO_ownNodeId < 1 || CO_ownNodeId > 127)) {
-        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_ownNodeId);
+    if(!nodeIdFromArgs) {
+        /* use value from Object dictionary, if not set by program arguments */
+        CO_pendingNodeId = OD_CANNodeID;
+    }
+
+    if((CO_pendingNodeId < 1 || CO_pendingNodeId > 127)
+#if CO_NO_LSS_SLAVE == 1
+        && CO_pendingNodeId != CO_LSS_NODE_ID_ASSIGNMENT
+#endif
+    ) {
+        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_pendingNodeId);
         printUsage(argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -307,7 +328,7 @@ int main (int argc, char *argv[]) {
     }
 
 
-    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "starting");
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_pendingNodeId, "starting");
 
 
     /* Allocate memory for CANopen objects */
@@ -352,9 +373,6 @@ int main (int argc, char *argv[]) {
     while(reset != CO_RESET_APP && reset != CO_RESET_QUIT && CO_endProgram == 0) {
 /* CANopen communication reset - initialize CANopen objects *******************/
 
-        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "communication reset");
-
-
         /* Wait rt_thread. */
         if(!firstRun) {
             CO_LOCK_OD();
@@ -364,50 +382,62 @@ int main (int argc, char *argv[]) {
 
 
         /* Enter CAN configuration. */
+        CANopenConfiguredOK = false;
         CO_CANsetConfigurationMode((void *)CANdevice0Index);
 
 
         /* initialize CANopen */
-        if(!nodeIdFromArgs) {
-            /* use value from Object dictionary, if not set by program arguments */
-            CO_ownNodeId = OD_CANNodeID;
-        }
-
         err = CO_CANinit((void *)CANdevice0Index, 0 /* bit rate not used */);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANinit()", err);
             exit(EXIT_FAILURE);
         }
 
-        err = CO_CANopenInit(CO_ownNodeId);
+        err = CO_LSSinit(&CO_pendingNodeId, &CO_pendingBitRate);
         if(err != CO_ERROR_NO) {
+            log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_LSSinit()", err);
+            exit(EXIT_FAILURE);
+        }
+
+        CO_activeNodeId = CO_pendingNodeId;
+
+        err = CO_CANopenInit(CO_activeNodeId);
+        if(err == CO_ERROR_NO) {
+            CANopenConfiguredOK = true;
+        }
+        else if(err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
             exit(EXIT_FAILURE);
         }
 
         /* initialize part of threadMain and callbacks */
-        threadMainWait_init();
-        CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
-        CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
-        CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
-                                             HeartbeatNmtChangedCallback);
-
-
-        /* initialize OD objects 1010 and 1011 and verify errors. */
-        CO_OD_configure(CO->SDO[0], OD_H1010_STORE_PARAM_FUNC, CO_ODF_1010, (void*)&odStor, 0, 0U);
-        CO_OD_configure(CO->SDO[0], OD_H1011_REST_PARAM_FUNC, CO_ODF_1011, (void*)&odStor, 0, 0U);
-        if(odStorStatus_rom != CO_ERROR_NO) {
-            CO_errorReport(CO->em, CO_EM_NON_VOLATILE_MEMORY, CO_EMC_HARDWARE, (uint32_t)odStorStatus_rom);
-        }
-        if(odStorStatus_eeprom != CO_ERROR_NO) {
-            CO_errorReport(CO->em, CO_EM_NON_VOLATILE_MEMORY, CO_EMC_HARDWARE, (uint32_t)odStorStatus_eeprom + 1000);
-        }
-
+        threadMainWait_init(CANopenConfiguredOK);
+        CO_LSSslave_initCfgStoreCallback(CO->LSSslave, NULL,
+                                            LSScfgStoreCallback);
+        if(CANopenConfiguredOK) {
+            CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
+            CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
+            CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
+                                                 HeartbeatNmtChangedCallback);
+            /* initialize OD objects 1010 and 1011 and verify errors. */
+            CO_OD_configure(CO->SDO[0], OD_H1010_STORE_PARAM_FUNC, CO_ODF_1010, (void*)&odStor, 0, 0U);
+            CO_OD_configure(CO->SDO[0], OD_H1011_REST_PARAM_FUNC, CO_ODF_1011, (void*)&odStor, 0, 0U);
+            if(odStorStatus_rom != CO_ERROR_NO) {
+                CO_errorReport(CO->em, CO_EM_NON_VOLATILE_MEMORY, CO_EMC_HARDWARE, (uint32_t)odStorStatus_rom);
+            }
+            if(odStorStatus_eeprom != CO_ERROR_NO) {
+                CO_errorReport(CO->em, CO_EM_NON_VOLATILE_MEMORY, CO_EMC_HARDWARE, (uint32_t)odStorStatus_eeprom + 1000);
+            }
 
 #if CO_NO_TRACE > 0
-        /* Initialize time */
-        CO_time_init(&CO_time, CO->SDO[0], &OD_time.epochTimeBaseMs, &OD_time.epochTimeOffsetMs, 0x2130);
+            /* Initialize time */
+            CO_time_init(&CO_time, CO->SDO[0], &OD_time.epochTimeBaseMs, &OD_time.epochTimeOffsetMs, 0x2130);
 #endif
+            log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_activeNodeId, "communication reset");
+        }
+        else {
+            log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_activeNodeId, "node-id not initialized");
+        }
 
         /* First time only initialization. */
         if(firstRun) {
@@ -438,14 +468,14 @@ int main (int argc, char *argv[]) {
 
 #ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
-            app_programStart();
+            app_programStart(CANopenConfiguredOK);
 #endif
         } /* if(firstRun) */
 
 
 #ifdef CO_USE_APPLICATION
         /* Execute optional additional application code */
-        app_communicationReset();
+        app_communicationReset(CANopenConfiguredOK);
 #endif
 
 
@@ -454,7 +484,7 @@ int main (int argc, char *argv[]) {
 
         reset = CO_RESET_NOT;
 
-        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "running ...");
+        log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_activeNodeId, "running ...");
 
 
         while(reset == CO_RESET_NOT && CO_endProgram == 0) {
@@ -462,7 +492,7 @@ int main (int argc, char *argv[]) {
             uint32_t timer1usDiff = threadMainWait_process(&reset);
 
 #ifdef CO_USE_APPLICATION
-            app_programAsync(timer1usDiff);
+            app_programAsync(CANopenConfiguredOK, timer1usDiff);
 #endif
 
             CO_OD_storage_autoSave(&odStorAuto, timer1usDiff, 60000000);
@@ -492,7 +522,7 @@ int main (int argc, char *argv[]) {
     threadMainWait_close();
     CO_delete((void *)CANdevice0Index);
 
-    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_ownNodeId, "finished");
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_activeNodeId, "finished");
 
     /* Flush all buffers (and reboot) */
     if(rebootEnable && reset == CO_RESET_APP) {
@@ -528,7 +558,7 @@ static void* rt_thread(void* arg) {
 
 #ifdef CO_USE_APPLICATION
         /* Execute optional additional application code */
-        app_program1ms();
+        app_program1ms(CANopenConfiguredOK);
 #endif
 
     }

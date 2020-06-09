@@ -200,14 +200,14 @@ static const char CO_GTWA_helpStringLss[] =
 "lss_get_node                           # Inquire node-ID.\n" \
 "_lss_fastscan [<timeout_ms>]           # Identify fastscan, non-standard.\n" \
 "lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\\n" \
-"        <scanType0=0..2> <vendorId> <scanType1=0..2> <productCode>\\\n" \
-"        <scanType2=0..2> <revisionNo> <scanType3=0..2> <serialNo>]]\n" \
+"                [<scanType0> <vendorId> <scanType1> <productCode>\\\n" \
+"                 <scanType2> <revisionNo> <scanType3> <serialNo>]]]\n" \
 "                                       # Node-ID configuration of all nodes.\n" \
 "\n" \
-"<table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,\n" \
-"               4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto\n" \
-"\n" \
-"All LSS commands start with '\"[\"<sequence>\"]\" [<net>]'.\r\n";
+"* All LSS commands start with '\"[\"<sequence>\"]\" [<net>]'.\n" \
+"* <table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,\n" \
+"                 4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto\n" \
+"* <scanType>: 0=fastscan, 1=ignore, 2=match value in next parameter\r\n";
 #endif
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
@@ -396,7 +396,7 @@ static const errorDescs_t errorDescs[] = {
     {100, "Request not supported."},
     {101, "Syntax error."},
     {102, "Request not processed due to internal state."},
-    {103, "Time-out (where applicable)."},
+    {103, "Time-out."},
     {104, "No default net set."},
     {105, "No default node set."},
     {106, "Unsupported net."},
@@ -1348,16 +1348,25 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 /* prepare lssFastscan, all zero */
                 memset(&gtwa->lssFastscan, 0, sizeof(gtwa->lssFastscan));
             }
-            else {
-                CO_LSSmaster_fastscan_t *fs = &gtwa->lssFastscan;
-                /* read other arguments */
+            if (closed == 0) {
+                /* more arguments follow */
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
                 gtwa->lssNID = getU32(tok, 1, 127, &err);
                 if (err) break;
 
+                closed = -1;
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
                 gtwa->lssStore = (bool_t)getU32(tok, 0, 1, &err);
                 if (err) break;
+
+                if (closed == 1) {
+                    /* No other arguments, prepare lssFastscan, all zero */
+                    memset(&gtwa->lssFastscan, 0, sizeof(gtwa->lssFastscan));
+                }
+            }
+            if (closed == 0) {
+                /* more arguments follow */
+                CO_LSSmaster_fastscan_t *fs = &gtwa->lssFastscan;
 
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
                 fs->scan[CO_LSS_FASTSCAN_VENDOR_ID] = getU32(tok, 0, 2, &err);
@@ -1704,10 +1713,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     }
     else if (gtwa->state == CO_GTWA_ST_LSS_INQUIRE_ADDR_ALL) {
         CO_LSSmaster_return_t ret;
-        CO_LSS_address_t lssAddress;
 
         ret = CO_LSSmaster_InquireLssAddress(gtwa->LSSmaster, timeDifference_us,
-                                             &lssAddress);
+                                             &gtwa->lssAddress);
         if (ret != CO_LSSmaster_WAIT_SLAVE) {
             if (ret == CO_LSSmaster_OK) {
                 gtwa->respBufCount =
@@ -1715,10 +1723,10 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                              "[%"PRId32"] 0x%08"PRIX32" 0x%08"PRIX32 \
                              " 0x%08"PRIX32" 0x%08"PRIX32"\r\n",
                              gtwa->sequence,
-                             lssAddress.identity.vendorID,
-                             lssAddress.identity.productCode,
-                             lssAddress.identity.revisionNumber,
-                             lssAddress.identity.serialNumber);
+                             gtwa->lssAddress.identity.vendorID,
+                             gtwa->lssAddress.identity.productCode,
+                             gtwa->lssAddress.identity.revisionNumber,
+                             gtwa->lssAddress.identity.serialNumber);
                 respBufTransfer(gtwa);
             }
             else {
@@ -1839,6 +1847,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
             else {
                 /* cycle finished successfully, send report */
+                uint8_t lssNidAssigned = gtwa->lssNID;
                 const char msg2Fmt[] = "# Not all nodes scanned!\r\n" \
                                        "[%"PRId32"] OK\r\n";
                 char msg2[sizeof(msg2Fmt)+10] = {0};
@@ -1863,7 +1872,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                              "# Node-ID %d assigned to: 0x%08"PRIX32" 0x%08" \
                              PRIX32" 0x%08"PRIX32" 0x%08"PRIX32"\r\n%s",
-                             gtwa->lssNID,
+                             lssNidAssigned,
                              gtwa->lssFastscan.found.identity.vendorID,
                              gtwa->lssFastscan.found.identity.productCode,
                              gtwa->lssFastscan.found.identity.revisionNumber,

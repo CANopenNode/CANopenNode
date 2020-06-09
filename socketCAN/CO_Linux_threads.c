@@ -116,8 +116,19 @@ static void threadMainWait_callback(void *object)
     }
 }
 
-void threadMainWait_init(void)
+void threadMainWait_init(bool_t CANopenConfiguredOK)
 {
+    /* Configure LSS slave callback function */
+#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
+    CO_LSSslave_initCallbackPre(CO->LSSslave, NULL, threadMainWait_callback);
+#endif
+
+    /* Initial value for time calculation */
+    tmw.start = CO_LinuxThreads_clock_gettime_us();
+
+    if (!CANopenConfiguredOK)
+        return;
+
     /* Configure callback functions */
     CO_NMT_initCallbackPre(CO->NMT, NULL, threadMainWait_callback);
     CO_SDO_initCallbackPre(CO->SDO[0], NULL, threadMainWait_callback);
@@ -127,14 +138,19 @@ void threadMainWait_init(void)
     CO_SDOclient_initCallbackPre(CO->SDOclient[0], NULL,
                                  threadMainWait_callback);
 #endif
+#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
+    CO_TIME_initCallbackPre(CO->TIME, NULL, threadMainWait_callback);
+#endif
+#if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
+    CO_LSSmaster_initCallbackPre(CO->LSSmaster, NULL, threadMainWait_callback);
+#endif
+#endif
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
     CO_GTWA_initRead(CO->gtwa, gtwa_write_response, (void *)&tmw.gtwa_fd);
     tmw.freshCommand = true;
 #endif
-
-    /* Initial value for time calculation */
-    tmw.start = CO_LinuxThreads_clock_gettime_us();
 }
 
 void threadMainWait_initOnce(uint32_t interval_us,
@@ -296,11 +312,6 @@ void threadMainWait_initOnce(uint32_t interval_us,
 
 void threadMainWait_close(void)
 {
-    CO_NMT_initCallbackPre(CO->NMT, NULL, NULL);
-    CO_SDO_initCallbackPre(CO->SDO[0], NULL, NULL);
-    CO_EM_initCallbackPre(CO->em, NULL, NULL);
-    CO_HBconsumer_initCallbackPre(CO->HBcons, NULL, NULL);
-
     close(tmw.epoll_fd);
     tmw.epoll_fd = -1;
 
@@ -402,10 +413,16 @@ uint32_t threadMainWait_process(CO_NMT_reset_cmd_t *reset)
     }
     else if (ev.data.fd == tmw.gtwa_fd) {
         char buf[CO_CONFIG_GTWA_COMM_BUF_SIZE];
-        size_t space = CO_GTWA_write_getSpace(CO->gtwa);
+        size_t space = CO->nodeIdUnconfigured ?
+                       CO_CONFIG_GTWA_COMM_BUF_SIZE :
+                       CO_GTWA_write_getSpace(CO->gtwa);
 
         s = read(tmw.gtwa_fd, buf, space);
-        if (s < 0 &&  errno != EAGAIN) {
+
+        if (CO->nodeIdUnconfigured) {
+            /* purge data */
+        }
+        else if (s < 0 &&  errno != EAGAIN) {
             log_printf(LOG_DEBUG, DBG_ERRNO, "read(gtwa_fd)");
         }
         else if (s >= 0) {

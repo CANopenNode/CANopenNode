@@ -4,6 +4,7 @@
  * @file        CO_LSSslave.h
  * @ingroup     CO_LSS
  * @author      Martin Wagner
+ * @author      Janez Paternoster
  * @copyright   2017 - 2020 Neuberger Gebaeudeautomation GmbH
  *
  *
@@ -53,178 +54,33 @@ extern "C" {
  *
  * After CAN module start, the LSS slave and NMT slave are started and then
  * coexist alongside each other. To achieve this behaviour, the CANopen node
- * startup process has to be conrolled more detailled. Therefore, the function
- * CO_init() is split up into the functions CO_new(), CO_CANinit(), CO_LSSinit()
- * and CO_CANopenInit().
+ * startup process has to be controlled more detailed. Therefore, CO_LSSinit()
+ * must be invoked between CO_CANinit() and CO_CANopenInit() in the
+ * communication reset section.
+ *
  * Moreover, the LSS slave needs to pause the NMT slave initialization in case
- * no valid node ID is available at start up.
+ * no valid node ID is available at start up. In that case CO_CANopenInit()
+ * skips initialization of other CANopen modules and CO_process() skips
+ * processing of other modules than LSS slave automatically.
  *
- * ###Example
+ * Variables for CAN-bitrate and CANopen node-id must be initialized by
+ * application from non-volatile memory or dip switches. Pointers to them are
+ * passed to CO_LSSinit() function. Those variables represents pending values.
+ * If node-id is valid in the moment it enters CO_LSSinit(), it also becomes
+ * active node-id and the stack initialises normally. Otherwise, node-id must be
+ * configured by lss and after successful configuration stack passes reset
+ * communication autonomously.
  *
- * It is strongly recommended that the user already has a fully working application
- * running with the standard (non LSS) version of CANopenNode. This is required
- * to understand what this example does and where you need to change it for your
- * requirements.
+ * Device with all threads can be normally initialized and running despite that
+ * node-id is not valid. Application must take care, because CANopen is not
+ * initialized. In that case CO_CANopenInit() returns error condition
+ * CO_ERROR_NODE_ID_UNCONFIGURED_LSS which must be handled properly. Status can
+ * also be checked with CO->nodeIdUnconfigured variable.
  *
- * The following code is only a suggestion on how to use the LSS slave. It is
- * not a working example! To simplify the code, no error handling is
- * included. For stable code, proper error handling has to be added to the user
- * code.
- *
- * This example is not intended for bare metal targets. If you intend to do CAN
- * message receiving inside interrupt, be aware that the callback functions
- * will be called inside the interrupt handler context!
- *
- * \code{.c}
-
- const uint16_t FIRST_BIT = 125;
- queue changeBitRate;
- uint8_t activeNid;
- uint16_t activeBit;
-
- bool_t checkBitRateCallback(void *object, uint16_t bitRate)
- {
-     if (validBit(bitRate)) {
-         return true;
-     }
-     return false;
- }
-
- void activateBitRateCallback(void *object, uint16_t delay)
- {
-     int time = getCurrentTime();
-     queueSend(&changeBitRate, time, delay);
- }
-
- bool_t cfgStoreCallback(void *object, uint8_t id, uint16_t bitRate)
- {
-     savePersistent(id, bitRate);
-     return true;
- }
-
- void start_canopen(uint8_t nid)
- {
-    uint8_t persistentNid;
-    uint8_t pendingNid;
-    uint16_t persistentBit;
-    uint16_t pendingBit;
-
-    loadPersistent(&persistentNid, &persistentBit);
-
-    if ( ! validBit(persistentBit)) {
-        printf("no bit rate found, defaulting to %d", FIRST_BIT);
-        pendingBit = FIRST_BIT;
-    }
-    else {
-        printf("loaded bit rate from nvm: %d", persistentBit);
-        pendingBit = persistentBit;
-    }
-
-    if (nid == 0) {
-        if ( ! validNid(persistentNid)) {
-            pendingNid = CO_LSS_NODE_ID_ASSIGNMENT;
-            printf("no node id found, needs to be set by LSS. NMT will"
-                   "not be started until valid node id is set");
-        }
-        else {
-            printf("loaded node id from nvm: %d", persistentNid);
-            pendingNid = persistentNid;
-        }
-    }
-    else {
-        printf("node id provided by application: %d", nid);
-        pendingNid = nid;
-    }
-
-    CO_new();
-    CO_CANinit(0, pendingBit);
-    CO_LSSinit(pendingNid, pendingBit);
-    CO_CANsetNormalMode(CO->CANmodule[0]);
-    activeBit = pendingBit;
-
-    CO_LSSslave_initCheckBitRateCallback(CO->LSSslave, NULL, checkBitRateCallback);
-    CO_LSSslave_initActivateBitRateCallback(CO->LSSslave, NULL, activateBitRateCallback);
-    CO_LSSslave_initCfgStoreCallback(CO->LSSslave, NULL, cfgStoreCallback);
-
-    while (1) {
-        CO_LSSslave_process(CO->LSSslave, activeBit, activeNid,
-                            &pendingBit, &pendingNid);
-        if (pendingNid!=CO_LSS_NODE_ID_ASSIGNMENT &&
-            CO_LSSslave_getState(CO->LSSslave)==CO_LSS_STATE_WAITING) {
-             printf("node ID has been found: %d", pendingNid);
-             break;
-        }
-
-        if ( ! queueEmpty(&changeBitRate)) {
-            printf("bit rate change requested: %d", pendingBit);
-            int time;
-            uint16_t delay;
-            queueReceive(&changeBitRate, time, delay);
-            delayUntil(time + delay);
-            CO_CANsetBitrate(CO->CANmodule[0], pendingBit);
-            delay(delay);
-        }
-
-        printf("waiting for node id");
-        CO_CANrxWait(CO->CANmodule[0]);
-    }
-
-    CO_CANopenInit(pendingNid);
-    activeNid = pendingNid;
-
-    printf("from this on, initialization doesn't differ to non-LSS version"
-           "You can now intialize your CO_CANrxWait() thread or interrupt");
- }
-
- void main(void)
- {
-     uint8_t pendingNid;
-     uint16_t pendingBit;
-
-     printf("like example in dir \"example\"");
-
-     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
-     uint16_t timer1msPrevious;
-
-     start_canopen(0);
-
-     reset = CO_RESET_NOT;
-     timer1msPrevious = CO_timer1ms;
-     while(reset == CO_RESET_NOT){
-         printf("loop for normal program execution");
-         uint16_t timer1msCopy, timer1msDiff;
-
-         timer1msCopy = CO_timer1ms;
-         timer1msDiff = timer1msCopy - timer1msPrevious;
-         timer1msPrevious = timer1msCopy;
-
-         reset = CO_process(CO, timer1msDiff, NULL);
-
-         CO_LSSslave_process(CO->LSSslave, activeBit, activeNid,
-                                           &pendingBit, &pendingNid);
-         if (reset == CO_RESET_COMM) {
-             printf("restarting CANopen using pending node ID %d", pendingNid);
-             CO_delete(0);
-             start_canopen(pendingNid);
-             reset = CO_RESET_NOT;
-         }
-         if ( ! queueEmpty(&changeBitRate)) {
-             printf("bit rate change requested: %d", pendingBit);
-             int time;
-             uint16_t delay;
-             queueReceive(&changeBitRate, time, delay);
-             printf("Disabling CANopen for givent time");
-             pauseReceiveThread();
-             delayUntil(time + delay);
-             CO_CANsetBitrate(CO->CANmodule[0], pendingBit);
-             delay(delay);
-             resumeReceiveThread();
-             printf("Re-enabling CANopen after bit rate switch");
-         }
-     }
- }
-
- * \endcode
+ * Some callback functions may be initialized by application with
+ * CO_LSSslave_initCheckBitRateCallback(),
+ * CO_LSSslave_initActivateBitRateCallback() and
+ * CO_LSSslave_initCfgStoreCallback().
  */
 
 /**
@@ -238,16 +94,24 @@ typedef struct{
     CO_LSS_address_t        lssFastscan;      /**< Received LSS Address by fastscan */
     uint8_t                 fastscanPos;      /**< Current state of fastscan */
 
-    uint16_t                pendingBitRate;   /**< Bit rate value that is temporarily configured in volatile memory */
-    uint8_t                 pendingNodeID;    /**< Node ID that is temporarily configured in volatile memory */
+    uint16_t               *pendingBitRate;   /**< Bit rate value that is temporarily configured */
+    uint8_t                *pendingNodeID;    /**< Node ID that is temporarily configured */
     uint8_t                 activeNodeID;     /**< Node ID used at the CAN interface */
 
+    volatile void          *sendResponse;     /**< Variable indicates, if LSS response has to be sent by mainline processing function */
+    CO_LSS_cs_t             service;          /**< Service, which will have to be processed by mainline processing function */
+    uint8_t                 CANdata[8];       /**< Received CAN data, which will be processed by mainline processing function */
+
+#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+    void                  (*pFunctSignalPre)(void *object); /**< From CO_LSSslave_initCallbackPre() or NULL */
+    void                   *functSignalObjectPre;/**< Pointer to object */
+#endif
     bool_t                (*pFunctLSScheckBitRate)(void *object, uint16_t bitRate); /**< From CO_LSSslave_initCheckBitRateCallback() or NULL */
     void                   *functLSScheckBitRateObject; /** Pointer to object */
     void                  (*pFunctLSSactivateBitRate)(void *object, uint16_t delay); /**< From CO_LSSslave_initActivateBitRateCallback() or NULL. Delay is in ms */
     void                   *functLSSactivateBitRateObject; /** Pointer to object */
     bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate); /**< From CO_LSSslave_initCfgStoreCallback() or NULL */
-    void                   *functLSScfgStore; /** Pointer to object */
+    void                   *functLSScfgStoreObject; /** Pointer to object */
 
     CO_CANmodule_t         *CANdevTx;         /**< From #CO_LSSslave_init() */
     CO_CANtx_t             *TXbuff;           /**< CAN transmit buffer */
@@ -258,20 +122,32 @@ typedef struct{
  *
  * Function must be called in the communication reset section.
  *
- * Depending on the startup type, pending bit rate and node ID have to be
- * supplied differently. After #CO_NMT_RESET_NODE or at power up they should
- * be restored from persitent bit rate and node id. After #CO_NMT_RESET_COMMUNICATION
- * they have to be supplied from the application and are generally the values
- * that have been last returned by #CO_LSSslave_process() before resetting.
+ * pendingBitRate and pendingNodeID must be pointers to external variables. Both
+ * variables must be initialized on program startup (after #CO_NMT_RESET_NODE)
+ * from non-volatile memory, dip switches or similar. They must not change
+ * during #CO_NMT_RESET_COMMUNICATION. Both variables can be changed by
+ * CO_LSSslave_process(), depending on commands from the LSS master.
+ *
+ * If pendingNodeID is valid (1 <= pendingNodeID <= 0x7F), then this becomes
+ * valid active nodeId just after exit of this function. In that case all other
+ * CANopen objects may be initialized and processed in run time.
+ *
+ * If pendingNodeID is not valid (pendingNodeID == 0xFF), then only LSS slave is
+ * initialized and processed in run time. In that state pendingNodeID can be
+ * configured and after successful configuration reset communication with all
+ * CANopen object is activated automatically.
  *
  * @remark The LSS address needs to be unique on the network. For this, the 128
- * bit wide identity object (1018h) is used. Therefore, this object has to be fully
- * initalized before passing it to this function.
+ * bit wide identity object (1018h) is used. Therefore, this object has to be
+ * fully initialized before passing it to this function (vendorID, product
+ * code, revisionNo, serialNo are set to 0 by default). Otherwise, if
+ * non-configured devices are present on CANopen network, LSS configuration may
+ * behave unpredictable.
  *
  * @param LSSslave This object will be initialized.
  * @param lssAddress LSS address
- * @param pendingBitRate Bit rate of the CAN interface.
- * @param pendingNodeID Node ID or 0xFF - invalid.
+ * @param [in,out] pendingBitRate Pending bit rate of the CAN interface
+ * @param [in,out] pendingNodeID Pending node ID or 0xFF - invalid
  * @param CANdevRx CAN device for LSS slave reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param CANidLssMaster COB ID for reception.
@@ -283,8 +159,8 @@ typedef struct{
 CO_ReturnError_t CO_LSSslave_init(
         CO_LSSslave_t          *LSSslave,
         CO_LSS_address_t        lssAddress,
-        uint16_t                pendingBitRate,
-        uint8_t                 pendingNodeID,
+        uint16_t               *pendingBitRate,
+        uint8_t                *pendingNodeID,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdx,
         uint32_t                CANidLssMaster,
@@ -295,21 +171,17 @@ CO_ReturnError_t CO_LSSslave_init(
 /**
  * Process LSS communication
  *
- * - sets currently active node ID and bit rate so master can read it
- * - hands over pending node ID and bit rate to user application
+ * Object is partially pre-processed after LSS message received. Further
+ * processing is inside this function.
+ *
+ * In case that Node-Id is unconfigured, then this function may request CANopen
+ * communication reset. This happens, when valid node-id is configured by LSS
+ * master.
  *
  * @param LSSslave This object.
- * @param activeBitRate Currently active bit rate
- * @param activeNodeId Currently active node ID
- * @param [out] pendingBitRate Requested bit rate
- * @param [out] pendingNodeId Requested node id
+ * @return True, if #CO_NMT_RESET_COMMUNICATION is requested
  */
-void CO_LSSslave_process(
-        CO_LSSslave_t          *LSSslave,
-        uint16_t                activeBitRate,
-        uint8_t                 activeNodeId,
-        uint16_t               *pendingBitRate,
-        uint8_t                *pendingNodeId);
+bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave);
 
 /**
  * Get current LSS state
@@ -317,30 +189,30 @@ void CO_LSSslave_process(
  * @param LSSslave This object.
  * @return #CO_LSS_state_t
  */
-CO_LSS_state_t CO_LSSslave_getState(
-        CO_LSSslave_t          *LSSslave);
+static inline CO_LSS_state_t CO_LSSslave_getState(CO_LSSslave_t *LSSslave) {
+    return (LSSslave == NULL) ? CO_LSS_STATE_WAITING : LSSslave->lssState;
+}
 
+
+#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
 /**
- * Process LSS LED
+ * Initialize LSSslaveRx callback function.
  *
- * Returns the status of the LSS LED (if LSS is involved)
- * with the following meaning:
- *
- * UNCONFIGURED (activeNodeId is unconfigured) --> single flash
- * SELECTED                                    --> double flash
- *
- * If none of above conditions apply, returns false.
+ * Function initializes optional callback function, which should immediately
+ * start further LSS processing. Callback is called after LSS message is
+ * received from the CAN bus. It should signal the RTOS to resume corresponding
+ * task.
  *
  * @param LSSslave This object.
- * @param timeDifference_us The amount of time elapsed since the last call
- * @param [out] LEDon LED state
- *
- * @return true if LSS is involved (unconfigured node or selected node)
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
+ * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
  */
-bool_t CO_LSSslave_LEDprocess(
+void CO_LSSslave_initCallbackPre(
         CO_LSSslave_t          *LSSslave,
-        uint32_t                timeDifference_us,
-        bool_t *LEDon);
+        void                   *object,
+        void                  (*pFunctSignalPre)(void *object));
+#endif
+
 
 /**
  * Initialize verify bit rate callback
@@ -350,9 +222,6 @@ bool_t CO_LSSslave_LEDprocess(
  * rate is supported by the CANopen device. Callback returns "true" if supported.
  * When no callback is set the LSS slave will no-ack the request, indicating to
  * the master that bit rate change is not supported.
- *
- * @remark Depending on the CAN driver implementation, this function is called
- * inside an ISR
  *
  * @param LSSslave This object.
  * @param object Pointer to object, which will be passed to pFunctLSScheckBitRate(). Can be NULL
@@ -371,10 +240,7 @@ void CO_LSSslave_initCheckBitRateCallback(
  * allow setting a timer or do calculations based on the exact time the request
  * arrived.
  * According to DSP 305 6.4.4, the delay has to be applied once before and once after
- * switching bit rates. During this time, a device musn't send any messages.
- *
- * @remark Depending on the CAN driver implementation, this function is called
- * inside an ISR
+ * switching bit rates. During this time, a device mustn't send any messages.
  *
  * @param LSSslave This object.
  * @param object Pointer to object, which will be passed to pFunctLSSactivateBitRate(). Can be NULL
@@ -394,9 +260,6 @@ void CO_LSSslave_initActivateBitRateCallback(
  * after reset. If callback returns "true", success is send to the LSS master. When no
  * callback is set the LSS slave will no-ack the request, indicating to the master
  * that storing is not supported.
- *
- * @remark Depending on the CAN driver implementation, this function is called
- * inside an ISR
  *
  * @param LSSslave This object.
  * @param object Pointer to object, which will be passed to pFunctLSScfgStore(). Can be NULL

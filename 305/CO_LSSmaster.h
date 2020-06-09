@@ -105,7 +105,7 @@ typedef enum {
  * LSS master object.
  */
 typedef struct{
-    uint16_t         timeout_us;       /**< LSS response timeout in us */
+    uint32_t         timeout_us;       /**< LSS response timeout in us */
 
     uint8_t          state;            /**< Node is currently selected */
     uint8_t          command;          /**< Active command */

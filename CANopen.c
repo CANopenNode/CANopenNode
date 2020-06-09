@@ -66,8 +66,7 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
     || ODL_consumerHeartbeatTime_arrayLength      == 0     \
     || ODL_errorStatusBits_stringLength           < 10     \
     || CO_NO_LSS_SLAVE                            >  1     \
-    || CO_NO_LSS_MASTER                           >  1     \
-    || (CO_NO_LSS_SLAVE > 0 && CO_NO_LSS_MASTER > 0)
+    || CO_NO_LSS_MASTER                           >  1
 #error Features from CO_OD.h file are not corectly configured for this project!
 #endif
 
@@ -80,7 +79,8 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #define CO_RXCAN_SDO_SRV (CO_RXCAN_RPDO     + CO_NO_RPDO)
 #define CO_RXCAN_SDO_CLI (CO_RXCAN_SDO_SRV  + CO_NO_SDO_SERVER)
 #define CO_RXCAN_CONS_HB (CO_RXCAN_SDO_CLI  + CO_NO_SDO_CLIENT)
-#define CO_RXCAN_LSS     (CO_RXCAN_CONS_HB  + CO_NO_HB_CONS)
+#define CO_RXCAN_LSS_SLV (CO_RXCAN_CONS_HB  + CO_NO_HB_CONS)
+#define CO_RXCAN_LSS_MST (CO_RXCAN_LSS_SLV  + CO_NO_LSS_SLAVE)
 #define CO_RXCAN_NO_MSGS (CO_NO_NMT         + \
                           CO_NO_SYNC        + \
                           CO_NO_EM_CONS     + \
@@ -101,7 +101,8 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #define CO_TXCAN_SDO_SRV (CO_TXCAN_TPDO     + CO_NO_TPDO)
 #define CO_TXCAN_SDO_CLI (CO_TXCAN_SDO_SRV  + CO_NO_SDO_SERVER)
 #define CO_TXCAN_HB      (CO_TXCAN_SDO_CLI  + CO_NO_SDO_CLIENT)
-#define CO_TXCAN_LSS     (CO_TXCAN_HB       + CO_NO_HB_PROD)
+#define CO_TXCAN_LSS_SLV (CO_TXCAN_HB       + CO_NO_HB_PROD)
+#define CO_TXCAN_LSS_MST (CO_TXCAN_LSS_SLV  + CO_NO_LSS_SLAVE)
 #define CO_TXCAN_NO_MSGS (CO_NO_NMT_MST     + \
                           CO_NO_SYNC        + \
                           CO_NO_EMERGENCY   + \
@@ -538,8 +539,8 @@ CO_ReturnError_t CO_CANinit(void *CANptr,
 
 /******************************************************************************/
 #if CO_NO_LSS_SLAVE == 1
-CO_ReturnError_t CO_LSSinit(uint8_t nodeId,
-                            uint16_t bitRate)
+CO_ReturnError_t CO_LSSinit(uint8_t *nodeId,
+                            uint16_t *bitRate)
 {
     CO_LSS_address_t lssAddress;
     CO_ReturnError_t err;
@@ -555,10 +556,10 @@ CO_ReturnError_t CO_LSSinit(uint8_t nodeId,
                            bitRate,
                            nodeId,
                            CO->CANmodule[0],
-                           CO_RXCAN_LSS,
+                           CO_RXCAN_LSS_SLV,
                            CO_CAN_ID_LSS_SRV,
                            CO->CANmodule[0],
-                           CO_TXCAN_LSS,
+                           CO_TXCAN_LSS_SLV,
                            CO_CAN_ID_LSS_CLI);
 
     return err;
@@ -572,6 +573,13 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     CO_ReturnError_t err;
 
     /* Verify CANopen Node-ID */
+    CO->nodeIdUnconfigured = false;
+#if CO_NO_LSS_SLAVE == 1
+    if (nodeId == CO_LSS_NODE_ID_ASSIGNMENT) {
+        CO->nodeIdUnconfigured = true;
+    }
+    else
+#endif
     if (nodeId < 1 || nodeId > 127) {
         return CO_ERROR_PARAMETERS;
     }
@@ -597,8 +605,8 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #endif
 
 #if CO_NO_LSS_SLAVE == 1
-    if (CO->nodeIdUnconfiguredLSS) {
-        return CO_ERROR_NO;
+    if (CO->nodeIdUnconfigured) {
+        return CO_ERROR_NODE_ID_UNCONFIGURED_LSS;
     }
 #endif
 
@@ -783,10 +791,10 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     err = CO_LSSmaster_init(CO->LSSmaster,
                             CO_LSSmaster_DEFAULT_TIMEOUT,
                             CO->CANmodule[0],
-                            CO_RXCAN_LSS,
+                            CO_RXCAN_LSS_MST,
                             CO_CAN_ID_LSS_CLI,
                             CO->CANmodule[0],
-                            CO_TXCAN_LSS,
+                            CO_TXCAN_LSS_MST,
                             CO_CAN_ID_LSS_SRV);
 
     if (err) return err;
@@ -848,15 +856,15 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
 
+#if CO_NO_LSS_SLAVE == 1
+    bool_t resetLSS = CO_LSSslave_process(co->LSSslave);
+#endif
+
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     CO_LEDs_process(co->LEDs,
                     timeDifference_us,
                     CO_isError(co->em, CO_EM_CAN_TX_BUS_OFF),
-    #if CO_NO_LSS_SLAVE == 1
-                    co->nodeIdUnconfiguredLSS,
-    #else
-                    0,
-    #endif
+                    co->nodeIdUnconfigured,
                     0, /* RPDO event timer timeout */
                     CO_isError(co->em, CO_EM_SYNC_TIME_OUT),
                     CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER)
@@ -875,6 +883,15 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                     CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS,
                     timerNext_us);
 #endif /* (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE */
+
+#if CO_NO_LSS_SLAVE == 1
+    if (resetLSS) {
+        reset = CO_RESET_COMM;
+    }
+    if (co->nodeIdUnconfigured) {
+        return reset;
+    }
+#endif
 
     if (co->NMT->operatingState == CO_NMT_PRE_OPERATIONAL ||
         co->NMT->operatingState == CO_NMT_OPERATIONAL)
@@ -918,7 +935,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
     /* Gateway-ascii */
-    CO_GTWA_process(CO->gtwa,
+    CO_GTWA_process(co->gtwa,
                     CO_GTWA_ENABLE,
                     timeDifference_us,
                     timerNext_us);
@@ -934,12 +951,18 @@ bool_t CO_process_SYNC(CO_t *co,
                        uint32_t timeDifference_us,
                        uint32_t *timerNext_us)
 {
+    bool_t syncWas = false;
+
+#if CO_NO_LSS_SLAVE == 1
+    if (co->nodeIdUnconfigured) {
+        return syncWas;
+    }
+#endif
+
     const CO_SYNC_status_t sync_process = CO_SYNC_process(co->SYNC,
                                    timeDifference_us,
                                    OD_synchronousWindowLength,
                                    timerNext_us);
-
-    bool_t syncWas = false;
 
     switch (sync_process) {
     case CO_SYNC_NONE:
@@ -963,6 +986,12 @@ void CO_process_RPDO(CO_t *co,
 {
     int16_t i;
 
+#if CO_NO_LSS_SLAVE == 1
+    if (co->nodeIdUnconfigured) {
+        return;
+    }
+#endif
+
     for (i = 0; i < CO_NO_RPDO; i++) {
         CO_RPDO_process(co->RPDO[i], syncWas);
     }
@@ -976,6 +1005,12 @@ void CO_process_TPDO(CO_t *co,
                      uint32_t *timerNext_us)
 {
     int16_t i;
+
+#if CO_NO_LSS_SLAVE == 1
+    if (co->nodeIdUnconfigured) {
+        return;
+    }
+#endif
 
     /* Verify PDO Change Of State and process PDOs */
     for (i = 0; i < CO_NO_TPDO; i++) {

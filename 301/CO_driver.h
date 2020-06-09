@@ -501,7 +501,10 @@ typedef enum {
     CO_ERROR_WRONG_NMT_STATE = -16, /**< Command can't be processed in current
                                          state */
     CO_ERROR_SYSCALL = -17,         /**< Syscall failed */
-    CO_ERROR_INVALID_STATE = -18    /**< Driver not ready */
+    CO_ERROR_INVALID_STATE = -18,   /**< Driver not ready */
+    CO_ERROR_NODE_ID_UNCONFIGURED_LSS = -19 /**< Node-id is in LSS unconfigured
+                                         state. If objects are handled properly,
+                                         this may not be an error. */
 } CO_ReturnError_t;
 
 

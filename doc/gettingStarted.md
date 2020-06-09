@@ -162,7 +162,7 @@ Now you can enter the big world of [CANopen devices](http://can-newsletter.org/h
 
 You can also build your own CANopen device with your favourite microcontroller, see *deviceSupport.md*. There is also a bare-metal demo for [PIC microcontrollers](https://github.com/CANopenNode/CANopenPIC), most complete example is for PIC32.
 
-Assigning Node-ID or CAN bitrate to unconfigured nodes, which support LSS configuration, is described in *LSSusage.md*.
+Assigning Node-ID or CAN bitrate, which support LSS configuration, is described in *LSSusage.md*.
 
 Some further CANopenNode related Linux tools are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket).
 
