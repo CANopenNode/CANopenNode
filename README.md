@@ -57,7 +57,8 @@ Documentation with [Getting started](doc/gettingStarted.md),
 directory.
 Code is documented in header files. Running [doxygen](http://www.doxygen.nl/)
 in project base directory will produce complete html documentation.
-Just open CANopenNode/doc/html/index.html in the browser.
+Just open CANopenNode/doc/html/index.html in the browser. Alternatively browse
+documentation [online](https://canopennode.github.io/CANopenSocket/).
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
 
