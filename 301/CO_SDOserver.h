@@ -492,6 +492,20 @@ typedef enum{
 
 
 /**
+ * Size of fifo queue for SDO received messages.
+ *
+ * If block transfers are used size of fifo queue should be more that 1 message
+ * to avoid possible drops in consecutive SDO block upload transfers.
+ * To increase performance, value can be set to 1 if block transfers are not used
+ *
+ * Min value is 1.
+ */
+    #ifndef CO_SDO_RX_DATA_SIZE
+        #define CO_SDO_RX_DATA_SIZE   2
+    #endif
+
+
+/**
  * Object Dictionary attributes. Bit masks for attribute in CO_OD_entry_t.
  */
 typedef enum{
@@ -719,8 +733,8 @@ typedef struct{
  * SDO server object.
  */
 typedef struct{
-    /** 8 data bytes of the received message. */
-    uint8_t             CANrxData[8];
+    /** FIFO queue of the received message 8 data bytes each */
+    uint8_t             CANrxData[CO_SDO_RX_DATA_SIZE][8];
     /** SDO data buffer of size #CO_CONFIG_SDO_BUFFER_SIZE. */
     uint8_t             databuffer[CO_CONFIG_SDO_BUFFER_SIZE];
     /** Internal flag indicates, that this object has own OD */
@@ -761,8 +775,14 @@ typedef struct{
     bool_t              timeoutSubblockDownolad;
     /** Indication end of block transfer */
     bool_t              endOfTransfer;
-    /** Variable indicates, if new SDO message received from CAN bus */
-    volatile void      *CANrxNew;
+    /** Variables indicates, if new SDO message received from CAN bus */
+    volatile void      *CANrxNew[CO_SDO_RX_DATA_SIZE];
+    /** Index of CANrxData for new received SDO message */
+    uint8_t             CANrxRcv;
+    /** Index of CANrxData SDO message to processed */
+    uint8_t             CANrxProc;
+    /** Number of new SDO messages in CANrxData to process */
+    uint8_t             CANrxSize;
 #if ((CO_CONFIG_SDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_SDO_initCallbackPre() or NULL */
     void              (*pFunctSignalPre)(void *object);

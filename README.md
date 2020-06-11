@@ -144,6 +144,8 @@ File structure
    - **CO_TIME.h/.c** - CANopen Time-stamp protocol.
    - **CO_fifo.h/.c** - Fifo buffer for SDO and gateway data transfer.
    - **crc16-ccitt.h/.c** - Calculation of CRC 16 CCITT polynomial.
+ - **303/** - CANopen Recommendation
+   - **CO_LEDs.h/.c** - CANopen LED Indicators
  - **305/** - CANopen layer setting services (LSS) and protocols.
    - **CO_LSS.h** - CANopen Layer Setting Services protocol (common).
    - **CO_LSSmaster.h/.c** - CANopen Layer Setting Service - master protocol.
@@ -183,6 +185,7 @@ File structure
  - **.clang-format** - Definition file for the coding style.
  - **Doxyfile** - Configuration file for the documentation generator *doxygen*.
  - **Makefile** - Makefile for Linux socketCAN.
+ - **canopend** - Executable for Linux, build with `make`.
  - **LICENSE** - License.
  - **README.md** - This file.
 
