@@ -856,30 +856,31 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
 
+    CO_CANmodule_process(CO->CANmodule[0]);
+
 #if CO_NO_LSS_SLAVE == 1
     bool_t resetLSS = CO_LSSslave_process(co->LSSslave);
 #endif
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
+    bool_t unc = co->nodeIdUnconfigured;
+    uint16_t CANerrorStatus = CO->CANmodule[0]->CANerrorStatus;
     CO_LEDs_process(co->LEDs,
                     timeDifference_us,
-                    CO_isError(co->em, CO_EM_CAN_TX_BUS_OFF),
-                    co->nodeIdUnconfigured,
-                    0, /* RPDO event timer timeout */
-                    CO_isError(co->em, CO_EM_SYNC_TIME_OUT),
-                    CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER)
-                    || CO_isError(co->em, CO_EM_HB_CONSUMER_REMOTE_RESET),
-                    CO_isError(co->em, CO_EM_CAN_BUS_WARNING)
-                    || CO_isError(co->em, CO_EM_CAN_TX_BUS_PASSIVE)
-                    || CO_isError(co->em, CO_EM_CAN_RX_BUS_PASSIVE),
-                    OD_errorRegister != 0,
-                    co->NMT->operatingState,
+                    unc ? CO_NMT_INITIALIZING : co->NMT->operatingState,
     #if CO_NO_LSS_SLAVE == 1
                     CO_LSSslave_getState(co->LSSslave)
-                    == CO_LSS_STATE_CONFIGURATION,
+                        == CO_LSS_STATE_CONFIGURATION,
     #else
-                    0,
+                    false,
     #endif
+                    (CANerrorStatus & CO_CAN_ERRTX_BUS_OFF) != 0,
+                    (CANerrorStatus & CO_CAN_ERR_WARN_PASSIVE) != 0,
+                    0, /* RPDO event timer timeout */
+                    unc ? false : CO_isError(co->em, CO_EM_SYNC_TIME_OUT),
+                    unc ? false : (CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER)
+                        || CO_isError(co->em, CO_EM_HB_CONSUMER_REMOTE_RESET)),
+                    OD_errorRegister != 0,
                     CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS,
                     timerNext_us);
 #endif /* (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE */

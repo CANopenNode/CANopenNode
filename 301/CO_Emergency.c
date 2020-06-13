@@ -184,6 +184,7 @@ CO_ReturnError_t CO_EM_init(
     emPr->preDefErrSize         = preDefErrSize;
     emPr->preDefErrNoOfErrors   = 0U;
     emPr->inhibitEmTimer        = 0U;
+    emPr->CANerrorStatusOld     = 0U;
 
     /* clear error status bits */
     for(i=0U; i<errorStatusBitsSize; i++){
@@ -208,7 +209,6 @@ CO_ReturnError_t CO_EM_init(
 
     /* configure emergency message CAN transmission */
     emPr->CANdev = CANdevTx;
-    emPr->CANdev->em = (void*)em; /* update pointer inside CAN device. */
     emPr->CANtxBuff = CO_CANtxBufferInit(
             CANdevTx,            /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
@@ -271,9 +271,70 @@ void CO_EM_process(
     uint8_t errorMask;
     uint8_t i;
     uint32_t emInhTime_us = (uint32_t)emInhTime_100us * 100;
+    uint16_t CANerrSt = emPr->CANdev->CANerrorStatus;
 
-    /* verify errors from driver and other */
-    CO_CANverifyErrors(emPr->CANdev);
+    /* verify errors from driver */
+    if (CANerrSt != emPr->CANerrorStatusOld) {
+        uint16_t CANerrStChanged = CANerrSt ^ emPr->CANerrorStatusOld;
+        emPr->CANerrorStatusOld = CANerrSt;
+
+        if (CANerrStChanged & (CO_CAN_ERRTX_WARNING | CO_CAN_ERRRX_WARNING)) {
+            if (CANerrSt & (CO_CAN_ERRTX_WARNING | CO_CAN_ERRRX_WARNING))
+                CO_errorReport(em, CO_EM_CAN_BUS_WARNING, CO_EMC_NO_ERROR, 0);
+            else
+                CO_errorReset(em, CO_EM_CAN_BUS_WARNING, 0);
+        }
+
+        if (CANerrStChanged & CO_CAN_ERRTX_PASSIVE) {
+            if (CANerrSt & CO_CAN_ERRTX_PASSIVE)
+                CO_errorReport(em, CO_EM_CAN_TX_BUS_PASSIVE,
+                               CO_EMC_CAN_PASSIVE, 0);
+            else
+                CO_errorReset(em, CO_EM_CAN_TX_BUS_PASSIVE, 0);
+        }
+
+        if (CANerrStChanged & CO_CAN_ERRTX_BUS_OFF) {
+            if (CANerrSt & CO_CAN_ERRTX_BUS_OFF)
+                CO_errorReport(em, CO_EM_CAN_TX_BUS_OFF,
+                               CO_EMC_BUS_OFF_RECOVERED, 0);
+            else
+                CO_errorReset(em, CO_EM_CAN_TX_BUS_OFF, 0);
+        }
+
+        if (CANerrStChanged & CO_CAN_ERRTX_OVERFLOW) {
+            if (CANerrSt & CO_CAN_ERRTX_OVERFLOW)
+                CO_errorReport(em, CO_EM_CAN_TX_OVERFLOW,
+                               CO_EMC_CAN_OVERRUN, 0);
+            else
+                CO_errorReset(em, CO_EM_CAN_TX_OVERFLOW, 0);
+        }
+
+        if (CANerrStChanged & CO_CAN_ERRTX_PDO_LATE) {
+            if (CANerrSt & CO_CAN_ERRTX_PDO_LATE)
+                CO_errorReport(em, CO_EM_TPDO_OUTSIDE_WINDOW,
+                               CO_EMC_COMMUNICATION, 0);
+            else
+                CO_errorReset(em, CO_EM_TPDO_OUTSIDE_WINDOW, 0);
+        }
+
+        if (CANerrStChanged & CO_CAN_ERRRX_PASSIVE) {
+            if (CANerrSt & CO_CAN_ERRRX_PASSIVE)
+                CO_errorReport(em, CO_EM_CAN_RX_BUS_PASSIVE,
+                               CO_EMC_CAN_PASSIVE, 0);
+            else
+                CO_errorReset(em, CO_EM_CAN_RX_BUS_PASSIVE, 0);
+        }
+
+        if (CANerrStChanged & CO_CAN_ERRRX_OVERFLOW) {
+            if (CANerrSt & CO_CAN_ERRRX_OVERFLOW)
+                CO_errorReport(em, CO_EM_CAN_RXB_OVERFLOW,
+                               CO_EMC_CAN_OVERRUN, 0);
+            else
+                CO_errorReset(em, CO_EM_CAN_RXB_OVERFLOW, 0);
+        }
+    }
+
+    /* verify other errors */
     if(em->wrongErrorReport != 0U){
         CO_errorReport(em, CO_EM_WRONG_ERROR_REPORT, CO_EMC_SOFTWARE_INTERNAL, (uint32_t)em->wrongErrorReport);
         em->wrongErrorReport = 0U;

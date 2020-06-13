@@ -359,6 +359,8 @@ typedef struct {
     uint16_t rxSize;                   /**< From CO_CANmodule_init() */
     CO_CANtx_t *txArray;               /**< From CO_CANmodule_init() */
     uint16_t txSize;                   /**< From CO_CANmodule_init() */
+    uint16_t CANerrorStatus;           /**< CAN error status bitfield,
+                                            see @ref CO_CAN_ERR_status_t */
     volatile bool_t CANnormal;         /**< CAN module is in normal mode */
     volatile bool_t useCANrxFilters;   /**< Value different than zero indicates,
             that CAN module hardware filters are used for CAN reception. If
@@ -373,7 +375,6 @@ typedef struct {
     volatile uint16_t CANtxCount;      /**< Number of messages in transmit
             buffer, which are waiting to be copied to the CAN module */
     uint32_t errOld;                   /**< Previous state of CAN errors */
-    void *em;                          /**< Emergency object */
 } CO_CANmodule_t;
 
 
@@ -470,6 +471,30 @@ typedef enum {
     CO_CAN_ID_LSS_CLI = 0x7E4, /**< 0x7E4, LSS response from server to client */
     CO_CAN_ID_LSS_SRV = 0x7E5  /**< 0x7E5, LSS request from client to server */
 } CO_Default_CAN_ID_t;
+
+
+/**
+ * CAN error status bitmasks.
+ *
+ * CAN warning level is reached, if CAN transmit or receive error counter is
+ * more or equal to 96. CAN passive level is reached, if counters are more or
+ * equal to 128. Transmitter goes in error state 'bus off' if transmit error
+ * counter is more or equal to 256.
+ */
+typedef enum {
+    CO_CAN_ERRTX_WARNING = 0x0001,  /**< 0x0001, CAN transmitter warning */
+    CO_CAN_ERRTX_PASSIVE = 0x0002,  /**< 0x0002, CAN transmitter passive */
+    CO_CAN_ERRTX_BUS_OFF = 0x0004,  /**< 0x0004, CAN transmitter bus off */
+    CO_CAN_ERRTX_OVERFLOW = 0x0008, /**< 0x0008, CAN transmitter overflow */
+
+    CO_CAN_ERRTX_PDO_LATE = 0x0080, /**< 0x0080, TPDO is outside sync window */
+
+    CO_CAN_ERRRX_WARNING = 0x0100,  /**< 0x0100, CAN receiver warning */
+    CO_CAN_ERRRX_PASSIVE = 0x0200,  /**< 0x0200, CAN receiver passive */
+    CO_CAN_ERRRX_OVERFLOW = 0x0800, /**< 0x0800, CAN receiver overflow */
+
+    CO_CAN_ERR_WARN_PASSIVE = 0x0303/**< 0x0303, combination */
+} CO_CAN_ERR_status_t;
 
 
 /**
@@ -640,7 +665,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
  * CANopen allows synchronous PDO communication only inside time between SYNC
  * message and SYNC Window. If time is outside this window, new synchronous PDOs
  * must not be sent and all pending sync TPDOs, which may be on CAN TX buffers,
- * must be cleared.
+ * may optionally be cleared.
  *
  * This function checks (and aborts transmission if necessary) CAN TX buffers
  * when it is called. Function should be called by the stack in the moment,
@@ -652,13 +677,14 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
 
 
 /**
- * Verify all errors of CAN module.
+ * Process can module - verify CAN errors
  *
- * Function is called directly from CO_EM_process() function.
+ * Function must be called cyclically. It should calculate CANerrorStatus
+ * bitfield for CAN errors defined in @ref CO_CAN_ERR_status_t.
  *
  * @param CANmodule This object.
  */
-void CO_CANverifyErrors(CO_CANmodule_t *CANmodule);
+void CO_CANmodule_process(CO_CANmodule_t *CANmodule);
 
 /** @} */ /* @defgroup CO_driver Driver */
 

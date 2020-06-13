@@ -346,6 +346,7 @@ typedef struct{
     uint8_t             preDefErrNoOfErrors;/**< Number of active errors in preDefErr */
     uint32_t            inhibitEmTimer; /**< Internal timer for emergency message */
     CO_EM_t            *em;             /**< CO_EM_t sub object is included here */
+    uint16_t            CANerrorStatusOld;/**< Old CAN error status bitfield */
     CO_CANmodule_t     *CANdev;         /**< From CO_EM_init() */
     CO_CANtx_t         *CANtxBuff;      /**< CAN transmit buffer */
 }CO_EMpr_t;

@@ -41,10 +41,6 @@
 #include "301/CO_driver.h"
 #include "CO_error.h"
 
-#if CO_DRIVER_USE_EMERGENCY > 0
-#include "301/CO_Emergency.h"
-#endif
-
 
 pthread_mutex_t CO_EMCY_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t CO_OD_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -249,8 +245,8 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->rxSize = rxSize;
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
+    CANmodule->CANerrorStatus = 0;
     CANmodule->CANnormal = false;
-    CANmodule->em = NULL; //this is set inside CO_Emergency.c init function!
     CANmodule->fdTimerRead = -1;
 #if CO_DRIVER_MULTI_INTERFACE > 0
     for (i = 0; i < CO_CAN_MSG_SFF_MAX_COB_ID; i++) {
@@ -663,6 +659,9 @@ static CO_ReturnError_t CO_CANCheckSendInterface(
         else if (errno == ENOBUFS) {
             /* socketCAN doesn't support blocking write. You can wait here for
              * a few hundred us and then try again */
+#if CO_DRIVER_ERROR_REPORTING > 0
+            interface->errorhandler.CANerrorStatus |= CO_CAN_ERRTX_OVERFLOW;
+#endif
             return CO_ERROR_TX_BUSY;
         }
         else if (n != CAN_MTU) {
@@ -671,8 +670,8 @@ static CO_ReturnError_t CO_CANCheckSendInterface(
     } while (errno != 0);
 
     if(n != CAN_MTU){
-#if CO_DRIVER_USE_EMERGENCY > 0
-        CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_TX_OVERFLOW, CO_EMC_CAN_OVERRUN, 0);
+#if CO_DRIVER_ERROR_REPORTING > 0
+        interface->errorhandler.CANerrorStatus |= CO_CAN_ERRTX_OVERFLOW;
 #endif
         log_printf(LOG_ERR, DBG_CAN_TX_FAILED, buffer->ident, interface->ifName);
         log_printf(LOG_DEBUG, DBG_ERRNO, "send()");
@@ -710,9 +709,6 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     err = CO_CANCheckSend(CANmodule, buffer);
     if (err == CO_ERROR_TX_BUSY) {
         /* send doesn't have "busy" */
-#if CO_DRIVER_USE_EMERGENCY > 0
-        CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_TX_OVERFLOW, CO_EMC_CAN_OVERRUN, 0);
-#endif
         log_printf(LOG_ERR, DBG_CAN_TX_FAILED, buffer->ident, "CANx");
         log_printf(LOG_DEBUG, DBG_ERRNO, "send()");
         err = CO_ERROR_TX_OVERFLOW;
@@ -758,13 +754,20 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
 
 
 /******************************************************************************/
-void CO_CANverifyErrors(CO_CANmodule_t *CANmodule)
+void CO_CANmodule_process(CO_CANmodule_t *CANmodule)
 {
-  (void)CANmodule;
   /* socketCAN doesn't support microcontroller-like error counters. If an
    * error has occured, a special can message is created by the driver and
    * received by the application like a regular message.
-   * Therefore, error counter evaluation is included in rx function.*/
+   * Therefore, error counter evaluation is included in rx function.
+   * Here we just copy evaluated CANerrorStatus from the first CAN interface. */
+
+#if CO_DRIVER_ERROR_REPORTING > 0
+    if (CANmodule->CANinterfaceCount > 0) {
+        CANmodule->CANerrorStatus =
+            CANmodule->CANinterfaces[0].errorhandler.CANerrorStatus;
+    }
+#endif
 }
 
 
@@ -797,9 +800,8 @@ static CO_ReturnError_t CO_CANread(
 
     n = recvmsg(interface->fd, &msghdr, 0);
     if (n != CAN_MTU) {
-#if CO_DRIVER_USE_EMERGENCY > 0
-        CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_RXB_OVERFLOW,
-                       CO_EMC_CAN_OVERRUN, n);
+#if CO_DRIVER_ERROR_REPORTING > 0
+        interface->errorhandler.CANerrorStatus |= CO_CAN_ERRRX_OVERFLOW;
 #endif
         log_printf(LOG_DEBUG, DBG_CAN_RX_FAILED, interface->ifName);
         log_printf(LOG_DEBUG, DBG_ERRNO, "recvmsg()");
@@ -817,9 +819,8 @@ static CO_ReturnError_t CO_CANread(
         else if (cmsg->cmsg_type == SO_RXQ_OVFL) {
             dropped = *(uint32_t*)CMSG_DATA(cmsg);
             if (dropped > CANmodule->rxDropCount) {
-#if CO_DRIVER_USE_EMERGENCY > 0
-                CO_errorReport((CO_EM_t*)CANmodule->em, CO_EM_CAN_RXB_OVERFLOW,
-                               CO_EMC_COMMUNICATION, 0);
+#if CO_DRIVER_ERROR_REPORTING > 0
+                interface->errorhandler.CANerrorStatus |= CO_CAN_ERRRX_OVERFLOW;
 #endif
                 log_printf(LOG_ERR, CAN_RX_SOCKET_QUEUE_OVERFLOW,
                            interface->ifName, dropped);

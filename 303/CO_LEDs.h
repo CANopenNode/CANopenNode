@@ -116,29 +116,27 @@ CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs);
  * @param LEDs This object.
  * @param timeDifference_us Time difference from previous function call in
  *                          [microseconds].
- * @param ErrCANbusOff CAN bus off indication (highest priority).
- * @param ErrNodeId LSS unconfigured Node Id indication.
- * @param ErrRpdo RPDO evnet timer timeout indication.
- * @param ErrSync Sync receive timeout indication.
- * @param ErrHbCons Heartbeat consumer error (remote node) indication.
- * @param ErrCANbusWarn CAN error warning limit reached indication.
- * @param ErrOther Other error indication (lowest priority).
  * @param NMTstate NMT operating state.
  * @param LSSconfig Node is in LSS configuration state indication.
+ * @param ErrCANbusOff CAN bus off indication (highest priority).
+ * @param ErrCANbusWarn CAN error warning limit reached indication.
+ * @param ErrRpdo RPDO event timer timeout indication.
+ * @param ErrSync Sync receive timeout indication.
+ * @param ErrHbCons Heartbeat consumer error (remote node) indication.
+ * @param ErrOther Other error indication (lowest priority).
  * @param firmwareDownload Firmware download is in progress indication.
  * @param [out] timerNext_us info to OS - see CO_process().
  */
 void CO_LEDs_process(CO_LEDs_t *LEDs,
                      uint32_t timeDifference_us,
+                     CO_NMT_internalState_t NMTstate,
+                     bool_t LSSconfig,
                      bool_t ErrCANbusOff,
-                     bool_t ErrNodeId,
+                     bool_t ErrCANbusWarn,
                      bool_t ErrRpdo,
                      bool_t ErrSync,
                      bool_t ErrHbCons,
-                     bool_t ErrCANbusWarn,
                      bool_t ErrOther,
-                     CO_NMT_internalState_t NMTstate,
-                     bool_t LSSconfig,
                      bool_t firmwareDownload,
                      uint32_t *timerNext_us);
 

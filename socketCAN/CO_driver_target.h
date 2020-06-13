@@ -191,18 +191,6 @@ extern "C" {
 #define CO_DRIVER_ERROR_REPORTING 1
 #endif
 
-/**
- * Use CANopen Emergency object on CAN RX or TX overflow.
- *
- * If CO_DRIVER_USE_EMERGENCY is set to 1, then CANopen Emergency message will
- * be sent, if CAN rx or tx bufers are overflowed.
- *
- * Macro is set to 1 (enabled) by default. It can be overridden.
- */
-#ifndef CO_DRIVER_USE_EMERGENCY
-#define CO_DRIVER_USE_EMERGENCY 1
-#endif
-
 /* skip this section for Doxygen, because it is documented in CO_driver.h */
 #ifndef CO_DOXYGEN
 
@@ -304,8 +292,8 @@ typedef struct {
     uint32_t rxDropCount;       /* messages dropped on rx socket queue */
     CO_CANtx_t *txArray;
     uint16_t txSize;
+    uint16_t CANerrorStatus;
     volatile bool_t CANnormal;
-    void *em;
     int fdEvent;                /* notification event file descriptor */
     int fdEpoll;                /* epoll FD for event, CANrx sockets in all
                                    interfaces and fdTimerRead */

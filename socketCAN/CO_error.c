@@ -32,6 +32,7 @@
 #include <linux/can/error.h>
 
 #include "CO_error.h"
+#include "301/CO_driver.h"
 
 
 /**
@@ -98,6 +99,7 @@ static CO_CANinterfaceState_t CO_CANerrorBusoff(
          * Restarting the interface is the only way to clear kernel and hardware
          * tx queues */
         result = CO_CANerrorSetListenOnly(CANerrorhandler, true);
+        CANerrorhandler->CANerrorStatus |= CO_CAN_ERRTX_BUS_OFF;
     }
     return result;
 }
@@ -117,25 +119,42 @@ static CO_CANinterfaceState_t CO_CANerrorCrtl(
      *   to do in here
      * - we can't really do anything about buffer overflows here. Confirmed
      *   CANopen protocols will detect the error, non-confirmed protocols
-     *   need to be error tolerant */
+     *   need to be error tolerant.
+     * - There is no information, when CAN controller leaves warning level,
+     *   so we can't clear it. So we also don't set it. */
     if ((msg->can_id & CAN_ERR_CRTL) != 0) {
+        /* clear bus off here */
+        CANerrorhandler->CANerrorStatus &= 0xFFFF ^ CO_CAN_ERRTX_BUS_OFF;
+
         if ((msg->data[1] & CAN_ERR_CRTL_RX_PASSIVE) != 0) {
             log_printf(LOG_NOTICE, CAN_RX_PASSIVE, CANerrorhandler->ifName);
+            CANerrorhandler->CANerrorStatus |= CO_CAN_ERRRX_PASSIVE;
+            /* CANerrorhandler->CANerrorStatus |= CO_CAN_ERRRX_WARNING; */
         }
         else if ((msg->data[1] & CAN_ERR_CRTL_TX_PASSIVE) != 0) {
             log_printf(LOG_NOTICE, CAN_TX_PASSIVE, CANerrorhandler->ifName);
+            CANerrorhandler->CANerrorStatus |= CO_CAN_ERRTX_PASSIVE;
+            /* CANerrorhandler->CANerrorStatus |= CO_CAN_ERRTX_WARNING; */
         }
         else if ((msg->data[1] & CAN_ERR_CRTL_RX_OVERFLOW) != 0) {
             log_printf(LOG_NOTICE, CAN_RX_BUF_OVERFLOW, CANerrorhandler->ifName);
+            CANerrorhandler->CANerrorStatus |= CO_CAN_ERRRX_OVERFLOW;
         }
         else if ((msg->data[1] & CAN_ERR_CRTL_TX_OVERFLOW) != 0) {
             log_printf(LOG_NOTICE, CAN_TX_BUF_OVERFLOW, CANerrorhandler->ifName);
+            CANerrorhandler->CANerrorStatus |= CO_CAN_ERRTX_OVERFLOW;
         }
         else if ((msg->data[1] & CAN_ERR_CRTL_RX_WARNING) != 0) {
             log_printf(LOG_INFO, CAN_RX_LEVEL_WARNING, CANerrorhandler->ifName);
+            /* clear passive flag, set warning */
+            CANerrorhandler->CANerrorStatus &= 0x7FFF ^ CO_CAN_ERRRX_PASSIVE;
+            /* CANerrorhandler->CANerrorStatus |= CO_CAN_ERRRX_WARNING; */
         }
         else if ((msg->data[1] & CAN_ERR_CRTL_TX_WARNING) != 0) {
             log_printf(LOG_INFO, CAN_TX_LEVEL_WARNING, CANerrorhandler->ifName);
+            /* clear passive flag, set warning */
+            CANerrorhandler->CANerrorStatus &= 0x7FFF ^ CO_CAN_ERRTX_PASSIVE;
+            /* CANerrorhandler->CANerrorStatus |= CO_CAN_ERRTX_WARNING; */
         }
         else if ((msg->data[1] & CAN_ERR_CRTL_ACTIVE) != 0) {
             log_printf(LOG_NOTICE, CAN_TX_LEVEL_ACTIVE, CANerrorhandler->ifName);
@@ -195,6 +214,7 @@ void CO_CANerror_init(
     CANerrorhandler->listenOnly = false;
     CANerrorhandler->timestamp.tv_sec = 0;
     CANerrorhandler->timestamp.tv_nsec = 0;
+    CANerrorhandler->CANerrorStatus = 0;
 }
 
 

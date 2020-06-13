@@ -45,15 +45,14 @@ CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs) {
 /******************************************************************************/
 void CO_LEDs_process(CO_LEDs_t *LEDs,
                      uint32_t timeDifference_us,
+                     CO_NMT_internalState_t NMTstate,
+                     bool_t LSSconfig,
                      bool_t ErrCANbusOff,
-                     bool_t ErrNodeId,
+                     bool_t ErrCANbusWarn,
                      bool_t ErrRpdo,
                      bool_t ErrSync,
                      bool_t ErrHbCons,
-                     bool_t ErrCANbusWarn,
                      bool_t ErrOther,
-                     CO_NMT_internalState_t NMTstate,
-                     bool_t LSSconfig,
                      bool_t firmwareDownload,
                      uint32_t *timerNext_us)
 {
@@ -117,14 +116,14 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
         uint8_t rd_co, gr_co;
 
         /* CANopen red ERROR LED */
-        if      (ErrCANbusOff)  rd_co = 1;
-        else if (ErrNodeId)     rd_co = rd & CO_LED_flicker;
-        else if (ErrRpdo)       rd_co = rd & CO_LED_flash_4;
-        else if (ErrSync)       rd_co = rd & CO_LED_flash_3;
-        else if (ErrHbCons)     rd_co = rd & CO_LED_flash_2;
-        else if (ErrCANbusWarn) rd_co = rd & CO_LED_flash_1;
-        else if (ErrOther)      rd_co = rd & CO_LED_blink;
-        else                    rd_co = 0;
+        if      (ErrCANbusOff)                      rd_co = 1;
+        else if (NMTstate == CO_NMT_INITIALIZING)   rd_co = rd & CO_LED_flicker;
+        else if (ErrRpdo)                           rd_co = rd & CO_LED_flash_4;
+        else if (ErrSync)                           rd_co = rd & CO_LED_flash_3;
+        else if (ErrHbCons)                         rd_co = rd & CO_LED_flash_2;
+        else if (ErrCANbusWarn)                     rd_co = rd & CO_LED_flash_1;
+        else if (ErrOther)                          rd_co = rd & CO_LED_blink;
+        else                                        rd_co = 0;
 
         /* CANopen green RUN LED */
         if      (LSSconfig)                         gr_co = gr & CO_LED_flicker;

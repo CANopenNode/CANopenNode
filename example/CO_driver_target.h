@@ -177,13 +177,13 @@ typedef struct {
     uint16_t rxSize;
     CO_CANtx_t *txArray;
     uint16_t txSize;
+    uint16_t CANerrorStatus;
     volatile bool_t CANnormal;
     volatile bool_t useCANrxFilters;
     volatile bool_t bufferInhibitFlag;
     volatile bool_t firstCANtxMessage;
     volatile uint16_t CANtxCount;
     uint32_t errOld;
-    void *em;
 } CO_CANmodule_t;
 
 

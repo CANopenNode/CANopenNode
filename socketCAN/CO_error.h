@@ -116,6 +116,7 @@ typedef struct {
     uint32_t            noackCounter;   /**< counts no ACK on CAN transmission */
     volatile unsigned char listenOnly;  /**< set to listen only mode */
     struct timespec     timestamp;      /**< listen only mode started at this time */
+    uint16_t CANerrorStatus;            /**< CAN error status bitfield, see @ref CO_CAN_ERR_status_t */
 } CO_CANinterfaceErrorhandler_t;
 
 

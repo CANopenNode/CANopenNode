@@ -23,6 +23,7 @@ Change Log
 - SDO client is rewritten. Now includes read/write fifo interface to transfer data.
 - LED indicator indication (CiA303-3) moved from NMT into own files. Now fully comply to standard.
 - LSS slave is integrated into CANopenNode more directly.
+- CO_driver interface: remove Emergency object dependency for reporting CAN errors, use CANerrorStatus own variable instead. Emergency object updated.
 ### Changed SocketCAN
 - ./stack/socketCAN removed from the project, ./stack/Neuberger-socketCAN moved to ./socketCAN
 - driver API updated
