@@ -101,9 +101,9 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
             }
         }
         else {
-            /* clear flicker bit, keep others */
-            rd = LEDs->LEDred & (0xFF ^ CO_LED_flicker);
-            gr = LEDs->LEDgreen & (0xFF ^ CO_LED_flicker);
+            /* clear flicker and CANopen bits, keep others */
+            rd = LEDs->LEDred & (0xFF ^ (CO_LED_flicker | CO_LED_CANopen));
+            gr = LEDs->LEDgreen & (0xFF ^ (CO_LED_flicker | CO_LED_CANopen));
         }
 
         /* calculate 10Hz flickering */

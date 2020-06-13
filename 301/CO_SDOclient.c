@@ -1275,7 +1275,9 @@ CO_SDOclient_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
     /* Transmit CAN data ******************************************************/
 
     if (ret == CO_SDOcli_waitingServerResponse) {
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
         size_t count;
+#endif
         memset((void *)&SDO_C->CANtxBuff->data[0], 0, 8);
 
         switch (SDO_C->state) {
