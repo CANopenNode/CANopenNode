@@ -565,6 +565,11 @@ typedef enum{
     OD_H1029_ERR_BEHAVIOR         = 0x1029U,/**< Error behaviour */
     OD_H1200_SDO_SERVER_PARAM     = 0x1200U,/**< SDO server parameters */
     OD_H1280_SDO_CLIENT_PARAM     = 0x1280U,/**< SDO client parameters */
+    OD_H1300_GFC_PARAM            = 0x1300U,/**< GFC parameter */
+    OD_H1301_SRDO_1_PARAM         = 0x1301U,/**< SRDO communication parameters */
+    OD_H1381_SRDO_1_MAPPING       = 0x1381U,/**< SRDO mapping parameters */
+    OD_H13FE_SRDO_VALID           = 0x13FEU,/**< SRDO valid flag */
+    OD_H13FF_SRDO_CHECKSUM        = 0x13FFU,/**< SRDO checksum */
     OD_H1400_RXPDO_1_PARAM        = 0x1400U,/**< RXPDO communication parameter */
     OD_H1401_RXPDO_2_PARAM        = 0x1401U,/**< RXPDO communication parameter */
     OD_H1402_RXPDO_3_PARAM        = 0x1402U,/**< RXPDO communication parameter */

@@ -88,6 +88,18 @@ extern "C" {
  */
 
 /**
+ * @defgroup CO_CANopen_304 CANopen_304
+ * @{
+ *
+ * CANopen Safety (EN 50325­-5:2010 (formerly CiA 304))
+ *
+ * Standard defines the usage of Safety Related Data Objects (SRDO) and the GFC.
+ * This is an additional protocol (to SDO, PDO) to exchange data.
+ * The meaning of "security" here refers not to security (crypto) but to data consistency.
+ * @}
+ */
+
+/**
  * @defgroup CO_CANopen_305 CANopen_305
  * @{
  *
@@ -163,6 +175,10 @@ extern "C" {
 #define CO_NO_EM_CONS (0 - 1)
 /** Number of Time-stamp objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
 #define CO_NO_TIME (0 - 1)
+/** Number of GFC objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
+#define CO_NO_GFC (0 - 1)
+/** Number of SRDO objects, 0 to 64 (consumer(CANrx) + producer(CANtx)) */
+#define CO_NO_RPDO (0 - 64)
 /** Number of RPDO objects, 1 to 512 consumers (CANrx) */
 #define CO_NO_RPDO (1 - 512)
 /** Number of TPDO objects, 1 to 512 producers (CANtx) */
@@ -237,6 +253,12 @@ extern "C" {
 #if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
     #include "301/CO_SDOclient.h"
 #endif
+#if CO_NO_GFC != 0 || defined CO_DOXYGEN
+    #include "304/CO_GFC.h"
+#endif
+#if CO_NO_SRDO != 0 || defined CO_DOXYGEN
+    #include "304/CO_SRDO.h"
+#endif
 #if CO_NO_LSS_SLAVE != 0 || defined CO_DOXYGEN
     #include "305/CO_LSSslave.h"
 #endif
@@ -276,6 +298,13 @@ typedef struct {
 #endif
 #if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
     CO_LEDs_t *LEDs;                 /**< LEDs object */
+#endif
+#if CO_NO_GFC != 0 || defined CO_DOXYGEN
+    CO_GFC_t *GFC;                   /**< GFC objects */
+#endif
+#if CO_NO_SRDO != 0 || defined CO_DOXYGEN
+    CO_SRDOGuard_t *SRDOGuard;       /**< SRDO objects */
+    CO_SRDO_t *SRDO[CO_NO_SRDO];     /**< SRDO objects */
 #endif
 #if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN
     CO_LSSslave_t *LSSslave;         /**< LSS slave object */
@@ -446,6 +475,22 @@ void CO_process_TPDO(CO_t *co,
                      uint32_t timeDifference_us,
                      uint32_t *timerNext_us);
 
+#if CO_NO_SRDO != 0 || defined CO_DOXYGEN
+/**
+ * Process CANopen SRDO objects.
+ *
+ * Function must be called cyclically from real time thread with constant.
+ * interval (1ms typically). It processes receive SRDO CANopen objects.
+ *
+ * @param co CANopen object.
+ * @param timeDifference_us Time difference from previous function call in
+ * microseconds.
+ * @param [out] timerNext_us info to OS - see CO_process().
+ */
+void CO_process_SRDO(CO_t *co,
+                     uint32_t timeDifference_us,
+                     uint32_t *timerNext_us);
+#endif /* CO_NO_SRDO != 0 */
 
 /** @} */
 
