@@ -188,10 +188,15 @@ extern "C" {
 /**
  * Configuration of GFC
  * 
+ * Possible flags, can be ORed:
+ * - CO_CONFIG_GFC_CONSUMER - Enable the GFC consumer
+ * - CO_CONFIG_GFC_PRODUCER - Enable the GFC producer
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_GFC (0)
+#define CO_CONFIG_GFC (CO_CONFIG_GFC_CONSUMER | CO_CONFIG_GFC_PRODUCER)
 #endif
+#define CO_CONFIG_GFC_CONSUMER 0x01
+#define CO_CONFIG_GFC_PRODUCER 0x02
 
 /**
  * Configuration of SRDO

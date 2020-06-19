@@ -46,6 +46,7 @@ extern "C" {
  * The main differences is every message is send and received twice.
  * The second message must be bitwise inverted. The delay between the two messages and between each message pair is monitored.
  * The distinction between sending and receiving SRDO is made at runtime (for PDO it is compile time).
+ * If the security protocol is used, at least one SRDO is mandatory.
  */
 
 
@@ -129,8 +130,9 @@ typedef struct{
     const CO_SRDOCommPar_t *SRDOCommPar;         /**< From CO_SRDO_init() */
     const CO_SRDOMapPar_t  *SRDOMapPar;          /**< From CO_SRDO_init() */
     const uint16_t         *checksum;            /**< From CO_SRDO_init() */
-    CO_CANmodule_t         *CANdev;              /**< From CO_SRDO_init() */
-    CO_CANtx_t             *CANtxBuff[2];        /**< CAN transmit buffer inside CANdev */
+    CO_CANmodule_t         *CANdevRx;            /**< From CO_SRDO_init() */
+    CO_CANmodule_t         *CANdevTx;            /**< From CO_SRDO_init() */
+    CO_CANtx_t             *CANtxBuff[2];        /**< CAN transmit buffer inside CANdevTx */
     uint16_t                CANdevRxIdx[2];      /**< From CO_SRDO_init() */
     uint16_t                CANdevTxIdx[2];      /**< From CO_SRDO_init() */
     uint8_t                 toogle;              /**< defines the current state */
@@ -140,19 +142,21 @@ typedef struct{
     /** 2*8 data bytes of the received message. */
     uint8_t                 CANrxData[2][8];
     /** From CO_SRDO_initCallbackEnterSafeState() or NULL */
-    void              (*pFunctSignalSafe)(void *object);
+    void                  (*pFunctSignalSafe)(void *object);
     /** From CO_SRDO_initCallbackEnterSafeState() or NULL */
-    void               *functSignalObjectSafe;
+    void                   *functSignalObjectSafe;
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_SRDO_initCallbackPre() or NULL */
-    void              (*pFunctSignalPre)(void *object);
+    void                  (*pFunctSignalPre)(void *object);
     /** From CO_SRDO_initCallbackPre() or NULL */
-    void               *functSignalObjectPre;
+    void                   *functSignalObjectPre;
 #endif
 }CO_SRDO_t;
 
 /**
- * @brief 
+ * Initialize SRDOGuard object.
+ * 
+ * Function must be called in the communication reset section.
  * 
  * @param SRDOGuard This object will be initialized.
  * @param SDO SDO object.
@@ -200,9 +204,10 @@ uint8_t CO_SRDOGuard_process(
  * @param checksum 
  * @param idx_SRDOCommPar Index in Object Dictionary
  * @param idx_SRDOMapPar Index in Object Dictionary
- * @param CANdev CAN device used for SRDO transmission/reception.
+ * @param CANdevRx CAN device used for SRDO reception.
  * @param CANdevRxIdxNormal Index of receive buffer in the above CAN device.
  * @param CANdevRxIdxInverted Index of receive buffer in the above CAN device.
+ * @param CANdevTx CAN device used for SRDO transmission.
  * @param CANdevTxIdxNormal Index of transmit buffer in the above CAN device.
  * @param CANdevTxIdxInverted Index of transmit buffer in the above CAN device.
  * 
@@ -220,9 +225,10 @@ CO_ReturnError_t CO_SRDO_init(
         const uint16_t         *checksum,
         uint16_t                idx_SRDOCommPar,
         uint16_t                idx_SRDOMapPar,
-        CO_CANmodule_t         *CANdev,
+        CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdxNormal,
         uint16_t                CANdevRxIdxInverted,
+        CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdxNormal,
         uint16_t                CANdevTxIdxInverted);
 

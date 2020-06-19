@@ -77,7 +77,8 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_GFC
-#define CO_CONFIG_GFC (0)
+#define CO_CONFIG_GFC (CO_CONFIG_GFC_CONSUMER | \
+                       CO_CONFIG_GFC_PRODUCER)
 #endif
 
 #ifndef CO_CONFIG_SRDO

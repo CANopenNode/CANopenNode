@@ -42,7 +42,7 @@ static void CO_SRDO_receive_normal(void *object, void *msg){
     SRDO = (CO_SRDO_t*)object;   /* this is the correct pointer type of the first argument */
 
     if( (SRDO->valid == CO_SRDO_RX) &&
-        (DLC >= SRDO->dataLength) && SRDO->toogle == 0)
+        (DLC >= SRDO->dataLength) && !CO_FLAG_READ(SRDO->CANrxNew[1]))
     {
         /* copy data into appropriate buffer and set 'new message' flag */
         memcpy(SRDO->CANrxData[0], data, sizeof(SRDO->CANrxData[0]));
@@ -65,7 +65,7 @@ static void CO_SRDO_receive_inverted(void *object, void *msg){
     SRDO = (CO_SRDO_t*)object;   /* this is the correct pointer type of the first argument */
 
     if( (SRDO->valid == CO_SRDO_RX) &&
-        (DLC >= SRDO->dataLength) && SRDO->toogle == 1)
+        (DLC >= SRDO->dataLength) && CO_FLAG_READ(SRDO->CANrxNew[0]))
     {
         /* copy data into appropriate buffer and set 'new message' flag */
         memcpy(SRDO->CANrxData[1], data, sizeof(SRDO->CANrxData[1]));
@@ -81,13 +81,15 @@ static void CO_SRDO_receive_inverted(void *object, void *msg){
 }
 
 static void CO_SRDOconfigCom(CO_SRDO_t* SRDO, uint32_t COB_IDnormal, uint32_t COB_IDinverted){
-    uint16_t IDs[2][2] = {};
+    uint16_t IDs[2][2] = {0};
     uint16_t* ID;
     uint16_t successCount = 0;
 
     int16_t i;
 
-    uint32_t COB_ID[2] = {COB_IDnormal, COB_IDinverted};
+    uint32_t COB_ID[2];
+    COB_ID[0] = COB_IDnormal;
+    COB_ID[1] = COB_IDinverted;
 
     SRDO->valid = CO_SRDO_INVALID;
 
@@ -132,7 +134,7 @@ static void CO_SRDOconfigCom(CO_SRDO_t* SRDO, uint32_t COB_IDnormal, uint32_t CO
     for(i = 0; i < 2; i++){
         CO_ReturnError_t r;
         SRDO->CANtxBuff[i] = CO_CANtxBufferInit(
-            SRDO->CANdev,              /* CAN device */
+            SRDO->CANdevTx,            /* CAN device */
             SRDO->CANdevTxIdx[i],      /* index of specific buffer inside CAN module */
             IDs[0][i],                   /* CAN identifier */
             0,                         /* rtr */
@@ -144,7 +146,7 @@ static void CO_SRDOconfigCom(CO_SRDO_t* SRDO, uint32_t COB_IDnormal, uint32_t CO
         }
 
         r = CO_CANrxBufferInit(
-                SRDO->CANdev,           /* CAN device */
+                SRDO->CANdevRx,         /* CAN device */
                 SRDO->CANdevRxIdx[i],   /* rx buffer index */
                 IDs[1][i],                /* CAN identifier */
                 0x7FF,                  /* mask */
@@ -249,7 +251,7 @@ static uint32_t CO_SRDOfindMap(
 
 static uint32_t CO_SRDOconfigMap(CO_SRDO_t* SRDO, uint8_t noOfMappedObjects){
     int16_t i;
-    uint8_t lengths[2] = {};
+    uint8_t lengths[2] = {0};
     uint32_t ret = 0;
     const uint32_t* pMap = &SRDO->SRDOMapPar->mappedObjects[0];
 
@@ -545,15 +547,16 @@ CO_ReturnError_t CO_SRDO_init(
         const uint16_t         *checksum,
         uint16_t                idx_SRDOCommPar,
         uint16_t                idx_SRDOMapPar,
-        CO_CANmodule_t         *CANdev,
+        CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdxNormal,
         uint16_t                CANdevRxIdxInverted,
+        CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdxNormal,
         uint16_t                CANdevTxIdxInverted)
 {
         /* verify arguments */
     if(SRDO==NULL || SRDOGuard==NULL || em==NULL || SDO==NULL || checksum==NULL ||
-        SRDOCommPar==NULL || SRDOMapPar==NULL || CANdev==NULL){
+        SRDOCommPar==NULL || SRDOMapPar==NULL || CANdevRx==NULL || CANdevTx==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -563,9 +566,10 @@ CO_ReturnError_t CO_SRDO_init(
     SRDO->SRDOCommPar = SRDOCommPar;
     SRDO->SRDOMapPar = SRDOMapPar;
     SRDO->checksum = checksum;
-    SRDO->CANdev = CANdev;
+    SRDO->CANdevRx = CANdevRx;
     SRDO->CANdevRxIdx[0] = CANdevRxIdxNormal;
     SRDO->CANdevRxIdx[1] = CANdevRxIdxInverted;
+    SRDO->CANdevTx = CANdevTx;
     SRDO->CANdevTxIdx[0] = CANdevTxIdxNormal;
     SRDO->CANdevTxIdx[1] = CANdevTxIdxInverted;
     SRDO->nodeId = nodeId;
@@ -574,6 +578,8 @@ CO_ReturnError_t CO_SRDO_init(
     SRDO->valid = CO_SRDO_INVALID;
     SRDO->toogle = 0;
     SRDO->timer = 0;
+    SRDO->pFunctSignalSafe = NULL;
+    SRDO->functSignalObjectSafe = NULL;
 #if (CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE
     SRDO->pFunctSignalPre = NULL;
     SRDO->functSignalObjectPre = NULL;
@@ -612,7 +618,7 @@ void CO_SRDO_process(
         if(SRDO->valid == CO_SRDO_TX){
             if(SRDO->timer == 0){
                 if(SRDO->toogle){
-                    CO_CANsend(SRDO->CANdev, SRDO->CANtxBuff[1]);
+                    CO_CANsend(SRDO->CANdevTx, SRDO->CANtxBuff[1]);
                     SRDO->timer = SRDO->SRDOCommPar->safetyCycleTime * 1000U - CO_CONFIG_SRDO_MINIMUM_DELAY;
                 }
                 else{
@@ -633,7 +639,7 @@ void CO_SRDO_process(
                     ppODdataByte_inverted = &SRDO->mapPointer[1][0];
 
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_CHECK_TX
-                    // check data before sending (optional)
+                    /* check data before sending (optional) */
                     for(i = 0; i<SRDO->dataLength; i++){
                         uint8_t invert = ~pPDOdataByte_inverted[i];
                         if (pPDOdataByte_normal[i] != invert)
@@ -652,7 +658,7 @@ void CO_SRDO_process(
                             pPDOdataByte_inverted[i] = *(ppODdataByte_inverted[i]);                   
                         }
 
-                        CO_CANsend(SRDO->CANdev, SRDO->CANtxBuff[0]);
+                        CO_CANsend(SRDO->CANdevTx, SRDO->CANtxBuff[0]);
 
                         SRDO->timer = CO_CONFIG_SRDO_MINIMUM_DELAY;
                     }

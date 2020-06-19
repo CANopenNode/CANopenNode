@@ -192,7 +192,7 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO->TIME = NULL;
 #endif
 
-#if CO_NO_GFC != 0
+#if CO_NO_GFC == 1
     CO->GFC = (CO_GFC_t *)calloc(1, sizeof(CO_GFC_t));
     if (CO->GFC == NULL) errCnt++;
     CO_memoryUsed += sizeof(CO_GFC_t);
@@ -347,7 +347,7 @@ void CO_delete(void *CANptr) {
     free(CO_HBcons_monitoredNodes);
     free(CO->HBcons);
 
-#if CO_NO_GFC != 0
+#if CO_NO_GFC == 1
     /* GFC */
     free(CO->GFC);
 #endif
@@ -420,7 +420,7 @@ void CO_delete(void *CANptr) {
 #if CO_NO_TIME == 1
     static CO_TIME_t            COO_TIME;
 #endif
-#if CO_NO_GFC != 0
+#if CO_NO_GFC == 1
     static CO_GFC_t             COO_GFC;
 #endif
 #if CO_NO_SRDO != 0
@@ -496,7 +496,7 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO->TIME = NULL;
 #endif
 
-#if CO_NO_GFC != 0
+#if CO_NO_GFC == 1
     /* GFC */
     CO->GFC = &COO_GFC;
 #endif
@@ -776,14 +776,28 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     if (err) return err;
 #endif
 
+#if CO_NO_GFC == 1
+    /* GFC */
+    CO_GFC_init(CO->GFC,
+                &OD_globalFailSafeCommandParameter,
+                CO->CANmodule[0],
+                CO_RXCAN_GFC,
+                CO_CAN_ID_GFC,
+                CO->CANmodule[0],
+                CO_TXCAN_GFC,
+                CO_CAN_ID_GFC);
+#endif
+
 #if CO_NO_SRDO != 0
     /* SRDO */
-    CO_SRDOGuard_init(CO->SRDOGuard,
+    err = CO_SRDOGuard_init(CO->SRDOGuard,
                       CO->SDO[0],
                       &CO->NMT->operatingState,
                       &OD_configurationValid,
                       OD_H13FE_SRDO_VALID,
                       OD_H13FF_SRDO_CHECKSUM);
+    if (err) return err;
+
     for (i = 0; i < CO_NO_SRDO; i++) {
         CO_CANmodule_t *CANdev = CO->CANmodule[0];
         uint16_t CANdevRxIdx = CO_RXCAN_SRDO + 2*i;
@@ -803,6 +817,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                            CANdev,
                            CANdevRxIdx,
                            CANdevRxIdx + 1,
+                           CANdev,
                            CANdevTxIdx,
                            CANdevTxIdx + 1);
         if (err) return err;
