@@ -185,6 +185,49 @@ extern "C" {
 #define CO_CONFIG_HB_CONS_CALLBACK_MULTI 0x02
 #define CO_CONFIG_HB_CONS_QUERY_FUNCT 0x04
 
+/**
+ * Configuration of GFC
+ * 
+ * Possible flags, can be ORed:
+ * - CO_CONFIG_GFC_CONSUMER - Enable the GFC consumer
+ * - CO_CONFIG_GFC_PRODUCER - Enable the GFC producer
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GFC (CO_CONFIG_GFC_CONSUMER | CO_CONFIG_GFC_PRODUCER)
+#endif
+#define CO_CONFIG_GFC_CONSUMER 0x01
+#define CO_CONFIG_GFC_PRODUCER 0x02
+
+/**
+ * Configuration of SRDO
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received RSRDO CAN message.
+ *   Callback is configured by CO_SRDO_initCallbackPre().
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_SRDO_process() (Tx SRDO only).
+ * - CO_CONFIG_RSRDO_CALLS_EXTENSION - Enable calling configured extension
+ *   callbacks when received RSRDO CAN message modifies OD entries.
+ * - CO_CONFIG_TRSRDO_CALLS_EXTENSION - Enable calling configured extension
+ *   callbacks before TSRDO CAN message is sent.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_SRDO (CO_CONFIG_FLAG_CALLBACK_PRE | CO_CONFIG_FLAG_TIMERNEXT | CO_CONFIG_SRDO_CHECK_TX | CO_CONFIG_RSRDO_CALLS_EXTENSION | CO_CONFIG_TSRDO_CALLS_EXTENSION)
+#endif
+#define CO_CONFIG_SRDO_CHECK_TX 0x01
+#define CO_CONFIG_RSRDO_CALLS_EXTENSION 0x02
+#define CO_CONFIG_TSRDO_CALLS_EXTENSION 0x04
+
+/**
+ * SRDO Tx time delay
+ * 
+ * minimum time between the first and second SRDO (Tx) message
+ * in us
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_SRDO_MINIMUM_DELAY 0
+#endif
 
 /**
  * Configuration of PDO

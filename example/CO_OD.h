@@ -94,6 +94,8 @@
    #define CO_NO_EMERGENCY                1   //Associated objects: 1014, 1015
    #define CO_NO_SDO_SERVER               1   //Associated objects: 1200
    #define CO_NO_SDO_CLIENT               1   //Associated objects: 1280
+   #define CO_NO_GFC                      0   //Associated objects: 1300
+   #define CO_NO_SRDO                     0   //Associated objects: 1301-13FF
    #define CO_NO_RPDO                     4   //Associated objects: 1400, 1401, 1402, 1403, 1600, 1601, 1602, 1603
    #define CO_NO_TPDO                     4   //Associated objects: 1800, 1801, 1802, 1803, 1A00, 1A01, 1A02, 1A03
    #define CO_NO_TRACE                    0
@@ -127,7 +129,19 @@
                UNSIGNED32     COB_IDServerToClient;
                UNSIGNED8      nodeIDOfTheSDOServer;
                }              OD_SDOClientParameter_t;
-
+/*1301    */ typedef struct {
+                UNSIGNED8     maxSubIndex;
+                UNSIGNED8     informationDirection;
+                UNSIGNED16    safetyCycleTime;
+                UNSIGNED8     safetyRelatedValidationTime;
+                UNSIGNED8     transmissionType;
+                UNSIGNED32    COB_ID1_normal;
+                UNSIGNED32    COB_ID2_inverted;
+               }              OD_SRDOCommunicationParameter_t;
+/*1381    */ typedef struct {
+               UNSIGNED8      numberOfMappedObjects;
+               UNSIGNED32     mappedObject[16];
+               }              OD_SRDOMappingParameter_t;
 /*1400[4]   */ typedef struct{
                UNSIGNED8      maxSubIndex;
                UNSIGNED32     COB_IDUsedByRPDO;

@@ -61,6 +61,8 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
     || (CO_NO_SDO_SERVER < 1 || CO_NO_SDO_SERVER > 128)    \
     || CO_NO_TIME                                 >  1     \
     || CO_NO_SDO_CLIENT                           > 128    \
+    || CO_NO_GFC                                  >  1     \
+    || CO_NO_SRDO                                 > 64     \
     || (CO_NO_RPDO < 1 || CO_NO_RPDO > 0x200)              \
     || (CO_NO_TPDO < 1 || CO_NO_TPDO > 0x200)              \
     || ODL_consumerHeartbeatTime_arrayLength      == 0     \
@@ -75,7 +77,9 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #define CO_RXCAN_SYNC    (CO_RXCAN_NMT      + CO_NO_NMT)
 #define CO_RXCAN_EMERG   (CO_RXCAN_SYNC     + CO_NO_SYNC)
 #define CO_RXCAN_TIME    (CO_RXCAN_EMERG    + CO_NO_EM_CONS)
-#define CO_RXCAN_RPDO    (CO_RXCAN_TIME     + CO_NO_TIME)
+#define CO_RXCAN_GFC     (CO_RXCAN_TIME     + CO_NO_TIME)
+#define CO_RXCAN_SRDO    (CO_RXCAN_GFC      + CO_NO_GFC)
+#define CO_RXCAN_RPDO    (CO_RXCAN_SRDO     + CO_NO_SRDO*2)
 #define CO_RXCAN_SDO_SRV (CO_RXCAN_RPDO     + CO_NO_RPDO)
 #define CO_RXCAN_SDO_CLI (CO_RXCAN_SDO_SRV  + CO_NO_SDO_SERVER)
 #define CO_RXCAN_CONS_HB (CO_RXCAN_SDO_CLI  + CO_NO_SDO_CLIENT)
@@ -85,6 +89,8 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
                           CO_NO_SYNC        + \
                           CO_NO_EM_CONS     + \
                           CO_NO_TIME        + \
+                          CO_NO_GFC         + \
+                          CO_NO_SRDO*2      + \
                           CO_NO_RPDO        + \
                           CO_NO_SDO_SERVER  + \
                           CO_NO_SDO_CLIENT  + \
@@ -97,7 +103,9 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #define CO_TXCAN_SYNC    (CO_TXCAN_NMT      + CO_NO_NMT_MST)
 #define CO_TXCAN_EMERG   (CO_TXCAN_SYNC     + CO_NO_SYNC)
 #define CO_TXCAN_TIME    (CO_TXCAN_EMERG    + CO_NO_EMERGENCY)
-#define CO_TXCAN_TPDO    (CO_TXCAN_TIME     + CO_NO_TIME)
+#define CO_TXCAN_GFC     (CO_TXCAN_TIME     + CO_NO_TIME)
+#define CO_TXCAN_SRDO    (CO_TXCAN_GFC      + CO_NO_GFC)
+#define CO_TXCAN_TPDO    (CO_TXCAN_SRDO     + CO_NO_SRDO*2)
 #define CO_TXCAN_SDO_SRV (CO_TXCAN_TPDO     + CO_NO_TPDO)
 #define CO_TXCAN_SDO_CLI (CO_TXCAN_SDO_SRV  + CO_NO_SDO_SERVER)
 #define CO_TXCAN_HB      (CO_TXCAN_SDO_CLI  + CO_NO_SDO_CLIENT)
@@ -107,6 +115,8 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
                           CO_NO_SYNC        + \
                           CO_NO_EMERGENCY   + \
                           CO_NO_TIME        + \
+                          CO_NO_GFC         + \
+                          CO_NO_SRDO*2      + \
                           CO_NO_TPDO        + \
                           CO_NO_SDO_SERVER  + \
                           CO_NO_SDO_CLIENT  + \
@@ -182,6 +192,22 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO->TIME = NULL;
 #endif
 
+#if CO_NO_GFC == 1
+    CO->GFC = (CO_GFC_t *)calloc(1, sizeof(CO_GFC_t));
+    if (CO->GFC == NULL) errCnt++;
+    CO_memoryUsed += sizeof(CO_GFC_t);
+#endif
+
+#if CO_NO_SRDO != 0
+    /* SRDO */
+    CO->SRDOGuard = (CO_SRDOGuard_t *)calloc(1, sizeof(CO_SRDOGuard_t));
+    if (CO->SRDOGuard == NULL) errCnt++;
+    for (i = 0; i < CO_NO_SRDO; i++) {
+        CO->SRDO[i] = (CO_SRDO_t *)calloc(1, sizeof(CO_SRDO_t));
+        if (CO->SRDO[i] == NULL) errCnt++;
+    }
+    CO_memoryUsed += sizeof(CO_SRDO_t) * CO_NO_SRDO + sizeof(CO_SRDOGuard_t);
+#endif
     /* RPDO */
     for (i = 0; i < CO_NO_RPDO; i++) {
         CO->RPDO[i] = (CO_RPDO_t *)calloc(1, sizeof(CO_RPDO_t));
@@ -321,6 +347,19 @@ void CO_delete(void *CANptr) {
     free(CO_HBcons_monitoredNodes);
     free(CO->HBcons);
 
+#if CO_NO_GFC == 1
+    /* GFC */
+    free(CO->GFC);
+#endif
+
+#if CO_NO_SRDO != 0
+    /* SRDO */
+    for (i = 0; i < CO_NO_SRDO; i++) {
+        free(CO->SRDO[i]);
+    }
+    free(CO->SRDOGuard);
+#endif
+
     /* TPDO */
     for (i = 0; i < CO_NO_TPDO; i++) {
         free(CO->TPDO[i]);
@@ -380,6 +419,13 @@ void CO_delete(void *CANptr) {
 #endif
 #if CO_NO_TIME == 1
     static CO_TIME_t            COO_TIME;
+#endif
+#if CO_NO_GFC == 1
+    static CO_GFC_t             COO_GFC;
+#endif
+#if CO_NO_SRDO != 0
+    static CO_SRDOGuard_t       COO_SRDOGuard;
+    static CO_SRDO_t            COO_SRDO[CO_NO_SRDO];
 #endif
     static CO_RPDO_t            COO_RPDO[CO_NO_RPDO];
     static CO_TPDO_t            COO_TPDO[CO_NO_TPDO];
@@ -448,6 +494,19 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO->TIME = &COO_TIME;
 #else
     CO->TIME = NULL;
+#endif
+
+#if CO_NO_GFC == 1
+    /* GFC */
+    CO->GFC = &COO_GFC;
+#endif
+
+#if CO_NO_SRDO != 0
+    /* SRDO */
+    CO->SRDOGuard = &COO_SRDOGuard;
+    for (i = 0; i < CO_NO_SRDO; i++) {
+        CO->SRDO[i] = &COO_SRDO[i];
+    }
 #endif
 
     /* RPDO */
@@ -583,8 +642,13 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     if (nodeId < 1 || nodeId > 127) {
         return CO_ERROR_PARAMETERS;
     }
-
     /* Verify parameters from CO_OD */
+#if CO_NO_SRDO != 0
+    if (sizeof(OD_SRDOCommunicationParameter_t) != sizeof(CO_SRDOCommPar_t) ||
+        sizeof(OD_SRDOMappingParameter_t)       != sizeof(CO_SRDOMapPar_t)) {
+        return CO_ERROR_PARAMETERS;
+    }
+#endif
     if (sizeof(OD_TPDOCommunicationParameter_t) != sizeof(CO_TPDOCommPar_t) ||
         sizeof(OD_TPDOMappingParameter_t)       != sizeof(CO_TPDOMapPar_t)  ||
         sizeof(OD_RPDOCommunicationParameter_t) != sizeof(CO_RPDOCommPar_t) ||
@@ -710,6 +774,54 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                        CO_TXCAN_TIME);
 
     if (err) return err;
+#endif
+
+#if CO_NO_GFC == 1
+    /* GFC */
+    CO_GFC_init(CO->GFC,
+                &OD_globalFailSafeCommandParameter,
+                CO->CANmodule[0],
+                CO_RXCAN_GFC,
+                CO_CAN_ID_GFC,
+                CO->CANmodule[0],
+                CO_TXCAN_GFC,
+                CO_CAN_ID_GFC);
+#endif
+
+#if CO_NO_SRDO != 0
+    /* SRDO */
+    err = CO_SRDOGuard_init(CO->SRDOGuard,
+                      CO->SDO[0],
+                      &CO->NMT->operatingState,
+                      &OD_configurationValid,
+                      OD_H13FE_SRDO_VALID,
+                      OD_H13FF_SRDO_CHECKSUM);
+    if (err) return err;
+
+    for (i = 0; i < CO_NO_SRDO; i++) {
+        CO_CANmodule_t *CANdev = CO->CANmodule[0];
+        uint16_t CANdevRxIdx = CO_RXCAN_SRDO + 2*i;
+        uint16_t CANdevTxIdx = CO_TXCAN_SRDO + 2*i;
+
+        err = CO_SRDO_init(CO->SRDO[i],
+                           CO->SRDOGuard,
+                           CO->em,
+                           CO->SDO[0],
+                           nodeId,
+                           ((i == 0) ? CO_CAN_ID_SRDO_1 : 0),
+                           (CO_SRDOCommPar_t*)&OD_SRDOCommunicationParameter[i],
+                           (CO_SRDOMapPar_t *)&OD_SRDOMappingParameter[i],
+                           &OD_safetyConfigurationChecksum[i],
+                           OD_H1301_SRDO_1_PARAM + i,
+                           OD_H1381_SRDO_1_MAPPING + i,
+                           CANdev,
+                           CANdevRxIdx,
+                           CANdevRxIdx + 1,
+                           CANdev,
+                           CANdevTxIdx,
+                           CANdevTxIdx + 1);
+        if (err) return err;
+    }
 #endif
 
     /* RPDO */
@@ -1020,3 +1132,27 @@ void CO_process_TPDO(CO_t *co,
         CO_TPDO_process(co->TPDO[i], syncWas, timeDifference_us, timerNext_us);
     }
 }
+
+/******************************************************************************/
+#if CO_NO_SRDO != 0
+void CO_process_SRDO(CO_t *co,
+                     uint32_t timeDifference_us,
+                     uint32_t *timerNext_us)
+{
+    int16_t i;
+    uint8_t firstOperational;
+
+#if CO_NO_LSS_SLAVE == 1
+    if (co->nodeIdUnconfigured) {
+        return;
+    }
+#endif
+
+    firstOperational = CO_SRDOGuard_process(co->SRDOGuard);
+
+    /* Verify PDO Change Of State and process PDOs */
+    for (i = 0; i < CO_NO_SRDO; i++) {
+        CO_SRDO_process(co->SRDO[i], firstOperational, timeDifference_us, timerNext_us);
+    }
+}
+#endif
