@@ -246,7 +246,7 @@ static void CO_LSSslave_serviceInquire(
     /* send response */
     LSSslave->TXbuff->data[0] = service;
     CO_memcpySwap4(&LSSslave->TXbuff->data[1], &value);
-    CO_memset(&LSSslave->TXbuff->data[5], 0, 4);
+    CO_memset(&LSSslave->TXbuff->data[5], 0, 3);
     CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
 }
 
