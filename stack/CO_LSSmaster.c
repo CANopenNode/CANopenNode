@@ -213,7 +213,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectInitiate(
       LSSmaster->timeoutTimer = 0;
 
       CLEAR_CANrxNew(LSSmaster->CANrxNew);
-      CO_memset(&LSSmaster->TXbuff->data[6], 0, 3);
+      CO_memset(&LSSmaster->TXbuff->data[6], 0, 2);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_VENDOR;
       CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.vendorID);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
