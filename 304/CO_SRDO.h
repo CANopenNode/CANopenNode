@@ -72,16 +72,12 @@ typedef struct{
         - 254:     Manufacturer specific.*/
     uint8_t             transmissionType;
     /** Communication object identifier for message received. Meaning of the specific bits:
-        - Bit  0-10: COB-ID for PDO, to change it bit 31 must be set.
-        - Bit 11-29: set to 0 for 11 bit COB-ID.
-        - Bit 30:    If true, rtr are NOT allowed for PDO.
-        - Bit 31:    If true, node does NOT use the PDO. */
+        - Bit  0-10: COB-ID for SRDO
+        - Bit 11-31: set to 0 for 11 bit COB-ID. */
     uint32_t            COB_ID1_normal;
     /** Communication object identifier for message received. Meaning of the specific bits:
-        - Bit  0-10: COB-ID for PDO, to change it bit 31 must be set.
-        - Bit 11-29: set to 0 for 11 bit COB-ID.
-        - Bit 30:    If true, rtr are NOT allowed for PDO.
-        - Bit 31:    If true, node does NOT use the PDO. */
+        - Bit  0-10: COB-ID for SRDO
+        - Bit 11-31: set to 0 for 11 bit COB-ID. */
     uint32_t            COB_ID2_inverted;
 }CO_SRDOCommPar_t;
 
@@ -121,7 +117,7 @@ typedef struct{
     CO_SRDOGuard_t         *SRDOGuard;           /**< From CO_SRDO_init() */
     /** Pointers to 2*8 data objects, where SRDO will be copied */
     uint8_t                *mapPointer[2][8];
-    /** Data length of the received PDO message. Calculated from mapping */
+    /** Data length of the received SRDO message. Calculated from mapping */
     uint8_t                 dataLength;
     uint8_t                 nodeId;              /**< From CO_SRDO_init() */
     uint16_t                defaultCOB_ID[2];    /**< From CO_SRDO_init() */
@@ -245,7 +241,7 @@ CO_ReturnError_t CO_SRDO_init(
  * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
  */
 void CO_SRDO_initCallbackPre(
-        CO_SRDO_t              *RPDO,
+        CO_SRDO_t              *SRDO,
         void                   *object,
         void                  (*pFunctSignalPre)(void *object));
 #endif
@@ -258,7 +254,7 @@ void CO_SRDO_initCallbackPre(
  * One measure, for example, would be to go back to the pre-operational state
  * Callback is called from CO_SRDO_process().
  * 
- * @param SRDO  This object.
+ * @param SRDO This object.
  * @param object Pointer to object, which will be passed to pFunctSignalSafe(). Can be NULL
  * @param pFunctSignalSafe Pointer to the callback function. Not called if NULL.
  */
@@ -266,6 +262,19 @@ void CO_SRDO_initCallbackEnterSafeState(
         CO_SRDO_t              *SRDO,
         void                   *object,
         void                  (*pFunctSignalSafe)(void *object));
+
+
+/**
+ * Send SRDO on event
+ * 
+ * Sends SRDO before the next refresh timer tiggers. The message itself is send in CO_SRDO_process().
+ * After the transmission the timer is reset to the full refresh time.
+ * 
+ * @param SRDO This object.
+ * @return CO_ReturnError_t CO_ERROR_NO if request is granted
+ */
+CO_ReturnError_t CO_SRDO_requestSend(
+        CO_SRDO_t              *SRDO);
 
 /**
  * Process transmitting/receiving SRDO messages.

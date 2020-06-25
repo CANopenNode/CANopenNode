@@ -40,6 +40,8 @@ Characteristics
    slave, LSS fastscan.
  - [CANopen gateway](https://www.can-cia.org/can-knowledge/canopen/cia309/),
    CiA309-3 Ascii command interface for NMT master, LSS master and SDO client.
+ - CANopen Safety,
+   EN 50325-5 "PDO like" communication in safety-relevant networks
 
 ### Other
  - [Suitable for 16-bit microcontrollers and above](#device-support)
@@ -146,6 +148,9 @@ File structure
    - **crc16-ccitt.h/.c** - Calculation of CRC 16 CCITT polynomial.
  - **303/** - CANopen Recommendation
    - **CO_LEDs.h/.c** - CANopen LED Indicators
+ - **304/** - CANopen Safety.
+   - **CO_SRDO.h/.c** - CANopen Safety-relevant Data Object protocol.
+   - **CO_GFC.h/.c** - CANopen Global Failsafe Command (producer and consumer).
  - **305/** - CANopen layer setting services (LSS) and protocols.
    - **CO_LSS.h** - CANopen Layer Setting Services protocol (common).
    - **CO_LSSmaster.h/.c** - CANopen Layer Setting Service - master protocol.

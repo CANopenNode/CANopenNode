@@ -104,9 +104,8 @@ static void CO_SRDOconfigCom(CO_SRDO_t* SRDO, uint32_t COB_IDnormal, uint32_t CO
 
                 if(ID[i] == SRDO->defaultCOB_ID[i] && SRDO->nodeId <= 64){
                     ID[i] += 2*SRDO->nodeId;
-
                 }
-                if(0x101 <= ID[i] && ID[i] <= 0x180 && ((ID[i] ^ i) & 1)){
+                if(0x101 <= ID[i] && ID[i] <= 0x180 && ((ID[i] & 1) != i )){
                     successCount++;
                 }
             }
@@ -309,18 +308,34 @@ static uint32_t CO_SRDOconfigMap(CO_SRDO_t* SRDO, uint8_t noOfMappedObjects){
     return ret;
 }
 
-static uint16_t CO_SRDOcalcCrc(const CO_SRDOCommPar_t *com, const CO_SRDOMapPar_t *map){
+static uint16_t CO_SRDOcalcCrc(const CO_SRDO_t *SRDO){
     uint16_t i;
     uint16_t result = 0x0000;
     uint8_t buffer[4];
+    uint32_t cob;
+
+    const CO_SRDOCommPar_t *com = SRDO->SRDOCommPar;
+    const CO_SRDOMapPar_t *map = SRDO->SRDOMapPar;
 
     result = crc16_ccitt(&com->informationDirection, 1, result);
     CO_memcpySwap2(&buffer[0], &com->safetyCycleTime);
     result = crc16_ccitt(&buffer[0], 2, result);
     result = crc16_ccitt(&com->safetyRelatedValidationTime, 1, result);
-    CO_memcpySwap4(&buffer[0], &com->COB_ID1_normal);
+    
+    /* adjust COB-ID if the default is used
+    Caution: if the node id changes and you are using the default COB-ID you have to recalculate the checksum
+    This behaviour is controversial and could be changed or made optional.
+    */
+    cob = com->COB_ID1_normal;
+    if(((cob)&0x7FF) == SRDO->defaultCOB_ID[0] && SRDO->nodeId <= 64)
+        cob += SRDO->nodeId;
+    CO_memcpySwap4(&buffer[0], &cob);
     result = crc16_ccitt(&buffer[0], 4, result);
-    CO_memcpySwap4(&buffer[0], &com->COB_ID2_inverted);
+
+    cob = com->COB_ID2_inverted;
+    if(((cob)&0x7FF) == SRDO->defaultCOB_ID[1] && SRDO->nodeId <= 64)
+        cob += SRDO->nodeId;
+    CO_memcpySwap4(&buffer[0], &cob);
     result = crc16_ccitt(&buffer[0], 4, result);
 
     result = crc16_ccitt(&map->numberOfMappedObjects, 1, result);
@@ -346,11 +361,11 @@ static CO_SDO_abortCode_t CO_ODF_SRDOcom(CO_ODF_arg_t *ODF_arg){
             uint16_t index = ODF_arg->subIndex - 5;
 
             /* if default COB ID is used, write default value here */
-            if(((value)&0x7FF) == SRDO->defaultCOB_ID[index] && SRDO->defaultCOB_ID[index])
+            if(((value)&0x7FF) == SRDO->defaultCOB_ID[index] && SRDO->nodeId <= 64)
                 value += SRDO->nodeId;
 
-            /* If PDO is not valid, set bit 31 */
-            if(!SRDO->valid) value |= 0x80000000L;
+            /* If SRDO is not valid, set bit 31. but I do not think this applies to SRDO ?! */
+            /* if(!SRDO->valid) value |= 0x80000000L; */
 
             CO_setUint32(ODF_arg->data, value);
         }
@@ -385,14 +400,13 @@ static CO_SDO_abortCode_t CO_ODF_SRDOcom(CO_ODF_arg_t *ODF_arg){
         uint32_t value = CO_getUint32(ODF_arg->data);
         uint16_t index = ODF_arg->subIndex - 5;
 
-        /* bits 11...29 must be zero */
-        if(value & 0x3FFFF800L)
+        /* check value range, the spec does not specify if COB-ID flags are allowed */
+        if(value < 0x101 || value > 0x180 || (value & 1) == index)
             return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
 
         /* if default COB-ID is being written, write defaultCOB_ID without nodeId */
-        if(((value)&0x7FF) == (SRDO->defaultCOB_ID[index] + SRDO->nodeId)){
-            value &= 0xC0000000L;
-            value += SRDO->defaultCOB_ID[index];
+        if(SRDO->nodeId <= 64 && value == (SRDO->defaultCOB_ID[index] + SRDO->nodeId)){
+            value = SRDO->defaultCOB_ID[index];
             CO_setUint32(ODF_arg->data, value);
         }
     }
@@ -406,17 +420,8 @@ static CO_SDO_abortCode_t CO_ODF_SRDOmap(CO_ODF_arg_t *ODF_arg){
     CO_SRDO_t *SRDO;
 
     SRDO = (CO_SRDO_t*) ODF_arg->object;
-
-    /* Reading Object Dictionary variable */
-    if(ODF_arg->reading){
-        uint8_t *value = (uint8_t*) ODF_arg->data;
-
-        if(ODF_arg->subIndex == 0){
-            /* If there is error in mapping, dataLength is 0, so numberOfMappedObjects is 0. */
-            if(!SRDO->dataLength) *value = 0;
-        }
+    if(ODF_arg->reading)
         return CO_SDO_AB_NONE;
-    }
 
     /* Writing Object Dictionary variable */
 
@@ -430,7 +435,7 @@ static CO_SDO_abortCode_t CO_ODF_SRDOmap(CO_ODF_arg_t *ODF_arg){
         uint8_t *value = (uint8_t*) ODF_arg->data;
 
         if(*value > 16 || *value & 1) /*only odd numbers are allowed*/
-            return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds PDO length. */
+            return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds SRDO length. */
     }
     else{
         if (SRDO->SRDOMapPar->numberOfMappedObjects != 0)
@@ -497,9 +502,10 @@ uint8_t CO_SRDOGuard_process(
 {
     uint8_t result = 0;
     CO_NMT_internalState_t operatingState = *SRDOGuard->operatingState;
-    if(operatingState != SRDOGuard->operatingStatePrev && operatingState == CO_NMT_OPERATIONAL){
+    if(operatingState != SRDOGuard->operatingStatePrev){
         SRDOGuard->operatingStatePrev = operatingState;
-        result |= 1 << 0;
+        if (operatingState == CO_NMT_OPERATIONAL)
+            result |= 1 << 0;
     }
 
     if(SRDOGuard->checkCRC){
@@ -585,10 +591,26 @@ CO_ReturnError_t CO_SRDO_init(
     SRDO->functSignalObjectPre = NULL;
 #endif
 
-    /* Configure Object dictionary entry at index 0x1301+ and 0x1341+ */
+    /* Configure Object dictionary entry at index 0x1301+ and 0x1381+ */
     CO_OD_configure(SDO, idx_SRDOCommPar, CO_ODF_SRDOcom, (void*)SRDO, 0, 0);
     CO_OD_configure(SDO, idx_SRDOMapPar, CO_ODF_SRDOmap, (void*)SRDO, 0, 0);
 
+    return CO_ERROR_NO;
+}
+
+CO_ReturnError_t CO_SRDO_requestSend(
+        CO_SRDO_t              *SRDO)
+{
+    if (*SRDO->SRDOGuard->operatingState != CO_NMT_OPERATIONAL)
+        return CO_ERROR_WRONG_NMT_STATE;
+
+    if (SRDO->valid != CO_SRDO_TX)
+        return CO_ERROR_TX_UNCONFIGURED;
+
+    if(SRDO->toogle != 0)
+        return CO_ERROR_TX_BUSY;
+
+    SRDO->timer = 0;
     return CO_ERROR_NO;
 }
         
@@ -599,7 +621,7 @@ void CO_SRDO_process(
         uint32_t               *timerNext_us)
 {
     if(commands & (1<<1)){
-        uint16_t crcValue = CO_SRDOcalcCrc(SRDO->SRDOCommPar, SRDO->SRDOMapPar);
+        uint16_t crcValue = CO_SRDOcalcCrc(SRDO);
         if (*SRDO->checksum != crcValue)
             *SRDO->SRDOGuard->configurationValid = 0;
     }
@@ -624,25 +646,56 @@ void CO_SRDO_process(
                 else{
 
                     int16_t i;
-                    uint8_t* pPDOdataByte_normal;
-                    uint8_t* pPDOdataByte_inverted;
+                    uint8_t* pSRDOdataByte_normal;
+                    uint8_t* pSRDOdataByte_inverted;
 
                     uint8_t** ppODdataByte_normal;
                     uint8_t** ppODdataByte_inverted;
 
                     bool_t data_ok = true;
+#if (CO_CONFIG_SRDO) & CO_CONFIG_TSRDO_CALLS_EXTENSION
+                    if(SRDO->SDO->ODExtensions){
+                        /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
+                        const uint32_t* pMap = &SRDO->SRDOMapPar->mappedObjects[0];
+                        CO_SDO_t *pSDO = SRDO->SDO;
 
-                    pPDOdataByte_normal = &SRDO->CANtxBuff[0]->data[0];
+                        for(i=SRDO->SRDOMapPar->numberOfMappedObjects; i>0; i--){
+                            uint32_t map = *(pMap++);
+                            uint16_t index = (uint16_t)(map>>16);
+                            uint8_t subIndex = (uint8_t)(map>>8);
+                            uint16_t entryNo = CO_OD_find(pSDO, index);
+                            if ( entryNo != 0xFFFF )
+                            {
+                                CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
+                                if( ext->pODFunc != NULL)
+                                {
+                                    CO_ODF_arg_t ODF_arg;
+                                    memset((void*)&ODF_arg, 0, sizeof(CO_ODF_arg_t));
+                                    ODF_arg.reading = true;
+                                    ODF_arg.index = index;
+                                    ODF_arg.subIndex = subIndex;
+                                    ODF_arg.object = ext->object;
+                                    ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
+                                    ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
+                                    ODF_arg.data = CO_OD_getDataPointer(pSDO, entryNo, subIndex); /* https://github.com/CANopenNode/CANopenNode/issues/100 */
+                                    ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
+                                    ext->pODFunc(&ODF_arg);
+                                }
+                            }
+                        }
+                    }
+#endif
+                    pSRDOdataByte_normal = &SRDO->CANtxBuff[0]->data[0];
                     ppODdataByte_normal = &SRDO->mapPointer[0][0];
 
-                    pPDOdataByte_inverted = &SRDO->CANtxBuff[1]->data[0];
+                    pSRDOdataByte_inverted = &SRDO->CANtxBuff[1]->data[0];
                     ppODdataByte_inverted = &SRDO->mapPointer[1][0];
 
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_CHECK_TX
                     /* check data before sending (optional) */
                     for(i = 0; i<SRDO->dataLength; i++){
-                        uint8_t invert = ~pPDOdataByte_inverted[i];
-                        if (pPDOdataByte_normal[i] != invert)
+                        uint8_t invert = ~*(ppODdataByte_inverted[i]);
+                        if (*(ppODdataByte_normal[i]) != invert)
                         {
                             data_ok = false;
                             break;
@@ -654,8 +707,8 @@ void CO_SRDO_process(
                     if(data_ok){
                         /* Copy data from Object dictionary. */
                         for(i = 0; i<SRDO->dataLength; i++){
-                            pPDOdataByte_normal[i] = *(ppODdataByte_normal[i]);
-                            pPDOdataByte_inverted[i] = *(ppODdataByte_inverted[i]);                   
+                            pSRDOdataByte_normal[i] = *(ppODdataByte_normal[i]);
+                            pSRDOdataByte_inverted[i] = *(ppODdataByte_inverted[i]);                   
                         }
 
                         CO_CANsend(SRDO->CANdevTx, SRDO->CANtxBuff[0]);
@@ -685,18 +738,18 @@ void CO_SRDO_process(
 
                 if(SRDO->toogle){
                     int16_t i;
-                    uint8_t* pPDOdataByte_normal;
-                    uint8_t* pPDOdataByte_inverted;
+                    uint8_t* pSRDOdataByte_normal;
+                    uint8_t* pSRDOdataByte_inverted;
 
                     uint8_t** ppODdataByte_normal;
                     uint8_t** ppODdataByte_inverted;
                     bool_t data_ok = true;
                     
-                    pPDOdataByte_normal = &SRDO->CANrxData[0][0];
-                    pPDOdataByte_inverted = &SRDO->CANrxData[1][0];
+                    pSRDOdataByte_normal = &SRDO->CANrxData[0][0];
+                    pSRDOdataByte_inverted = &SRDO->CANrxData[1][0];
                     for(i = 0; i<SRDO->dataLength; i++){
-                        uint8_t invert = ~pPDOdataByte_inverted[i];
-                        if(pPDOdataByte_normal[i] != invert){
+                        uint8_t invert = ~pSRDOdataByte_inverted[i];
+                        if(pSRDOdataByte_normal[i] != invert){
                             data_ok = false;
                             break;
                         }
@@ -709,11 +762,44 @@ void CO_SRDO_process(
                         * is set to true by receive thread, then copy the latest data again. */
 
                         for(i = 0; i<SRDO->dataLength; i++){
-                            *(ppODdataByte_normal[i]) = pPDOdataByte_normal[i];
-                            *(ppODdataByte_inverted[i]) = pPDOdataByte_inverted[i];
+                            *(ppODdataByte_normal[i]) = pSRDOdataByte_normal[i];
+                            *(ppODdataByte_inverted[i]) = pSRDOdataByte_inverted[i];
                         }
                         CO_FLAG_CLEAR(SRDO->CANrxNew[0]);
                         CO_FLAG_CLEAR(SRDO->CANrxNew[1]);
+#if (CO_CONFIG_SRDO) & CO_CONFIG_RSRDO_CALLS_EXTENSION
+                        if(SRDO->SDO->ODExtensions){
+                            int16_t i;
+                            /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
+                            const uint32_t* pMap = &SRDO->SRDOMapPar->mappedObjects[0];
+                            CO_SDO_t *pSDO = SRDO->SDO;
+
+                            for(i=SRDO->SRDOMapPar->numberOfMappedObjects; i>0; i--){
+                                uint32_t map = *(pMap++);
+                                uint16_t index = (uint16_t)(map>>16);
+                                uint8_t subIndex = (uint8_t)(map>>8);
+                                uint16_t entryNo = CO_OD_find(pSDO, index);
+                                if ( entryNo != 0xFFFF )
+                                {
+                                    CO_OD_extension_t *ext = &pSDO->ODExtensions[entryNo];
+                                    if( ext->pODFunc != NULL)
+                                    {
+                                        CO_ODF_arg_t ODF_arg;
+                                        memset((void*)&ODF_arg, 0, sizeof(CO_ODF_arg_t));
+                                        ODF_arg.reading = false;
+                                        ODF_arg.index = index;
+                                        ODF_arg.subIndex = subIndex;
+                                        ODF_arg.object = ext->object;
+                                        ODF_arg.attribute = CO_OD_getAttribute(pSDO, entryNo, subIndex);
+                                        ODF_arg.pFlags = CO_OD_getFlagsPointer(pSDO, entryNo, subIndex);
+                                        ODF_arg.data = CO_OD_getDataPointer(pSDO, entryNo, subIndex); /* https://github.com/CANopenNode/CANopenNode/issues/100 */
+                                        ODF_arg.dataLength = CO_OD_getLength(pSDO, entryNo, subIndex);
+                                        ext->pODFunc(&ODF_arg);
+                                    }
+                                }
+                            }
+                        }
+#endif
                     }
                     else{
                         CO_FLAG_CLEAR(SRDO->CANrxNew[0]);
