@@ -24,7 +24,7 @@
  */
 
 
-#include "CO_driver.h"
+#include "CANopen.h"
 #include "CO_SDO.h"
 #include "crc16-ccitt.h"
 
@@ -259,91 +259,16 @@ static void CO_SDO_receive(void *object, const CO_CANrxMsg_t *msg){
 
 
 /*
- * Function for accessing _SDO server parameter_ for default SDO (index 0x1200)
- * from SDO server.
- *
- * For more information see file CO_SDO.h.
+ * Function for configuring SDO CAN reception and transmission
+ * It's called from init and on _SDO server parameter_ changes
  */
-static CO_SDO_abortCode_t CO_ODF_1200(CO_ODF_arg_t *ODF_arg);
-static CO_SDO_abortCode_t CO_ODF_1200(CO_ODF_arg_t *ODF_arg){
-    uint8_t *nodeId;
-    uint32_t value;
-    CO_SDO_abortCode_t ret = CO_SDO_AB_NONE;
-
-    nodeId = (uint8_t*) ODF_arg->object;
-    value = CO_getUint32(ODF_arg->data);
-
-    /* if SDO reading Object dictionary 0x1200, add nodeId to the value */
-    if((ODF_arg->reading) && (ODF_arg->subIndex > 0U)){
-        CO_setUint32(ODF_arg->data, value + *nodeId);
-    }
-
-    return ret;
-}
-
-
-/******************************************************************************/
-CO_ReturnError_t CO_SDO_init(
+static CO_ReturnError_t CO_SDO_initBuffers(
         CO_SDO_t               *SDO,
         uint32_t                COB_IDClientToServer,
-        uint32_t                COB_IDServerToClient,
-        uint16_t                ObjDictIndex_SDOServerParameter,
-        CO_SDO_t               *parentSDO,
-        const CO_OD_entry_t     OD[],
-        uint16_t                ODSize,
-        CO_OD_extension_t      *ODExtensions,
-        uint8_t                 nodeId,
-        CO_CANmodule_t         *CANdevRx,
-        uint16_t                CANdevRxIdx,
-        CO_CANmodule_t         *CANdevTx,
-        uint16_t                CANdevTxIdx)
+        uint32_t                COB_IDServerToClient)
 {
-    /* verify arguments */
-    if(SDO==NULL || CANdevRx==NULL || CANdevTx==NULL){
+    if(SDO==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
-    }
-
-    /* configure own object dictionary */
-    if(parentSDO == NULL){
-        uint16_t i;
-
-        SDO->ownOD = true;
-        SDO->OD = OD;
-        SDO->ODSize = ODSize;
-        SDO->ODExtensions = ODExtensions;
-
-        /* clear pointers in ODExtensions */
-        for(i=0U; i<ODSize; i++){
-            SDO->ODExtensions[i].pODFunc = NULL;
-            SDO->ODExtensions[i].object = NULL;
-            SDO->ODExtensions[i].flags = NULL;
-        }
-    }
-    /* copy object dictionary from parent */
-    else{
-        SDO->ownOD = false;
-        SDO->OD = parentSDO->OD;
-        SDO->ODSize = parentSDO->ODSize;
-        SDO->ODExtensions = parentSDO->ODExtensions;
-    }
-
-    /* Configure object variables */
-    SDO->nodeId = nodeId;
-    SDO->state = CO_SDO_ST_IDLE;
-
-    uint8_t i;
-    for(i=0U; i<CO_SDO_RX_DATA_SIZE; i++){
-        CLEAR_CANrxNew(SDO->CANrxNew[i]);
-    }
-    SDO->CANrxRcv = 0;
-    SDO->CANrxProc = 0;
-
-    SDO->pFunctSignal = NULL;
-
-
-    /* Configure Object dictionary entry at index 0x1200 */
-    if(ObjDictIndex_SDOServerParameter == OD_H1200_SDO_SERVER_PARAM){
-        CO_OD_configure(SDO, ObjDictIndex_SDOServerParameter, CO_ODF_1200, (void*)&SDO->nodeId, 0U, 0U);
     }
 
     if((COB_IDClientToServer & 0x80000000) != 0 || (COB_IDServerToClient & 0x80000000) != 0 ){
@@ -353,8 +278,8 @@ CO_ReturnError_t CO_SDO_init(
     }
     /* configure SDO server CAN reception */
     CO_CANrxBufferInit(
-            CANdevRx,               /* CAN device */
-            CANdevRxIdx,            /* rx buffer index */
+            SDO->CANdevRx,          /* CAN device */
+            SDO->CANdevRxIdx,       /* rx buffer index */
             COB_IDClientToServer,   /* CAN identifier */
             0x7FF,                  /* mask */
             0,                      /* rtr */
@@ -362,14 +287,152 @@ CO_ReturnError_t CO_SDO_init(
             CO_SDO_receive);        /* this function will process received message */
 
     /* configure SDO server CAN transmission */
-    SDO->CANdevTx = CANdevTx;
     SDO->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,               /* CAN device */
-            CANdevTxIdx,            /* index of specific buffer inside CAN module */
+            SDO->CANdevTx,          /* CAN device */
+            SDO->CANdevTxIdx,       /* index of specific buffer inside CAN module */
             COB_IDServerToClient,   /* CAN identifier */
             0,                      /* rtr */
             8,                      /* number of data bytes */
             0);                     /* synchronous message flag bit */
+
+    return CO_ERROR_NO;
+}
+
+/*
+ * Function for accessing _SDO server parameter_ for default SDO (index 0x1200)
+ * add for additionally supported SDO servers (indexes from 0x1201 to 0x127F).
+ *
+ * ODF_arg object must be pointer to array of SDO
+ */
+static CO_SDO_abortCode_t CO_SDO_ODF_12xx(CO_ODF_arg_t *ODF_arg){
+    CO_SDO_t *SDO;
+    CO_SDO_abortCode_t ret = CO_SDO_AB_NONE;
+
+    uint8_t idx = ODF_arg->index - OD_H1200_SDO_SERVER_PARAM;
+    if (idx >= CO_NO_SDO_SERVER){
+        return CO_SDO_AB_DATA_OD;
+    }
+
+    SDO = ((CO_SDO_t **)ODF_arg->object)[idx];
+
+    if (idx == 0U) {
+        if(!ODF_arg->reading) {
+            return CO_SDO_AB_READONLY;
+        }
+
+        if(ODF_arg->subIndex > 0U){
+            CO_setUint32(ODF_arg->data, CO_getUint32(ODF_arg->data) + SDO->nodeId);
+        }
+
+        return ret;
+    }
+#if (CO_NO_SDO_SERVER > 1)
+    else if (!ODF_arg->reading) {
+        uint32_t cob_id = CO_getUint32(ODF_arg->data);
+        uint32_t cob_id_prev = CO_getUint32(ODF_arg->ODdataStorage);
+
+        if (cob_id == cob_id_prev){
+            /* COB-ID was not changed */
+            return ret;
+        }
+
+        CO_ReturnError_t err = CO_ERROR_NO;
+        if (ODF_arg->subIndex == 1){
+            /* Client to server */
+            err = CO_SDO_initBuffers(SDO, cob_id, OD_SDOServerParameter[idx].COB_IDServerToClient);
+        } else if (ODF_arg->subIndex == 2){
+            /* Server to client */
+            err = CO_SDO_initBuffers(SDO, OD_SDOServerParameter[idx].COB_IDClientToServer, cob_id);
+        }
+
+        if (err != CO_ERROR_NO)
+            ret = CO_SDO_AB_PRAM_INCOMPAT;
+    }
+#endif
+
+    return ret;
+}
+
+/******************************************************************************/
+CO_ReturnError_t CO_SDO_init(
+        CO_SDO_t               *SDO[],
+        const CO_OD_entry_t     OD[],
+        uint16_t                ODSize,
+        CO_OD_extension_t       ODExtensions[],
+        uint8_t                 nodeId,
+        CO_CANmodule_t         *CANdevRx,
+        uint16_t                CANdevRxIdx,
+        CO_CANmodule_t         *CANdevTx,
+        uint16_t                CANdevTxIdx)
+{
+    uint8_t idx;
+    uint16_t i;
+
+    /* verify arguments */
+    if(SDO==NULL || CANdevRx==NULL || CANdevTx==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    for(idx=0U; idx<CO_NO_SDO_SERVER; idx++)
+    {
+        if (SDO[idx] == NULL){
+            return CO_ERROR_ILLEGAL_ARGUMENT;
+        }
+
+        /* Configure object variables */
+        SDO[idx]->nodeId = nodeId;
+        SDO[idx]->state = CO_SDO_ST_IDLE;
+
+        SDO[idx]->CANrxRcv = 0;
+        SDO[idx]->CANrxProc = 0;
+
+        SDO[idx]->pFunctSignal = NULL;
+
+        for(i=0U; i<CO_SDO_RX_DATA_SIZE; i++){
+            CLEAR_CANrxNew(SDO[idx]->CANrxNew[i]);
+        }
+
+        SDO[idx]->CANdevRx = CANdevRx;
+        SDO[idx]->CANdevRxIdx = CANdevRxIdx + idx;
+        SDO[idx]->CANdevTx = CANdevTx;
+        SDO[idx]->CANdevTxIdx = CANdevTxIdx + idx;
+
+        if (idx == 0) {
+            /* configure default SDO as owner of OD */
+            SDO[0]->ownOD = true;
+            SDO[0]->OD = OD;
+            SDO[0]->ODSize = ODSize;
+            SDO[0]->ODExtensions = ODExtensions;
+
+            /* clear pointers in ODExtensions */
+            for(i=0U; i<ODSize; i++){
+                SDO[0]->ODExtensions[i].pODFunc = NULL;
+                SDO[0]->ODExtensions[i].object = NULL;
+                SDO[0]->ODExtensions[i].flags = NULL;
+            }
+
+            /* configure default SDO CAN communication */
+            CO_SDO_initBuffers(
+                    SDO[0],
+                    CO_CAN_ID_RSDO + nodeId,
+                    CO_CAN_ID_TSDO + nodeId);
+        } else {
+            /* refer extra SDO Object dictionary to OD of default SDO */
+            SDO[idx]->ownOD = false;
+            SDO[idx]->OD = SDO[0]->OD;
+            SDO[idx]->ODSize = SDO[0]->ODSize;
+            SDO[idx]->ODExtensions = SDO[0]->ODExtensions;
+
+            /* configure extra SDO CAN communication */
+            CO_SDO_initBuffers(
+                    SDO[idx],
+                    OD_SDOServerParameter[idx].COB_IDClientToServer,
+                    OD_SDOServerParameter[idx].COB_IDServerToClient);
+        }
+
+        /* Configure Object dictionary to accessing parameters of each SDO servers */
+        CO_OD_configure(SDO[0], OD_H1200_SDO_SERVER_PARAM+idx, CO_SDO_ODF_12xx, (void*)SDO, 0U, 0U);
+    }
 
     return CO_ERROR_NO;
 }

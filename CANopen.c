@@ -526,34 +526,16 @@ CO_ReturnError_t CO_CANopenInit(
         return CO_ERROR_PARAMETERS;
     }
 
-    for (i=0; i<CO_NO_SDO_SERVER; i++)
-    {
-        uint32_t COB_IDClientToServer;
-        uint32_t COB_IDServerToClient;
-        if(i==0){
-            /*Default SDO server must be located at first index*/
-            COB_IDClientToServer = CO_CAN_ID_RSDO + nodeId;
-            COB_IDServerToClient = CO_CAN_ID_TSDO + nodeId;
-        }else{
-            COB_IDClientToServer = OD_SDOServerParameter[i].COB_IDClientToServer;
-            COB_IDServerToClient = OD_SDOServerParameter[i].COB_IDServerToClient;
-        }
-
-        err = CO_SDO_init(
-                CO->SDO[i],
-                COB_IDClientToServer,
-                COB_IDServerToClient,
-                OD_H1200_SDO_SERVER_PARAM+i,
-                i==0 ? 0 : CO->SDO[0],
-               &CO_OD[0],
-                CO_OD_NoOfElements,
-                CO_SDO_ODExtensions,
-                nodeId,
-                CO->CANmodule[0],
-                CO_RXCAN_SDO_SRV+i,
-                CO->CANmodule[0],
-                CO_TXCAN_SDO_SRV+i);
-    }
+    err = CO_SDO_init(
+            CO->SDO,
+           &CO_OD[0],
+            CO_OD_NoOfElements,
+            CO_SDO_ODExtensions,
+            nodeId,
+            CO->CANmodule[0],
+            CO_RXCAN_SDO_SRV,
+            CO->CANmodule[0],
+            CO_TXCAN_SDO_SRV);
 
     if(err){return err;}
 

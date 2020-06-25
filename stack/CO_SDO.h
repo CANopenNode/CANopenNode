@@ -651,7 +651,13 @@ typedef struct{
     /** From CO_SDO_initCallback() or NULL */
     void              (*pFunctSignal)(void);
     /** From CO_SDO_init() */
+    CO_CANmodule_t     *CANdevRx;
+    /** From CO_SDO_init() */
+    uint16_t            CANdevRxIdx;
+    /** From CO_SDO_init() */
     CO_CANmodule_t     *CANdevTx;
+    /** From CO_SDO_init() */
+    uint16_t            CANdevTxIdx;
     /** CAN transmit buffer inside CANdev for CAN tx message */
     CO_CANtx_t         *CANtxBuff;
 }CO_SDO_t;
@@ -757,36 +763,25 @@ void CO_memcpySwap8(void* dest, const void* src);
 
 
 /**
- * Initialize SDO object.
+ * Initialize SDO objects.
  *
  * Function must be called in the communication reset section.
  *
- * @param SDO This object will be initialized.
- * @param COB_IDClientToServer COB ID for client to server for this SDO object.
- * @param COB_IDServerToClient COB ID for server to client for this SDO object.
- * @param ObjDictIndex_SDOServerParameter Index in Object dictionary.
- * @param parentSDO Pointer to SDO object, which contains object dictionary and
- * its extension. For first (default) SDO object this argument must be NULL.
- * If this argument is specified, then OD, ODSize and ODExtensions arguments
- * are ignored.
+ * @param SDO Pointer to array of SDO objects that will be initialized.
  * @param OD Pointer to @ref CO_SDO_objectDictionary array defined externally.
  * @param ODSize Size of the above array.
  * @param ODExtensions Pointer to the externally defined array of the same size
  * as ODSize.
  * @param nodeId CANopen Node ID of this device.
  * @param CANdevRx CAN device for SDO server reception.
- * @param CANdevRxIdx Index of receive buffer in the above CAN device.
+ * @param CANdevRxIdx Index of default SDO receive buffer in the above CAN device.
  * @param CANdevTx CAN device for SDO server transmission.
- * @param CANdevTxIdx Index of transmit buffer in the above CAN device.
+ * @param CANdevTxIdx Index of default SDO transmit buffer in the above CAN device.
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_SDO_init(
-        CO_SDO_t               *SDO,
-        uint32_t                COB_IDClientToServer,
-        uint32_t                COB_IDServerToClient,
-        uint16_t                ObjDictIndex_SDOServerParameter,
-        CO_SDO_t               *parentSDO,
+        CO_SDO_t               *SDO[],
         const CO_OD_entry_t     OD[],
         uint16_t                ODSize,
         CO_OD_extension_t       ODExtensions[],
