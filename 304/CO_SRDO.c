@@ -489,7 +489,7 @@ CO_ReturnError_t CO_SRDOGuard_init(
     CO_OD_configure(SDO, idx_SRDOvalid, CO_ODF_SRDOvalid, (void*)SRDOGuard, 0, 0);
     CO_OD_configure(SDO, idx_SRDOcrc, CO_ODF_SRDOcrc, (void*)SRDOGuard, 0, 0);
 
-    return CO_ERROR_NO; 
+    return CO_ERROR_NO;
 }
 
 uint8_t CO_SRDOGuard_process(
@@ -591,10 +591,10 @@ CO_ReturnError_t CO_SRDO_init(
 
     return CO_ERROR_NO;
 }
-        
+
 void CO_SRDO_process(
         CO_SRDO_t              *SRDO,
-        uint8_t                 commands,       
+        uint8_t                 commands,
         uint32_t                timeDifference_us,
         uint32_t               *timerNext_us)
 {
@@ -655,7 +655,7 @@ void CO_SRDO_process(
                         /* Copy data from Object dictionary. */
                         for(i = 0; i<SRDO->dataLength; i++){
                             pPDOdataByte_normal[i] = *(ppODdataByte_normal[i]);
-                            pPDOdataByte_inverted[i] = *(ppODdataByte_inverted[i]);                   
+                            pPDOdataByte_inverted[i] = *(ppODdataByte_inverted[i]);
                         }
 
                         CO_CANsend(SRDO->CANdevTx, SRDO->CANtxBuff[0]);
@@ -691,7 +691,7 @@ void CO_SRDO_process(
                     uint8_t** ppODdataByte_normal;
                     uint8_t** ppODdataByte_inverted;
                     bool_t data_ok = true;
-                    
+
                     pPDOdataByte_normal = &SRDO->CANrxData[0][0];
                     pPDOdataByte_inverted = &SRDO->CANrxData[1][0];
                     for(i = 0; i<SRDO->dataLength; i++){

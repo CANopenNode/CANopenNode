@@ -41,7 +41,7 @@ extern "C" {
  * @{
  *
  * CANopen Safety Related Data Object protocol.
- * 
+ *
  * The functionality is very similar to that of the PDOs.
  * The main differences is every message is send and received twice.
  * The second message must be bitwise inverted. The delay between the two messages and between each message pair is monitored.
@@ -155,16 +155,16 @@ typedef struct{
 
 /**
  * Initialize SRDOGuard object.
- * 
+ *
  * Function must be called in the communication reset section.
- * 
+ *
  * @param SRDOGuard This object will be initialized.
  * @param SDO SDO object.
  * @param operatingState Pointer to variable indicating CANopen device NMT internal state.
  * @param configurationValid Pointer to variable with the SR valid flag
  * @param idx_SRDOvalid Index in Object Dictionary
  * @param idx_SRDOcrc Index in Object Dictionary
- * 
+ *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_SRDOGuard_init(
@@ -177,7 +177,7 @@ CO_ReturnError_t CO_SRDOGuard_init(
 
 /**
  * Process operation and valid state changes.
- * 
+ *
  * @param SRDOGuard This object.
  * @return uint8_t command for CO_SRDO_process().
  * - bit 0 entered operational
@@ -188,9 +188,9 @@ uint8_t CO_SRDOGuard_process(
 
 /**
  * Initialize SRDO object.
- * 
+ *
  * Function must be called in the communication reset section.
- * 
+ *
  * @param SRDO This object will be initialized.
  * @param SRDOGuard SRDOGuard object.
  * @param em Emergency object.
@@ -201,7 +201,7 @@ uint8_t CO_SRDOGuard_process(
  * dictionary (index 0x1301+).
  * @param SRDOMapPar Pointer to _SRDO mapping parameter_ record from Object
  * dictionary (index 0x1381+).
- * @param checksum 
+ * @param checksum
  * @param idx_SRDOCommPar Index in Object Dictionary
  * @param idx_SRDOMapPar Index in Object Dictionary
  * @param CANdevRx CAN device used for SRDO reception.
@@ -210,7 +210,7 @@ uint8_t CO_SRDOGuard_process(
  * @param CANdevTx CAN device used for SRDO transmission.
  * @param CANdevTxIdxNormal Index of transmit buffer in the above CAN device.
  * @param CANdevTxIdxInverted Index of transmit buffer in the above CAN device.
- * 
+ *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_SRDO_init(
@@ -251,13 +251,13 @@ void CO_SRDO_initCallbackPre(
 #endif
 
 /**
- * Initialize SRDO callback function. 
- * 
+ * Initialize SRDO callback function.
+ *
  * Function initializes optional callback function, that is called when SRDO enters a safe state.
  * This happens when a timeout is reached or the data is inconsistent. The safe state itself is not further defined.
  * One measure, for example, would be to go back to the pre-operational state
  * Callback is called from CO_SRDO_process().
- * 
+ *
  * @param SRDO  This object.
  * @param object Pointer to object, which will be passed to pFunctSignalSafe(). Can be NULL
  * @param pFunctSignalSafe Pointer to the callback function. Not called if NULL.
@@ -269,10 +269,10 @@ void CO_SRDO_initCallbackEnterSafeState(
 
 /**
  * Process transmitting/receiving SRDO messages.
- * 
+ *
  *  This function verifies the checksum on demand.
  *  This function also configures the SRDO on operation state change to operational
- * 
+ *
  * @param SRDO This object.
  * @param commands result from CO_SRDOGuard_process().
  * @param timeDifference_us Time difference from previous function call in [microseconds].
@@ -290,4 +290,3 @@ void CO_SRDO_process(
 
 /** @} */
 #endif
-
