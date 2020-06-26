@@ -669,6 +669,8 @@ uint32_t CO_SDO_writeOD(CO_SDO_t *SDO, uint16_t length){
 
 /******************************************************************************/
 static void CO_SDO_process_done(CO_SDO_t *SDO, uint32_t *timerNext_us) {
+    (void)timerNext_us; /* may be unused */
+
 #if CO_SDO_RX_DATA_SIZE > 1
     uint8_t proc = SDO->CANrxProc;
     uint8_t newProc = proc;
@@ -684,7 +686,6 @@ static void CO_SDO_process_done(CO_SDO_t *SDO, uint32_t *timerNext_us) {
         timerNext_us = 0; /* Set timerNext_us to 0 to inform OS to call CO_SDO_process function again without delay. */
 #endif
 #else
-    (void)(timerNext_us);
     CO_FLAG_CLEAR(SDO->CANrxNew[0]);
 #endif
 }

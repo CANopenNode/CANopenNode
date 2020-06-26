@@ -56,6 +56,8 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
                      bool_t firmwareDownload,
                      uint32_t *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
+
     uint8_t rd = 0;
     uint8_t gr = 0;
     bool_t tick = false;

@@ -382,6 +382,8 @@ CO_SDOclient_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                                            size_t *sizeTransferred,
                                            uint32_t *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
+
     CO_SDOclient_return_t ret = CO_SDOcli_waitingServerResponse;
     CO_SDO_abortCode_t abortCode = CO_SDO_AB_NONE;
 
@@ -904,6 +906,8 @@ CO_SDOclient_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                                          size_t *sizeTransferred,
                                          uint32_t *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
+
     CO_SDOclient_return_t ret = CO_SDOcli_waitingServerResponse;
     CO_SDO_abortCode_t abortCode = CO_SDO_AB_NONE;
 

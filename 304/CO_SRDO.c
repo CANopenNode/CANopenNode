@@ -598,6 +598,8 @@ void CO_SRDO_process(
         uint32_t                timeDifference_us,
         uint32_t               *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
+
     if(commands & (1<<1)){
         uint16_t crcValue = CO_SRDOcalcCrc(SRDO->SRDOCommPar, SRDO->SRDOMapPar);
         if (*SRDO->checksum != crcValue)
@@ -648,8 +650,6 @@ void CO_SRDO_process(
                             break;
                         }
                     }
-#else
-                    (void)timerNext_us;
 #endif
                     if(data_ok){
                         /* Copy data from Object dictionary. */
