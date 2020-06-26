@@ -29,6 +29,9 @@
 #define CO_GATEWAY_ASCII_H
 
 #include "301/CO_driver.h"
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+
 #include "301/CO_fifo.h"
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
 #include "301/CO_SDOserver.h"
@@ -525,6 +528,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
+
+#endif  /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
 
 /** @} */
 #endif /* CO_GATEWAY_ASCII_H */

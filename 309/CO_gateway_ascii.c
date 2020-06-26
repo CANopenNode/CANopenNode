@@ -32,6 +32,7 @@
 
 #include "309/CO_gateway_ascii.h"
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
 
 /******************************************************************************/
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
@@ -1961,3 +1962,5 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     }
 
 }
+
+#endif  /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
