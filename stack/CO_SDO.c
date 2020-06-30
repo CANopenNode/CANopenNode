@@ -775,14 +775,21 @@ static void CO_SDO_process_done(CO_SDO_t *SDO, uint16_t *timerNext_ms) {
     uint8_t proc = SDO->CANrxProc;
     uint8_t newProc = proc;
 
+    /* check if buffer needs to be free */
+    if (!IS_CANrxNew(SDO->CANrxNew[proc])){
+        return;
+    }
+
     if (++newProc >= CO_SDO_RX_DATA_SIZE)
         newProc = 0;
 
     SDO->CANrxProc = newProc;
     CLEAR_CANrxNew(SDO->CANrxNew[proc]);
 
-    if ((timerNext_ms != NULL) && (IS_CANrxNew(SDO->CANrxNew[newProc])))
-        timerNext_ms = 0; /* Set timerNext_ms to 0 to inform OS to call CO_SDO_process function again without delay. */
+    if ((timerNext_ms != NULL) && (IS_CANrxNew(SDO->CANrxNew[newProc]))){
+        /* Set timerNext_ms to 0 to inform OS to call CO_SDO_process function again without delay */
+        timerNext_ms = 0;
+    }
 #else
     (void)(timerNext_ms);
     CLEAR_CANrxNew(SDO->CANrxNew[0]);
@@ -797,9 +804,11 @@ static void CO_SDO_abort(CO_SDO_t *SDO, uint32_t code){
     SDO->CANtxBuff->data[3] = SDO->ODF_arg.subIndex;
     CO_memcpySwap4(&SDO->CANtxBuff->data[4], &code);
     SDO->state = CO_SDO_ST_IDLE;
-    /* skip all received message in queue */
+
+    /* skip all received message in queue if any */
     while (IS_CANrxNew(SDO->CANrxNew[SDO->CANrxProc]))
         CO_SDO_process_done(SDO, NULL);
+
     CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
 }
 
@@ -827,6 +836,8 @@ int8_t CO_SDO_process(
     /* SDO is allowed to work only in operational or pre-operational NMT state */
     if(!NMTisPreOrOperational){
         SDO->state = CO_SDO_ST_IDLE;
+
+        /* free receive buffer if it is not empty */
         CO_SDO_process_done(SDO, timerNext_ms);
         return 0;
     }
@@ -1516,9 +1527,7 @@ int8_t CO_SDO_process(
     }
 
     /* free receive buffer if it is not empty */
-    if (isNew) {
-        CO_SDO_process_done(SDO, timerNext_ms);
-    }
+    CO_SDO_process_done(SDO, timerNext_ms);
 
     /* send message */
     if(sendResponse) {
