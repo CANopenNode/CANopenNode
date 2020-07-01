@@ -32,6 +32,7 @@
 
 #include "309/CO_gateway_ascii.h"
 
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
 
 /******************************************************************************/
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
@@ -578,6 +579,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                      uint32_t timeDifference_us,
                      uint32_t *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
+
     bool_t err = false; /* syntax or other error, true or false, I/O variable */
     char closed; /* indication of command delimiter, I/O variable */
     CO_GTWA_respErrorCode_t respErrorCode = CO_GTWA_respErrorNone;
@@ -1959,3 +1962,5 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     }
 
 }
+
+#endif  /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */

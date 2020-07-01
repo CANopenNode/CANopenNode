@@ -206,6 +206,8 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         const uint8_t           errorBehavior[],
         uint32_t               *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
+
     uint8_t CANpassive;
     CO_NMT_internalState_t currentOperatingState = NMT->operatingState;
     uint32_t HBtime = (uint32_t)HBtime_ms * 1000;

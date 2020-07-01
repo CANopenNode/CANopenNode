@@ -29,18 +29,21 @@
 #define CO_GATEWAY_ASCII_H
 
 #include "301/CO_driver.h"
+
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
+
 #include "301/CO_fifo.h"
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
 #include "301/CO_SDOserver.h"
 #include "301/CO_SDOclient.h"
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
 #include "301/CO_NMT_Heartbeat.h"
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
 #include "305/CO_LSSmaster.h"
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) || defined CO_DOXYGEN
 #include "303/CO_LEDs.h"
 #endif
 
@@ -525,6 +528,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
+
+#endif  /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
 
 /** @} */
 #endif /* CO_GATEWAY_ASCII_H */

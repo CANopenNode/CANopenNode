@@ -353,6 +353,8 @@ CO_SYNC_status_t CO_SYNC_process(
         uint32_t                ObjDict_synchronousWindowLength,
         uint32_t               *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
+
     CO_SYNC_status_t ret = CO_SYNC_NONE;
     uint32_t timerNew;
 

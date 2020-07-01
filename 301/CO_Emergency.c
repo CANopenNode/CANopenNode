@@ -265,6 +265,7 @@ void CO_EM_process(
         uint16_t                emInhTime_100us,
         uint32_t               *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
 
     CO_EM_t *em = emPr->em;
     uint8_t errorRegister;

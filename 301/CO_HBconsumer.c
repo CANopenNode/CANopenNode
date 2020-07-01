@@ -317,6 +317,8 @@ void CO_HBconsumer_process(
         uint32_t                timeDifference_us,
         uint32_t               *timerNext_us)
 {
+    (void)timerNext_us; /* may be unused */
+
     uint8_t i;
     bool_t allMonitoredActiveCurrent = true;
     uint8_t allMonitoredOperationalCurrent = CO_NMT_OPERATIONAL;

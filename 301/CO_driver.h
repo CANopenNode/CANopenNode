@@ -57,6 +57,15 @@ extern "C" {
 #define CO_CONFIG_HB_CONS (0)
 #endif
 
+#ifndef CO_CONFIG_GFC
+#define CO_CONFIG_GFC (0)
+#endif
+
+#ifndef CO_CONFIG_SRDO
+#define CO_CONFIG_SRDO (0)
+#define CO_CONFIG_SRDO_MINIMUM_DELAY 0
+#endif
+
 #ifndef CO_CONFIG_PDO
 #define CO_CONFIG_PDO (CO_CONFIG_PDO_SYNC_ENABLE)
 #endif
