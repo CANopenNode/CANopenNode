@@ -376,7 +376,7 @@ int main (int argc, char *argv[]) {
         /* Wait rt_thread. */
         if(!firstRun) {
             CO_LOCK_OD();
-            CO->CANmodule[0]->CANnormal = false;
+            CO->CANmodule->CANnormal = false;
             CO_UNLOCK_OD();
         }
 
@@ -480,7 +480,7 @@ int main (int argc, char *argv[]) {
 
 
         /* start CAN */
-        CO_CANsetNormalMode(CO->CANmodule[0]);
+        CO_CANsetNormalMode(CO->CANmodule);
 
         reset = CO_RESET_NOT;
 

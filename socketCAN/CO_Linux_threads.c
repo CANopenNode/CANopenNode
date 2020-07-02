@@ -554,14 +554,14 @@ uint32_t CANrx_threadTmr_process(void)
     bool_t syncWas;
     uint64_t missed = 0;
 
-    result = CO_CANrxWait(CO->CANmodule[0], threadRT.interval_fd, NULL);
+    result = CO_CANrxWait(CO->CANmodule, threadRT.interval_fd, NULL);
     if (result < 0) {
         result = read(threadRT.interval_fd, &missed, sizeof(missed));
         if (result > 0) {
         /* at least one timer interval occurred */
         CO_LOCK_OD();
 
-        if(CO->CANmodule[0]->CANnormal) {
+        if(CO->CANmodule->CANnormal) {
 
             for (i = 0; i <= missed; i++) {
 

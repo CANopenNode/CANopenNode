@@ -119,7 +119,7 @@ int main (void){
 
 
         /* start CAN */
-        CO_CANsetNormalMode(CO->CANmodule[0]);
+        CO_CANsetNormalMode(CO->CANmodule);
 
         reset = CO_RESET_NOT;
         timer1msPrevious = CO_timer1ms;
@@ -173,7 +173,7 @@ void tmrTask_thread(void){
 
         INCREMENT_1MS(CO_timer1ms);
 
-        if(CO->CANmodule[0]->CANnormal) {
+        if(CO->CANmodule->CANnormal) {
             bool_t syncWas;
 
             /* Process Sync */

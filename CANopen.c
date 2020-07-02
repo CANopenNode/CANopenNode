@@ -141,8 +141,8 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO = &COO;
 
     /* CANmodule */
-    CO->CANmodule[0] = (CO_CANmodule_t *)calloc(1, sizeof(CO_CANmodule_t));
-    if (CO->CANmodule[0] == NULL) errCnt++;
+    CO->CANmodule = calloc(1, sizeof(CO_CANmodule_t));
+    if (CO->CANmodule == NULL) errCnt++;
     CO_CANmodule_rxArray0 =
         (CO_CANrx_t *)calloc(CO_RXCAN_NO_MSGS, sizeof(CO_CANrx_t));
     if (CO_CANmodule_rxArray0 == NULL) errCnt++;
@@ -310,7 +310,7 @@ void CO_delete(void *CANptr) {
         return;
     }
 
-    CO_CANmodule_disable(CO->CANmodule[0]);
+    CO_CANmodule_disable(CO->CANmodule);
 
 #if CO_NO_TRACE > 0
     /* Trace */
@@ -396,7 +396,7 @@ void CO_delete(void *CANptr) {
     /* CANmodule */
     free(CO_CANmodule_txArray0);
     free(CO_CANmodule_rxArray0);
-    free(CO->CANmodule[0]);
+    free(CO->CANmodule);
 
     /* globals */
     CO = NULL;
@@ -467,7 +467,7 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO = &COO;
 
     /* CANmodule */
-    CO->CANmodule[0] = &COO_CANmodule;
+    CO->CANmodule = &COO_CANmodule;
     CO_CANmodule_rxArray0 = &COO_CANmodule_rxArray0[0];
     CO_CANmodule_txArray0 = &COO_CANmodule_txArray0[0];
 
@@ -580,11 +580,11 @@ CO_ReturnError_t CO_CANinit(void *CANptr,
 {
     CO_ReturnError_t err;
 
-    CO->CANmodule[0]->CANnormal = false;
+    CO->CANmodule->CANnormal = false;
     CO_CANsetConfigurationMode(CANptr);
 
     /* CANmodule */
-    err = CO_CANmodule_init(CO->CANmodule[0],
+    err = CO_CANmodule_init(CO->CANmodule,
                             CANptr,
                             CO_CANmodule_rxArray0,
                             CO_RXCAN_NO_MSGS,
@@ -614,10 +614,10 @@ CO_ReturnError_t CO_LSSinit(uint8_t *nodeId,
                            lssAddress,
                            bitRate,
                            nodeId,
-                           CO->CANmodule[0],
+                           CO->CANmodule,
                            CO_RXCAN_LSS_SLV,
                            CO_CAN_ID_LSS_SRV,
-                           CO->CANmodule[0],
+                           CO->CANmodule,
                            CO_TXCAN_LSS_SLV,
                            CO_CAN_ID_LSS_CLI);
 
@@ -700,9 +700,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                           CO_SDO_ODExtensions,
                           nodeId,
                           1000,
-                          CO->CANmodule[0],
+                          CO->CANmodule,
                           CO_RXCAN_SDO_SRV + i,
-                          CO->CANmodule[0],
+                          CO->CANmodule,
                           CO_TXCAN_SDO_SRV + i);
 
         if (err) return err;
@@ -718,9 +718,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                      &OD_errorRegister,
                      &OD_preDefinedErrorField[0],
                      ODL_preDefinedErrorField_arrayLength,
-                     CO->CANmodule[0],
+                     CO->CANmodule,
                      CO_RXCAN_EMERG,
-                     CO->CANmodule[0],
+                     CO->CANmodule,
                      CO_TXCAN_EMERG,
                      (uint16_t)CO_CAN_ID_EMERGENCY + nodeId);
 
@@ -731,13 +731,13 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                       CO->emPr,
                       nodeId,
                       500,
-                      CO->CANmodule[0],
+                      CO->CANmodule,
                       CO_RXCAN_NMT,
                       CO_CAN_ID_NMT_SERVICE,
-                      CO->CANmodule[0],
+                      CO->CANmodule,
                       CO_TXCAN_NMT,
                       CO_CAN_ID_NMT_SERVICE,
-                      CO->CANmodule[0],
+                      CO->CANmodule,
                       CO_TXCAN_HB,
                       CO_CAN_ID_HEARTBEAT + nodeId);
 
@@ -752,9 +752,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                        OD_COB_ID_SYNCMessage,
                        OD_communicationCyclePeriod,
                        OD_synchronousCounterOverflowValue,
-                       CO->CANmodule[0],
+                       CO->CANmodule,
                        CO_RXCAN_SYNC,
-                       CO->CANmodule[0],
+                       CO->CANmodule,
                        CO_TXCAN_SYNC);
 
     if (err) return err;
@@ -768,9 +768,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                        &CO->NMT->operatingState,
                        OD_COB_ID_TIME,
                        0,
-                       CO->CANmodule[0],
+                       CO->CANmodule,
                        CO_RXCAN_TIME,
-                       CO->CANmodule[0],
+                       CO->CANmodule,
                        CO_TXCAN_TIME);
 
     if (err) return err;
@@ -780,10 +780,10 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* GFC */
     CO_GFC_init(CO->GFC,
                 &OD_globalFailSafeCommandParameter,
-                CO->CANmodule[0],
+                CO->CANmodule,
                 CO_RXCAN_GFC,
                 CO_CAN_ID_GFC,
-                CO->CANmodule[0],
+                CO->CANmodule,
                 CO_TXCAN_GFC,
                 CO_CAN_ID_GFC);
 #endif
@@ -799,7 +799,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     if (err) return err;
 
     for (i = 0; i < CO_NO_SRDO; i++) {
-        CO_CANmodule_t *CANdev = CO->CANmodule[0];
+        CO_CANmodule_t *CANdev = CO->CANmodule;
         uint16_t CANdevRxIdx = CO_RXCAN_SRDO + 2*i;
         uint16_t CANdevTxIdx = CO_TXCAN_SRDO + 2*i;
 
@@ -826,7 +826,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 
     /* RPDO */
     for (i = 0; i < CO_NO_RPDO; i++) {
-        CO_CANmodule_t *CANdevRx = CO->CANmodule[0];
+        CO_CANmodule_t *CANdevRx = CO->CANmodule;
         uint16_t CANdevRxIdx = CO_RXCAN_RPDO + i;
 
         err = CO_RPDO_init(CO->RPDO[i],
@@ -865,7 +865,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                            (CO_TPDOMapPar_t *)&OD_TPDOMappingParameter[i],
                            OD_H1800_TXPDO_1_PARAM + i,
                            OD_H1A00_TXPDO_1_MAPPING + i,
-                           CO->CANmodule[0],
+                           CO->CANmodule,
                            CO_TXCAN_TPDO + i);
 
         if (err) return err;
@@ -878,7 +878,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                              &OD_consumerHeartbeatTime[0],
                              CO_HBcons_monitoredNodes,
                              CO_NO_HB_CONS,
-                             CO->CANmodule[0],
+                             CO->CANmodule,
                              CO_RXCAN_CONS_HB);
 
     if (err) return err;
@@ -889,9 +889,9 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
         err = CO_SDOclient_init(CO->SDOclient[i],
                                 (void *)CO->SDO[0],
                                 (CO_SDOclientPar_t *)&OD_SDOClientParameter[i],
-                                CO->CANmodule[0],
+                                CO->CANmodule,
                                 CO_RXCAN_SDO_CLI + i,
-                                CO->CANmodule[0],
+                                CO->CANmodule,
                                 CO_TXCAN_SDO_CLI + i);
 
         if (err) return err;
@@ -902,10 +902,10 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* LSSmaster */
     err = CO_LSSmaster_init(CO->LSSmaster,
                             CO_LSSmaster_DEFAULT_TIMEOUT,
-                            CO->CANmodule[0],
+                            CO->CANmodule,
                             CO_RXCAN_LSS_MST,
                             CO_CAN_ID_LSS_CLI,
-                            CO->CANmodule[0],
+                            CO->CANmodule,
                             CO_TXCAN_LSS_MST,
                             CO_CAN_ID_LSS_SRV);
 
@@ -968,7 +968,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
 
-    CO_CANmodule_process(CO->CANmodule[0]);
+    CO_CANmodule_process(CO->CANmodule);
 
 #if CO_NO_LSS_SLAVE == 1
     bool_t resetLSS = CO_LSSslave_process(co->LSSslave);
@@ -976,7 +976,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     bool_t unc = co->nodeIdUnconfigured;
-    uint16_t CANerrorStatus = CO->CANmodule[0]->CANerrorStatus;
+    uint16_t CANerrorStatus = CO->CANmodule->CANerrorStatus;
     CO_LEDs_process(co->LEDs,
                     timeDifference_us,
                     unc ? CO_NMT_INITIALIZING : co->NMT->operatingState,
@@ -1084,7 +1084,7 @@ bool_t CO_process_SYNC(CO_t *co,
         syncWas = true;
         break;
     case CO_SYNC_OUTSIDE_WINDOW:
-        CO_CANclearPendingSyncPDOs(co->CANmodule[0]);
+        CO_CANclearPendingSyncPDOs(co->CANmodule);
         break;
     }
 
