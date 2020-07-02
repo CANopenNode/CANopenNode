@@ -174,7 +174,7 @@
 /** Number of GFC objects, 0 or 1 (consumer(CANrx) + producer(CANtx)) */
 #define CO_NO_GFC (0 - 1)
 /** Number of SRDO objects, 0 to 64 (consumer(CANrx) + producer(CANtx)) */
-#define CO_NO_RPDO (0 - 64)
+#define CO_NO_SRDO (0 - 64)
 /** Number of RPDO objects, 1 to 512 consumers (CANrx) */
 #define CO_NO_RPDO (1 - 512)
 /** Number of TPDO objects, 1 to 512 producers (CANtx) */
