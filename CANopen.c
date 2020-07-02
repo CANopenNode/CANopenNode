@@ -220,11 +220,13 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO_memoryUsed += sizeof(CO_RPDO_t) * CO->rpdoCount;
 
     /* TPDO */
-    for (i = 0; i < CO_NO_TPDO; i++) {
-        CO->TPDO[i] = (CO_TPDO_t *)calloc(1, sizeof(CO_TPDO_t));
-        if (CO->TPDO[i] == NULL) errCnt++;
+    CO->TPDO = calloc(CO_NO_TPDO, sizeof(CO_TPDO_t));
+    if (CO->TPDO == NULL) {
+        errCnt++;
+    } else {
+        CO->tpdoCount = CO_NO_TPDO;
     }
-    CO_memoryUsed += sizeof(CO_TPDO_t) * CO_NO_TPDO;
+    CO_memoryUsed += sizeof(CO_TPDO_t) * CO->tpdoCount;
 
     /* Heartbeat consumer */
     CO->HBcons = (CO_HBconsumer_t *)calloc(1, sizeof(CO_HBconsumer_t));
@@ -365,9 +367,7 @@ void CO_delete(void *CANptr) {
 #endif
 
     /* TPDO */
-    for (i = 0; i < CO_NO_TPDO; i++) {
-        free(CO->TPDO[i]);
-    }
+    free(CO->TPDO);
 
     /* RPDO */
     free(CO->RPDO);
@@ -513,9 +513,8 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO->rpdoCount = sizeof(COO_RPDO) / sizeof(*COO_RPDO);
 
     /* TPDO */
-    for (i = 0; i < CO_NO_TPDO; i++) {
-        CO->TPDO[i] = &COO_TPDO[i];
-    }
+    CO->TPDO = COO_TPDO;
+    CO->tpdoCount = sizeof(COO_TPDO) / sizeof(*COO_TPDO);
 
     /* Heartbeat consumer */
     CO->HBcons = &COO_HBcons;
@@ -848,8 +847,8 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     }
 
     /* TPDO */
-    for (i = 0; i < CO_NO_TPDO; i++) {
-        err = CO_TPDO_init(CO->TPDO[i],
+    for (i = 0; i < CO->tpdoCount; i++) {
+        err = CO_TPDO_init(&CO->TPDO[i],
                            CO->em,
                            &CO->SDO[0],
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
@@ -1124,10 +1123,10 @@ void CO_process_TPDO(CO_t *co,
 #endif
 
     /* Verify PDO Change Of State and process PDOs */
-    for (i = 0; i < CO_NO_TPDO; i++) {
-        if (!co->TPDO[i]->sendRequest)
-            co->TPDO[i]->sendRequest = CO_TPDOisCOS(co->TPDO[i]);
-        CO_TPDO_process(co->TPDO[i], syncWas, timeDifference_us, timerNext_us);
+    for (i = 0; i < co->tpdoCount; i++) {
+        if (!co->TPDO[i].sendRequest)
+            co->TPDO[i].sendRequest = CO_TPDOisCOS(&co->TPDO[i]);
+        CO_TPDO_process(&co->TPDO[i], syncWas, timeDifference_us, timerNext_us);
     }
 }
 
