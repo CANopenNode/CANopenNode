@@ -128,7 +128,6 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 /* Create objects from heap ***************************************************/
 #ifndef CO_USE_GLOBALS
 CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
-    int16_t i;
     uint16_t errCnt = 0;
     uint32_t CO_memoryUsed = 0;
 
@@ -287,7 +286,7 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
         CO->traceCount = CO_NO_TRACE;
     }
     CO_memoryUsed += sizeof(CO_trace_t) * CO->traceCount;
-    for (i = 0; i < CO->traceCount; i++) {
+    for (size_t i = 0; i < CO->traceCount; i++) {
         CO_traceTimeBuffers[i] = calloc(OD_traceConfig[i].size, sizeof(uint32_t));
         CO_traceValueBuffers[i] = calloc(OD_traceConfig[i].size, sizeof(int32_t));
         if (CO_traceTimeBuffers[i] != NULL &&
@@ -310,8 +309,6 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 
 /******************************************************************************/
 void CO_delete(void *CANptr) {
-    int16_t i;
-
     CO_CANsetConfigurationMode(CANptr);
 
     /* If CANopen isn't initialized, return. */
@@ -324,7 +321,7 @@ void CO_delete(void *CANptr) {
 #if CO_NO_TRACE > 0
     /* Trace */
     free(CO->trace);
-    for (i = 0; i < CO->traceCount; i++) {
+    for (size_t i = 0; i < CO->traceCount; i++) {
         free(CO_traceTimeBuffers[i]);
         free(CO_traceValueBuffers[i]);
     }
@@ -455,8 +452,6 @@ void CO_delete(void *CANptr) {
 #endif
 
 CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
-    int16_t i;
-
     /* If CANopen was initialized before, return. */
     if (CO != NULL) {
         return CO_ERROR_NO;
@@ -548,7 +543,7 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     /* Trace */
     CO->trace = COO_trace;
     CO->traceCount = sizeof(COO_trace) / sizeof(*COO_trace);
-    for (i = 0; i < CO->traceCount; i++) {
+    for (size_t i = 0; i < CO->traceCount; i++) {
         CO_traceTimeBuffers[i] = &COO_traceTimeBuffers[i][0];
         CO_traceValueBuffers[i] = &COO_traceValueBuffers[i][0];
         CO_traceBufferSize[i] = CO_TRACE_BUFFER_SIZE_FIXED;
@@ -623,7 +618,6 @@ CO_ReturnError_t CO_LSSinit(uint8_t *nodeId,
 
 /******************************************************************************/
 CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
-    int16_t i;
     CO_ReturnError_t err;
 
     /* Verify CANopen Node-ID */
@@ -670,7 +664,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #endif
 
     /* SDOserver */
-    for (i = 0; i < CO->sdoCount; i++) {
+    for (size_t i = 0; i < CO->sdoCount; i++) {
         uint32_t COB_IDClientToServer;
         uint32_t COB_IDServerToClient;
         if (i == 0) {
@@ -793,7 +787,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                       OD_H13FF_SRDO_CHECKSUM);
     if (err) return err;
 
-    for (i = 0; i < CO->srdoCount; i++) {
+    for (size_t i = 0; i < CO->srdoCount; i++) {
         CO_CANmodule_t *CANdev = CO->CANmodule;
         uint16_t CANdevRxIdx = CO_RXCAN_SRDO + 2*i;
         uint16_t CANdevTxIdx = CO_TXCAN_SRDO + 2*i;
@@ -820,7 +814,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #endif
 
     /* RPDO */
-    for (i = 0; i < CO->rpdoCount; i++) {
+    for (size_t i = 0; i < CO->rpdoCount; i++) {
         CO_CANmodule_t *CANdevRx = CO->CANmodule;
         uint16_t CANdevRxIdx = CO_RXCAN_RPDO + i;
 
@@ -845,7 +839,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     }
 
     /* TPDO */
-    for (i = 0; i < CO->tpdoCount; i++) {
+    for (size_t i = 0; i < CO->tpdoCount; i++) {
         err = CO_TPDO_init(&CO->TPDO[i],
                            CO->em,
                            &CO->SDO[0],
@@ -880,7 +874,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 
 #if CO_NO_SDO_CLIENT != 0
     /* SDOclient */
-    for (i = 0; i < CO->sdoClientCount; i++) {
+    for (size_t i = 0; i < CO->sdoClientCount; i++) {
         err = CO_SDOclient_init(&CO->SDOclient[i],
                                 &CO->SDO[0],
                                 (CO_SDOclientPar_t *)&OD_SDOClientParameter[i],
@@ -930,7 +924,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 
 #if CO_NO_TRACE > 0
     /* Trace */
-    for (i = 0; i < CO->traceCount; i++) {
+    for (size_t i = 0; i < CO->traceCount; i++) {
         CO_trace_init(&CO->trace[i],
                       &CO->SDO[0],
                       OD_traceConfig[i].axisNo,
@@ -959,7 +953,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                               uint32_t timeDifference_us,
                               uint32_t *timerNext_us)
 {
-    uint8_t i;
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
 
@@ -1006,7 +999,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
         NMTisPreOrOperational = true;
 
     /* SDOserver */
-    for (i = 0; i < co->sdoCount; i++) {
+    for (size_t i = 0; i < co->sdoCount; i++) {
         CO_SDO_process(&co->SDO[i],
                        NMTisPreOrOperational,
                        timeDifference_us,
@@ -1092,15 +1085,13 @@ bool_t CO_process_SYNC(CO_t *co,
 void CO_process_RPDO(CO_t *co,
                      bool_t syncWas)
 {
-    int16_t i;
-
 #if CO_NO_LSS_SLAVE == 1
     if (co->nodeIdUnconfigured) {
         return;
     }
 #endif
 
-    for (i = 0; i < co->rpdoCount; i++) {
+    for (size_t i = 0; i < co->rpdoCount; i++) {
         CO_RPDO_process(&co->RPDO[i], syncWas);
     }
 }
@@ -1112,8 +1103,6 @@ void CO_process_TPDO(CO_t *co,
                      uint32_t timeDifference_us,
                      uint32_t *timerNext_us)
 {
-    int16_t i;
-
 #if CO_NO_LSS_SLAVE == 1
     if (co->nodeIdUnconfigured) {
         return;
@@ -1121,7 +1110,7 @@ void CO_process_TPDO(CO_t *co,
 #endif
 
     /* Verify PDO Change Of State and process PDOs */
-    for (i = 0; i < co->tpdoCount; i++) {
+    for (size_t i = 0; i < co->tpdoCount; i++) {
         if (!co->TPDO[i].sendRequest)
             co->TPDO[i].sendRequest = CO_TPDOisCOS(&co->TPDO[i]);
         CO_TPDO_process(&co->TPDO[i], syncWas, timeDifference_us, timerNext_us);
@@ -1134,7 +1123,6 @@ void CO_process_SRDO(CO_t *co,
                      uint32_t timeDifference_us,
                      uint32_t *timerNext_us)
 {
-    int16_t i;
     uint8_t firstOperational;
 
 #if CO_NO_LSS_SLAVE == 1
@@ -1146,7 +1134,7 @@ void CO_process_SRDO(CO_t *co,
     firstOperational = CO_SRDOGuard_process(co->SRDOGuard);
 
     /* Verify PDO Change Of State and process PDOs */
-    for (i = 0; i < co->srdoCount; i++) {
+    for (size_t i = 0; i < co->srdoCount; i++) {
         CO_SRDO_process(&co->SRDO[i], firstOperational, timeDifference_us, timerNext_us);
     }
 }
