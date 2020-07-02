@@ -137,6 +137,7 @@
  * @{
  */
 
+    #include <stddef.h>
     #include <stdint.h>
     #include "301/CO_driver.h"
     #include "301/CO_SDOserver.h"
@@ -317,7 +318,8 @@ typedef struct {
     CO_GTWA_t *gtwa;                 /**< Gateway-ascii object (CiA309-3) */
 #endif
 #if CO_NO_TRACE > 0 || defined CO_DOXYGEN
-    CO_trace_t *trace[CO_NO_TRACE];  /**< Trace object for recording variables */
+    CO_trace_t *trace;               /**< Trace object for recording variables */
+    size_t traceCount;               /**< number of trace objects in \a trace field */
 #endif
     uint16_t rpdoCount;              /**< number of RPDO objects in \a RPDO field */
     uint16_t tpdoCount;              /**< number of TPDO objects in \a TPDO field */

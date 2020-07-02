@@ -551,8 +551,8 @@ static void* rt_thread(void* arg) {
 #if CO_NO_TRACE > 0
         /* Monitor variables with trace objects */
         CO_time_process(&CO_time);
-        for(i=0; i<OD_traceEnable && i<CO_NO_TRACE; i++) {
-            CO_trace_process(CO->trace[i], *CO_time.epochTimeOffsetMs);
+        for(i = 0; i < OD_traceEnable && i < CO->traceCount; i++) {
+            CO_trace_process(&CO->trace[i], *CO_time.epochTimeOffsetMs);
         }
 #endif
 

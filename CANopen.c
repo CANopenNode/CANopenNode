@@ -280,16 +280,16 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 
 #if CO_NO_TRACE > 0
     /* Trace */
-    for (i = 0; i < CO_NO_TRACE; i++) {
-        CO->trace[i] = (CO_trace_t *)calloc(1, sizeof(CO_trace_t));
-        if (CO->trace[i] == NULL) errCnt++;
+    CO->trace = calloc(CO_NO_TRACE, sizeof(CO_trace_t));
+    if (CO->trace == NULL) {
+        errCnt++;
+    } else {
+        CO->traceCount = CO_NO_TRACE;
     }
-    CO_memoryUsed += sizeof(CO_trace_t) * CO_NO_TRACE;
-    for (i = 0; i < CO_NO_TRACE; i++) {
-        CO_traceTimeBuffers[i] =
-            (uint32_t *)calloc(OD_traceConfig[i].size, sizeof(uint32_t));
-        CO_traceValueBuffers[i] =
-            (int32_t *)calloc(OD_traceConfig[i].size, sizeof(int32_t));
+    CO_memoryUsed += sizeof(CO_trace_t) * CO->traceCount;
+    for (i = 0; i < CO->traceCount; i++) {
+        CO_traceTimeBuffers[i] = calloc(OD_traceConfig[i].size, sizeof(uint32_t));
+        CO_traceValueBuffers[i] = calloc(OD_traceConfig[i].size, sizeof(int32_t));
         if (CO_traceTimeBuffers[i] != NULL &&
             CO_traceValueBuffers[i] != NULL) {
             CO_traceBufferSize[i] = OD_traceConfig[i].size;
@@ -323,8 +323,8 @@ void CO_delete(void *CANptr) {
 
 #if CO_NO_TRACE > 0
     /* Trace */
-    for (i = 0; i < CO_NO_TRACE; i++) {
-        free(CO->trace[i]);
+    free(CO->trace);
+    for (i = 0; i < CO->traceCount; i++) {
         free(CO_traceTimeBuffers[i]);
         free(CO_traceValueBuffers[i]);
     }
@@ -546,8 +546,9 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 
 #if CO_NO_TRACE > 0
     /* Trace */
-    for (i = 0; i < CO_NO_TRACE; i++) {
-        CO->trace[i] = &COO_trace[i];
+    CO->trace = COO_trace;
+    CO->traceCount = sizeof(COO_trace) / sizeof(*COO_trace);
+    for (i = 0; i < CO->traceCount; i++) {
         CO_traceTimeBuffers[i] = &COO_traceTimeBuffers[i][0];
         CO_traceValueBuffers[i] = &COO_traceValueBuffers[i][0];
         CO_traceBufferSize[i] = CO_TRACE_BUFFER_SIZE_FIXED;
@@ -929,8 +930,8 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 
 #if CO_NO_TRACE > 0
     /* Trace */
-    for (i = 0; i < CO_NO_TRACE; i++) {
-        CO_trace_init(CO->trace[i],
+    for (i = 0; i < CO->traceCount; i++) {
+        CO_trace_init(&CO->trace[i],
                       &CO->SDO[0],
                       OD_traceConfig[i].axisNo,
                       CO_traceTimeBuffers[i],
