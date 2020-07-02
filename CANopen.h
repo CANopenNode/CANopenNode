@@ -28,10 +28,6 @@
 #ifndef CANopen_H
 #define CANopen_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * @defgroup CO_CANopen CANopen
  * @{
@@ -275,6 +271,10 @@ extern "C" {
     #include "extra/CO_trace.h"
 #endif
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * CANopen object with pointers to all CANopenNode objects.
