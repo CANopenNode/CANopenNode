@@ -305,7 +305,7 @@ typedef struct {
 #endif
 #if CO_NO_SRDO != 0 || defined CO_DOXYGEN
     CO_SRDOGuard_t *SRDOGuard;       /**< SRDO objects */
-    CO_SRDO_t *SRDO[CO_NO_SRDO];     /**< SRDO objects */
+    CO_SRDO_t *SRDO;                 /**< SRDO objects */
 #endif
 #if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN
     CO_LSSslave_t *LSSslave;         /**< LSS slave object */
@@ -324,6 +324,9 @@ typedef struct {
     uint8_t sdoCount;                /**< number of SDO server objects in \a SDO field */
 #if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
     uint8_t sdoClientCount;          /**< number of SDO client objects in \a SDOclient field */
+#endif
+#if CO_NO_SRDO != 0 || defined CO_DOXYGEN
+    uint8_t srdoCount;               /**< number of SRDO objects in \a SRDO field */
 #endif
 } CO_t;
 

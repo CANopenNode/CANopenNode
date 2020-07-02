@@ -202,13 +202,15 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 
 #if CO_NO_SRDO != 0
     /* SRDO */
-    CO->SRDOGuard = (CO_SRDOGuard_t *)calloc(1, sizeof(CO_SRDOGuard_t));
+    CO->SRDOGuard = calloc(1, sizeof(CO_SRDOGuard_t));
     if (CO->SRDOGuard == NULL) errCnt++;
-    for (i = 0; i < CO_NO_SRDO; i++) {
-        CO->SRDO[i] = (CO_SRDO_t *)calloc(1, sizeof(CO_SRDO_t));
-        if (CO->SRDO[i] == NULL) errCnt++;
+    CO->SRDO = calloc(CO_NO_SRDO, sizeof(CO_SRDO_t));
+    if (CO->SRDO == NULL) {
+        errCnt++;
+    } else {
+        CO->srdoCount = CO_NO_SRDO;
     }
-    CO_memoryUsed += sizeof(CO_SRDO_t) * CO_NO_SRDO + sizeof(CO_SRDOGuard_t);
+    CO_memoryUsed += sizeof(CO_SRDO_t) * CO->srdoCount + sizeof(CO_SRDOGuard_t);
 #endif
     /* RPDO */
     CO->RPDO = calloc(CO_NO_RPDO, sizeof(CO_RPDO_t));
@@ -359,9 +361,7 @@ void CO_delete(void *CANptr) {
 
 #if CO_NO_SRDO != 0
     /* SRDO */
-    for (i = 0; i < CO_NO_SRDO; i++) {
-        free(CO->SRDO[i]);
-    }
+    free(CO->SRDO);
     free(CO->SRDOGuard);
 #endif
 
@@ -502,9 +502,8 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 #if CO_NO_SRDO != 0
     /* SRDO */
     CO->SRDOGuard = &COO_SRDOGuard;
-    for (i = 0; i < CO_NO_SRDO; i++) {
-        CO->SRDO[i] = &COO_SRDO[i];
-    }
+    CO->SRDO = COO_SRDO;
+    CO->srdoCount = sizeof(COO_SRDO) / sizeof(*COO_SRDO);
 #endif
 
     /* RPDO */
@@ -793,12 +792,12 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                       OD_H13FF_SRDO_CHECKSUM);
     if (err) return err;
 
-    for (i = 0; i < CO_NO_SRDO; i++) {
+    for (i = 0; i < CO->srdoCount; i++) {
         CO_CANmodule_t *CANdev = CO->CANmodule;
         uint16_t CANdevRxIdx = CO_RXCAN_SRDO + 2*i;
         uint16_t CANdevTxIdx = CO_TXCAN_SRDO + 2*i;
 
-        err = CO_SRDO_init(CO->SRDO[i],
+        err = CO_SRDO_init(&CO->SRDO[i],
                            CO->SRDOGuard,
                            CO->em,
                            &CO->SDO[0],
@@ -1146,8 +1145,8 @@ void CO_process_SRDO(CO_t *co,
     firstOperational = CO_SRDOGuard_process(co->SRDOGuard);
 
     /* Verify PDO Change Of State and process PDOs */
-    for (i = 0; i < CO_NO_SRDO; i++) {
-        CO_SRDO_process(co->SRDO[i], firstOperational, timeDifference_us, timerNext_us);
+    for (i = 0; i < co->srdoCount; i++) {
+        CO_SRDO_process(&co->SRDO[i], firstOperational, timeDifference_us, timerNext_us);
     }
 }
 #endif
