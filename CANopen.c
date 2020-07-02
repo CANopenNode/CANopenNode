@@ -239,12 +239,13 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 
 #if CO_NO_SDO_CLIENT != 0
     /* SDOclient */
-    for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
-        CO->SDOclient[i] =
-            (CO_SDOclient_t *)calloc(1, sizeof(CO_SDOclient_t));
-        if (CO->SDOclient[i] == NULL) errCnt++;
+    CO->SDOclient = calloc(CO_NO_SDO_CLIENT, sizeof(CO_SDOclient_t));
+    if (CO->SDOclient == NULL) {
+        errCnt++;
+    } else {
+        CO->sdoClientCount = CO_NO_SDO_CLIENT;
     }
-    CO_memoryUsed += sizeof(CO_SDOclient_t) * CO_NO_SDO_CLIENT;
+    CO_memoryUsed += sizeof(CO_SDOclient_t) * CO->sdoClientCount;
 #endif
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
@@ -344,9 +345,7 @@ void CO_delete(void *CANptr) {
 
 #if CO_NO_SDO_CLIENT != 0
     /* SDOclient */
-    for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
-        free(CO->SDOclient[i]);
-    }
+    free(CO->SDOclient);
 #endif
 
     /* Heartbeat consumer */
@@ -522,9 +521,8 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 
 #if CO_NO_SDO_CLIENT != 0
     /* SDOclient */
-    for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
-        CO->SDOclient[i] = &COO_SDOclient[i];
-    }
+    CO->SDOclient = COO_SDOclient;
+    CO->sdoClientCount = sizeof(COO_SDOclient) / sizeof(*COO_SDOclient);
 #endif
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
@@ -882,8 +880,8 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 
 #if CO_NO_SDO_CLIENT != 0
     /* SDOclient */
-    for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
-        err = CO_SDOclient_init(CO->SDOclient[i],
+    for (i = 0; i < CO->sdoClientCount; i++) {
+        err = CO_SDOclient_init(&CO->SDOclient[i],
                                 &CO->SDO[0],
                                 (CO_SDOclientPar_t *)&OD_SDOClientParameter[i],
                                 CO->CANmodule,
@@ -913,7 +911,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* Gateway-ascii */
     err = CO_GTWA_init(CO->gtwa,
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
-                       CO->SDOclient[0],
+                       &CO->SDOclient[0],
                        500,
                        false,
 #endif

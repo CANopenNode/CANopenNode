@@ -295,7 +295,7 @@ typedef struct {
     CO_TPDO_t *TPDO;                 /**< TPDO objects */
     CO_HBconsumer_t *HBcons;         /**< Heartbeat consumer object*/
 #if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
-    CO_SDOclient_t *SDOclient[CO_NO_SDO_CLIENT]; /**< SDO client object */
+    CO_SDOclient_t *SDOclient;       /**< SDO client objects */
 #endif
 #if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
     CO_LEDs_t *LEDs;                 /**< LEDs object */
@@ -322,6 +322,9 @@ typedef struct {
     uint16_t rpdoCount;              /**< number of RPDO objects in \a RPDO field */
     uint16_t tpdoCount;              /**< number of TPDO objects in \a TPDO field */
     uint8_t sdoCount;                /**< number of SDO server objects in \a SDO field */
+#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
+    uint8_t sdoClientCount;          /**< number of SDO client objects in \a SDOclient field */
+#endif
 } CO_t;
 
 

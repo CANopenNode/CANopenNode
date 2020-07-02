@@ -135,7 +135,7 @@ void threadMainWait_init(bool_t CANopenConfiguredOK)
     CO_EM_initCallbackPre(CO->em, NULL, threadMainWait_callback);
     CO_HBconsumer_initCallbackPre(CO->HBcons, NULL, threadMainWait_callback);
 #if CO_NO_SDO_CLIENT != 0
-    CO_SDOclient_initCallbackPre(CO->SDOclient[0], NULL,
+    CO_SDOclient_initCallbackPre(&CO->SDOclient[0], NULL,
                                  threadMainWait_callback);
 #endif
 #if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
