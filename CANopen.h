@@ -291,7 +291,7 @@ typedef struct {
     CO_SYNC_t *SYNC;                 /**< SYNC object */
 #endif
     CO_TIME_t *TIME;                 /**< TIME object */
-    CO_RPDO_t *RPDO[CO_NO_RPDO];     /**< RPDO objects */
+    CO_RPDO_t *RPDO;                 /**< RPDO objects */
     CO_TPDO_t *TPDO[CO_NO_TPDO];     /**< TPDO objects */
     CO_HBconsumer_t *HBcons;         /**< Heartbeat consumer object*/
 #if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN
@@ -319,6 +319,7 @@ typedef struct {
 #if CO_NO_TRACE > 0 || defined CO_DOXYGEN
     CO_trace_t *trace[CO_NO_TRACE];  /**< Trace object for recording variables */
 #endif
+    uint16_t rpdoCount;              /**< number of RPDO objects in \a RPDO field */
     uint8_t sdoCount;                /**< number of SDO server objects in \a SDO field */
 } CO_t;
 

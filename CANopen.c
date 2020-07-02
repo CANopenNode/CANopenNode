@@ -211,11 +211,13 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO_memoryUsed += sizeof(CO_SRDO_t) * CO_NO_SRDO + sizeof(CO_SRDOGuard_t);
 #endif
     /* RPDO */
-    for (i = 0; i < CO_NO_RPDO; i++) {
-        CO->RPDO[i] = (CO_RPDO_t *)calloc(1, sizeof(CO_RPDO_t));
-        if (CO->RPDO[i] == NULL) errCnt++;
+    CO->RPDO = calloc(CO_NO_RPDO, sizeof(CO_RPDO_t));
+    if (CO->RPDO == NULL) {
+        errCnt++;
+    } else {
+        CO->rpdoCount = CO_NO_RPDO;
     }
-    CO_memoryUsed += sizeof(CO_RPDO_t) * CO_NO_RPDO;
+    CO_memoryUsed += sizeof(CO_RPDO_t) * CO->rpdoCount;
 
     /* TPDO */
     for (i = 0; i < CO_NO_TPDO; i++) {
@@ -368,9 +370,7 @@ void CO_delete(void *CANptr) {
     }
 
     /* RPDO */
-    for (i = 0; i < CO_NO_RPDO; i++) {
-        free(CO->RPDO[i]);
-    }
+    free(CO->RPDO);
 
 #if CO_NO_TIME == 1
     /* TIME */
@@ -509,9 +509,8 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 #endif
 
     /* RPDO */
-    for (i = 0; i < CO_NO_RPDO; i++) {
-        CO->RPDO[i] = &COO_RPDO[i];
-    }
+    CO->RPDO = COO_RPDO;
+    CO->rpdoCount = sizeof(COO_RPDO) / sizeof(*COO_RPDO);
 
     /* TPDO */
     for (i = 0; i < CO_NO_TPDO; i++) {
@@ -824,11 +823,11 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #endif
 
     /* RPDO */
-    for (i = 0; i < CO_NO_RPDO; i++) {
+    for (i = 0; i < CO->rpdoCount; i++) {
         CO_CANmodule_t *CANdevRx = CO->CANmodule;
         uint16_t CANdevRxIdx = CO_RXCAN_RPDO + i;
 
-        err = CO_RPDO_init(CO->RPDO[i],
+        err = CO_RPDO_init(&CO->RPDO[i],
                            CO->em,
                            &CO->SDO[0],
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
@@ -1104,8 +1103,8 @@ void CO_process_RPDO(CO_t *co,
     }
 #endif
 
-    for (i = 0; i < CO_NO_RPDO; i++) {
-        CO_RPDO_process(co->RPDO[i], syncWas);
+    for (i = 0; i < co->rpdoCount; i++) {
+        CO_RPDO_process(&co->RPDO[i], syncWas);
     }
 }
 
