@@ -131,7 +131,7 @@ void threadMainWait_init(bool_t CANopenConfiguredOK)
 
     /* Configure callback functions */
     CO_NMT_initCallbackPre(CO->NMT, NULL, threadMainWait_callback);
-    CO_SDO_initCallbackPre(CO->SDO[0], NULL, threadMainWait_callback);
+    CO_SDO_initCallbackPre(&CO->SDO[0], NULL, threadMainWait_callback);
     CO_EM_initCallbackPre(CO->em, NULL, threadMainWait_callback);
     CO_HBconsumer_initCallbackPre(CO->HBcons, NULL, threadMainWait_callback);
 #if CO_NO_SDO_CLIENT != 0

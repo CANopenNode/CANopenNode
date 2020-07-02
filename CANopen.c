@@ -154,14 +154,16 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
                      sizeof(CO_CANtx_t) * CO_TXCAN_NO_MSGS;
 
     /* SDOserver */
-    for (i = 0; i < CO_NO_SDO_SERVER; i++) {
-        CO->SDO[i] = (CO_SDO_t *)calloc(1, sizeof(CO_SDO_t));
-        if (CO->SDO[i] == NULL) errCnt++;
+    CO->SDO = calloc(CO_NO_SDO_SERVER, sizeof(CO_SDO_t));
+    if (CO->SDO == NULL) {
+        errCnt++;
+    } else {
+        CO->sdoCount = CO_NO_SDO_SERVER;
     }
     CO_SDO_ODExtensions = (CO_OD_extension_t *)calloc(
         CO_OD_NoOfElements, sizeof(CO_OD_extension_t));
     if (CO_SDO_ODExtensions == NULL) errCnt++;
-    CO_memoryUsed += sizeof(CO_SDO_t) * CO_NO_SDO_SERVER +
+    CO_memoryUsed += sizeof(CO_SDO_t) * CO->sdoCount +
                      sizeof(CO_OD_extension_t) * CO_OD_NoOfElements;
 
     /* Emergency */
@@ -389,9 +391,7 @@ void CO_delete(void *CANptr) {
 
     /* SDOserver */
     free(CO_SDO_ODExtensions);
-    for (i = 0; i < CO_NO_SDO_SERVER; i++) {
-        free(CO->SDO[i]);
-    }
+    free(CO->SDO);
 
     /* CANmodule */
     free(CO_CANmodule_txArray0);
@@ -472,9 +472,8 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO_CANmodule_txArray0 = &COO_CANmodule_txArray0[0];
 
     /* SDOserver */
-    for (i = 0; i < CO_NO_SDO_SERVER; i++) {
-        CO->SDO[i] = &COO_SDO[i];
-    }
+    CO->SDO = COO_SDO;
+    CO->sdoCount = sizeof(COO_SDO) / sizeof(*COO_SDO);
     CO_SDO_ODExtensions = &COO_SDO_ODExtensions[0];
 
     /* Emergency */
@@ -675,7 +674,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #endif
 
     /* SDOserver */
-    for (i = 0; i < CO_NO_SDO_SERVER; i++) {
+    for (i = 0; i < CO->sdoCount; i++) {
         uint32_t COB_IDClientToServer;
         uint32_t COB_IDServerToClient;
         if (i == 0) {
@@ -690,11 +689,11 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
                 OD_SDOServerParameter[i].COB_IDServerToClient;
         }
 
-        err = CO_SDO_init(CO->SDO[i],
+        err = CO_SDO_init(&CO->SDO[i],
                           COB_IDClientToServer,
                           COB_IDServerToClient,
                           OD_H1200_SDO_SERVER_PARAM + i,
-                          i == 0 ? 0 : CO->SDO[0],
+                          i == 0 ? NULL : &CO->SDO[0],
                           &CO_OD[0],
                           CO_OD_NoOfElements,
                           CO_SDO_ODExtensions,
@@ -712,7 +711,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* Emergency */
     err = CO_EM_init(CO->em,
                      CO->emPr,
-                     CO->SDO[0],
+                     &CO->SDO[0],
                      &OD_errorStatusBits[0],
                      ODL_errorStatusBits_stringLength,
                      &OD_errorRegister,
@@ -747,7 +746,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* SYNC */
     err = CO_SYNC_init(CO->SYNC,
                        CO->em,
-                       CO->SDO[0],
+                       &CO->SDO[0],
                        &CO->NMT->operatingState,
                        OD_COB_ID_SYNCMessage,
                        OD_communicationCyclePeriod,
@@ -764,7 +763,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* TIME */
     err = CO_TIME_init(CO->TIME,
                        CO->em,
-                       CO->SDO[0],
+                       &CO->SDO[0],
                        &CO->NMT->operatingState,
                        OD_COB_ID_TIME,
                        0,
@@ -791,7 +790,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 #if CO_NO_SRDO != 0
     /* SRDO */
     err = CO_SRDOGuard_init(CO->SRDOGuard,
-                      CO->SDO[0],
+                      &CO->SDO[0],
                       &CO->NMT->operatingState,
                       &OD_configurationValid,
                       OD_H13FE_SRDO_VALID,
@@ -806,7 +805,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
         err = CO_SRDO_init(CO->SRDO[i],
                            CO->SRDOGuard,
                            CO->em,
-                           CO->SDO[0],
+                           &CO->SDO[0],
                            nodeId,
                            ((i == 0) ? CO_CAN_ID_SRDO_1 : 0),
                            (CO_SRDOCommPar_t*)&OD_SRDOCommunicationParameter[i],
@@ -831,7 +830,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
 
         err = CO_RPDO_init(CO->RPDO[i],
                            CO->em,
-                           CO->SDO[0],
+                           &CO->SDO[0],
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
                            CO->SYNC,
 #endif
@@ -853,7 +852,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     for (i = 0; i < CO_NO_TPDO; i++) {
         err = CO_TPDO_init(CO->TPDO[i],
                            CO->em,
-                           CO->SDO[0],
+                           &CO->SDO[0],
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
                            CO->SYNC,
 #endif
@@ -874,7 +873,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* Heartbeat consumer */
     err = CO_HBconsumer_init(CO->HBcons,
                              CO->em,
-                             CO->SDO[0],
+                             &CO->SDO[0],
                              &OD_consumerHeartbeatTime[0],
                              CO_HBcons_monitoredNodes,
                              CO_NO_HB_CONS,
@@ -887,7 +886,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* SDOclient */
     for (i = 0; i < CO_NO_SDO_CLIENT; i++) {
         err = CO_SDOclient_init(CO->SDOclient[i],
-                                (void *)CO->SDO[0],
+                                &CO->SDO[0],
                                 (CO_SDOclientPar_t *)&OD_SDOClientParameter[i],
                                 CO->CANmodule,
                                 CO_RXCAN_SDO_CLI + i,
@@ -937,7 +936,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     /* Trace */
     for (i = 0; i < CO_NO_TRACE; i++) {
         CO_trace_init(CO->trace[i],
-                      CO->SDO[0],
+                      &CO->SDO[0],
                       OD_traceConfig[i].axisNo,
                       CO_traceTimeBuffers[i],
                       CO_traceValueBuffers[i],
@@ -1011,8 +1010,8 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
         NMTisPreOrOperational = true;
 
     /* SDOserver */
-    for (i = 0; i < CO_NO_SDO_SERVER; i++) {
-        CO_SDO_process(co->SDO[i],
+    for (i = 0; i < co->sdoCount; i++) {
+        CO_SDO_process(&co->SDO[i],
                        NMTisPreOrOperational,
                        timeDifference_us,
                        timerNext_us);

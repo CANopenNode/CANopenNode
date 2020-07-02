@@ -422,16 +422,16 @@ typedef enum{
  * can also be used to access the OD by index like this.
  *
  * \code{.c}
- * index = CO_OD_find(CO->SDO[0], OD_H1001_ERR_REG);
+ * index = CO_OD_find(&CO->SDO[0], OD_H1001_ERR_REG);
  * if (index == 0xffff) {
  *     return;
  * }
- * length = CO_OD_getLength(CO->SDO[0], index, 1);
+ * length = CO_OD_getLength(&CO->SDO[0], index, 1);
  * if (length != sizeof(new_data)) {
  *    return;
  * }
  *
- * p = CO_OD_getDataPointer(CO->SDO[0], index, 1);
+ * p = CO_OD_getDataPointer(&CO->SDO[0], index, 1);
  * if (p == NULL) {
  *     return;
  * }

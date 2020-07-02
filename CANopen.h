@@ -137,6 +137,7 @@
  * @{
  */
 
+    #include <stdint.h>
     #include "301/CO_driver.h"
     #include "301/CO_SDOserver.h"
     #include "301/CO_Emergency.h"
@@ -282,7 +283,7 @@ extern "C" {
 typedef struct {
     bool_t nodeIdUnconfigured;       /**< True in unconfigured LSS slave */
     CO_CANmodule_t *CANmodule;       /**< CAN module objects */
-    CO_SDO_t *SDO[CO_NO_SDO_SERVER]; /**< SDO object */
+    CO_SDO_t *SDO;                   /**< SDO server objects */
     CO_EM_t *em;                     /**< Emergency report object */
     CO_EMpr_t *emPr;                 /**< Emergency process object */
     CO_NMT_t *NMT;                   /**< NMT object */
@@ -313,11 +314,12 @@ typedef struct {
     CO_LSSmaster_t *LSSmaster;       /**< LSS master object */
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
-    CO_GTWA_t *gtwa;                /**< Gateway-ascii object (CiA309-3) */
+    CO_GTWA_t *gtwa;                 /**< Gateway-ascii object (CiA309-3) */
 #endif
 #if CO_NO_TRACE > 0 || defined CO_DOXYGEN
-    CO_trace_t *trace[CO_NO_TRACE]; /**< Trace object for recording variables */
+    CO_trace_t *trace[CO_NO_TRACE];  /**< Trace object for recording variables */
 #endif
+    uint8_t sdoCount;                /**< number of SDO server objects in \a SDO field */
 } CO_t;
 
 
