@@ -1490,6 +1490,10 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         gtwa->state = CO_GTWA_ST_IDLE;
     }
 
+    else if (gtwa->state == CO_GTWA_ST_IDLE) {
+        return;
+    }
+
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
     /* SDO upload state */
     else if (gtwa->state == CO_GTWA_ST_READ) {
@@ -1955,12 +1959,19 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS */
 
     /* illegal state */
-    else if (gtwa->state != CO_GTWA_ST_IDLE) {
+    else {
         respErrorCode = CO_GTWA_respErrorInternalState;
         responseWithError(gtwa, respErrorCode);
         gtwa->state = CO_GTWA_ST_IDLE;
     }
 
+    /* execute next CANopen processing immediately, if idle and more commands
+     * available */
+    if (timerNext_us != NULL && gtwa->state == CO_GTWA_ST_IDLE
+        && CO_fifo_CommSearch(&gtwa->commFifo, false)
+    ) {
+        *timerNext_us = 0;
+    }
 }
 
 #endif  /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
