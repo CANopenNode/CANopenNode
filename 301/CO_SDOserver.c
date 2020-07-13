@@ -100,24 +100,26 @@ static void CO_SDO_receive(void *object, void *msg){
             /* check correct sequence number. */
             if(seqno == (SDO->sequence + 1U)) {
                 /* sequence is correct */
-                uint8_t i;
 
-                SDO->sequence++;
+                /* check if buffer can store whole message just in case */
+                if (CO_SDO_BUFFER_SIZE - SDO->bufferOffset >= 7) {
+                    uint8_t i;
 
-                /* copy data */
-                for(i=1; i<8; i++) {
-                    SDO->ODF_arg.data[SDO->bufferOffset++] = data[i]; //SDO->ODF_arg.data is equal as SDO->databuffer
-                    if(SDO->bufferOffset >= CO_CONFIG_SDO_BUFFER_SIZE) {
-                        /* buffer full, break reception */
+                    SDO->sequence++;
+
+                    /* copy data */
+                    for(i=1; i<8; i++) {
+                        SDO->ODF_arg.data[SDO->bufferOffset++] = msg->data[i]; //SDO->ODF_arg.data is equal as SDO->databuffer
+                    }
+
+                    /* break reception if last segment, block ends or block sequence is too large */
+                    if(((CANrxData[0] & 0x80U) == 0x80U) || (SDO->sequence >= SDO->blksize)) {
                         SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
                         CO_SDO_receive_done(SDO);
-                        break;
                     }
-                }
-
-                /* break reception if last segment, block ends or block sequence is too large */
-                if(((CANrxData[0] & 0x80U) == 0x80U) || (SDO->sequence >= SDO->blksize)) {
-                    SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP;
+                } else {
+                    /* buffer is full, ignore this segment, send response without resetting sequence */
+                    SDO->state = CO_SDO_ST_DOWNLOAD_BL_SUB_RESP_2;
                     CO_SDO_receive_done(SDO);
                 }
             }
