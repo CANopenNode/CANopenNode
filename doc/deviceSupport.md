@@ -96,6 +96,7 @@ S32DS (NXP S32 Design studio for Arm or Powerpc)
 
 Other
 -----
+* [FreeRTOS](https://github.com/martinwag/CANopenNode/tree/neuberger-freertos/stack/neuberger-FreeRTOS) by Neuberger, 2020-06-23, based on v1.3-master, see also [issue 198](https://github.com/CANopenNode/CANopenNode/issues/198).
 * [STM32CubeMX HAL](https://github.com/w1ne/CANOpenNode-CubeMX-HAL), 2019-05-03, demo project for Atollic studio, tested on Nucleo STM32L452xx board.
 * K64F_FreeRTOS, Kinetis SDK, 2018-02-13, [zip file](https://github.com/CANopenNode/CANopenNode/pull/28#issuecomment-365392867)
 * LPC1768 (MBED) (released in 2016) - [CANopenNode v1.0](https://github.com/CANopenNode/CANopenNode/tree/v1.0), [known example from 2016](https://github.com/exmachina-dev/CANopenMbed)
