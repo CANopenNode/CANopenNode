@@ -22,6 +22,7 @@ SOURCES = \
 	$(DRV_SRC)/CO_error.c \
 	$(DRV_SRC)/CO_Linux_threads.c \
 	$(DRV_SRC)/CO_OD_storage.c \
+	$(CANOPEN_SRC)/301/CO_ODinterface.c \
 	$(CANOPEN_SRC)/301/CO_SDOserver.c \
 	$(CANOPEN_SRC)/301/CO_Emergency.c \
 	$(CANOPEN_SRC)/301/CO_NMT_Heartbeat.c \

@@ -21,14 +21,16 @@ CANopenNode homepage is https://github.com/CANopenNode/CANopenNode
 Characteristics
 ---------------
 ### CANopen
+ - [Object Dictionary](https://www.can-cia.org/can-knowledge/canopen/device-architecture/)
+   offers clear and flexible organisation of any variables.
  - [NMT](https://www.can-cia.org/can-knowledge/canopen/network-management/)
    slave to start, stop, reset device. Simple NMT master.
  - [Heartbeat](https://www.can-cia.org/can-knowledge/canopen/error-control-protocols/)
    producer/consumer error control.
  - [PDO](https://www.can-cia.org/can-knowledge/canopen/pdo-protocol/) linking
-   and dynamic mapping for fast exchange of process variables.
+   and dynamic mapping for fast exchange of process variables from Object Dictionary.
  - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) expedited,
-   segmented and block transfer for service access to all parameters.
+   segmented and block transfer for service access to all Object Dictionary variables.
  - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) client.
  - [Emergency](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/)
    producer/consumer.
@@ -47,7 +49,7 @@ Characteristics
  - [Suitable for 16-bit microcontrollers and above](#device-support)
  - [Multithreaded, real-time](#flowchart-of-a-typical-canopennode-implementation)
  - [Object Dictionary editor](#object-dictionary-editor)
- - Non-volatile storage.
+ - Non-volatile storage for Object Dictionary variables.
  - [Power saving possible](#power-saving)
  - [Bootloader possible](https://github.com/CANopenNode/CANopenNode/issues/111) (for firmware update)
 
@@ -136,6 +138,7 @@ File structure
  - **301/** - CANopen application layer and communication profile.
    - **CO_config.h** - Configuration macros for CANopenNode.
    - **CO_driver.h** - Interface between CAN hardware and CANopenNode.
+   - **CO_ODinterface.h/.c** - CANopen Object Dictionary interface.
    - **CO_Emergency.h/.c** - CANopen Emergency protocol.
    - **CO_HBconsumer.h/.c** - CANopen Heartbeat consumer protocol.
    - **CO_NMT_Heartbeat.h/.c** - CANopen Network management and Heartbeat producer protocol.

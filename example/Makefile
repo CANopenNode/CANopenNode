@@ -20,6 +20,7 @@ INCLUDE_DIRS = \
 SOURCES = \
 	$(DRV_SRC)/CO_driver_blank.c \
 	$(DRV_SRC)/eeprom.c \
+	$(CANOPEN_SRC)/301/CO_ODinterface.c \
 	$(CANOPEN_SRC)/301/CO_SDOserver.c \
 	$(CANOPEN_SRC)/301/CO_Emergency.c \
 	$(CANOPEN_SRC)/301/CO_NMT_Heartbeat.c \
