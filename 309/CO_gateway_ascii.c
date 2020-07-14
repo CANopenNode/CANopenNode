@@ -871,6 +871,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             /* indicate that gateway response didn't start yet */
             gtwa->SDOdataCopyStatus = false;
             /* continue with state machine */
+            timeDifference_us = 0;
             gtwa->state = CO_GTWA_ST_READ;
         }
 
@@ -954,6 +955,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* continue with state machine */
             gtwa->stateTimeoutTmr = 0;
+            timeDifference_us = 0;
             gtwa->state = CO_GTWA_ST_WRITE;
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
