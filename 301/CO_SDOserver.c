@@ -102,14 +102,14 @@ static void CO_SDO_receive(void *object, void *msg){
                 /* sequence is correct */
 
                 /* check if buffer can store whole message just in case */
-                if (CO_SDO_BUFFER_SIZE - SDO->bufferOffset >= 7) {
+                if (CO_CONFIG_SDO_BUFFER_SIZE - SDO->bufferOffset >= 7) {
                     uint8_t i;
 
                     SDO->sequence++;
 
                     /* copy data */
                     for(i=1; i<8; i++) {
-                        SDO->ODF_arg.data[SDO->bufferOffset++] = msg->data[i]; //SDO->ODF_arg.data is equal as SDO->databuffer
+                        SDO->ODF_arg.data[SDO->bufferOffset++] = data[i]; //SDO->ODF_arg.data is equal as SDO->databuffer
                     }
 
                     /* break reception if last segment, block ends or block sequence is too large */
