@@ -564,7 +564,7 @@ static inline void convertToLower(char *token, size_t maxCount) {
         if (*c == 0) {
             break;
         } else {
-            *c = tolower(*c);
+            *c = tolower((int)*c);
         }
         c++;
     }
@@ -657,7 +657,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 /* empty token, break on error */
                 err = true;
                 break;
-            } else if (isdigit(tok[0]) == 0) {
+            } else if (isdigit((int)tok[0]) == 0) {
                 /* <command> found */
                 break;
             } else if (closed != 0) {
