@@ -391,7 +391,7 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo) {
                 }
                 break;
             }
-            else if (isgraph(c) != 0) {
+            else if (isgraph((int)c) != 0) {
                 break;
             }
             if (++fifo->readPtr == fifo->bufSize) {
@@ -428,7 +428,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
         do {
             switch (step) {
             case 0: /* skip leading empty characters, stop on delimiter */
-                if (isgraph(*c) != 0) {
+                if (isgraph((int)*c) != 0) {
                     if (*c == DELIM_COMMENT) {
                         delimCommentFound = true;
                     } else {
@@ -441,7 +441,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                 }
                 break;
             case 1: /* search for end of the token */
-                if (isgraph(*c) != 0) {
+                if (isgraph((int)*c) != 0) {
                     if (*c == DELIM_COMMENT) {
                         delimCommentFound = true;
                     } else if (tokenSize < count) {
@@ -456,7 +456,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                 }
                 break;
             case 2: /* skip trailing empty characters */
-                if (isgraph(*c) != 0) {
+                if (isgraph((int)*c) != 0) {
                     if (*c == DELIM_COMMENT) {
                         delimCommentFound = true;
                     } else {
@@ -1003,7 +1003,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
         if (dest->started == false) {
             /* search for first of two hex digits in token */
-            if (isxdigit(c) != 0) {
+            if (isxdigit((int)c) != 0) {
                 /* first hex digit is known */
                 dest->aux = c;
                 dest->started = true;
@@ -1023,7 +1023,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
                 }
                 finished = true;
             }
-            else if (isgraph(c) != 0) {
+            else if (isgraph((int)c) != 0) {
                 /* printable character, not hex digit, error */
                 st |= CO_fifo_st_errTok;
             }
@@ -1031,7 +1031,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         }
         else {
             /* one hex digit is known, what is next */
-            if (isxdigit(c) != 0) {
+            if (isxdigit((int)c) != 0) {
                 /* two hex digits are known */
                 char s[3];
                 int32_t num;
@@ -1041,7 +1041,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
                 CO_fifo_putc(dest, (char) num);
                 destSpace--;
             }
-            else if (isgraph(c) != 0 && c != DELIM_COMMENT) {
+            else if (isgraph((int)c) != 0 && c != DELIM_COMMENT) {
                 /* printable character, not hex digit, error */
                 st |= CO_fifo_st_errTok;
             }
@@ -1112,7 +1112,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
         switch (dest->aux) {
         case 0: /* beginning of the string, first write into dest */
-            if (isgraph(c) == 0 || c == DELIM_COMMENT) {
+            if (isgraph((int)c) == 0 || c == DELIM_COMMENT) {
                 if (CO_fifo_trimSpaces(src)) {
                     /* newline found without string, this is an error */
                     st |= CO_fifo_st_errTok;
@@ -1138,7 +1138,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
                  * double quote (with two double quotes) */
                 dest->aux += 2;
             }
-            else if (isgraph(c) == 0 && dest->aux == 2) {
+            else if (isgraph((int)c) == 0 && dest->aux == 2) {
                 /* end of single word string */
                 if (c == DELIM_COMMAND) {
                     st |= CO_fifo_st_closed;
@@ -1174,7 +1174,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
                     st |= CO_fifo_st_errTok;
                 }
                 else {
-                    if (isgraph(c) == 0) {
+                    if (isgraph((int)c) == 0) {
                         /* string finished */
                         if (c == DELIM_COMMAND) {
                             st |= CO_fifo_st_closed;
