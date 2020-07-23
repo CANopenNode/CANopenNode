@@ -198,8 +198,8 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     if (odBasicType == ODT_VAR) {
         const OD_obj_var_t *odo = (const OD_obj_var_t *)odObject;
 
-        subEntry->lowLimit = 0;
-        subEntry->highLimit = -1;
+        subEntry->lowLimit = 1;
+        subEntry->highLimit = 0;
         subEntry->attribute = odo->attribute;
         if (!io_configured) stream->dataObject = odo->data;
         stream->dataLength = odo->dataLength;
@@ -216,8 +216,8 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     else if (odBasicType == ODT_ARR) {
         const OD_obj_array_t *odo = (const OD_obj_array_t *)odObject;
 
-        subEntry->lowLimit = 0;
-        subEntry->highLimit = -1;
+        subEntry->lowLimit = 1;
+        subEntry->highLimit = 0;
         if (subIndex == 0) {
             subEntry->attribute = odo->attribute0;
             if (!io_configured) stream->dataObject = odo->data0;
@@ -240,8 +240,8 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
             (const OD_obj_arrayLimAttr_t *)odObject;
 
         if (subIndex == 0) {
-            subEntry->lowLimit = 0;
-            subEntry->highLimit = -1;
+            subEntry->lowLimit = 1;
+            subEntry->highLimit = 0;
             subEntry->attribute = odo->attribute0;
             if (!io_configured) stream->dataObject = odo->data0;
             stream->dataLength = 1;
@@ -266,8 +266,8 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
         const OD_obj_var_t *odo_rec = (const OD_obj_var_t *)odObject;
         const OD_obj_var_t *odo = &odo_rec[subIndex];
 
-        subEntry->lowLimit = 0;
-        subEntry->highLimit = -1;
+        subEntry->lowLimit = 1;
+        subEntry->highLimit = 0;
         subEntry->attribute = odo->attribute;
         if (!io_configured) stream->dataObject = odo->data;
         stream->dataLength = odo->dataLength;
@@ -628,12 +628,12 @@ ODR_t OD_set_u16(const OD_entry_t *entry, uint16_t subIndex, uint16_t val) {
 ODR_t OD_set_u32(const OD_entry_t *entry, uint16_t subIndex, uint32_t val) {
     OD_subEntry_t subEntry; OD_stream_t st;
     ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st);
-    int32_t lowLimit = subEntry.lowLimit;
-    int32_t highLimit = subEntry.highLimit;
+    uint32_t lowLimit = (uint32_t)subEntry.lowLimit;
+    uint32_t highLimit = (uint32_t)subEntry.highLimit;
 
     if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
     if (ret == ODR_OK && lowLimit <= highLimit) {
-        if (val > 0x7FFF || val > highLimit) ret = ODR_VALUE_HIGH;
+        if (val > highLimit) ret = ODR_VALUE_HIGH;
         else if (val < lowLimit) ret = ODR_VALUE_LOW;
     }
     if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
