@@ -74,25 +74,26 @@ static void CO_LSSslave_receive(void *object, void *msg)
             }
         }
         else if(LSSslave->lssState == CO_LSS_STATE_WAITING) {
+            uint32_t valSw;
             switch (cs) {
             case CO_LSS_SWITCH_STATE_SEL_VENDOR: {
-                CO_memcpySwap4(&LSSslave->lssSelect.identity.vendorID,
-                               &data[1]);
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssSelect.identity.vendorID = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_PRODUCT: {
-                CO_memcpySwap4(&LSSslave->lssSelect.identity.productCode,
-                               &data[1]);
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssSelect.identity.productCode = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_REV: {
-                CO_memcpySwap4(&LSSslave->lssSelect.identity.revisionNumber,
-                               &data[1]);
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssSelect.identity.revisionNumber = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_SERIAL: {
-                CO_memcpySwap4(&LSSslave->lssSelect.identity.serialNumber,
-                               &data[1]);
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssSelect.identity.serialNumber = CO_SWAP_32(valSw);
 
                 if (CO_LSS_ADDRESS_EQUAL(LSSslave->lssAddress,
                                          LSSslave->lssSelect)
@@ -111,6 +112,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                     uint8_t bitCheck = data[5];
                     uint8_t lssSub = data[6];
                     uint8_t lssNext = data[7];
+                    uint32_t valSw;
                     uint32_t idNumber;
                     bool_t ack;
 
@@ -121,7 +123,8 @@ static void CO_LSSslave_receive(void *object, void *msg)
                         break;
                     }
 
-                    CO_memcpySwap4(&idNumber, &data[1]);
+                    memcpy(&valSw, &data[1], sizeof(valSw));
+                    idNumber = CO_SWAP_32(valSw);
                     ack = false;
 
                     if (bitCheck == CO_LSS_FASTSCAN_CONFIRM) {
@@ -317,6 +320,7 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
         uint8_t tableSelector;
         uint8_t tableIndex;
         bool_t CANsend = false;
+        uint32_t valSw;
 
         memset(&LSSslave->TXbuff->data[0], 0, sizeof(LSSslave->TXbuff->data));
 
@@ -394,8 +398,8 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
 
             /* notify application */
             if (LSSslave->pFunctLSSactivateBitRate != NULL) {
-                uint16_t delay;
-                CO_memcpySwap2(&delay, &LSSslave->CANdata[1]);
+                uint16_t delay = ((uint16_t) LSSslave->CANdata[2]) << 8;
+                delay |= LSSslave->CANdata[1];
                 LSSslave->pFunctLSSactivateBitRate(
                     LSSslave->functLSSactivateBitRateObject, delay);
             }
@@ -429,29 +433,29 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
         }
         case CO_LSS_INQUIRE_VENDOR: {
             LSSslave->TXbuff->data[0] = LSSslave->service;
-            CO_memcpySwap4(&LSSslave->TXbuff->data[1],
-                           &LSSslave->lssAddress.identity.vendorID);
+            valSw = CO_SWAP_32(LSSslave->lssAddress.identity.vendorID);
+            memcpy(&LSSslave->TXbuff->data[1], &valSw, sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_PRODUCT: {
             LSSslave->TXbuff->data[0] = LSSslave->service;
-            CO_memcpySwap4(&LSSslave->TXbuff->data[1],
-                           &LSSslave->lssAddress.identity.productCode);
+            valSw = CO_SWAP_32(LSSslave->lssAddress.identity.productCode);
+            memcpy(&LSSslave->TXbuff->data[1], &valSw, sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_REV: {
             LSSslave->TXbuff->data[0] = LSSslave->service;
-            CO_memcpySwap4(&LSSslave->TXbuff->data[1],
-                           &LSSslave->lssAddress.identity.revisionNumber);
+            valSw = CO_SWAP_32(LSSslave->lssAddress.identity.revisionNumber);
+            memcpy(&LSSslave->TXbuff->data[1], &valSw, sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_SERIAL: {
             LSSslave->TXbuff->data[0] = LSSslave->service;
-            CO_memcpySwap4(&LSSslave->TXbuff->data[1],
-                           &LSSslave->lssAddress.identity.serialNumber);
+            valSw = CO_SWAP_32(LSSslave->lssAddress.identity.serialNumber);
+            memcpy(&LSSslave->TXbuff->data[1], &valSw, sizeof(valSw));
             CANsend = true;
             break;
         }

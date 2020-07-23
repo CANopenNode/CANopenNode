@@ -52,13 +52,13 @@ static void CO_EM_receive(void *object, void *msg) {
             uint16_t errorCode;
             uint32_t infoCode;
 
-            CO_memcpySwap2(&errorCode, &data[0]);
-            CO_memcpySwap4(&infoCode, &data[4]);
+            memcpy(&errorCode, &data[0], sizeof(errorCode));
+            memcpy(&infoCode, &data[4], sizeof(infoCode));
             em->pFunctSignalRx(ident,
-                            errorCode,
-                            data[2],
-                            data[3],
-                            infoCode);
+                               CO_SWAP_16(errorCode),
+                               data[2],
+                               data[3],
+                               CO_SWAP_32(infoCode));
         }
     }
 }
@@ -384,13 +384,13 @@ void CO_EM_process(
             if (em->pFunctSignalRx != NULL) {
                 uint16_t errorCode;
                 uint32_t infoCode;
-                CO_memcpySwap2(&errorCode, &em->bufReadPtr[0]);
-                CO_memcpySwap4(&infoCode, &em->bufReadPtr[4]);
+                memcpy(&errorCode, &em->bufReadPtr[0], sizeof(errorCode));
+                memcpy(&infoCode, &em->bufReadPtr[4], sizeof(infoCode));
                 em->pFunctSignalRx(0,
-                                   errorCode,
+                                   CO_SWAP_16(errorCode),
                                    em->bufReadPtr[2],
                                    em->bufReadPtr[3],
-                                   infoCode);
+                                   CO_SWAP_32(infoCode));
             }
 #endif
 
@@ -482,12 +482,14 @@ void CO_errorReport(CO_EM_t *em, const uint8_t errorBit, const uint16_t errorCod
         }
         else{
             uint8_t bufCopy[8];
+            uint16_t errorCodeSw = CO_SWAP_16(errorCode);
+            uint32_t infoCodeSw = CO_SWAP_32(infoCode);
 
             /* prepare data for emergency message */
-            CO_memcpySwap2(&bufCopy[0], &errorCode);
+            memcpy(&bufCopy[0], &errorCodeSw, sizeof(errorCodeSw));
             bufCopy[2] = 0; /* error register will be set later */
             bufCopy[3] = errorBit;
-            CO_memcpySwap4(&bufCopy[4], &infoCode);
+            memcpy(&bufCopy[4], &infoCodeSw, sizeof(infoCodeSw));
 
             /* copy data to the buffer, increment writePtr and verify buffer full */
             CO_LOCK_EMCY();
@@ -542,13 +544,14 @@ void CO_errorReset(CO_EM_t *em, const uint8_t errorBit, const uint32_t infoCode)
         }
         else{
             uint8_t bufCopy[8];
+            uint32_t infoCodeSw = CO_SWAP_32(infoCode);
 
             /* prepare data for emergency message */
             bufCopy[0] = 0;
             bufCopy[1] = 0;
             bufCopy[2] = 0; /* error register will be set later */
             bufCopy[3] = errorBit;
-            CO_memcpySwap4(&bufCopy[4], &infoCode);
+            memcpy(&bufCopy[4], &infoCodeSw, sizeof(infoCodeSw));
 
             /* copy data to the buffer, increment writePtr and verify buffer full */
             CO_LOCK_EMCY();

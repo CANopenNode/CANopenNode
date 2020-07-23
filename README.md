@@ -5,8 +5,8 @@ CANopenNode is free and open source CANopen protocol stack.
 
 CANopen is the internationally standardized (EN 50325-4)
 ([CiA301](http://can-cia.org/standardization/technical-documents))
-CAN-based higher-layer protocol for embedded control system. For more
-information on CANopen see http://www.can-cia.org/
+higher-layer protocol for embedded control system built on top of CAN.
+For more information on CANopen see http://www.can-cia.org/
 
 CANopenNode is written in ANSI C in object-oriented way. It runs on
 different microcontrollers, as standalone application or with RTOS.
