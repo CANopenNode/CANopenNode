@@ -29,9 +29,7 @@
 #define CO_SDO_CLIENT_H
 
 #include "301/CO_driver.h"
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) || defined CO_DOXYGEN
 #include "301/CO_SDOserver.h"
-#endif
 #include "301/CO_fifo.h"
 
 #ifdef __cplusplus
@@ -47,32 +45,6 @@ extern "C" {
  *
  * @see @ref CO_SDOserver
  */
-
-
-/**
- * Return values of SDO client functions.
- */
-typedef enum {
-    /** Data buffer is full, data must be read before next upload cycle begins*/
-    CO_SDOcli_uploadDataBufferFull      = 5,
-    /** CAN transmit buffer is full. Waiting. */
-    CO_SDOcli_transmittBufferFull       = 4,
-    /** Block download is in progress. Sending train of messages. */
-    CO_SDOcli_blockDownldInProgress     = 3,
-    /** Block upload is in progress. Receiving train of messages. Data must not
-     * be read in this state. */
-    CO_SDOcli_blockUploadInProgress     = 2,
-    /** Waiting server response */
-    CO_SDOcli_waitingServerResponse     = 1,
-    /** Success, end of communication. Uploaded data must be read. */
-    CO_SDOcli_ok_communicationEnd       = 0,
-    /** Error in arguments */
-    CO_SDOcli_wrongArguments            = -2,
-    /** Communication ended with client abort */
-    CO_SDOcli_endedWithClientAbort      = -9,
-    /** Communication ended with server abort */
-    CO_SDOcli_endedWithServerAbort      = -10,
-} CO_SDOclient_return_t;
 
 
 /**
@@ -247,12 +219,12 @@ void CO_SDOclient_initCallbackPre(CO_SDOclient_t *SDOclient,
  * object is not used. If it is the same as node-ID of this node, then data will
  * be exchanged with this node (without CAN communication).
  *
- * @return #CO_SDOclient_return_t
+ * @return #CO_SDO_return_t
  */
-CO_SDOclient_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
-                                         uint32_t COB_IDClientToServer,
-                                         uint32_t COB_IDServerToClient,
-                                         uint8_t nodeIDOfTheSDOServer);
+CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
+                                   uint32_t COB_IDClientToServer,
+                                   uint32_t COB_IDServerToClient,
+                                   uint8_t nodeIDOfTheSDOServer);
 
 
 /**
@@ -277,14 +249,14 @@ CO_SDOclient_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
  * @param SDOtimeoutTime_ms Timeout time for SDO communication in milliseconds.
  * @param blockEnable Try to initiate block transfer.
  *
- * @return #CO_SDOclient_return_t
+ * @return #CO_SDO_return_t
  */
-CO_SDOclient_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
-                                                   uint16_t index,
-                                                   uint8_t subIndex,
-                                                   size_t sizeIndicated,
-                                                   uint16_t SDOtimeoutTime_ms,
-                                                   bool_t blockEnable);
+CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
+                                             uint16_t index,
+                                             uint8_t subIndex,
+                                             size_t sizeIndicated,
+                                             uint16_t SDOtimeoutTime_ms,
+                                             bool_t blockEnable);
 
 
 /**
@@ -333,7 +305,7 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  * download communication initiated with CO_SDOclientDownloadInitiate().
  * Function is non-blocking.
  *
- * If function returns #CO_SDOcli_blockDownldInProgress and OS has buffer for
+ * If function returns #CO_SDO_RT_blockDownldInProgress and OS has buffer for
  * CAN tx messages, then this function may be called multiple times within own
  * loop. This can speed-up SDO block transfer.
  *
@@ -347,12 +319,12 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  * @param [out] sizeTransferred Actual size of data transferred. Ignored if NULL
  * @param [out] timerNext_us info to OS - see CO_process(). Ignored if NULL.
  *
- * @return #CO_SDOclient_return_t. If less than 0, then error occurred,
+ * @return #CO_SDO_return_t. If less than 0, then error occurred,
  * SDOabortCode contains reason and state becomes idle. If 0, communication
  * ends successfully and state becomes idle. If greater than 0, then
  * communication is in progress.
  */
-CO_SDOclient_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
+CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                                            uint32_t timeDifference_us,
                                            bool_t abort,
                                            CO_SDO_abortCode_t *SDOabortCode,
@@ -373,13 +345,13 @@ CO_SDOclient_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
  * @param SDOtimeoutTime_ms Timeout time for SDO communication in milliseconds.
  * @param blockEnable Try to initiate block transfer.
  *
- * @return #CO_SDOclient_return_t
+ * @return #CO_SDO_return_t
  */
-CO_SDOclient_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
-                                                 uint16_t index,
-                                                 uint8_t subIndex,
-                                                 uint16_t SDOtimeoutTime_ms,
-                                                 bool_t blockEnable);
+CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
+                                           uint16_t index,
+                                           uint8_t subIndex,
+                                           uint16_t SDOtimeoutTime_ms,
+                                           bool_t blockEnable);
 
 
 /**
@@ -389,11 +361,11 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  * upload communication initiated with CO_SDOclientUploadInitiate().
  * Function is non-blocking.
  *
- * If this function returns #CO_SDOcli_uploadDataBufferFull, then data must be
+ * If this function returns #CO_SDO_RT_uploadDataBufferFull, then data must be
  * read from fifo buffer to make it empty. This function can then be called
  * once again immediately to speed-up block transfer. Note also, that remaining
- * data must be read after function returns #CO_SDOcli_ok_communicationEnd.
- * Data must not be read, if function returns #CO_SDOcli_blockUploadInProgress.
+ * data must be read after function returns #CO_SDO_RT_ok_communicationEnd.
+ * Data must not be read, if function returns #CO_SDO_RT_blockUploadInProgress.
  *
  * @param SDO_C This object.
  * @param timeDifference_us Time difference from previous function call in
@@ -405,17 +377,17 @@ CO_SDOclient_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  * @param [out] sizeTransferred Actual size of data transferred. Ignored if NULL
  * @param [out] timerNext_us info to OS - see CO_process(). Ignored if NULL.
  *
- * @return #CO_SDOclient_return_t. If less than 0, then error occurred,
+ * @return #CO_SDO_return_t. If less than 0, then error occurred,
  * SDOabortCode contains reason and state becomes idle. If 0, communication
  * ends successfully and state becomes idle. If greater than 0, then
  * communication is in progress.
  */
-CO_SDOclient_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
-                                         uint32_t timeDifference_us,
-                                         CO_SDO_abortCode_t *SDOabortCode,
-                                         size_t *sizeIndicated,
-                                         size_t *sizeTransferred,
-                                         uint32_t *timerNext_us);
+CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
+                                   uint32_t timeDifference_us,
+                                   CO_SDO_abortCode_t *SDOabortCode,
+                                   size_t *sizeIndicated,
+                                   size_t *sizeTransferred,
+                                   uint32_t *timerNext_us);
 
 
 /**
@@ -430,7 +402,7 @@ CO_SDOclient_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
  * CO_fifo_readU82a() or similar.
  *
  * @warning This function (or similar) must NOT be called when
- * CO_SDOclientUpload() returns #CO_SDOcli_blockUploadInProgress!
+ * CO_SDOclientUpload() returns #CO_SDO_RT_blockUploadInProgress!
  *
  * @param SDO_C This object.
  * @param buf Buffer into which data will be copied

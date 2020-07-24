@@ -620,6 +620,33 @@ typedef enum{
 
 
 /**
+ * Return values from SDO server or client functions.
+ */
+typedef enum {
+    /** Data buffer is full.
+     * SDO client: data must be read before next upload cycle begins. */
+    CO_SDO_RT_uploadDataBufferFull = 5,
+    /** CAN transmit buffer is full. Waiting. */
+    CO_SDO_RT_transmittBufferFull = 4,
+    /** Block download is in progress. Sending train of messages. */
+    CO_SDO_RT_blockDownldInProgress = 3,
+    /** Block upload is in progress. Receiving train of messages.
+     * SDO client: Data must not be read in this state. */
+    CO_SDO_RT_blockUploadInProgress = 2,
+    /** Waiting server or client response */
+    CO_SDO_RT_waitingResponse = 1,
+    /** Success, end of communication. SDO client: uploaded data must be read.*/
+    CO_SDO_RT_ok_communicationEnd = 0,
+    /** Error in arguments */
+    CO_SDO_RT_wrongArguments = -2,
+    /** Communication ended with client abort */
+    CO_SDO_RT_endedWithClientAbort = -9,
+    /** Communication ended with server abort */
+    CO_SDO_RT_endedWithServerAbort = -10,
+} CO_SDO_return_t;
+
+
+/**
  * Object for one entry with specific index in @ref CO_SDO_objectDictionary.
  */
 typedef struct {

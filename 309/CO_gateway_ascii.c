@@ -813,7 +813,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         else if (strcmp(tok, "r") == 0 || strcmp(tok, "read") == 0) {
             uint16_t idx;
             uint8_t subidx;
-            CO_SDOclient_return_t SDO_ret;
+            CO_SDO_return_t SDO_ret;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 1, &respErrorCode);
 
             if (closed != 0 || NodeErr) {
@@ -852,7 +852,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* setup client */
             SDO_ret = CO_SDOclient_setup(gtwa->SDO_C, 0, 0, gtwa->node);
-            if (SDO_ret != CO_SDOcli_ok_communicationEnd) {
+            if (SDO_ret != CO_SDO_RT_ok_communicationEnd) {
                 respErrorCode = CO_GTWA_respErrorInternalState;
                 err = true;
                 break;
@@ -862,7 +862,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             SDO_ret = CO_SDOclientUploadInitiate(gtwa->SDO_C, idx, subidx,
                                                  gtwa->SDOtimeoutTime,
                                                  gtwa->SDOblockTransferEnable);
-            if (SDO_ret != CO_SDOcli_ok_communicationEnd) {
+            if (SDO_ret != CO_SDO_RT_ok_communicationEnd) {
                 respErrorCode = CO_GTWA_respErrorInternalState;
                 err = true;
                 break;
@@ -880,7 +880,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             uint16_t idx;
             uint8_t subidx;
             CO_fifo_st status;
-            CO_SDOclient_return_t SDO_ret;
+            CO_SDO_return_t SDO_ret;
             size_t size;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 1, &respErrorCode);
 
@@ -912,7 +912,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* setup client */
             SDO_ret = CO_SDOclient_setup(gtwa->SDO_C, 0, 0, gtwa->node);
-            if (SDO_ret != CO_SDOcli_ok_communicationEnd) {
+            if (SDO_ret != CO_SDO_RT_ok_communicationEnd) {
                 respErrorCode = CO_GTWA_respErrorInternalState;
                 err = true;
                 break;
@@ -924,7 +924,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                                          gtwa->SDOdataType->length,
                                          gtwa->SDOtimeoutTime,
                                          gtwa->SDOblockTransferEnable);
-            if (SDO_ret != CO_SDOcli_ok_communicationEnd) {
+            if (SDO_ret != CO_SDO_RT_ok_communicationEnd) {
                 respErrorCode = CO_GTWA_respErrorInternalState;
                 err = true;
                 break;
@@ -1501,7 +1501,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     else if (gtwa->state == CO_GTWA_ST_READ) {
         CO_SDO_abortCode_t abortCode;
         size_t sizeTransferred;
-        CO_SDOclient_return_t ret;
+        CO_SDO_return_t ret;
 
         ret = CO_SDOclientUpload(gtwa->SDO_C,
                                  timeDifference_us,
@@ -1515,8 +1515,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             gtwa->state = CO_GTWA_ST_IDLE;
         }
         /* Response data must be read, partially or whole */
-        else if (ret == CO_SDOcli_uploadDataBufferFull
-                 || ret == CO_SDOcli_ok_communicationEnd
+        else if (ret == CO_SDO_RT_uploadDataBufferFull
+                 || ret == CO_SDO_RT_ok_communicationEnd
         ) {
             size_t fifoRemain;
 
@@ -1538,11 +1538,11 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     &gtwa->SDO_C->bufFifo,
                     &gtwa->respBuf[gtwa->respBufCount],
                     CO_GTWA_RESP_BUF_SIZE - 2 - gtwa->respBufCount,
-                    ret == CO_SDOcli_ok_communicationEnd);
+                    ret == CO_SDO_RT_ok_communicationEnd);
                 fifoRemain = CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo);
 
                 /* end of communication, print newline and enter idle state */
-                if (ret == CO_SDOcli_ok_communicationEnd && fifoRemain == 0) {
+                if (ret == CO_SDO_RT_ok_communicationEnd && fifoRemain == 0) {
                     gtwa->respBufCount +=
                         sprintf(&gtwa->respBuf[gtwa->respBufCount], "\r\n");
                     gtwa->state = CO_GTWA_ST_IDLE;
@@ -1560,7 +1560,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         size_t sizeTransferred;
         bool_t abort = false;
         bool_t hold = false;
-        CO_SDOclient_return_t ret;
+        CO_SDO_return_t ret;
         int loop = 0;
 
         /* copy data to the SDO buffer if more data available */
@@ -1610,14 +1610,14 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 if (++loop >= CO_CONFIG_GTW_BLOCK_DL_LOOP) {
                     break;
                 }
-            } while (ret == CO_SDOcli_blockDownldInProgress);
+            } while (ret == CO_SDO_RT_blockDownldInProgress);
 
             /* send response in case of error or finish */
             if (ret < 0) {
                 responseWithErrorSDO(gtwa, abortCode);
                 gtwa->state = CO_GTWA_ST_IDLE;
             }
-            else if (ret == CO_SDOcli_ok_communicationEnd) {
+            else if (ret == CO_SDO_RT_ok_communicationEnd) {
                 responseWithOK(gtwa);
                 gtwa->state = CO_GTWA_ST_IDLE;
             }
