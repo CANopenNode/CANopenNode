@@ -112,6 +112,27 @@ static OD_size_t OD_writeDirect(OD_stream_t *stream, uint8_t subIndex,
 }
 
 /******************************************************************************/
+OD_size_t OD_readDisabled(OD_stream_t *stream, uint8_t subIndex,
+                          void *buf, OD_size_t count,
+                          ODR_t *returnCode)
+{
+    (void) stream; (void) subIndex; (void) buf; (void) count;
+
+    if (returnCode != NULL) *returnCode = ODR_WRITEONLY;
+    return 0;
+}
+
+OD_size_t OD_writeDisabled(OD_stream_t *stream, uint8_t subIndex,
+                           void *buf, OD_size_t count,
+                           ODR_t *returnCode)
+{
+    (void) stream; (void) subIndex; (void) buf; (void) count;
+
+    if (returnCode != NULL) *returnCode = ODR_READONLY;
+    return 0;
+}
+
+/******************************************************************************/
 const OD_entry_t *OD_find(const OD_t *od, uint16_t index) {
     unsigned int cur;
     unsigned int min = 0;
@@ -176,7 +197,9 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     if ((entry->odObjectType & ODT_EXTENSION_MASK) != 0) {
         const OD_obj_extended_t *odoe = (const OD_obj_extended_t *)odObject;
 
-        if (odoe->extIO != NULL && odoe->extIO->object != NULL) {
+        if (odoe->extIO != NULL && odoe->extIO->object != NULL
+            && odoe->extIO->read != NULL && odoe->extIO->write != NULL)
+        {
             subEntry->read = odoe->extIO->read;
             subEntry->write = odoe->extIO->write;
             stream->dataObject = odoe->extIO->object;
@@ -198,17 +221,6 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     if (odBasicType == ODT_VAR) {
         const OD_obj_var_t *odo = (const OD_obj_var_t *)odObject;
 
-        subEntry->lowLimit = 1;
-        subEntry->highLimit = 0;
-        subEntry->attribute = odo->attribute;
-        if (!io_configured) stream->dataObject = odo->data;
-        stream->dataLength = odo->dataLength;
-    }
-    else if (odBasicType == ODT_VARL) {
-        const OD_obj_varLimits_t *odo = (const OD_obj_varLimits_t *)odObject;
-
-        subEntry->lowLimit = odo->limit.low;
-        subEntry->highLimit = odo->limit.high;
         subEntry->attribute = odo->attribute;
         if (!io_configured) stream->dataObject = odo->data;
         stream->dataLength = odo->dataLength;
@@ -216,8 +228,6 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     else if (odBasicType == ODT_ARR) {
         const OD_obj_array_t *odo = (const OD_obj_array_t *)odObject;
 
-        subEntry->lowLimit = 1;
-        subEntry->highLimit = 0;
         if (subIndex == 0) {
             subEntry->attribute = odo->attribute0;
             if (!io_configured) stream->dataObject = odo->data0;
@@ -235,49 +245,10 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
             stream->dataLength = odo->dataElementLength;
         }
     }
-    else if (odBasicType == ODT_ARRL) {
-        const OD_obj_arrayLimAttr_t *odo =
-            (const OD_obj_arrayLimAttr_t *)odObject;
-
-        if (subIndex == 0) {
-            subEntry->lowLimit = 1;
-            subEntry->highLimit = 0;
-            subEntry->attribute = odo->attribute0;
-            if (!io_configured) stream->dataObject = odo->data0;
-            stream->dataLength = 1;
-        }
-        else {
-            char *data = (char *)odo->data;
-            int i = subIndex - 1;
-
-            if (odo->limits == NULL || odo->attributes == NULL)
-                return ODR_DEV_INCOMPAT;
-            subEntry->lowLimit = odo->limits[i].low;
-            subEntry->highLimit = odo->limits[i].high;
-            subEntry->attribute = odo->attributes[i];
-            if (!io_configured) {
-                if (data == NULL) return ODR_DEV_INCOMPAT;
-                stream->dataObject = data + odo->dataElementSizeof * i;
-            }
-            stream->dataLength = odo->dataElementLength;
-        }
-    }
     else if (odBasicType == ODT_REC) {
         const OD_obj_var_t *odo_rec = (const OD_obj_var_t *)odObject;
         const OD_obj_var_t *odo = &odo_rec[subIndex];
 
-        subEntry->lowLimit = 1;
-        subEntry->highLimit = 0;
-        subEntry->attribute = odo->attribute;
-        if (!io_configured) stream->dataObject = odo->data;
-        stream->dataLength = odo->dataLength;
-    }
-    else if (odBasicType == ODT_RECL) {
-        const OD_obj_varLimits_t *odo_rec = (const OD_obj_varLimits_t*)odObject;
-        const OD_obj_varLimits_t *odo = &odo_rec[subIndex];
-
-        subEntry->lowLimit = odo->limit.low;
-        subEntry->highLimit = odo->limit.high;
         subEntry->attribute = odo->attribute;
         if (!io_configured) stream->dataObject = odo->data;
         stream->dataLength = odo->dataLength;
@@ -290,7 +261,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
 }
 
 /******************************************************************************/
-uint32_t OD_getSDOabortCode(ODR_t returnCode) {
+uint32_t OD_getSDOabCode(ODR_t returnCode) {
     static const uint32_t abortCodes[ODR_COUNT] = {
         0x00000000UL, /* No abort */
         0x05040005UL, /* Out of memory */
@@ -390,13 +361,6 @@ void OD_updateStorageGroup(OD_t *od, uint8_t storageGroup) {
                 dataObject = odo->data;
                 dataLength = odo->dataLength;
             }
-            else if (odBasicType == ODT_VARL) {
-                const OD_obj_varLimits_t *odo = (const OD_obj_varLimits_t*)orig;
-
-                attr = odo->attribute;
-                dataObject = odo->data;
-                dataLength = odo->dataLength;
-            }
             else if (odBasicType == ODT_ARR) {
                 const OD_obj_array_t *odo = (const OD_obj_array_t *)orig;
 
@@ -415,37 +379,9 @@ void OD_updateStorageGroup(OD_t *od, uint8_t storageGroup) {
                     }
                 }
             }
-            else if (odBasicType == ODT_ARRL) {
-                const OD_obj_arrayLimAttr_t *odo =
-                    (const OD_obj_arrayLimAttr_t *)orig;
-
-                if (subIndex == 0) {
-                    attr = odo->attribute0;
-                    dataObject = odo->data0;
-                    dataLength = 1;
-                }
-                else {
-                    char *data = (char *)odo->data;
-                    if (data != NULL && odo->attributes != NULL) {
-                        int i = subIndex - 1;
-                        attr = odo->attributes[i];
-                        dataObject = data + odo->dataElementSizeof * i;
-                        dataLength = odo->dataElementLength;
-                    }
-                }
-            }
             else if (odBasicType == ODT_REC) {
                 const OD_obj_var_t *odo_rec = (const OD_obj_var_t *)orig;
                 const OD_obj_var_t *odo = &odo_rec[subIndex];
-
-                attr = odo->attribute;
-                dataObject = odo->data;
-                dataLength = odo->dataLength;
-            }
-            else if (odBasicType == ODT_RECL) {
-                const OD_obj_varLimits_t *odo_rec
-                    = (const OD_obj_varLimits_t*)orig;
-                const OD_obj_varLimits_t *odo = &odo_rec[subIndex];
 
                 attr = odo->attribute;
                 dataObject = odo->data;
@@ -571,7 +507,6 @@ ODR_t OD_set_i8(const OD_entry_t *entry, uint16_t subIndex, int8_t val) {
     ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st);
 
     if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) ret = OD_checkLimits(&subEntry, val);
     if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
@@ -581,7 +516,6 @@ ODR_t OD_set_i16(const OD_entry_t *entry, uint16_t subIndex, int16_t val) {
     ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st);
 
     if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) ret = OD_checkLimits(&subEntry, val);
     if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
@@ -591,7 +525,6 @@ ODR_t OD_set_i32(const OD_entry_t *entry, uint16_t subIndex, int32_t val) {
     ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st);
 
     if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) ret = OD_checkLimits(&subEntry, val);
     if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
@@ -610,7 +543,6 @@ ODR_t OD_set_u8(const OD_entry_t *entry, uint16_t subIndex, uint8_t val) {
     ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st);
 
     if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) ret = OD_checkLimits(&subEntry, val);
     if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
@@ -620,7 +552,6 @@ ODR_t OD_set_u16(const OD_entry_t *entry, uint16_t subIndex, uint16_t val) {
     ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st);
 
     if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) ret = OD_checkLimits(&subEntry, val);
     if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
@@ -628,14 +559,8 @@ ODR_t OD_set_u16(const OD_entry_t *entry, uint16_t subIndex, uint16_t val) {
 ODR_t OD_set_u32(const OD_entry_t *entry, uint16_t subIndex, uint32_t val) {
     OD_subEntry_t subEntry; OD_stream_t st;
     ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st);
-    uint32_t lowLimit = (uint32_t)subEntry.lowLimit;
-    uint32_t highLimit = (uint32_t)subEntry.highLimit;
 
     if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK && lowLimit <= highLimit) {
-        if (val > highLimit) ret = ODR_VALUE_HIGH;
-        else if (val < lowLimit) ret = ODR_VALUE_LOW;
-    }
     if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
     return ret;
 }

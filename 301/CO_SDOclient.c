@@ -460,7 +460,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                         break;
                     }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
                     if (SDO_C->finished) {
                         /* expedited transfer */
                         SDO_C->state = CO_SDO_ST_IDLE;
@@ -484,7 +484,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 break;
             }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
             case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP: {
                 if ((SDO_C->CANrxData[0] & 0xEF) == 0x20) {
                     /* verify and alternate toggle bit */
@@ -511,7 +511,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 }
                 break;
             }
-#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED */
+#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
             case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP: {
@@ -667,7 +667,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 SDO_C->finished = true;
             }
             else {
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
                 /* segmented transfer, indicate data size */
                 if (SDO_C->sizeInd > 0) {
                     uint32_t size = CO_SWAP_32(SDO_C->sizeInd);
@@ -689,7 +689,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             break;
         }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
         case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: {
             /* fill data bytes */
             count = CO_fifo_read(&SDO_C->bufFifo,
@@ -725,7 +725,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             SDO_C->state = CO_SDO_ST_DOWNLOAD_SEGMENT_RSP;
             break;
         }
-#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED */
+#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
         case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ: {
@@ -1002,7 +1002,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         ret = CO_SDO_RT_ok_communicationEnd;
                     }
                     else {
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
                         /* segmented transfer, is size indicated? */
                         if (SDO_C->CANrxData[0] & 0x01) {
                             uint32_t size;
@@ -1024,7 +1024,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 break;
             }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
             case CO_SDO_ST_UPLOAD_SEGMENT_RSP: {
                 if ((SDO_C->CANrxData[0] & 0xE0) == 0x00) {
                     size_t count, countWr;
@@ -1084,7 +1084,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 }
                 break;
             }
-#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED */
+#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
             case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP: {
@@ -1299,7 +1299,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             break;
         }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
         case CO_SDO_ST_UPLOAD_SEGMENT_REQ: {
             /* verify, if there is enough space in data buffer */
             if (CO_fifo_getSpace(&SDO_C->bufFifo) < 7) {
@@ -1314,7 +1314,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             SDO_C->state = CO_SDO_ST_UPLOAD_SEGMENT_RSP;
             break;
         }
-#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_SEGMENTED */
+#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
         case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ: {

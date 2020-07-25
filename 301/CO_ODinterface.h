@@ -76,14 +76,13 @@ extern "C" {
  * data of different type.
  *
  * ### Optional extensions
- * There are some optional extensions to the Object Dictionary: fixed **low and
- * high limit** prevent writing wrong value, PDO flags and IO extension.
- * **PDO flags** informs application, if specific OD variable was received or
- * sent by PDO. And also gives the application ability to request a TPDO, to
- * which variable is possibly mapped.
- * **IO extension** gives the application ability to take full control over the
- * OD object. Application can specify own @b read and @b write functions and own
- * object, on which they operate.
+ * There are some optional extensions to the Object Dictionary:
+ *   * **PDO flags** informs application, if specific OD variable was received
+ *     or sent by PDO. And also gives the application ability to request a TPDO,
+ *     to which variable is possibly mapped.
+ *   * **IO extension** gives the application ability to take full control over
+ *     the OD object. Application can specify own @b read and @b write functions
+ *     and own object, on which they operate.
  *
  * ### Example usage
  * @code
@@ -340,12 +339,14 @@ const OD_t ODxyz = {
           <parameter uniqueID="UID_PARAM_1000" access="read">
             <label lang="en">Device type</label>
             <description lang="en">...</description>
+            <denotation>...</denotation>
             <UINT/>
             <defaultValue value="0x00000000" />
           </parameter>
           <parameter uniqueID="UID_PARAM_1001" access="read">
             <label lang="en">Error register</label>
             <description lang="en">...</description>
+            <denotation>...</denotation>
             <BYTE/>
             <defaultValue value="0" />
             <property name="CO_storageGroup" value="1">
@@ -354,35 +355,41 @@ const OD_t ODxyz = {
           <parameter uniqueID="UID_PARAM_1018">
             <label lang="en">Identity</label>
             <description lang="en">...</description>
+            <denotation>...</denotation>
             <dataTypeIDRef uniqueIDRef="..." />
           </parameter>
           <parameter uniqueID="UID_PARAM_101800" access="read">
             <label lang="en">max sub-index</label>
             <description lang="en">...</description>
+            <denotation>...</denotation>
             <USINT/>
             <defaultValue value="4" />
           </parameter>
           <parameter uniqueID="UID_PARAM_101801" access="read">
             <label lang="en">Vendor-ID</label>
             <description lang="en">...</description>
+            <denotation>...</denotation>
             <UINT/>
             <defaultValue value="0x00000000" />
           </parameter>
           <parameter uniqueID="UID_PARAM_101802" access="read">
             <label lang="en">Product code</label>
             <description lang="en">...</description>
+            <denotation>...</denotation>
             <UINT/>
             <defaultValue value="0x00000000" />
           </parameter>
           <parameter uniqueID="UID_PARAM_101803" access="read">
             <label lang="en">Revision number</label>
             <description lang="en">...</description>
+            <denotation>...</denotation>
             <UINT/>
             <defaultValue value="0x00000000" />
           </parameter>
           <parameter uniqueID="UID_PARAM_101804" access="read">
             <label lang="en">Serial number</label>
             <description lang="en">...</description>
+            <denotation>...</denotation>
             <UINT/>
             <defaultValue value="0x00000000" />
           </parameter>
@@ -480,9 +487,8 @@ const OD_t ODxyz = {
  * "CANopenObject" or "CANopenSubObject" must contain additional attributes:
  *   * "dataType" (required for VAR) - CANopen basic data type, see below
  *   * "accessType" (required for VAR) - "ro", "wo", "rw" or "const"
- *   * "lowLimit" (optional) - 32 bit integer value, signed or unsigned
- *   * "highLimit" (optional) - 32 bit integer value, signed or unsigned
  *   * "defaultValue" (optional) - Default value for the variable.
+ *   * "denotation" (optional) - Not used by CANopenNode.
  *
  * #### &lt;parameter&gt;
  *   * "uniqueID" (required)
@@ -503,13 +509,6 @@ const OD_t ODxyz = {
  *     definition of complex data types is required by the standard, but it is
  *     not required by CANopenNode.
  *   * &lt;defaultValue&gt; (optional for VAR) - Default value for the variable.
- *   * limits (optional for VAR) - 32 bit integer values, signed or unsigned:
-@code{.xml}
-<allowedValues><range>
-  <minValue value="...">
-  <maxValue value="...">
-</range></allowedValues>
-@endcode
  *
  * Additional, optional, CANopenNode specific properties, which can be used
  * inside parameters describing &lt;CANopenObject&gt;:
@@ -594,7 +593,7 @@ typedef enum {
     ODA_TSRDO = 0x10, /**< Variable is mappable into transmitting SRDO */
     ODA_RSRDO = 0x20, /**< Variable is mappable into receiving SRDO */
     ODA_TRSRDO = 0x30, /**< Variable is mappable into tx or rx SRDO */
-    ODA_MB = 0x40, /**< Variable is multi-byte (uint32_t, etc) */
+    ODA_MB = 0x40, /**< Variable is multi-byte ((u)int16_t to (u)int64_t) */
     ODA_NOINIT = 0x80, /**< Variable has no initial value. Can be used with
     OD objects, which has IO extension enabled. Object dictionary does not
     reserve memory for the variable and storage is not used. */
@@ -606,7 +605,7 @@ typedef enum {
  */
 typedef enum {
 /* !!!! WARNING !!!! */
-/* If changing these values, change also OD_getSDOabortCode() function! */
+/* If changing these values, change also OD_getSDOabCode() function! */
     ODR_PARTIAL        = -1, /**< Read/write is only partial, make more calls */
     ODR_OK             = 0,  /**< Read/write successfully finished */
     ODR_OUT_OF_MEM     = 1,  /**< Out of memory */
@@ -671,10 +670,6 @@ typedef struct {
     uint8_t storageGroup;
     /** Attribute bit-field of the OD sub-object, see OD_attributes_t */
     OD_attr_t attribute;
-    /** Low limit of the parameter value, not valid if greater than highLimit */
-    int32_t lowLimit;
-    /** High limit of the parameter value, not valid if lower than lowLimit */
-    int32_t highLimit;
     /**
      * Pointer to PDO flags bit-field. This is optional extension of OD object.
      * If OD object has enabled this extension, then each sub-element is coupled
@@ -728,7 +723,7 @@ typedef struct {
      * Function pointer for writing value into specified variable inside Object
      * Dictionary. If OD variable is larger than buf, then this function must
      * be called several times. After completed successful write function
-     * returns 'ODR_OK'. If read is partial, it returns 'ODR_PARTIAL'. In case
+     * returns 'ODR_OK'. If write is partial, it returns 'ODR_PARTIAL'. In case
      * of errors function returns code similar to SDO abort code.
      *
      * Write can be restarted with @ref OD_rwRestart() function.
@@ -836,26 +831,6 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
 
 
 /**
- * Verify if value written to Object Dictionary is within limit values
- *
- * @param subEntry OD sub-entry data returned by @ref OD_getSub().
- * @param val Value to be verified.
- *
- * @return Value from @ref ODR_t, "ODR_OK" in case of success.
- */
-static inline ODR_t OD_checkLimits(OD_subEntry_t *subEntry, int32_t val) {
-    int32_t lowLimit = subEntry->lowLimit;
-    int32_t highLimit = subEntry->highLimit;
-
-    if (lowLimit <= highLimit) {
-        if (val < lowLimit) return ODR_VALUE_LOW;
-        if (val > highLimit) return ODR_VALUE_HIGH;
-    }
-    return ODR_OK;
-}
-
-
-/**
  * Restart read or write operation on OD variable
  *
  * It is not necessary to call this function, if stream was initialised by
@@ -877,7 +852,7 @@ static inline void OD_rwRestart(OD_stream_t *stream) {
  *
  * @return Corresponding @ref CO_SDO_abortCode_t
  */
-uint32_t OD_getSDOabortCode(ODR_t returnCode);
+uint32_t OD_getSDOabCode(ODR_t returnCode);
 
 
 /**
@@ -916,6 +891,26 @@ bool_t OD_extensionIO_init(const OD_entry_t *entry,
                                               const void *buf,
                                               OD_size_t count,
                                               ODR_t *returnCode));
+
+/**
+ * Helper function for no read access
+ *
+ * This function can be used by application as argument to
+ * @ref OD_extensionIO_init(). It only returns ODR_WRITEONLY as returnCode.
+ */
+OD_size_t OD_readDisabled(OD_stream_t *stream, uint8_t subIndex,
+                          void *buf, OD_size_t count,
+                          ODR_t *returnCode);
+
+/**
+ * Helper function for no write access
+ *
+ * This function can be used by application as argument to
+ * @ref OD_extensionIO_init(). It only returns ODR_READONLY as returnCode.
+ */
+OD_size_t OD_writeDisabled(OD_stream_t *stream, uint8_t subIndex,
+                           void *buf, OD_size_t count,
+                           ODR_t *returnCode);
 
 
 /**
@@ -1032,12 +1027,6 @@ typedef enum {
      * @ref OD_obj_var_t. Variable at sub-index 0 is of type uint8_t and usually
      * represents number of sub-elements in the structure. */
     ODT_REC = 0x03,
-    /** ODT_VAR with additional low and high limit of the parameter value */
-    ODT_VARL = 0x04,
-    /** ODT_ARR with additional low and high limits of the parameter values */
-    ODT_ARRL = 0x05,
-    /** ODT_REC with additional low and high limits of the parameter values */
-    ODT_RECL = 0x06,
 
     /** Same as ODT_VAR, but extended with OD_obj_extended_t type. It includes
      * additional pointer to IO extension and PDO flags */
@@ -1046,12 +1035,6 @@ typedef enum {
     ODT_EARR = 0x12,
     /** Same as ODT_REC, but extended with OD_obj_extended_t type */
     ODT_EREC = 0x13,
-    /** Same as ODT_VARL, but extended with OD_obj_extended_t type */
-    ODT_EVARL = 0x14,
-    /** Same as ODT_ARRL, but extended with OD_obj_extended_t type. */
-    ODT_EARRL = 0x15,
-    /** Same as ODT_RECL, but extended with OD_obj_extended_t type. */
-    ODT_ERECL = 0x16,
 
     /** Mask for basic type */
     ODT_TYPE_MASK = 0x0F,
@@ -1069,25 +1052,6 @@ typedef struct {
 } OD_obj_var_t;
 
 /**
- * Limits of the parameter value.
- */
-typedef struct {
-    int32_t low; /**< Low limit of the parameter value */
-    int32_t high; /**< High limit of the parameter value */
-} OD_limits_t;
-
-/**
- * Object for single OD variable, used for "VAR" and "RECORD" type OD objects.
- * Additionally includes limits of the parameter value.
- */
-typedef struct {
-    void *data; /**< Pointer to data */
-    OD_attr_t attribute; /**< Attribute bitfield, see @ref OD_attributes_t */
-    OD_size_t dataLength; /**< Data length in bytes */
-    OD_limits_t limit; /**< Limits of the parameter value */
-} OD_obj_varLimits_t;
-
-/**
  * Object for OD array of variables, used for "ARRAY" type OD objects
  */
 typedef struct {
@@ -1099,22 +1063,6 @@ typedef struct {
     OD_size_t dataElementLength; /**< Data length of array elements in bytes */
     OD_size_t dataElementSizeof; /**< Sizeof one array element in bytes */
 } OD_obj_array_t;
-
-/**
- * Object for OD array of variables, used for "ARRAY" type OD objects.
- * Additionally includes limits of the parameter value for each array element
- * and separate attribute for each array element.
- */
-typedef struct {
-    uint8_t *data0; /**< Pointer to data for sub-index 0 */
-    void *data; /**< Pointer to array of data */
-    OD_limits_t *limits; /**< Pointer to array limits of the parameter value */
-    OD_attr_t *attributes; /**< Pointer to array attributes */
-    OD_attr_t attribute0; /**< Attribute bitfield for sub-index 0, see
-                               @ref OD_attributes_t */
-    OD_size_t dataElementLength; /**< Data length of array elements in bytes */
-    OD_size_t dataElementSizeof; /**< Sizeof one array element in bytes */
-} OD_obj_arrayLimAttr_t;
 
 /**
  * Object pointed by @ref OD_obj_extended_t contains application specified
