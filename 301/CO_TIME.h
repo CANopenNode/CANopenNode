@@ -27,7 +27,6 @@
 #ifndef CO_TIME_H
 #define CO_TIME_H
 
-#include "CO_OD.h"
 
 
 #ifdef __cplusplus

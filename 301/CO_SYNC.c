@@ -412,7 +412,10 @@ CO_SYNC_status_t CO_SYNC_process(
             if(SYNC->timer > SYNC->periodTimeoutTime) {
                 CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
             }
-#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
+            else {
+                CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION);
+            }
+ #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
             else if(timerNext_us != NULL) {
                 uint32_t diff = SYNC->periodTimeoutTime - SYNC->timer;
                 if(*timerNext_us > diff){

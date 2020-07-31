@@ -331,7 +331,6 @@ bool_t CO_isError(CO_EM_t *em, const uint8_t errorBit);
 /** Skip section, if CO_SDOserver.h is not included */
     #define CO_SDO_SERVER_H
 #endif
-#ifdef CO_SDO_SERVER_H
 
 
 /**
@@ -460,7 +459,6 @@ void CO_EM_process(
         uint32_t               *timerNext_us);
 
 
-#endif
 
 #ifdef __cplusplus
 }
