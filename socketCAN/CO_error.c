@@ -156,9 +156,11 @@ static CO_CANinterfaceState_t CO_CANerrorCrtl(
             CANerrorhandler->CANerrorStatus &= 0x7FFF ^ CO_CAN_ERRTX_PASSIVE;
             /* CANerrorhandler->CANerrorStatus |= CO_CAN_ERRTX_WARNING; */
         }
+#ifdef CAN_ERR_CRTL_ACTIVE
         else if ((msg->data[1] & CAN_ERR_CRTL_ACTIVE) != 0) {
             log_printf(LOG_NOTICE, CAN_TX_LEVEL_ACTIVE, CANerrorhandler->ifName);
         }
+#endif
     }
     return result;
 }
