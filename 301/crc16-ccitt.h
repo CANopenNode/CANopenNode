@@ -46,6 +46,22 @@ extern "C" {
 
 
 /**
+ * Update crc16_ccitt variable with one data byte
+ *
+ * This function updates crc variable for one data byte using crc16 ccitt
+ * algorithm.
+ *
+ * @param [in,out] crc Externally defined variable for CRC checksum. Before
+ * start of new CRC calculation, variable must be initialized (zero for xmodem).
+ * @param chr One byte of data
+ */
+#ifdef CO_USE_OWN_CRC16
+extern
+#endif
+void crc16_ccitt_single(unsigned short *crc, const unsigned char chr);
+
+
+/**
  * Calculate CRC sum on block of data.
  *
  * @param block Pointer to block of data.
@@ -63,9 +79,11 @@ unsigned short crc16_ccitt(
         unsigned int            blockLength,
         unsigned short          crc);
 
+
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
 #endif

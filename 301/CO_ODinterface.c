@@ -39,7 +39,7 @@ static OD_size_t OD_readDirect(OD_stream_t *stream, uint8_t subIndex,
         return 0;
     }
 
-    OD_size_t n = stream->dataLength;
+    OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
     const char *odData = (const char *)stream->dataObject;
 
     if (odData == NULL) {
@@ -49,15 +49,21 @@ static OD_size_t OD_readDirect(OD_stream_t *stream, uint8_t subIndex,
 
     *returnCode = ODR_OK;
 
-    if (stream->dataOffset > 0 || n > count) {
-        /* data will be (are) read in several segments */
-        n -= stream->dataOffset;
+    /* If previous read was partial or OD variable length is larger than
+     * current buffer len, then data was (will be) read in several segments */
+    if (stream->dataOffset > 0 || dataLenToCopy > count) {
+        if (stream->dataOffset >= dataLenToCopy) {
+            *returnCode = ODR_DEV_INCOMPAT;
+            return 0;
+        }
+        /* reduce for allready copied data */
+        dataLenToCopy -= stream->dataOffset;
         odData += stream->dataOffset;
 
-        if (n > count) {
+        if (dataLenToCopy > count) {
             /* not enough space in destionation buffer */
-            n = count;
-            stream->dataOffset += n;
+            dataLenToCopy = count;
+            stream->dataOffset += dataLenToCopy;
             *returnCode = ODR_PARTIAL;
         }
         else {
@@ -65,8 +71,10 @@ static OD_size_t OD_readDirect(OD_stream_t *stream, uint8_t subIndex,
         }
     }
 
-    memcpy(buf, odData, n);
-    return n;
+    CO_LOCK_OD();
+    memcpy(buf, odData, dataLenToCopy);
+    CO_UNLOCK_OD();
+    return dataLenToCopy;
 }
 
 /* Write value to variable from Object Dictionary, see OD_subEntry_t **********/
@@ -81,7 +89,7 @@ static OD_size_t OD_writeDirect(OD_stream_t *stream, uint8_t subIndex,
         return 0;
     }
 
-    OD_size_t n = stream->dataLength;
+    OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
     char *odData = (char *)stream->dataObject;
 
     if (odData == NULL) {
@@ -91,15 +99,22 @@ static OD_size_t OD_writeDirect(OD_stream_t *stream, uint8_t subIndex,
 
     *returnCode = ODR_OK;
 
-    if (stream->dataOffset > 0 || n > count) {
-        /* data will be (are) written in several segments */
-        n -= stream->dataOffset;
+    /* If previous write was partial or OD variable length is larger than
+     * current data len, then data was (will be) written in several segments */
+    if (stream->dataOffset > 0 || dataLenToCopy > count) {
+        if (stream->dataOffset >= dataLenToCopy) {
+            *returnCode = ODR_DEV_INCOMPAT;
+            return 0;
+        }
+        /* reduce for allready copied data */
+        dataLenToCopy -= stream->dataOffset;
         odData += stream->dataOffset;
 
-        if (n > count) {
-            /* OD variable is larger than current ammount of data */
-            n = count;
-            stream->dataOffset += n;
+        if (dataLenToCopy > count) {
+            /* Reamining data space in OD variable is larger than current count
+             * of data, so only current count of data will be copied */
+            dataLenToCopy = count;
+            stream->dataOffset += dataLenToCopy;
             *returnCode = ODR_PARTIAL;
         }
         else {
@@ -107,8 +122,17 @@ static OD_size_t OD_writeDirect(OD_stream_t *stream, uint8_t subIndex,
         }
     }
 
-    memcpy(odData, buf, n);
-    return n;
+    if (dataLenToCopy < count) {
+        /* OD variable is smaller than current ammount of data */
+        *returnCode = ODR_DATA_LONG;
+        return 0;
+    }
+    else {
+        CO_LOCK_OD();
+        memcpy(odData, buf, dataLenToCopy);
+        CO_UNLOCK_OD();
+        return dataLenToCopy;
+    }
 }
 
 /******************************************************************************/

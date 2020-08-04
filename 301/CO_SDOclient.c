@@ -108,7 +108,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
                 }
                 else {
                     /* Copy data. There is always enough space in fifo buffer,
-                     * because block_seqno was calculated before */
+                     * because block_blksize was calculated before */
                     CO_fifo_write(&SDO_C->bufFifo,
                                   (const char *)&data[1],
                                   7, &SDO_C->block_crc);
@@ -530,6 +530,8 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
 
                     SDO_C->block_crc = 0;
                     SDO_C->block_blksize = SDO_C->CANrxData[4];
+                    if (SDO_C->block_blksize < 1 || SDO_C->block_blksize > 127)
+                        SDO_C->block_blksize = 127;
                     SDO_C->block_seqno = 0;
                     CO_fifo_altBegin(&SDO_C->bufFifo, 0);
                     SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ;
@@ -1404,6 +1406,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
 
             /* reset timeout timer and send message */
             SDO_C->timeoutTimer = 0;
+            SDO_C->block_timeoutTimer = 0;
             CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
             break;
         }

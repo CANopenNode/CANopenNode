@@ -82,6 +82,13 @@ static const unsigned short crc16_ccitt_table[256] = {
 
 
 /******************************************************************************/
+void crc16_ccitt_single(unsigned short *crc, const unsigned char chr) {
+    unsigned char tmp = (unsigned char)(*crc >> 8U) ^ chr;
+    *crc = (*crc << 8U) ^ crc16_ccitt_table[tmp];
+}
+
+
+/******************************************************************************/
 unsigned short crc16_ccitt(
         const unsigned char     block[],
         unsigned int            blockLength,
@@ -90,8 +97,8 @@ unsigned short crc16_ccitt(
     unsigned int i;
 
     for(i=0U; i<blockLength; i++){
-        unsigned short tmp = (crc >> 8) ^ (unsigned short) block[i];
-        crc = ((unsigned short)(crc << 8U)) ^ crc16_ccitt_table[tmp];
+        unsigned char tmp = (unsigned char)(crc >> 8U) ^ block[i];
+        crc = (crc << 8U) ^ crc16_ccitt_table[tmp];
     }
     return crc;
 }
