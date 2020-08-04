@@ -142,72 +142,72 @@ void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
 /* help strings */
 static const char CO_GTWA_helpString[] =
-"\nCommand strings start with '\"[\"<sequence>\"]\"' followed by:\n" \
-"[[<net>] <node>] r[ead] <index> <subindex> [<datatype>]        # SDO upload.\n" \
-"[[<net>] <node>] w[rite] <index> <subindex> <datatype> <value> # SDO download.\n" \
-"\n" \
-"[[<net>] <node>] start                   # NMT Start node.\n" \
-"[[<net>] <node>] stop                    # NMT Stop node.\n" \
-"[[<net>] <node>] preop[erational]        # NMT Set node to pre-operational.\n" \
-"[[<net>] <node>] reset node              # NMT Reset node.\n" \
-"[[<net>] <node>] reset comm[unication]   # NMT Reset communication.\n" \
-"\n" \
-"[<net>] set network <value>              # Set default net.\n" \
-"[<net>] set node <value>                 # Set default node.\n" \
-"[<net>] set sdo_timeout <value>          # Configure SDO time-out.\n" \
-"[<net>] set sdo_block <value>            # Enable/disable SDO block transfer.\n" \
-"\n" \
-"help [datatype|lss]                      # Print this or datatype or lss help.\n" \
-"led                                      # Print status LED diodes.\n" \
-"log                                      # Print message log.\n" \
-"\n" \
-"Response:\n" \
-"\"[\"<sequence>\"]\" OK | <value> |\n" \
-"                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>\n" \
-"\n" \
-"* Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same\n" \
-"  is response. String is not null terminated, <CR> is optional in command.\n" \
-"* Comments started with '#' are ignored. They may be on the beginning of the\n" \
-"  line or after the command string.\n" \
-"* 'sdo_timeout' is in milliseconds, 500 by default. Block transfer is\n" \
-"  disabled by default.\n" \
-"* If '<net>' or '<node>' is not specified within commands, then value defined\n" \
+"\r\nCommand strings start with '\"[\"<sequence>\"]\"' followed by:\r\n" \
+"[[<net>] <node>] r[ead] <index> <subindex> [<datatype>]        # SDO upload.\r\n" \
+"[[<net>] <node>] w[rite] <index> <subindex> <datatype> <value> # SDO download.\r\n" \
+"\r\n" \
+"[[<net>] <node>] start                   # NMT Start node.\r\n" \
+"[[<net>] <node>] stop                    # NMT Stop node.\r\n" \
+"[[<net>] <node>] preop[erational]        # NMT Set node to pre-operational.\r\n" \
+"[[<net>] <node>] reset node              # NMT Reset node.\r\n" \
+"[[<net>] <node>] reset comm[unication]   # NMT Reset communication.\r\n" \
+"\r\n" \
+"[<net>] set network <value>              # Set default net.\r\n" \
+"[<net>] set node <value>                 # Set default node.\r\n" \
+"[<net>] set sdo_timeout <value>          # Configure SDO time-out.\r\n" \
+"[<net>] set sdo_block <value>            # Enable/disable SDO block transfer.\r\n" \
+"\r\n" \
+"help [datatype|lss]                      # Print this or datatype or lss help.\r\n" \
+"led                                      # Print status LED diodes.\r\n" \
+"log                                      # Print message log.\r\n" \
+"\r\n" \
+"Response:\r\n" \
+"\"[\"<sequence>\"]\" OK | <value> |\r\n" \
+"                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>\r\n" \
+"\r\n" \
+"* Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same\r\n" \
+"  is response. String is not null terminated, <CR> is optional in command.\r\n" \
+"* Comments started with '#' are ignored. They may be on the beginning of the\r\n" \
+"  line or after the command string.\r\n" \
+"* 'sdo_timeout' is in milliseconds, 500 by default. Block transfer is\r\n" \
+"  disabled by default.\r\n" \
+"* If '<net>' or '<node>' is not specified within commands, then value defined\r\n" \
 "  by 'set network' or 'set node' command is used.\r\n";
 
 static const char CO_GTWA_helpStringDatatypes[] =
-"\nDatatypes:\n" \
-"b                  # Boolean.\n" \
-"i8, i16, i32, i64  # Signed integers.\n" \
-"u8, u16, u32, u64  # Unsigned integers.\n" \
-"x8, x16, x32, x64  # Unsigned integers, displayed as hexadecimal, non-standard.\n" \
-"r32, r64           # Real numbers.\n" \
-"t, td              # Time of day, time difference.\n" \
-"vs                 # Visible string (between double quotes if multi-word).\n" \
-"os, us             # Octet, unicode string, (mime-base64 (RFC2045) based, line).\n" \
-"d                  # domain (mime-base64 (RFC2045) based, one line).\n" \
+"\r\nDatatypes:\r\n" \
+"b                  # Boolean.\r\n" \
+"i8, i16, i32, i64  # Signed integers.\r\n" \
+"u8, u16, u32, u64  # Unsigned integers.\r\n" \
+"x8, x16, x32, x64  # Unsigned integers, displayed as hexadecimal, non-standard.\r\n" \
+"r32, r64           # Real numbers.\r\n" \
+"t, td              # Time of day, time difference.\r\n" \
+"vs                 # Visible string (between double quotes if multi-word).\r\n" \
+"os, us             # Octet, unicode string, (mime-base64 (RFC2045) based, line).\r\n" \
+"d                  # domain (mime-base64 (RFC2045) based, one line).\r\n" \
 "hex                # Hexagonal data, optionally space separated, non-standard.\r\n";
 
 static const char CO_GTWA_helpStringLss[] =
-"\nLSS commands:\n" \
-"lss_switch_glob <0|1>                  # Switch state global command.\n" \
-"lss_switch_sel <vendorID> <product code> \\\n" \
-"               <revisionNo> <serialNo> #Switch state selective.\n" \
-"lss_set_node <node>                    # Configure node-ID.\n" \
-"lss_conf_bitrate <table_selector=0> \\\n" \
-"                 <table_index>         # Configure bit-rate.\n" \
-"lss_activate_bitrate <switch_delay_ms> # Activate new bit-rate.\n" \
-"lss_store                              # LSS store configuration.\n" \
-"lss_inquire_addr [<LSSSUB=0..3>]       # Inquire LSS address.\n" \
-"lss_get_node                           # Inquire node-ID.\n" \
-"_lss_fastscan [<timeout_ms>]           # Identify fastscan, non-standard.\n" \
-"lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\\n" \
-"                [<scanType0> <vendorId> <scanType1> <productCode>\\\n" \
-"                 <scanType2> <revisionNo> <scanType3> <serialNo>]]]\n" \
-"                                       # Node-ID configuration of all nodes.\n" \
-"\n" \
-"* All LSS commands start with '\"[\"<sequence>\"]\" [<net>]'.\n" \
-"* <table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,\n" \
-"                 4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto\n" \
+"\r\nLSS commands:\r\n" \
+"lss_switch_glob <0|1>                  # Switch state global command.\r\n" \
+"lss_switch_sel <vendorID> <product code> \\\r\n" \
+"               <revisionNo> <serialNo> #Switch state selective.\r\n" \
+"lss_set_node <node>                    # Configure node-ID.\r\n" \
+"lss_conf_bitrate <table_selector=0> \\\r\n" \
+"                 <table_index>         # Configure bit-rate.\r\n" \
+"lss_activate_bitrate <switch_delay_ms> # Activate new bit-rate.\r\n" \
+"lss_store                              # LSS store configuration.\r\n" \
+"lss_inquire_addr [<LSSSUB=0..3>]       # Inquire LSS address.\r\n" \
+"lss_get_node                           # Inquire node-ID.\r\n" \
+"_lss_fastscan [<timeout_ms>]           # Identify fastscan, non-standard.\r\n" \
+"lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\\r\n" \
+"                [<scanType0> <vendorId> <scanType1> <productCode>\\\r\n" \
+"                 <scanType2> <revisionNo> <scanType3> <serialNo>]]]\r\n" \
+"                                       # Node-ID configuration of all nodes.\r\n" \
+"\r\n" \
+"* All LSS commands start with '\"[\"<sequence>\"]\" [<net>]'.\r\n" \
+"* <table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,\r\n" \
+"                 4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto\r\n" \
 "* <scanType>: 0=fastscan, 1=ignore, 2=match value in next parameter\r\n";
 #endif
 
