@@ -72,6 +72,11 @@ extern "C" {
 /**
  * Internal states of the SDO state machine.
  *
+ * Upper nibble of byte indicates type of state:
+ * 0x10: Download
+ * 0x20: Upload
+ * 0x40: Block Mode
+ *
  * Note: CANopen has little endian byte order.
  */
 typedef enum {
