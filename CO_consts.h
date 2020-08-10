@@ -40,7 +40,10 @@ typedef struct CO_consts_t_ {
 	uint16_t NO_RPDO;                   //Associated objects: 14xx, 16xx
 	uint16_t NO_TPDO;                   //Associated objects: 18xx, 1Axx
 	uint16_t NO_NMT_MASTER;
+	uint16_t NO_TRACE;
 	uint16_t consumerHeartbeatTime_arrayLength;
+	uint16_t NO_SRDO;
+	uint16_t NO_GFC;
 	uint16_t OD_NoOfElements;
 	uint16_t sizeof_OD_TPDOCommunicationParameter;
 	uint16_t sizeof_OD_TPDOMappingParameter;

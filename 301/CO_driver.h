@@ -289,6 +289,19 @@ static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
     return NULL;
 }
 
+**
+ * CO_CANModulErrorStatus read CAN module status.
+ *
+ * See also CO_CANrxMsg_readIdent():
+ *
+ * @param CanPtr Pointer to received message
+ * @return pointer to data buffer
+ */
+static inline uint16_t CO_CANModulErrorStatus(void *CanPtr) {
+    return 0;
+}
+
+
 /**
  * Configuration object for CAN received message for specific \ref CO_obj
  * "CANopenNode Object".

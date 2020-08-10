@@ -272,7 +272,7 @@ void CO_EM_process(
     uint8_t errorMask;
     uint8_t i;
     uint32_t emInhTime_us = (uint32_t)emInhTime_100us * 100;
-    uint16_t CANerrSt = emPr->CANdev->CANerrorStatus;
+    uint16_t CANerrSt = CO_CANModulErrorStatus(emPr->CANdev); /*emPr->CANdev->CANerrorStatus; Access canmodule status through a function*/
 
     /* verify errors from driver */
     if (CANerrSt != emPr->CANerrorStatusOld) {

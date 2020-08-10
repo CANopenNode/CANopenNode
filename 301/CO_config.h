@@ -421,6 +421,21 @@ extern "C" {
 #define CO_CONFIG_GTWA_LOG_BUF_SIZE 2000
 #endif
 
+#ifndef timeOfDay_t
+    typedef union {
+        unsigned long long ullValue;
+        struct {
+            unsigned long ms:28;
+            unsigned reserved:4;
+            unsigned days:16;
+            unsigned reserved2:16;
+        };
+    }timeOfDay_t;
+#endif
+
+typedef timeOfDay_t TIME_OF_DAY;
+typedef timeOfDay_t TIME_DIFFERENCE;
+
 
 /** @} */
 
