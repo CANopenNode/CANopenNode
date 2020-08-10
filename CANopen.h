@@ -32,8 +32,8 @@
 extern "C" {
 #endif
 #include <stdbool.h>
-#ifndef USE_MULTIPLE_OD
-	#define USE_MULTIPLE_OD 0
+#ifndef MULTIPLE_OD
+	#define MULTIPLE_OD 0
 #endif
 
 
@@ -156,7 +156,7 @@ extern "C" {
     #include "301/CO_PDO.h"
     #include "301/CO_HBconsumer.h"
 	#include "CO_consts.h"
-#if USE_MULTIPLE_OD == 0
+#if MULTIPLE_OD == 0
 	#include "CO_OD.h"
 #endif
 
@@ -256,31 +256,31 @@ extern "C" {
 #endif /* CO_DOXYGEN */
 
 
-#if CO_NO_SYNC == 1 || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if CO_NO_SYNC == 1 || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     #include "301/CO_SYNC.h"
 #endif
-#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN || MULTIPLE_OD == 1
     #include "301/CO_SDOclient.h"
 #endif
-#if CO_NO_GFC != 0 || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if CO_NO_GFC != 0 || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     #include "304/CO_GFC.h"
 #endif
-#if CO_NO_SRDO != 0 || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if CO_NO_SRDO != 0 || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     #include "304/CO_SRDO.h"
 #endif
-#if CO_NO_LSS_SLAVE != 0 || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if CO_NO_LSS_SLAVE != 0 || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     #include "305/CO_LSSslave.h"
 #endif
-#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     #include "303/CO_LEDs.h"
 #endif
-#if CO_NO_LSS_MASTER != 0 || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if CO_NO_LSS_MASTER != 0 || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     #include "305/CO_LSSmaster.h"
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     #include "309/CO_gateway_ascii.h"
 #endif
-#if CO_NO_TRACE != 0 || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if CO_NO_TRACE != 0 || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     #include "extra/CO_trace.h"
 #endif
 
@@ -323,37 +323,37 @@ typedef struct {
     CO_EMpr_t *emPr;                 /**< Emergency process object */
     CO_NMT_t *NMT;                   /**< NMT object */
     CO_CANtx_t *NMTM_txBuff;         /**< used to send management messages.*/
-#if CO_NO_SYNC == 1 || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if CO_NO_SYNC == 1 || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     CO_SYNC_t *SYNC;                 /**< SYNC object */
 #endif
     CO_TIME_t *TIME;                 /**< TIME object */
     CO_RPDO_t *RPDO;     /**< RPDO objects */
     CO_TPDO_t *TPDO;     /**< TPDO objects */
     CO_HBconsumer_t *HBcons;         /**< Heartbeat consumer object*/
-#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN || MULTIPLE_OD == 1
     CO_SDOclient_t *SDOclient; /**< SDO client object */
 #endif
     CO_HBconsNode_t	   *HBcons_monitoredNodes;
-#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN || MULTIPLE_OD == 1
     CO_LEDs_t *LEDs;                 /**< LEDs object */
 #endif
-#if CO_NO_GFC != 0 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_GFC != 0 || defined CO_DOXYGEN || MULTIPLE_OD == 1
     CO_GFC_t *GFC;                   /**< GFC objects */
 #endif
-#if CO_NO_SRDO != 0 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_SRDO != 0 || defined CO_DOXYGEN || MULTIPLE_OD == 1
     CO_SRDOGuard_t *SRDOGuard;       /**< SRDO objects */
     CO_SRDO_t *SRDO;     /**< SRDO objects */
 #endif
-#if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN || MULTIPLE_OD == 1
     CO_LSSslave_t *LSSslave;         /**< LSS slave object */
 #endif
-#if CO_NO_LSS_MASTER == 1 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_LSS_MASTER == 1 || defined CO_DOXYGEN || MULTIPLE_OD == 1
     CO_LSSmaster_t *LSSmaster;       /**< LSS master object */
 #endif
-#if ((CO_CONFIG_GTW) & (CO_CONFIG_GTW_ASCII || USE_MULTIPLE_OD == 1)) || defined CO_DOXYGEN
+#if ((CO_CONFIG_GTW) & (CO_CONFIG_GTW_ASCII || MULTIPLE_OD == 1)) || defined CO_DOXYGEN
     CO_GTWA_t *gtwa;                /**< Gateway-ascii object (CiA309-3) */
 #endif
-#if CO_NO_TRACE > 0 || defined CO_DOXYGEN || (USE_MULTIPLE_OD == 1 && defined TRACE)
+#if CO_NO_TRACE > 0 || defined CO_DOXYGEN || (MULTIPLE_OD == 1 && defined TRACE)
     CO_trace_t *trace; /**< Trace object for recording variables */
     uint32_t           **traceTimeBuffers; /**< Trace time buffers for monitoring variables */
     int32_t            **traceValueBuffers; /**< Trace value buffers for monitoring variables */
@@ -364,14 +364,13 @@ typedef struct {
     uint32_t NMTStartup;/*1F80, Data Type: UNSIGNED32 */
     uint8_t* errorRegister; /*1001, Data Type: UNSIGNED8 */
     uint8_t* errorBehavior;/*1029, Data Type: UNSIGNED8, Array[6] */
+	uint32_t syncronizationWindowLength; /*Read from 1007*/
     /* Fields below this line must be initialized manually*/
     /*------------------------------------------------------------------------------------------*/
     const CO_consts_t  *consts;
 	uint8_t* errorStatusBits; // ErrorStatusbits can be defined as any object in "Manufacturer specific Objects"
 	uint8_t errorStatusBitsSize;
-	uint32_t em_syncronizationWindow;
-	uint32_t syncronizationWindowLength;
-#if CO_NO_TRACE > 0 || defined CO_DOXYGEN || (USE_MULTIPLE_OD == 1 && defined TRACE)
+#if CO_NO_TRACE > 0 || defined CO_DOXYGEN || (MULTIPLE_OD == 1 && defined TRACE)
 	uint16_t NO_TRACE;			/**<   Number of elements in below "arrays". In example/CO_OD_with_trace OD. This should be 2 */
 	TraceConfig_t* traceConfig; /**< Must point to OD variable which matches TraceConfig_t. See example/CO_OD_with_trace OD index 2301 */
 	TraceData_t* traceData;     /**< Must point to OD variable which matches TraceData_t. See example/CO_OD_with_trace OD index 2401 */
@@ -399,7 +398,7 @@ void initCan2(void) {
 
 
 /** CANopen object */
-#if USE_MULTIPLE_OD == 0
+#if MULTIPLE_OD == 0
 extern CO_t *CO;
 #endif
 
@@ -418,7 +417,7 @@ extern CO_t *CO;
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_OUT_OF_MEMORY
  */
-#if USE_MULTIPLE_OD == 0
+#if MULTIPLE_OD == 0
 CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed);
 #endif
 CO_ReturnError_t CO_newEx(CO_t *CO,uint32_t *heapMemoryUsed);
@@ -430,7 +429,7 @@ CO_ReturnError_t CO_newEx(CO_t *CO,uint32_t *heapMemoryUsed);
  * @param CANptr Pointer to the user-defined CAN base structure, passed to
  *               CO_CANmodule_init().
  */
-#if USE_MULTIPLE_OD == 0
+#if MULTIPLE_OD == 0
 void CO_delete(void *CANptr);
 #endif
 void CO_deleteEx(CO_t *CO, void *CANptr);
@@ -447,7 +446,7 @@ void CO_deleteEx(CO_t *CO, void *CANptr);
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_ILLEGAL_BAUDRATE, CO_ERROR_OUT_OF_MEMORY
  */
-#if USE_MULTIPLE_OD == 0
+#if MULTIPLE_OD == 0
 CO_ReturnError_t CO_CANinit(void  *CANptr,
                             uint16_t                bitRate);
 #endif
@@ -456,7 +455,7 @@ CO_ReturnError_t CO_CANinitEx(CO_t *CO,
 							  uint16_t                bitRate);
 
 
-#if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN || MULTIPLE_OD == 1
 /**
  * Initialize CANopen LSS slave
  *
@@ -468,7 +467,7 @@ CO_ReturnError_t CO_CANinitEx(CO_t *CO,
  * @param [in,out] pendingBitRate Pending bit rate of the CAN interface
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
  */
-#if USE_MULTIPLE_OD == 0
+#if MULTIPLE_OD == 0
 CO_ReturnError_t CO_LSSinit(uint8_t                 nodeId,
         				    uint16_t                bitRate);
 #endif
@@ -489,7 +488,7 @@ CO_ReturnError_t CO_LSSinitEx(CO_t *CO,
  * processed.
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT
  */
-#if USE_MULTIPLE_OD == 0
+#if MULTIPLE_OD == 0
 CO_ReturnError_t CO_CANopenInit(uint8_t  nodeId);
 #endif
 CO_ReturnError_t CO_CANopenInitEx(CO_t *CO, const CO_OD_entry_t *OC_OD, uint8_t  nodeId);
@@ -572,7 +571,7 @@ void CO_process_TPDO(CO_t *co,
                      uint32_t timeDifference_us,
                      uint32_t *timerNext_us);
 
-#if CO_NO_SRDO != 0 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_SRDO != 0 || defined CO_DOXYGEN || MULTIPLE_OD == 1
 /**
  * Process CANopen SRDO objects.
  *

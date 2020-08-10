@@ -52,6 +52,7 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #endif
 
 /* Verify number of CANopenNode objects from CO_OD.h **************************/
+
 #if MULTIPLE_OD==0
 #if    CO_NO_SYNC                                 >  1     \
     || (CO_NO_SDO_SERVER < 1 || CO_NO_SDO_SERVER > 128)    \
@@ -303,7 +304,7 @@ CO_ReturnError_t CO_newEx(CO_t *CO,uint32_t *heapMemoryUsed) {
     CO_memoryUsed += sizeof(CO_HBconsumer_t) +
                      sizeof(CO_HBconsNode_t) * CO->consts->consumerHeartbeatTime_arrayLength;
 
-#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN|| USE_MULTIPLE_OD == 1
+#if CO_NO_SDO_CLIENT != 0 || defined CO_DOXYGEN|| MULTIPLE_OD == 1
     if (CO->consts->NO_SDO_CLIENT != 0) {
           CO->SDOclient                = (CO_SDOclient_t *)    calloc(CO->consts->NO_SDO_CLIENT, sizeof(CO_SDOclient_t));
           if (CO->SDOclient == NULL) errCnt++;
@@ -320,7 +321,7 @@ CO_ReturnError_t CO_newEx(CO_t *CO,uint32_t *heapMemoryUsed) {
     CO_memoryUsed += sizeof(CO_LEDs_t);
 #endif
 
-#if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_LSS_SLAVE == 1 || defined CO_DOXYGEN || MULTIPLE_OD == 1
     /* LSSslave */
     if (CO->consts->NO_LSS_CLIENT == 1) {
       CO->LSSslave                        = (CO_LSSslave_t *)     calloc(1, sizeof(CO_LSSslave_t));
@@ -331,7 +332,7 @@ CO_ReturnError_t CO_newEx(CO_t *CO,uint32_t *heapMemoryUsed) {
     CO_memoryUsed += sizeof(CO_LSSslave_t);
 #endif
 
-#if CO_NO_LSS_MASTER == 1 || defined CO_DOXYGEN || USE_MULTIPLE_OD == 1
+#if CO_NO_LSS_MASTER == 1 || defined CO_DOXYGEN || MULTIPLE_OD == 1
     /* LSSmaster */
     if (CO->consts->NO_LSS_CLIENT == 1) {
       CO->LSSmaster                       = (CO_LSSmaster_t *)    calloc(1, sizeof(CO_LSSmaster_t));
@@ -683,7 +684,7 @@ CO_ReturnError_t CO_CANinitEx(CO_t *CO, void *CANptr, uint16_t bitRate)
 
 
 /******************************************************************************/
-#if CO_NO_LSS_SLAVE == 1 || USE_MULTIPLE_OD == 1
+#if CO_NO_LSS_SLAVE == 1 || MULTIPLE_OD == 1
 CO_ReturnError_t CO_LSSinitEx(CO_t *CO,
         					uint8_t                 nodeId,
 							uint16_t                bitRate)
@@ -1180,7 +1181,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     bool_t NMTisPreOrOperational = false;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
 
-    CO_CANmodule_process(CO->CANmodule[0]);
+    CO_CANmodule_process(co->CANmodule[0]);
 
 #if CO_NO_LSS_SLAVE == 1
     bool_t resetLSS = CO_LSSslave_process(co->LSSslave);
@@ -1397,7 +1398,7 @@ CO_ReturnError_t CO_initEx(CO_t *CO, const CO_OD_entry_t *CO_OD,
     return CO_ERROR_NO;
 }
 
-#if USE_MULTIPLE_OD == 0
+#if MULTIPLE_OD == 0
 CO_ReturnError_t CO_init(void *CANdriverState, uint8_t nodeId,   uint16_t bitRate)
 {
 	COO.consts=&CO_Consts;
@@ -1408,11 +1409,6 @@ CO_ReturnError_t CO_init(void *CANdriverState, uint8_t nodeId,   uint16_t bitRat
 	static errorStatusBits[10];
 	COO.errorStatusBits=errorStatusBits;
 	COO.errorStatusBitsSize=sizeof(errorStatusBits);
-#endif
-#ifdef OD_syncronizationWindow
-	COO.em_syncronizationWindow=OD_syncronizationWindow;
-#else
-	COO.em_syncronizationWindow=100;
 #endif
 	return CO_initEx(&COO, &CO_OD[0],CANdriverState,nodeId,bitRate);
 }
