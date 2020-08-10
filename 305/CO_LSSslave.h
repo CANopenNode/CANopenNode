@@ -158,7 +158,7 @@ typedef struct{
  */
 CO_ReturnError_t CO_LSSslave_init(
         CO_LSSslave_t          *LSSslave,
-        CO_LSS_address_t        lssAddress,
+        CO_LSS_address_t       *lssAddress,
         uint16_t               *pendingBitRate,
         uint8_t                *pendingNodeID,
         CO_CANmodule_t         *CANdevRx,
