@@ -323,7 +323,7 @@ CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
     if (SDO_C->SDO != NULL
         && SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId
     ) {
-        SDO_C->state = CO_SDO_ST_LOCAL_TRANSFER;
+        SDO_C->state = CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER;
     }
     else
 #endif
@@ -401,7 +401,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
     }
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL
     /* Transfer data locally **************************************************/
-    else if (SDO_C->state == CO_SDO_ST_LOCAL_TRANSFER) {
+    else if (SDO_C->state == CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER) {
         if (SDO_C->SDO->state != CO_SDO_ST_IDLE) {
             abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
             ret = CO_SDO_RT_endedWithClientAbort;
@@ -880,7 +880,7 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
     if (SDO_C->SDO != NULL
         && SDO_C->SDOClientPar->nodeIDOfTheSDOServer == SDO_C->SDO->nodeId
     ) {
-        SDO_C->state = CO_SDO_ST_LOCAL_TRANSFER;
+        SDO_C->state = CO_SDO_ST_UPLOAD_LOCAL_TRANSFER;
     }
     else
 #endif
@@ -922,7 +922,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
     }
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL
     /* Transfer data locally **************************************************/
-    else if (SDO_C->state == CO_SDO_ST_LOCAL_TRANSFER) {
+    else if (SDO_C->state == CO_SDO_ST_UPLOAD_LOCAL_TRANSFER) {
         if (SDO_C->SDO->state != 0) {
             abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
             ret = CO_SDO_RT_endedWithClientAbort;
