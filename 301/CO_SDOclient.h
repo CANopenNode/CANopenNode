@@ -145,7 +145,7 @@ typedef struct {
     uint8_t block_noData;
     /** Server CRC support in block transfer */
     bool_t block_crcEnabled;
-    /** Last 7 bytes of data at block download */
+    /** Last 7 bytes of data at block upload */
     uint8_t block_dataUploadLast[7];
     /** Calculated CRC checksum */
     uint16_t block_crc;
