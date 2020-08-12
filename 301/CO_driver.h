@@ -289,13 +289,13 @@ static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
     return NULL;
 }
 
-**
+/**
  * CO_CANModulErrorStatus read CAN module status.
  *
  * See also CO_CANrxMsg_readIdent():
  *
- * @param CanPtr Pointer to received message
- * @return pointer to data buffer
+ * @param CanPtr Pointer to CANmodule
+ * @return CAN hw status
  */
 static inline uint16_t CO_CANModulErrorStatus(void *CanPtr) {
     return 0;
