@@ -408,9 +408,12 @@ CO_SYNC_status_t CO_SYNC_process(
         }
 
         /* Verify timeout of SYNC */
-        if(SYNC->periodTime && *SYNC->operatingState == CO_NMT_OPERATIONAL) {
+        if(SYNC->periodTime && (*SYNC->operatingState == CO_NMT_OPERATIONAL || *SYNC->operatingState == CO_NMT_PRE_OPERATIONAL)){
             if(SYNC->timer > SYNC->periodTimeoutTime) {
                 CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION, SYNC->timer);
+            }
+            else {
+                CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION);
             }
 #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
             else if(timerNext_us != NULL) {
