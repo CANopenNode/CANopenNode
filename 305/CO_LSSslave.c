@@ -192,7 +192,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
 /******************************************************************************/
 CO_ReturnError_t CO_LSSslave_init(
         CO_LSSslave_t          *LSSslave,
-        CO_LSS_address_t        lssAddress,
+        CO_LSS_address_t       *lssAddress,
         uint16_t               *pendingBitRate,
         uint8_t                *pendingNodeID,
         CO_CANmodule_t         *CANdevRx,
@@ -218,7 +218,7 @@ CO_ReturnError_t CO_LSSslave_init(
     memset(LSSslave, 0, sizeof(CO_LSSslave_t));
 
     /* Configure object variables */
-    memcpy(&LSSslave->lssAddress, &lssAddress, sizeof(LSSslave->lssAddress));
+    memcpy(&LSSslave->lssAddress, lssAddress, sizeof(LSSslave->lssAddress));
     LSSslave->lssState = CO_LSS_STATE_WAITING;
     LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;
 

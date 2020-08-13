@@ -611,7 +611,7 @@ CO_ReturnError_t CO_LSSinit(uint8_t *nodeId,
     lssAddress.identity.vendorID = OD_identity.vendorID;
 
     err = CO_LSSslave_init(CO->LSSslave,
-                           lssAddress,
+                           &lssAddress,
                            bitRate,
                            nodeId,
                            CO->CANmodule[0],
