@@ -1232,7 +1232,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     }
 
     /* Emergency */
-    if (co->consts->NO_EMERGENCY!=0)
+//    if (co->consts->NO_EMERGENCY!=0)
     CO_EM_process(co->emPr,
                   NMTisPreOrOperational,
                   timeDifference_us,
