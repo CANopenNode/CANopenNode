@@ -176,19 +176,19 @@ static uint32_t             CO_traceBufferSize[CO_NO_TRACE];
 #define CO_TXCAN_NMT(cnst)      0
 #define CO_TXCAN_SYNC(cnst)    (CO_TXCAN_NMT(cnst)      + (cnst).NO_NMT_MASTER)
 #define CO_TXCAN_EMERG(cnst)   (CO_TXCAN_SYNC(cnst)     + (cnst).NO_SYNC)
-#define CO_TXCAN_TIME(cnst)    (CO_TXCAN_EMERG(cnst)    + (cnst).NO_EMERGENCY)
+#define CO_TXCAN_TIME(cnst)    (CO_TXCAN_EMERG(cnst)    + 1)
 #define CO_TXCAN_GFC(cnst)     (CO_TXCAN_TIME(cnst)     + (cnst).NO_TIME)
 #define CO_TXCAN_SRDO(cnst)    (CO_TXCAN_GFC(cnst)      + (cnst).NO_GFC)
 #define CO_TXCAN_TPDO(cnst)    (CO_TXCAN_SRDO(cnst)     + (cnst).NO_SRDO*2)
 #define CO_TXCAN_SDO_SRV(cnst) (CO_TXCAN_TPDO(cnst)     + (cnst).NO_TPDO)
 #define CO_TXCAN_SDO_CLI(cnst) (CO_TXCAN_SDO_SRV(cnst)  + (cnst).NO_SDO_SERVER)
 #define CO_TXCAN_HB(cnst)      (CO_TXCAN_SDO_CLI(cnst)  + (cnst).NO_SDO_CLIENT)
-#define CO_TXCAN_LSS_SLV(cnst) (CO_TXCAN_HB(cnst)       + CO_NO_HB_PROD)
+#define CO_TXCAN_LSS_SLV(cnst) (CO_TXCAN_HB(cnst)       + (cnst).consumerHeartbeatTime_arrayLength)
 #define CO_TXCAN_LSS_MST(cnst) (CO_TXCAN_LSS_SLV  + CO_NO_LSS_SLAVE)
 #define CO_TXCAN_NO_MSGS(cnst) (\
 		(cnst).NO_NMT_MASTER    + \
 		(cnst).NO_SYNC        + \
-		(cnst).NO_EMERGENCY   + \
+		1   + \
 		(cnst).NO_TIME        + \
 		(cnst).NO_GFC         + \
 		((cnst).NO_SRDO)*2      + \
@@ -236,12 +236,11 @@ CO_ReturnError_t CO_newEx(CO_t *CO,uint32_t *heapMemoryUsed) {
                      sizeof(CO_OD_extension_t) * CO->consts->OD_NoOfElements;
 
     /* Emergency */
-    CO->em = (CO_EM_t *)calloc(1, sizeof(CO_EM_t));
-    if (CO->em == NULL) errCnt++;
-    CO->emPr = (CO_EMpr_t *)calloc(1, sizeof(CO_EMpr_t));
-    if (CO->emPr == NULL) errCnt++;
-    CO_memoryUsed += sizeof(CO_EM_t) + sizeof(CO_EMpr_t);
-
+	CO->em = (CO_EM_t *)calloc(1, sizeof(CO_EM_t));
+	if (CO->em == NULL) errCnt++;
+	CO->emPr = (CO_EMpr_t *)calloc(1, sizeof(CO_EMpr_t));
+	if (CO->emPr == NULL) errCnt++;
+	CO_memoryUsed += sizeof(CO_EM_t) + sizeof(CO_EMpr_t);
     /* NMT_Heartbeat */
     CO->NMT = (CO_NMT_t *)calloc(1, sizeof(CO_NMT_t));
     if (CO->NMT == NULL) errCnt++;
@@ -753,7 +752,7 @@ CO_ReturnError_t CO_CANopenInitEx(CO_t *CO, const CO_OD_entry_t *CO_OD, uint8_t 
 	if (entry!=0xffff)
 		CO->inhibitTimeEMCY=*(uint16_t*)CO_OD_getDataPointer(CO->SDO,entry,0); /*1015, Data Type: UNSIGNED16 */
 	else
-		CO->inhibitTimeEMCY=10;
+		CO->inhibitTimeEMCY=100; /*10ms*/
 	entry=CO_OD_find(CO->SDO,0x1017);
 	if (entry!=0xffff)
 		CO->producerHeartbeatTime=*(uint16_t*)CO_OD_getDataPointer(CO->SDO,entry,0); /*1017, Data Type: UNSIGNED16 */
@@ -1073,7 +1072,8 @@ CO_ReturnError_t CO_CANopenInitEx(CO_t *CO, const CO_OD_entry_t *CO_OD, uint8_t 
                  OD_H1800_TXPDO_1_PARAM+i,
                  OD_H1A00_TXPDO_1_MAPPING+i,
                  CO->CANmodule[0],
-                 CO_TXCAN_TPDO((*(CO->consts)))+i);
+                 CO_TXCAN_TPDO((*(CO->consts)))+i
+				 );
 
          if(err){return err;}
      }
@@ -1232,6 +1232,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     }
 
     /* Emergency */
+    if (co->consts->NO_EMERGENCY!=0)
     CO_EM_process(co->emPr,
                   NMTisPreOrOperational,
                   timeDifference_us,

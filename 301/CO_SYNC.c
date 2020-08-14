@@ -315,16 +315,17 @@ CO_ReturnError_t CO_SYNC_init(
     /* configure SYNC CAN transmission */
     SYNC->CANdevTx = CANdevTx;
     SYNC->CANdevTxIdx = CANdevTxIdx;
-    SYNC->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,               /* CAN device */
-            CANdevTxIdx,            /* index of specific buffer inside CAN module */
-            SYNC->COB_ID,           /* CAN identifier */
-            0,                      /* rtr */
-            len,                    /* number of data bytes */
-            0);                     /* synchronous message flag bit */
-
-    if (SYNC->CANtxBuff == NULL) {
-        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    if (SYNC->isProducer) {
+		SYNC->CANtxBuff = CO_CANtxBufferInit(
+				CANdevTx,               /* CAN device */
+				CANdevTxIdx,            /* index of specific buffer inside CAN module */
+				SYNC->COB_ID,           /* CAN identifier */
+				0,                      /* rtr */
+				len,                    /* number of data bytes */
+				0);                     /* synchronous message flag bit */
+	    if (SYNC->CANtxBuff == NULL) {
+	        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+	    }
     }
 
     return ret;
