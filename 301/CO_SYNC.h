@@ -171,6 +171,21 @@ void CO_SYNC_initCallbackPre(
 
 
 /**
+ * Send SYNC message.
+ *
+ * This function prepares and sends a SYNC object. The application should only
+ * call this if direct control of SYNC transmission is needed, otherwise use
+ * CO_SYNC_process().
+ *
+ *
+ * @param TPDO TPDO object.
+ *
+ * @return Same as CO_CANsend().
+ */
+CO_ReturnError_t CO_SYNCsend(CO_SYNC_t *SYNC);
+
+
+/**
  * Process SYNC communication.
  *
  * Function must be called cyclically.

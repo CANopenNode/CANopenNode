@@ -345,6 +345,14 @@ void CO_SYNC_initCallbackPre(
 }
 #endif
 
+/******************************************************************************/
+CO_ReturnError_t CO_SYNCsend(CO_SYNC_t *SYNC){
+    if(++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
+    SYNC->timer = 0;
+    SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
+    SYNC->CANtxBuff->data[0] = SYNC->counter;
+    return CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
+}
 
 /******************************************************************************/
 CO_SYNC_status_t CO_SYNC_process(
@@ -373,12 +381,8 @@ CO_SYNC_status_t CO_SYNC_process(
         /* SYNC producer */
         if(SYNC->isProducer && SYNC->periodTime){
             if(SYNC->timer >= SYNC->periodTime){
-                if(++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
-                SYNC->timer = 0;
                 ret = CO_SYNC_RECEIVED;
-                SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
-                SYNC->CANtxBuff->data[0] = SYNC->counter;
-                CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
+                CO_SYNCsend(SYNC);
             }
 #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
             /* Calculate when next SYNC needs to be sent */
