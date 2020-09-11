@@ -773,7 +773,7 @@ CO_ReturnError_t CO_CANopenInitEx(CO_t *CO, const CO_OD_entry_t *CO_OD, uint8_t 
 	}
 	entry=CO_OD_find(CO->SDO,0x1029);
 	if (entry!=0xffff)
-		CO->errorBehavior=(uint8_t*)CO_OD_getDataPointer(CO->SDO,entry,0);/*1029, Data Type: UNSIGNED8, Array[6] */
+		CO->errorBehavior=(uint8_t*)CO_OD_getDataPointer(CO->SDO,entry,1);/*1029, Data Type: UNSIGNED8, Array[6] */
 	else
 		CO->errorBehavior=NULL;
     /* Verify parameters from CO_OD */
