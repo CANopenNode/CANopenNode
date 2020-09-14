@@ -24,15 +24,28 @@
  * limitations under the License.
  */
 
+#include "309/CO_gateway_ascii.h"
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
 
-#include "309/CO_gateway_ascii.h"
-
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+/* verify configuration */
+#if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE)
+ #error CO_CONFIG_FIFO_ENABLE must be enabled.
+#endif
+#if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS)
+ #error CO_CONFIG_FIFO_ASCII_COMMANDS must be enabled.
+#endif
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+ #if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES)
+  #error CO_CONFIG_FIFO_ASCII_DATATYPES must be enabled.
+ #endif
+#endif
 
 /******************************************************************************/
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,

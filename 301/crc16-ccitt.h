@@ -24,9 +24,17 @@
  * limitations under the License.
  */
 
-
 #ifndef CRC16_CCITT_H
 #define CRC16_CCITT_H
+
+#include "301/CO_driver.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_CRC16
+#define CO_CONFIG_CRC16 (0)
+#endif
+
+#if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,10 +63,7 @@ extern "C" {
  * start of new CRC calculation, variable must be initialized (zero for xmodem).
  * @param chr One byte of data
  */
-#ifdef CO_USE_OWN_CRC16
-extern
-#endif
-void crc16_ccitt_single(unsigned short *crc, const unsigned char chr);
+void crc16_ccitt_single(uint16_t *crc, const uint8_t chr);
 
 
 /**
@@ -71,19 +76,17 @@ void crc16_ccitt_single(unsigned short *crc, const unsigned char chr);
  *
  * @return Calculated CRC.
  */
-#ifdef CO_USE_OWN_CRC16
-extern
-#endif
-unsigned short crc16_ccitt(
-        const unsigned char     block[],
-        unsigned int            blockLength,
-        unsigned short          crc);
+uint16_t crc16_ccitt(const uint8_t block[],
+                     size_t blockLength,
+                     uint16_t crc);
 
 
-/** @} */
+/** @} */ /* CO_crc16_ccitt */
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif
+#endif /* (CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE */
+
+#endif /* CRC16_CCITT_H */

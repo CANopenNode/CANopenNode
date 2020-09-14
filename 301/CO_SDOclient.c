@@ -24,19 +24,28 @@
  * limitations under the License.
  */
 
-
 #include "301/CO_SDOclient.h"
 
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
 
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) && \
-    !((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED)
-#error If CO_CONFIG_SDO_CLI_BLOCK is enabled, then CO_CONFIG_SDO_CLI_SEGMENTED \
-       must be enabled also!
-#endif
+/* verify configuration */
 #if CO_CONFIG_SDO_CLI_BUFFER_SIZE < 7
-#error CO_CONFIG_SDO_CLI_BUFFER_SIZE must be set to 7 or more!
+ #error CO_CONFIG_SDO_CLI_BUFFER_SIZE must be set to 7 or more.
 #endif
-
+#if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE)
+ #error CO_CONFIG_FIFO_ENABLE must be enabled.
+#endif
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+ #if !((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED)
+  #error CO_CONFIG_SDO_CLI_SEGMENTED must be enabled.
+ #endif
+ #if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ)
+  #error CO_CONFIG_FIFO_ALT_READ must be enabled.
+ #endif
+ #if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT)
+  #error CO_CONFIG_FIFO_CRC16_CCITT must be enabled.
+ #endif
+#endif
 
 /* default 'protocol switch threshold' size for block transfer */
 #ifndef CO_CONFIG_SDO_CLI_PST
@@ -1481,3 +1490,5 @@ void CO_SDOclientClose(CO_SDOclient_t *SDO_C) {
         SDO_C->state = CO_SDO_ST_IDLE;
     }
 }
+
+#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE */

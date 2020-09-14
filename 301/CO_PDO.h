@@ -23,17 +23,21 @@
  * limitations under the License.
  */
 
+#ifndef CO_PDO_H
+#define CO_PDO_H
+
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
 #include "301/CO_NMT_Heartbeat.h"
-#if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
 #include "301/CO_SYNC.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_PDO
+#define CO_CONFIG_PDO (CO_CONFIG_RPDO_ENABLE | \
+                       CO_CONFIG_TPDO_ENABLE | \
+                       CO_CONFIG_PDO_SYNC_ENABLE)
 #endif
-
-
-#ifndef CO_PDO_H
-#define CO_PDO_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -426,9 +430,10 @@ void CO_TPDO_process(
         uint32_t                timeDifference_us,
         uint32_t               *timerNext_us);
 
+/** @} */ /* CO_PDO */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* CO_PDO_H */

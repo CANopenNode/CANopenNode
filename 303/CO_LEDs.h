@@ -23,19 +23,25 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_LEDS_H
 #define CO_LEDS_H
 
 #include "301/CO_driver.h"
 #include "301/CO_NMT_Heartbeat.h"
 
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_LEDS
+#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE)
+#endif
+
+#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @defgroup CO_LEDs LED indicator specification
+ * @defgroup CO_LEDs LED indicators
  * @ingroup CO_CANopen_303
  * @{
  *
@@ -140,10 +146,12 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
                      bool_t firmwareDownload,
                      uint32_t *timerNext_us);
 
-/** @} */
+/** @} */ /* CO_LEDs */
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif
+#endif /* (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE */
+
+#endif /* CO_LEDS_H */

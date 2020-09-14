@@ -24,13 +24,22 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_SDO_CLIENT_H
 #define CO_SDO_CLIENT_H
 
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_fifo.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_SDO_CLI
+#define CO_CONFIG_SDO_CLI (0)
+#endif
+#ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
+#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
+#endif
+
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -426,9 +435,12 @@ size_t CO_SDOclientUploadBufRead(CO_SDOclient_t *SDO_C,
  */
 void CO_SDOclientClose(CO_SDOclient_t *SDO_C);
 
+/** @} */ /* CO_SDOclient */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE */
+
+#endif /* CO_SDO_CLIENT_H */

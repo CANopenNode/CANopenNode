@@ -23,9 +23,17 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_HB_CONS_H
 #define CO_HB_CONS_H
+
+#include "301/CO_driver.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_HB_CONS
+#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE)
+#endif
+
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -338,11 +346,15 @@ int8_t CO_HBconsumer_getNmtState(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx,
         CO_NMT_internalState_t *nmtState);
+
 #endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_QUERY_FUNCT */
+
+/** @} */ /* CO_HBconsumer */
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE */
+
+#endif /* CO_HB_CONS_H */

@@ -23,17 +23,16 @@
  * limitations under the License.
  */
 
-
 #include "301/CO_fifo.h"
+
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE
 
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#if CO_CONFIG_FIFO_CRC16_CCITT == 1
 #include "crc16-ccitt.h"
-#endif
 
-#if CO_CONFIG_FIFO_ASCII_COMMANDS == 1
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS
 #include <stdio.h>
 #include <inttypes.h>
 
@@ -41,8 +40,14 @@
 #define DELIM_COMMAND '\n'
 /* Graphical character for comment delimiter */
 #define DELIM_COMMENT '#'
-#endif /* CO_CONFIG_FIFO_ASCII_COMMANDS == 1 */
+#endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
+/* verify configuration */
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT
+ #if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE)
+  #error CO_CONFIG_CRC16_ENABLE must be enabled.
+ #endif
+#endif
 
 /******************************************************************************/
 void CO_fifo_init(CO_fifo_t *fifo, char *buf, size_t bufSize) {
@@ -97,7 +102,7 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
 
         *bufDest = *buf;
 
-#if CO_CONFIG_FIFO_CRC16_CCITT > 0
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT
         if (crc != NULL) {
             crc16_ccitt_single(crc, (unsigned char)*buf);
         }
@@ -152,7 +157,7 @@ size_t CO_fifo_read(CO_fifo_t *fifo, char *buf, size_t count, bool_t *eof) {
         }
         i--;
 
-#if CO_CONFIG_FIFO_ASCII_COMMANDS == 1
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS
         /* is delimiter? */
         if (eof != NULL && c == DELIM_COMMAND) {
             *eof = true;
@@ -165,7 +170,7 @@ size_t CO_fifo_read(CO_fifo_t *fifo, char *buf, size_t count, bool_t *eof) {
 }
 
 
-#if CO_CONFIG_FIFO_ALT_READ == 1
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ
 /******************************************************************************/
 size_t CO_fifo_altBegin(CO_fifo_t *fifo, size_t offset) {
     size_t i;
@@ -202,7 +207,7 @@ void CO_fifo_altFinish(CO_fifo_t *fifo, uint16_t *crc) {
     else {
         const char *bufSrc = &fifo->buf[fifo->readPtr];
         while (fifo->readPtr != fifo->altReadPtr) {
-#if CO_CONFIG_FIFO_CRC16_CCITT > 0
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT
             crc16_ccitt_single(crc, (unsigned char)*bufSrc);
 #endif
             /* increment variable */
@@ -244,10 +249,10 @@ size_t CO_fifo_altRead(CO_fifo_t *fifo, char *buf, size_t count) {
 
     return count - i;
 }
-#endif /* CO_CONFIG_FIFO_ALT_READ == 1 */
+#endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ */
 
 
-#if CO_CONFIG_FIFO_ASCII_COMMANDS == 1
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS
 /******************************************************************************/
 bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
     bool_t newCommand = false;
@@ -461,10 +466,10 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
 
     return tokenSize;
 }
-#endif /* #if CO_CONFIG_FIFO_ASCII_COMMANDS == 1 */
+#endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
 
-#if CO_CONFIG_FIFO_ASCII_DATATYPES == 1
+#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES
 /******************************************************************************/
 size_t CO_fifo_readU82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint8_t n;
@@ -1139,4 +1144,6 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return destSpaceStart - destSpace;
 }
 
-#endif /* CO_CONFIG_FIFO_ASCII_DATATYPES == 1 */
+#endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES */
+
+#endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE */

@@ -23,9 +23,29 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_EMERGENCY_H
 #define CO_EMERGENCY_H
+
+#include "301/CO_driver.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_EM
+#define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER)
+#endif
+#ifndef CO_CONFIG_EM_ERR_STATUS_BITS_COUNT
+#define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10*8)
+#endif
+#ifndef CO_CONFIG_ERR_CONDITION_GENERIC
+#define CO_CONFIG_ERR_CONDITION_GENERIC (em->errorStatusBits[5] != 0)
+#endif
+#ifndef CO_CONFIG_ERR_CONDITION_COMMUNICATION
+#define CO_CONFIG_ERR_CONDITION_COMMUNICATION (em->errorStatusBits[2] \
+                                            || em->errorStatusBits[3])
+#endif
+#ifndef CO_CONFIG_ERR_CONDITION_MANUFACTURER
+#define CO_CONFIG_ERR_CONDITION_MANUFACTURER (em->errorStatusBits[8] \
+                                           || em->errorStatusBits[9])
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -462,9 +482,10 @@ void CO_EM_process(
 
 #endif
 
+/** @} */ /* CO_Emergency */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* CO_EMERGENCY_H */

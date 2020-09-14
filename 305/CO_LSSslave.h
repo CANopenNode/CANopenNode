@@ -25,15 +25,16 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_LSSslave_H
 #define CO_LSSslave_H
+
+#include "305/CO_LSS.h"
+
+#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "305/CO_LSS.h"
 
 /**
  * @defgroup CO_LSSslave LSS Slave
@@ -271,8 +272,11 @@ void CO_LSSslave_initCfgStoreCallback(
         bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate));
 
 /** @} */ /*@defgroup CO_LSSslave*/
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
+
+#endif /* (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE */
 
 #endif /*CO_LSSslave_H*/

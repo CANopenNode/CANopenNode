@@ -23,10 +23,17 @@
  * limitations under the License.
  */
 
-#include "301/CO_driver.h"
-
 #ifndef CO_GFC_H
 #define CO_GFC_H
+
+#include "301/CO_driver.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_GFC
+#define CO_CONFIG_GFC (0)
+#endif
+
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,9 +127,12 @@ void CO_GFC_initCallbackEnterSafeState(CO_GFC_t *GFC,
 CO_ReturnError_t CO_GFCsend(CO_GFC_t *GFC);
 #endif
 
+/** @} */ /* CO_GFC */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE */
+
+#endif /* CO_GFC_H */

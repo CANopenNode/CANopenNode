@@ -23,76 +23,16 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_DRIVER_H
 #define CO_DRIVER_H
+
+#include <string.h>
 
 #include "CO_config.h"
 #include "CO_driver_target.h"
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-
-/* Default stack configuration for most common configuration, may be overridden
- * by CO_driver_target.h. For more information see file CO_config.h. */
-#ifndef CO_CONFIG_NMT
-#define CO_CONFIG_NMT (0)
-#endif
-
-#ifndef CO_CONFIG_SDO
-#define CO_CONFIG_SDO (CO_CONFIG_SDO_SEGMENTED)
-#endif
-
-#ifndef CO_CONFIG_SDO_BUFFER_SIZE
-#define CO_CONFIG_SDO_BUFFER_SIZE 32
-#endif
-
-#ifndef CO_CONFIG_EM
-#define CO_CONFIG_EM (0)
-#endif
-
-#ifndef CO_CONFIG_HB_CONS
-#define CO_CONFIG_HB_CONS (0)
-#endif
-
-#ifndef CO_CONFIG_GFC
-#define CO_CONFIG_GFC (0)
-#endif
-
-#ifndef CO_CONFIG_SRDO
-#define CO_CONFIG_SRDO (0)
-#define CO_CONFIG_SRDO_MINIMUM_DELAY 0
-#endif
-
-#ifndef CO_CONFIG_PDO
-#define CO_CONFIG_PDO (CO_CONFIG_PDO_SYNC_ENABLE)
-#endif
-
-#ifndef CO_CONFIG_SYNC
-#define CO_CONFIG_SYNC (0)
-#endif
-
-#ifndef CO_CONFIG_SDO_CLI
-#define CO_CONFIG_SDO_CLI (CO_CONFIG_SDO_CLI_SEGMENTED | \
-                           CO_CONFIG_SDO_CLI_LOCAL)
-#endif
-
-#ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
-#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
-#endif
-
-#ifndef CO_CONFIG_LSS
-#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE)
-#endif
-
-#ifndef CO_CONFIG_LEDS
-#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE)
-#endif
-
-#ifndef CO_CONFIG_GTW
-#define CO_CONFIG_GTW (0)
 #endif
 
 /**
@@ -476,11 +416,11 @@ typedef enum {
     CO_CAN_ID_RPDO_3 = 0x400,      /**< 0x400, Default RPDO3 (+nodeID) */
     CO_CAN_ID_TPDO_4 = 0x480,      /**< 0x480, Default TPDO4 (+nodeID) */
     CO_CAN_ID_RPDO_4 = 0x500,      /**< 0x500, Default RPDO5 (+nodeID) */
-    CO_CAN_ID_TSDO = 0x580, /**< 0x580, SDO response from server (+nodeID) */
-    CO_CAN_ID_RSDO = 0x600, /**< 0x600, SDO request from client (+nodeID) */
-    CO_CAN_ID_HEARTBEAT = 0x700, /**< 0x700, Heartbeat message */
-    CO_CAN_ID_LSS_CLI = 0x7E4, /**< 0x7E4, LSS response from server to client */
-    CO_CAN_ID_LSS_SRV = 0x7E5  /**< 0x7E5, LSS request from client to server */
+    CO_CAN_ID_SDO_SRV = 0x580, /**< 0x580, SDO response from server (+nodeID) */
+    CO_CAN_ID_SDO_CLI = 0x600, /**< 0x600, SDO request from client (+nodeID) */
+    CO_CAN_ID_HEARTBEAT = 0x700,   /**< 0x700, Heartbeat message */
+    CO_CAN_ID_LSS_SLV = 0x7E4,     /**< 0x7E4, LSS response from slave */
+    CO_CAN_ID_LSS_MST = 0x7E5      /**< 0x7E5, LSS request from master */
 } CO_Default_CAN_ID_t;
 
 
@@ -529,7 +469,7 @@ typedef enum {
     CO_ERROR_TX_PDO_WINDOW = -10,   /**< Synchronous TPDO is outside window */
     CO_ERROR_TX_UNCONFIGURED = -11, /**< Transmit buffer was not confugured
                                          properly */
-    CO_ERROR_PARAMETERS = -12,      /**< Error in function function parameters*/
+    CO_ERROR_OD_PARAMETERS = -12,   /**< Error in Object Dictionary parameters*/
     CO_ERROR_DATA_CORRUPT = -13,    /**< Stored data are corrupt */
     CO_ERROR_CRC = -14,             /**< CRC does not match */
     CO_ERROR_TX_BUSY = -15,         /**< Sending rejected because driver is
@@ -697,7 +637,47 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
  */
 void CO_CANmodule_process(CO_CANmodule_t *CANmodule);
 
-/** @} */ /* @defgroup CO_driver Driver */
+
+/**
+ * Get uint8_t value from memory buffer
+ *
+ * @param buf Memory buffer to get value from.
+ *
+ * @return Value
+ */
+static inline uint8_t CO_getUint8(const void *buf) {
+    uint8_t value; memmove(&value, buf, sizeof(value)); return value;
+}
+/** Get uint16_t value from memory buffer, see @ref CO_getUint8 */
+static inline uint16_t CO_getUint16(const void *buf) {
+    uint16_t value; memmove(&value, buf, sizeof(value)); return value;
+}
+/** Get uint32_t value from memory buffer, see @ref CO_getUint8 */
+static inline uint32_t CO_getUint32(const void *buf) {
+    uint32_t value; memmove(&value, buf, sizeof(value)); return value;
+}
+
+/**
+ * Write uint8_t value into memory buffer
+ *
+ * @param buf Memory buffer.
+ * @param value Value to be written into buf.
+ *
+ * @return number of bytes written.
+ */
+static inline uint8_t CO_setUint8(void *buf, uint8_t value) {
+    memmove(buf, &value, sizeof(value)); return sizeof(value);
+}
+/** Write uint16_t value into memory buffer, see @ref CO_setUint8 */
+static inline uint8_t CO_setUint16(void *buf, uint16_t value) {
+    memmove(buf, &value, sizeof(value)); return sizeof(value);
+}
+/** Write uint32_t value into memory buffer, see @ref CO_setUint8 */
+static inline uint8_t CO_setUint32(void *buf, uint32_t value) {
+    memmove(buf, &value, sizeof(value)); return sizeof(value);
+}
+
+/** @} */ /* CO_driver */
 
 #ifdef __cplusplus
 }
