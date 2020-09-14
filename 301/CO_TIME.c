@@ -25,10 +25,10 @@
 
 #include <string.h>
 
-#include "301/CO_TIME.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
 #include "301/CO_NMT_Heartbeat.h"
+#include "301/CO_TIME.h"
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
 
