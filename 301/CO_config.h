@@ -165,38 +165,61 @@ extern "C" {
  *
  * Possible flags, can be ORed:
  * - CO_CONFIG_EM_PRODUCER - Enable emergency producer.
- * - CO_CONFIG_EM_HISTORY - Enable error history - OD object 0x1003,
+ * - CO_CONFIG_EM_PROD_CONFIGURABLE - Emergency producer COB-ID is configurable,
+ *   OD object 0x1014. If not configurable, then 0x1014 is read-only, COB_ID
+ *   is set to CO_CAN_ID_EMERGENCY + nodeId and write is not verified.
+ * - CO_CONFIG_EM_PROD_INHIBIT - Enable inhibit timer on emergency producer,
+ *   OD object 0x1015.
+ * - CO_CONFIG_EM_HISTORY - Enable error history, OD object 0x1003,
  *   "Pre-defined error field"
  * - CO_CONFIG_EM_CONSUMER - Enable emergency consumer.
+ * - CO_CONFIG_EM_STATUS_BITS - Access @ref CO_EM_errorStatusBits_t from OD.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   emergency condition by CO_errorReport() or CO_errorReset() call.
  *   Callback is configured by CO_EM_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_EM_process().
- * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of Emergency
- *   (Writing to object 0x1014 or 0x1015 re-configures the object).
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER)
+#define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
 #endif
 #define CO_CONFIG_EM_PRODUCER 0x01
-#define CO_CONFIG_EM_HISTORY 0x02
-#define CO_CONFIG_EM_CONSUMER 0x04
+#define CO_CONFIG_EM_PROD_CONFIGURABLE 0x02
+#define CO_CONFIG_EM_PROD_INHIBIT 0x04
+#define CO_CONFIG_EM_HISTORY 0x08
+#define CO_CONFIG_EM_STATUS_BITS 0x10
+#define CO_CONFIG_EM_CONSUMER 0x20
 
 /**
- * Maximum number of @ref CO_EM_errorStatusBits
+ * Maximum number of @ref CO_EM_errorStatusBits_t
  *
- * Stack uses 6*8 = 48 @ref CO_EM_errorStatusBits others are free to use by
- * manufacturer. Allowable value range is from 48 to 256 bits. Default is 80.
+ * Stack uses 6*8 = 48 @ref CO_EM_errorStatusBits_t, others are free to use by
+ * manufacturer. Allowable value range is from 48 to 256 bits in steps of 8.
+ * Default is 80.
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10*8)
 #endif
 
 /**
+ * Size of the internal buffer, where emergencies are stored after error
+ * indication with @ref CO_error() function. Each emergency has to be post-
+ * processed by the @ref CO_EM_process() function. In case of overflow, error is
+ * indicated but emergency message is not sent.
+ *
+ * The same buffer is also used for OD object 0x1003, "Pre-defined error field".
+ *
+ * Each buffer element consumes 8 bytes. Valid values are 1 to 254.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_EM_BUFFER_SIZE 16
+#endif
+
+
+/**
  * Condition for calculating CANopen Error register, "generic" error bit.
  *
- * Condition must observe suitable @ref CO_EM_errorStatusBits and use
+ * Condition must observe suitable @ref CO_EM_errorStatusBits_t and use
  * corresponding member of errorStatusBits array from CO_EM_t to calculate the
  * condition. See also @ref CO_errorRegister_t.
  *
@@ -209,17 +232,6 @@ extern "C" {
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_ERR_CONDITION_GENERIC (em->errorStatusBits[5] != 0)
-#endif
-
-/**
- * Condition for calculating CANopen Error register, "communication" error bit.
- * See @ref CO_CONFIG_ERR_CONDITION_GENERIC for description.
- *
- * em->errorStatusBits[2] and em->errorStatusBits[3] must be included in the
- * condition, because they are used by the stack.
- */
-#ifdef CO_DOXYGEN
-#define CO_CONFIG_ERR_CONDITION_COMMUNICATION (em->errorStatusBits[2] || em->errorStatusBits[3])
 #endif
 
 /**
@@ -247,6 +259,17 @@ extern "C" {
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_ERR_CONDITION_TEMPERATURE
+#endif
+
+/**
+ * Condition for calculating CANopen Error register, "communication" error bit.
+ * See @ref CO_CONFIG_ERR_CONDITION_GENERIC for description.
+ *
+ * em->errorStatusBits[2] and em->errorStatusBits[3] must be included in the
+ * condition, because they are used by the stack.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_ERR_CONDITION_COMMUNICATION (em->errorStatusBits[2] || em->errorStatusBits[3])
 #endif
 
 /**
