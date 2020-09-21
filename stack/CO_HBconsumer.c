@@ -211,7 +211,7 @@ void CO_HBconsumer_initCallbackHeartbeatStarted(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return;
     }
 
@@ -230,7 +230,7 @@ void CO_HBconsumer_initCallbackTimeout(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return;
     }
 
@@ -249,7 +249,7 @@ void CO_HBconsumer_initCallbackRemoteReset(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return;
     }
 
@@ -275,6 +275,7 @@ void CO_HBconsumer_process(
 
     if(NMTisPreOrOperational){
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
+            uint16_t timeDifference_ms_copy = timeDifference_ms;
             if(monitoredNode->time > 0){/* is node monitored */
                 /* Verify if received message is heartbeat or bootup */
                 if(IS_CANrxNew(monitoredNode->CANrxNew)){
@@ -294,14 +295,14 @@ void CO_HBconsumer_process(
                         }
                         monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
                         monitoredNode->timeoutTimer = 0;  /* reset timer */
-                        timeDifference_ms = 0;
+                        timeDifference_ms_copy = 0;
                     }
                     CLEAR_CANrxNew(monitoredNode->CANrxNew);
                 }
 
                 /* Verify timeout */
                 if(monitoredNode->timeoutTimer < monitoredNode->time) {
-                    monitoredNode->timeoutTimer += timeDifference_ms;
+                    monitoredNode->timeoutTimer += timeDifference_ms_copy;
                 }
                 if(monitoredNode->HBstate!=CO_HBconsumer_UNCONFIGURED &&
                    monitoredNode->HBstate!=CO_HBconsumer_UNKNOWN) {
@@ -389,7 +390,7 @@ CO_HBconsumer_state_t CO_HBconsumer_getState(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return CO_HBconsumer_UNCONFIGURED;
     }
 
@@ -405,7 +406,7 @@ int8_t CO_HBconsumer_getNmtState(
 {
     CO_HBconsNode_t *monitoredNode;
 
-    if (HBcons==NULL || nmtState==NULL || idx>HBcons->numberOfMonitoredNodes) {
+    if (HBcons==NULL || nmtState==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return -1;
     }
     *nmtState = CO_NMT_INITIALIZING;
