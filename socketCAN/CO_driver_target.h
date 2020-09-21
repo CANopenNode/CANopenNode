@@ -279,8 +279,7 @@ typedef struct {
     uint32_t mask;
     void *object;
     void (*CANrx_callback)(void *object, void *message);
-    const void         *CANptr;         /* CAN Interface identifier from last
-                                           message */
+    int can_ifindex;           /* CAN Interface index from last message */
     struct timespec     timestamp;      /* time of reception of last message */
 } CO_CANrx_t;
 
@@ -292,17 +291,26 @@ typedef struct {
     uint8_t data[8];
     volatile bool_t bufferFull; /* not used */
     volatile bool_t syncFlag;   /* info about transmit message */
-    const void *CANptr;         /* CAN Interface identifier to use */
+    int can_ifindex;            /* CAN Interface index to use */
 } CO_CANtx_t;
 
 
 /* Max COB ID for standard frame format */
 #define CO_CAN_MSG_SFF_MAX_COB_ID (1 << CAN_SFF_ID_BITS)
 
+/* CAN interface object (CANptr), passed to CO_CANinit() */
+typedef struct {
+    int can_ifindex;            /* CAN Interface index */
+    int epoll_fd;               /* File descriptor for epoll, which waits for
+                                   CAN receive event */
+} CO_CANptrSocketCan_t;
+
 /* socketCAN interface object */
 typedef struct {
-    const void *CANptr;         /* CAN Interface identifier */
+    int can_ifindex;            /* CAN Interface index */
     char ifName[IFNAMSIZ];      /* CAN Interface name */
+    int epoll_fd;               /* File descriptor for epoll, which waits for
+                                   CAN receive event */
     int fd;                     /* socketCAN file descriptor */
 #if CO_DRIVER_ERROR_REPORTING > 0 || defined CO_DOXYGEN
     CO_CANinterfaceErrorhandler_t errorhandler;
@@ -374,12 +382,14 @@ static inline void CO_UNLOCK_OD() {
  * Function must be called after CO_CANmodule_init.
  *
  * @param CANmodule This object will be initialized.
- * @param CANptr CAN module interface index (return value if_nametoindex(), NO pointer!).
+ * @param can_ifindex CAN Interface index
+ * @param epoll_fd File descriptor for epoll, which waits for CAN receive event
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_SYSCALL or CO_ERROR_INVALID_STATE.
  */
 CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
-                                           const void *CANptr);
+                                           int can_ifindex,
+                                           int epoll_fd);
 
 /**
  * Check on which interface the last message for one message buffer was received

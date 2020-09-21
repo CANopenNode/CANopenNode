@@ -217,7 +217,7 @@ int main (int argc, char *argv[]) {
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_ReturnError_t err;
     CO_ReturnError_t odStorStatus_rom, odStorStatus_eeprom;
-    intptr_t CANdevice0Index = 0;
+    CO_CANptrSocketCan_t CANptr = {0};
     int opt;
     bool_t firstRun = true;
 
@@ -297,7 +297,7 @@ int main (int argc, char *argv[]) {
 
     if(optind < argc) {
         CANdevice = argv[optind];
-        CANdevice0Index = if_nametoindex(CANdevice);
+        CANptr.can_ifindex = if_nametoindex(CANdevice);
     }
 
     if(!nodeIdFromArgs) {
@@ -322,7 +322,7 @@ int main (int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if(CANdevice0Index == 0) {
+    if(CANptr.can_ifindex == 0) {
         log_printf(LOG_CRIT, DBG_NO_CAN_DEVICE, CANdevice);
         exit(EXIT_FAILURE);
     }
@@ -383,11 +383,11 @@ int main (int argc, char *argv[]) {
 
         /* Enter CAN configuration. */
         CANopenConfiguredOK = false;
-        CO_CANsetConfigurationMode((void *)CANdevice0Index);
+        CO_CANsetConfigurationMode((void *)&CANptr);
 
 
         /* initialize CANopen */
-        err = CO_CANinit((void *)CANdevice0Index, 0 /* bit rate not used */);
+        err = CO_CANinit((void *)&CANptr, 0 /* bit rate not used */);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANinit()", err);
             exit(EXIT_FAILURE);
@@ -520,7 +520,7 @@ int main (int argc, char *argv[]) {
     /* delete objects from memory */
     CANrx_threadTmr_close();
     threadMainWait_close();
-    CO_delete((void *)CANdevice0Index);
+    CO_delete((void *)&CANptr);
 
     log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_activeNodeId, "finished");
 
