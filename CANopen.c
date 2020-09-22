@@ -183,13 +183,11 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO_memoryUsed += sizeof(CO_SYNC_t);
 #endif
 
-#if CO_NO_TIME == 1
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     /* TIME */
     CO->TIME = (CO_TIME_t *)calloc(1, sizeof(CO_TIME_t));
     if (CO->TIME == NULL) errCnt++;
     CO_memoryUsed += sizeof(CO_TIME_t);
-#else
-    CO->TIME = NULL;
 #endif
 
 #if CO_NO_GFC == 1
@@ -370,7 +368,7 @@ void CO_delete(void *CANptr) {
         free(CO->RPDO[i]);
     }
 
-#if CO_NO_TIME == 1
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     /* TIME */
     free(CO->TIME);
 #endif
@@ -417,7 +415,7 @@ void CO_delete(void *CANptr) {
 #if CO_NO_SYNC == 1
     static CO_SYNC_t            COO_SYNC;
 #endif
-#if CO_NO_TIME == 1
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     static CO_TIME_t            COO_TIME;
 #endif
 #if CO_NO_GFC == 1
@@ -489,7 +487,7 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO->SYNC = &COO_SYNC;
 #endif
 
-#if CO_NO_TIME == 1
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     /* TIME */
     CO->TIME = &COO_TIME;
 #else
@@ -760,7 +758,7 @@ CO_ReturnError_t CO_CANopenInit(uint8_t nodeId) {
     if (err) return err;
 #endif
 
-#if CO_NO_TIME == 1
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     /* TIME */
     err = CO_TIME_init(CO->TIME,
                        CO->em,
@@ -1034,7 +1032,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                            OD_errorBehavior,
                            timerNext_us);
 
-#if CO_NO_TIME == 1
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     /* TIME */
     CO_TIME_process(co->TIME,
                     timeDifference_us);

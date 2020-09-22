@@ -268,7 +268,9 @@ typedef struct {
 #if CO_NO_SYNC == 1 || defined CO_DOXYGEN
     CO_SYNC_t *SYNC;                 /**< SYNC object */
 #endif
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) || defined CO_DOXYGEN
     CO_TIME_t *TIME;                 /**< TIME object */
+#endif
     CO_RPDO_t *RPDO[CO_NO_RPDO];     /**< RPDO objects */
     CO_TPDO_t *TPDO[CO_NO_TPDO];     /**< TPDO objects */
     CO_HBconsumer_t *HBcons;         /**< Heartbeat consumer object*/
