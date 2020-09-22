@@ -24,11 +24,11 @@
  * limitations under the License.
  */
 
-#include <string.h>
-
-#include "301/CO_driver.h"
-#include "301/CO_SDOserver.h" /* for helper functions */
 #include "305/CO_LSSmaster.h"
+
+#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
+
+#include <string.h>
 
 /*
  * LSS master slave select state machine. Compared to #CO_LSS_state_t this
@@ -1112,3 +1112,5 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
     }
     return ret;
 }
+
+#endif /* (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER */

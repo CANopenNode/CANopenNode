@@ -604,13 +604,13 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(
 
         index = CO_CANgetIndexFromIdent(CANmodule->txIdentToIndex, ident);
         if ((index == CO_INVALID_COB_ID) || (index > CANmodule->txSize)) {
-            return CO_ERROR_PARAMETERS;
+            return CO_ERROR_ILLEGAL_ARGUMENT;
         }
         CANmodule->txArray[index].CANptr = CANptrTx;
 
         return CO_ERROR_NO;
     }
-    return CO_ERROR_PARAMETERS;
+    return CO_ERROR_ILLEGAL_ARGUMENT;
 }
 
 #endif /* CO_DRIVER_MULTI_INTERFACE */
@@ -628,7 +628,7 @@ static CO_ReturnError_t CO_CANCheckSendInterface(
     ssize_t n;
 
     if (CANmodule==NULL || interface==NULL || interface->fd < 0) {
-        return CO_ERROR_PARAMETERS;
+        return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
 #if CO_DRIVER_ERROR_REPORTING > 0

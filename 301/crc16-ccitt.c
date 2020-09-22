@@ -23,19 +23,19 @@
  * limitations under the License.
  */
 
-#ifndef CO_USE_OWN_CRC16
-
 #include "301/crc16-ccitt.h"
 
+#if (CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE
+#if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_EXTERNAL)
 
 /*
  * CRC table calculated by the following algorithm:
  *
  * void crc16_ccitt_table_init(void){
- *     unsigned short i, j;
+ *     uint16_t i, j;
  *     for(i=0; i<256; i++){
- *         unsigned short crc = 0;
- *         unsigned short c = i << 8;
+ *         uint16_t crc = 0;
+ *         uint16_t c = i << 8;
  *         for(j=0; j<8; j++){
  *             if((crc ^ c) & 0x8000) crc = (crc << 1) ^ 0x1021;
  *             else                   crc = crc << 1;
@@ -45,7 +45,7 @@
  *     }
  * }
  */
-static const unsigned short crc16_ccitt_table[256] = {
+static const uint16_t crc16_ccitt_table[256] = {
     0x0000U, 0x1021U, 0x2042U, 0x3063U, 0x4084U, 0x50A5U, 0x60C6U, 0x70E7U,
     0x8108U, 0x9129U, 0xA14AU, 0xB16BU, 0xC18CU, 0xD1ADU, 0xE1CEU, 0xF1EFU,
     0x1231U, 0x0210U, 0x3273U, 0x2252U, 0x52B5U, 0x4294U, 0x72F7U, 0x62D6U,
@@ -82,25 +82,25 @@ static const unsigned short crc16_ccitt_table[256] = {
 
 
 /******************************************************************************/
-void crc16_ccitt_single(unsigned short *crc, const unsigned char chr) {
-    unsigned char tmp = (unsigned char)(*crc >> 8U) ^ chr;
+void crc16_ccitt_single(uint16_t *crc, const uint8_t chr) {
+    uint8_t tmp = (uint8_t)(*crc >> 8U) ^ chr;
     *crc = (*crc << 8U) ^ crc16_ccitt_table[tmp];
 }
 
 
 /******************************************************************************/
-unsigned short crc16_ccitt(
-        const unsigned char     block[],
-        unsigned int            blockLength,
-        unsigned short          crc)
+uint16_t crc16_ccitt(const uint8_t block[],
+                     size_t blockLength,
+                     uint16_t crc)
 {
-    unsigned int i;
+    size_t i;
 
-    for(i=0U; i<blockLength; i++){
-        unsigned char tmp = (unsigned char)(crc >> 8U) ^ block[i];
+    for (i = 0U; i < blockLength; i++) {
+        uint8_t tmp = (uint8_t)(crc >> 8U) ^ block[i];
         crc = (crc << 8U) ^ crc16_ccitt_table[tmp];
     }
     return crc;
 }
 
-#endif /* CO_USE_OWN_CRC16 */
+#endif /* !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_EXTERNAL) */
+#endif /* (CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE */

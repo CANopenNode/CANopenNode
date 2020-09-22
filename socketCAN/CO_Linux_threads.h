@@ -29,6 +29,8 @@
 #ifndef CO_LINUX_THREADS_H
 #define CO_LINUX_THREADS_H
 
+#include "309/CO_gateway_ascii.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

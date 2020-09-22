@@ -23,7 +23,6 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_OD_INTERFACE_H
 #define CO_OD_INTERFACE_H
 
@@ -34,540 +33,11 @@ extern "C" {
 #endif
 
 /**
- * @defgroup CO_ODinterface Object Dictionary interface
+ * @defgroup CO_ODinterface OD interface
  * @ingroup CO_CANopen_301
  * @{
- * See @ref CO_ODinterface_operation
+ * See @ref doc/objectDictionary.md
  */
-/**
- * @defgroup CO_ODinterface_operation Operation
- * @{
- * The CANopen Object Dictionary is essentially a grouping of objects accessible
- * via the network in an ordered pre-defined fashion.
- *
- * Each object within the object dictionary is addressed using a 16-bit index
- * and a 8-bit sub-index.
- *
- * ### Terms
- * The term **OD object** means object from Object Dictionary located at
- * specific 16-bit index. There are different types of OD objects in CANopen:
- * variables, arrays and records (structures). Each OD object contains pointer
- * to actual data, data length(s) and attribute(s). See @ref OD_objectTypes_t.
- *
- * The term **OD variable** is basic variable of specified type. For example:
- * int8_t, uint32_t, float64_t, ... or just sequence of binary data with known
- * or unknown data length. Each OD variable resides in Object dictionary at
- * specified 16-bit index and 8-bit sub-index.
- *
- * The term **OD entry** means structure element, which contains some basic
- * properties of the OD object, indication of type of OD object and pointer to
- * all necessary data for the OD object. An array of OD entries together with
- * information about total number of OD entries represents Object Dictionary as
- * defined inside CANopenNode. See @ref OD_entry_t and @ref OD_t.
- *
- * ### Access
- * Application and the stack have access to OD objects via universal @ref OD_t
- * object and @ref OD_find() function, no direct access to custom structures,
- * which define Object Dictionary, is required. Properties for specific
- * OD variable is fetched with @ref OD_getSub() function. And access to actual
- * variable is via @b read and @b write functions. Pointer to those two
- * functions is fetched by @ref OD_getSub(). See @ref OD_stream_t and
- * @ref OD_subEntry_t. See also shortcuts: @ref CO_ODgetSetters, for access to
- * data of different type.
- *
- * ### Optional extensions
- * There are some optional extensions to the Object Dictionary:
- *   * **PDO flags** informs application, if specific OD variable was received
- *     or sent by PDO. And also gives the application ability to request a TPDO,
- *     to which variable is possibly mapped.
- *   * **IO extension** gives the application ability to take full control over
- *     the OD object. Application can specify own @b read and @b write functions
- *     and own object, on which they operate.
- *
- * ### Example usage
- * @code
-extern const OD_t ODxyz;
-
-void myFunc(const OD_t *od) {
-    ODR_t ret;
-    const OD_entry_t *entry;
-    OD_subEntry_t subEntry;
-    OD_IO_t io1008;
-    char buf[50];
-    OD_size_t bytesRd;
-    int error = 0;
-
-    //Init IO for "Manufacturer device name" at index 0x1008, sub-index 0x00
-    entry = OD_find(od, 0x1008);
-    ret = OD_getSub(entry, 0x00, &subEntry, &io1008.stream);
-    io1008.read = subEntry.read;
-    //Read with io1008
-    if (ret == ODR_OK)
-        bytesRd = io1008.read(&io1008.stream, 0x00, &buf[0], sizeof(buf), &ret);
-    if (ret != ODR_OK) error++;
-
-    //Use helper and set "Producer heartbeat time" at index 0x1008, sub 0x00
-    ret = OD_set_u16(OD_find(od, 0x1017), 0x00, 500);
-    if (ret != ODR_OK) error++;
-}
- * @endcode
- * There is no need to include ODxyt.h file, it is only necessary to know, we
- * have ODxyz defined somewhere.
- *
- * Second example is simpler and use helper function to access OD variable.
- * However it is not very efficient, because it goes through all search
- * procedures.
- *
- * If access to the same variable is very frequent, it is better to
- * use first example. After initialization, application has to remember only
- * "io1008" object. Frequent reading of the variable is then very efficient.
- *
- * ### Simple access to OD via globals
- * Some simple user applications can also access some OD variables directly via
- * globals.
- *
- * @warning
- * If OD object has IO extension enabled, then direct access to its OD variables
- * must not be used. Only valid access is via read or write or helper functions.
- *
- * @code
-#include ODxyz.h
-
-void myFuncGlob(void) {
-    //Direct address instead of OD_find()
-    const OD_entry_t *entry_errReg = ODxyz_1001_errorRegister;
-
-    //Direct access to OD variable
-    uint32_t devType = ODxyz_0.x1000_deviceType;
-    ODxyz_0.x1018_identity.serialNumber = 0x12345678;
-}
- * @endcode
- * @} */
-
-/**
- * @defgroup CO_ODinterface_OD_example Object Dictionary example
- * @{
- * Actual Object dictionary for one CANopen device is defined by pair of
- * OD_xyz.h and ODxyz.h files.
- *
- * "xyz" is name of Object Dictionary, usually "0" is used for default.
- * Configuration with multiple Object Dictionaries is also possible.
- *
- * Data for OD definition are arranged inside multiple structures. Structures
- * are different for different configuration of OD. Data objects, created with
- * those structures, are constant or are variable.
- *
- * Actual OD variables are arranged inside multiple structures, so called
- * storage groups. Selected groups can be stored to non-volatile memory.
- *
- * @warning
- * Manual editing of ODxyz.h/.c files is very error-prone.
- *
- * Pair of ODxyz.h/.c files can be generated by OD editor tool. The tool can
- * edit standard CANopen device description file in xml format. Xml file may
- * include also some non-standard elements, specific to CANopenNode. Xml file is
- * then used for automatic generation of ODxyz.h/.c files.
- *
- * ### Example ODxyz.h file
- * @code
-typedef struct {
-    uint32_t x1000_deviceType;
-    uint8_t x1001_errorRegister;
-    struct {
-        uint8_t maxSubIndex;
-        uint32_t vendorID;
-        uint32_t productCode;
-        uint32_t revisionNumber;
-        uint32_t serialNumber;
-    } x1018_identity;
-} ODxyz_0_t;
-
-typedef struct {
-    uint8_t x1001_errorRegister;
-} ODxyz_1_t;
-
-extern ODxyz_0_t ODxyz_0;
-extern ODxyz_1_t ODxyz_1;
-extern const OD_t ODxyz;
-
-#define ODxyz_1000_deviceType &ODxyz.list[0]
-#define ODxyz_1001_errorRegister &ODxyz.list[1]
-#define ODxyz_1018_identity &ODxyz.list[2]
- * @endcode
- *
- * ### Example ODxyz.c file
- * @code
-#define OD_DEFINITION
-#include "301/CO_ODinterface.h"
-#include "ODxyz.h"
-
-typedef struct {
-    OD_extensionIO_t xio_1001_errorRegister;
-} ODxyz_ext_t;
-
-typedef struct {
-    OD_obj_var_t o_1000_deviceType;
-    OD_obj_var_t orig_1001_errorRegister;
-    OD_obj_extended_t o_1001_errorRegister;
-    OD_obj_var_t o_1018_identity[5];
-} ODxyz_objs_t;
-
-ODxyz_0_t ODxyz_0 = {
-    .x1000_deviceType = 0L,
-    .x1018_identity = {
-        .maxSubIndex = 4,
-        .vendorID = 0L,
-        .productCode = 0L,
-        .revisionNumber = 0L,
-        .serialNumber = 0L,
-    },
-};
-
-ODxyz_1_t ODxyz_1 = {
-    .x1001_errorRegister = 0,
-};
-
-static ODxyz_ext_t ODxyz_ext = {0};
-
-static const ODxyz_objs_t ODxyz_objs = {
-    .o_1000_deviceType = {
-        .data = &ODxyz_0.x1000_deviceType,
-        .attribute = ODA_SDO_R | ODA_MB,
-        .dataLength = 4,
-    },
-    .orig_1001_errorRegister = {
-        .data = &ODxyz_1.x1001_errorRegister,
-        .attribute = ODA_SDO_R,
-        .dataLength = 1,
-    },
-    .o_1001_errorRegister = {
-        .flagsPDO = NULL,
-        .extIO = &ODxyz_ext.xio_1001_errorRegister,
-        .odObjectOriginal = &ODxyz_objs.orig_1001_errorRegister,
-    },
-    .o_1018_identity = {
-        {
-            .data = &ODxyz_0.x1018_identity.maxSubIndex,
-            .attribute = ODA_SDO_R,
-            .dataLength = 1,
-        },
-        {
-            .data = &ODxyz_0.x1018_identity.vendorID,
-            .attribute = ODA_SDO_R | ODA_MB,
-            .dataLength = 4,
-        },
-        {
-            .data = &ODxyz_0.x1018_identity.productCode,
-            .attribute = ODA_SDO_R | ODA_MB,
-            .dataLength = 4,
-        },
-        {
-            .data = &ODxyz_0.x1018_identity.revisionNumber,
-            .attribute = ODA_SDO_R | ODA_MB,
-            .dataLength = 4,
-        },
-        {
-            .data = &ODxyz_0.x1018_identity.serialNumber,
-            .attribute = ODA_SDO_R | ODA_MB,
-            .dataLength = 4,
-        },
-    }
-};
-
-const OD_t ODxyz = {
-    3, {
-    {0x1000, 0, 0, ODT_VAR, &ODxyz_objs.o_1000_deviceType},
-    {0x1001, 0, 1, ODT_EVAR, &ODxyz_objs.o_1001_errorRegister},
-    {0x1018, 4, 0, ODT_REC, &ODxyz_objs.o_1018_identity},
-    {0x0000, 0, 0, 0, NULL}
-}};
- * @endcode
- * @} */
-
-
-/**
- * @defgroup CO_ODinterface_XDD XML device description
- * @{
- * CANopen device description - XML schema definition - is specified by CiA 311
- * standard.
- *
- * CiA 311 complies with standard ISO 15745-1:2005/Amd1 (Industrial automation
- * systems and integration - Open systems application integration framework).
- *
- * CANopen device description is basically a XML file with all the information
- * about CANopen device. The larges part of the file is a list of all object
- * dictionary variables with all necessary properties and documentation. This
- * file can be edited with OD editor application and can be used as data source,
- * from which Object dictionary for CANopenNode is generated. Furthermore, this
- * file can be used with CANopen configuration tool, which interacts with
- * CANopen devices on running CANopen network.
- *
- * XML schema definitions are available at: http://www.canopen.org/xml/1.1
- * One of the tools for viewing XML schemas is "xsddiagram"
- * (https://github.com/dgis/xsddiagram).
- *
- * CANopen specifies also another type of files for CANopen device description.
- * These are EDS files, which are in INI format. It is possible to convert
- * between those two formats. But CANopenNode uses XML format.
- *
- * The device description file has "XDD" file extension. The name of this file
- * shall contain the vendor-ID of the CANopen device in the form of 8
- * hexadecimal digits in any position of the name and separated with
- * underscores. For example "name1_12345678_name2.XDD".
- *
- * CANopenNode includes multiple profile definition files, one for each CANopen
- * object. Those files have "XPD" extension. They are in the same XML format as
- * XDD files. The XML editor tool can use XPD files to insert prepared data
- * into device description file (XDD), which is being edited.
- *
- * ### XDD, XPD file example
- * @code{.xml}
-<?xml version="1.0" encoding="utf-8"?>
-<ISO15745ProfileContainer
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns="http://www.canopen.org/xml/1.0">
-  <ISO15745Profile>
-    <ProfileHeader>...</ProfileHeader>
-    <ProfileBody
-      xsi:type="ProfileBody_Device_CANopen"
-      fileName="..." fileCreator="..." fileCreationDate="..." fileVersion="...">
-      <DeviceIdentity>...</DeviceIdentity>
-      <DeviceFunction>...</DeviceFunction>
-      <ApplicationProcess>
-        <dataTypeList>...</dataTypeList>
-        <parameterList>
-          <parameter uniqueID="UID_PARAM_1000" access="read">
-            <label lang="en">Device type</label>
-            <description lang="en">...</description>
-            <denotation>...</denotation>
-            <UINT/>
-            <defaultValue value="0x00000000" />
-          </parameter>
-          <parameter uniqueID="UID_PARAM_1001" access="read">
-            <label lang="en">Error register</label>
-            <description lang="en">...</description>
-            <denotation>...</denotation>
-            <BYTE/>
-            <defaultValue value="0" />
-            <property name="CO_storageGroup" value="1">
-            <property name="CO_extensionIO" value="true">
-          </parameter>
-          <parameter uniqueID="UID_PARAM_1018">
-            <label lang="en">Identity</label>
-            <description lang="en">...</description>
-            <denotation>...</denotation>
-            <dataTypeIDRef uniqueIDRef="..." />
-          </parameter>
-          <parameter uniqueID="UID_PARAM_101800" access="read">
-            <label lang="en">max sub-index</label>
-            <description lang="en">...</description>
-            <denotation>...</denotation>
-            <USINT/>
-            <defaultValue value="4" />
-          </parameter>
-          <parameter uniqueID="UID_PARAM_101801" access="read">
-            <label lang="en">Vendor-ID</label>
-            <description lang="en">...</description>
-            <denotation>...</denotation>
-            <UINT/>
-            <defaultValue value="0x00000000" />
-          </parameter>
-          <parameter uniqueID="UID_PARAM_101802" access="read">
-            <label lang="en">Product code</label>
-            <description lang="en">...</description>
-            <denotation>...</denotation>
-            <UINT/>
-            <defaultValue value="0x00000000" />
-          </parameter>
-          <parameter uniqueID="UID_PARAM_101803" access="read">
-            <label lang="en">Revision number</label>
-            <description lang="en">...</description>
-            <denotation>...</denotation>
-            <UINT/>
-            <defaultValue value="0x00000000" />
-          </parameter>
-          <parameter uniqueID="UID_PARAM_101804" access="read">
-            <label lang="en">Serial number</label>
-            <description lang="en">...</description>
-            <denotation>...</denotation>
-            <UINT/>
-            <defaultValue value="0x00000000" />
-          </parameter>
-        </parameterList>
-        <parameterGroupList>
-          <parameterGroup uniqueID="UID_PG_CO_COMM">
-            <label lang="en">CANopen Communication Parameters</label>
-            <description lang="en">...</description>
-            <parameterGroup uniqueID="UID_PG_CO_COMM_COMMON">
-              <label lang="en">CANopen Common Communication Parameters</label>
-              <description lang="en">...</description>
-              <parameterRef uniqueIDRef="UID_PARAM_1000" />
-              <parameterRef uniqueIDRef="UID_PARAM_1001" />
-              <parameterRef uniqueIDRef="UID_PARAM_1018" />
-            </parameterGroup>
-          </parameterGroup>
-        </parameterGroupList>
-      </ApplicationProcess>
-    </ProfileBody>
-  </ISO15745Profile>
-  <ISO15745Profile>
-    <ProfileHeader>...</ProfileHeader>
-    <ProfileBody
-      xsi:type="ProfileBody_CommunicationNetwork_CANopen"
-      fileName="..." fileCreator="..." fileCreationDate="..." fileVersion="...">
-      <ApplicationLayers>
-        <CANopenObjectList>
-          <CANopenObject index="1000" name="Device type"
-            objectType="7" PDOmapping="no" uniqueIDRef="UID_PARAM_1000" />
-          <CANopenObject index="1001" name="Error register"
-            objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_PARAM_1001" />
-          <CANopenObject index="1018" name="Identity"
-            objectType="9" subNumber="5" uniqueIDRef="UID_PARAM_1018">
-            <CANopenSubObject subIndex="00" name="max sub-index"
-              objectType="7" PDOmapping="no" uniqueIDRef="UID_PARAM_101800" />
-            <CANopenSubObject subIndex="01" name="Vendor-ID"
-              objectType="7" PDOmapping="no" uniqueIDRef="UID_PARAM_101801" />
-            <CANopenSubObject subIndex="02" name="Product code"
-              objectType="7" PDOmapping="no" uniqueIDRef="UID_PARAM_101802" />
-            <CANopenSubObject subIndex="03" name="Revision number"
-              objectType="7" PDOmapping="no" uniqueIDRef="UID_PARAM_101803" />
-            <CANopenSubObject subIndex="04" name="Serial number"
-              objectType="7" PDOmapping="no" uniqueIDRef="UID_PARAM_101804" />
-          </CANopenObject>
-        </CANopenObjectList>
-      </ApplicationLayers>
-      <TransportLayers>...</TransportLayers>
-    </ProfileBody>
-  </ISO15745Profile>
-</ISO15745ProfileContainer>
- * @endcode
- *
- * ### Parameter description
- * Above XML file example shows necessary data for OD interface used by
- * CANopenNode and other parameters required by the standard. Standard specifies
- * many other parameters, which are not used by CANopenNode for simplicity.
- *
- * XML file is divided into two parts:
- *   1. "ProfileBody_Device_CANopen" - more standardized information
- *   2. "ProfileBody_CommunicationNetwork_CANopen" - communication related info
- *
- * Most important part of the XML file is definition of each OD object. All
- * OD objects are listed in "CANopenObjectList", which resides in the second
- * part of the XML file. Each "CANopenObject" and "CANopenSubObject" of the list
- * contains a link to parameter ("uniqueIDRef"), which resides in the first
- * part of the XML file. So data for each OD object is split between two parts
- * of the XML file.
- *
- * #### &lt;CANopenObject&gt;
- *   * "index" (required) - Object dictionary index
- *   * "name" (required) - Name of the parameter
- *   * "objectType" (required) - "7"=VAR, "8"=ARRAY, "9"=RECORD
- *   * "subNumber" (required if "objectType" is "8" or "9")
- *   * "PDOmapping" (optional if "objectType" is "7", default is "no"):
- *     * "no" - mapping not allowed
- *     * "default" - not used, same as "optional"
- *     * "optional" - mapping allowed to TPDO or RPDO
- *     * "TPDO" - mapping allowed to TPDO
- *     * "RPDO" mapping allowed to RPDO
- *   * "uniqueIDRef" (required or see below) - Reference to &lt;parameter&gt;
- *
- * #### &lt;CANopenSubObject&gt;
- *   * "subIndex" (required) - Object dictionary sub-index
- *   * "name" (required) - Name of the parameter
- *   * "objectType" (required, always "7")
- *   * "PDOmapping" (optional, same as above, default is "no")
- *   * "uniqueIDRef" (required or see below) - Reference to &lt;parameter&gt;
- *
- * #### uniqueIDRef
- * This is required attribute from "CANopenObject" and "CANopenSubObject". It
- * contains reference to &lt;parameter&gt; in "ProfileBody_Device_CANopen"
- * section of the XML file. There are additional necessary properties.
- *
- * If "uniqueIDRef" attribute is not specified and "objectType" is 7(VAR), then
- * "CANopenObject" or "CANopenSubObject" must contain additional attributes:
- *   * "dataType" (required for VAR) - CANopen basic data type, see below
- *   * "accessType" (required for VAR) - "ro", "wo", "rw" or "const"
- *   * "defaultValue" (optional) - Default value for the variable.
- *   * "denotation" (optional) - Not used by CANopenNode.
- *
- * #### &lt;parameter&gt;
- *   * "uniqueID" (required)
- *   * "access" (required for VAR) - can be one of:
- *     * "const" - same as "read"
- *     * "read" - only read access with SDO or PDO
- *     * "write" - only write access with SDO or PDO
- *     * "readWrite" - read or write access with SDO or PDO
- *     * "readWriteInput" - same as "readWrite"
- *     * "readWriteOutput" - same as "readWrite"
- *     * "noAccess" - object will be in Object Dictionary, but no access.
- *   * &lt;label lang="en"&gt; (required)
- *   * &lt;description lang="en"&gt; (required)
- *   * &lt;UINT and similar/&gt; (required) - Basic or complex data type. Basic
- *     data type (for VAR) is specified in IEC 61131-3 (see below). If data type
- *     is complex (ARRAY or RECORD), then &lt;dataTypeIDRef&gt; must be
- *     specified and entry must be added in the &lt;dataTypeList&gt;. Such
- *     definition of complex data types is required by the standard, but it is
- *     not required by CANopenNode.
- *   * &lt;defaultValue&gt; (optional for VAR) - Default value for the variable.
- *
- * Additional, optional, CANopenNode specific properties, which can be used
- * inside parameters describing &lt;CANopenObject&gt;:
- *   * &lt;property name="CO_storageGroup" value="..."&gt; - group into which
- *     the C variable will belong. Variables from specific storage group may
- *     then be stored into non-volatile memory, automatically or by SDO command.
- *     Valid value is from 0x00 (default - not stored) to 0x7F.
- *   * &lt;property name="CO_extensionIO" value="..."&gt; - Valid value is
- *     "false" (default) or "true", if IO extension is enabled.
- *   * &lt;property name="CO_flagsPDO" value="..."&gt; - Valid value is
- *     "false" (default) or "true", if PDO flags are enabled.
- *   * &lt;property name="CO_countLabel" value="..."&gt; - Valid value is
- *     any string without spaces. OD exporter will generate a macro for each
- *     different string. For example, if four OD objects have "CO_countLabel"
- *     set to "TPDO", then macro "#define ODxyz_NO_TPDO 4" will be generated by
- *     OD exporter.
- *
- * Additional, optional, CANopenNode specific property, which can be used
- * inside parameters describing "VAR":
- *   * &lt;property name="CO_accessSRDO" value="..."&gt; - Valid values are:
- *     "tx", "rx", "trx", "no"(default).
- *   * &lt;property name="CO_byteLength" value="..."&gt; - Length of the
- *     variable in bytes, optionaly used by string or domain. If CO_byteLength
- *     is not specified for string, then length is calculated from string
- *     &lt;defaultValue&gt;.
- *
- * #### CANopen basic data types
- * | CANopenNode  | IEC 61131-3  | CANopen         | dataType |
- * | ------------ | ------------ | --------------- | -------- |
- * | bool_t       | BOOL         | BOOLEAN         | 0x01     |
- * | int8_t       | CHAR, SINT   | INTEGER8        | 0x02     |
- * | int16_t      | INT          | INTEGER16       | 0x03     |
- * | int32_t      | DINT         | INTEGER32       | 0x04     |
- * | int64_t      | LINT         | INTEGER64       | 0x15     |
- * | uint8_t      | BYTE, USINT  | UNSIGNED8       | 0x05     |
- * | uint16_t     | WORD, UINT   | UNSIGNED16      | 0x06     |
- * | uint32_t     | DWORD, UDINT | UNSIGNED32      | 0x07     |
- * | uint64_t     | LWORD, ULINT | UNSIGNED64      | 0x1B     |
- * | float32_t    | REAL         | REAL32          | 0x08     |
- * | float64_t    | LREAL        | REAL64          | 0x11     |
- * | bytestring_t | STRING       | VISIBLE_STRING  | 0x09     |
- * | bytestring_t | -            | OCTET_STRING    | 0x0A     |
- * | bytestring_t | WSTRING      | UNICODE_STRING  | 0x0B     |
- * | bytestring_t | -            | TIME_OF_DAY     | 0x0C     |
- * | bytestring_t | -            | TIME_DIFFERENCE | 0x0D     |
- * | bytestring_t | -            | DOMAIN          | 0x0F     |
- * | bytestring_t | BITSTRING    | -               | -        |
- *
- * #### &lt;parameterGroupList&gt;
- * This is optional element and is not required by standard, nor by CANopenNode.
- * This can be very useful for documentation, which can be organised into
- * multiple chapters with multiple levels. CANopen objects can then be organised
- * in any way, not only by index.
- *
- * #### Other elements
- * Other elements listed in the above XML example are required by the standard
- * and does not influence the CANopenNode object dictionary generator.
- * @} */
-
 
 #ifndef OD_size_t
 /** Variable of type OD_size_t contains data length in bytes of OD variable */
@@ -655,46 +125,75 @@ typedef enum {
     ODA_RSRDO = 0x20, /**< Variable is mappable into receiving SRDO */
     ODA_TRSRDO = 0x30, /**< Variable is mappable into tx or rx SRDO */
     ODA_MB = 0x40, /**< Variable is multi-byte ((u)int16_t to (u)int64_t) */
-    ODA_NOINIT = 0x80, /**< Variable has no initial value. Can be used with
-    OD objects, which has IO extension enabled. Object dictionary does not
-    reserve memory for the variable and storage is not used. */
+    ODA_RESERVED = 0x80, /**< Reserved for further use */
 } OD_attributes_t;
 
 
 /**
- * Return codes from OD access functions
+ * Return codes from OD access functions.
+ *
+ * @ref OD_getSDOabCode() can be used to retrive corresponding SDO abort code.
  */
 typedef enum {
-/* !!!! WARNING !!!! */
-/* If changing these values, change also OD_getSDOabCode() function! */
-    ODR_PARTIAL        = -1, /**< Read/write is only partial, make more calls */
-    ODR_OK             = 0,  /**< Read/write successfully finished */
-    ODR_OUT_OF_MEM     = 1,  /**< Out of memory */
-    ODR_UNSUPP_ACCESS  = 2,  /**< Unsupported access to an object */
-    ODR_WRITEONLY      = 3,  /**< Attempt to read a write only object */
-    ODR_READONLY       = 4,  /**< Attempt to write a read only object */
-    ODR_IDX_NOT_EXIST  = 5,  /**< Object does not exist in the object dict. */
-    ODR_NO_MAP         = 6,  /**< Object cannot be mapped to the PDO */
-    ODR_MAP_LEN        = 7,  /**< PDO length exceeded */
-    ODR_PAR_INCOMPAT   = 8,  /**< General parameter incompatibility reasons */
-    ODR_DEV_INCOMPAT   = 9,  /**< General internal incompatibility in device */
-    ODR_HW             = 10, /**< Access failed due to hardware error */
-    ODR_TYPE_MISMATCH  = 11, /**< Data type does not match */
-    ODR_DATA_LONG      = 12, /**< Data type does not match, length too high */
-    ODR_DATA_SHORT     = 13, /**< Data type does not match, length too short */
-    ODR_SUB_NOT_EXIST  = 14, /**< Sub index does not exist */
-    ODR_INVALID_VALUE  = 15, /**< Invalid value for parameter (download only) */
-    ODR_VALUE_HIGH     = 16, /**< Value range of parameter written too high */
-    ODR_VALUE_LOW      = 17, /**< Value range of parameter written too low */
-    ODR_MAX_LESS_MIN   = 18, /**< Maximum value is less than minimum value */
-    ODR_NO_RESOURCE    = 19, /**< Resource not available: SDO connection */
-    ODR_GENERAL        = 20, /**< General error */
-    ODR_DATA_TRANSF    = 21, /**< Data cannot be transferred or stored to app */
-    ODR_DATA_LOC_CTRL  = 22, /**< Data can't be transf (local control) */
-    ODR_DATA_DEV_STATE = 23, /**< Data can't be transf (present device state) */
-    ODR_OD_MISSING     = 23, /**< Object dictionary not present */
-    ODR_NO_DATA        = 25, /**< No data available */
-    ODR_COUNT          = 26  /**< Last element, number of responses */
+/* !!!! WARNING !!!!
+ * If changing these values, change also OD_getSDOabCode() function!
+ */
+    /** Read/write is only partial, make more calls */
+    ODR_PARTIAL = -1,
+    /** SDO abort 0x00000000 - Read/write successfully finished */
+    ODR_OK = 0,
+    /** SDO abort 0x05040005 - Out of memory */
+    ODR_OUT_OF_MEM = 1,
+    /** SDO abort 0x06010000 - Unsupported access to an object */
+    ODR_UNSUPP_ACCESS = 2,
+    /** SDO abort 0x06010001 - Attempt to read a write only object */
+    ODR_WRITEONLY = 3,
+    /** SDO abort 0x06010002 - Attempt to write a read only object */
+    ODR_READONLY = 4,
+    /** SDO abort 0x06020000 - Object does not exist in the object dict. */
+    ODR_IDX_NOT_EXIST = 5,
+    /** SDO abort 0x06040041 - Object cannot be mapped to the PDO */
+    ODR_NO_MAP = 6,
+    /** SDO abort 0x06040042 - PDO length exceeded */
+    ODR_MAP_LEN = 7,
+    /** SDO abort 0x06040043 - General parameter incompatibility reasons */
+    ODR_PAR_INCOMPAT = 8,
+    /** SDO abort 0x06040047 - General internal incompatibility in device */
+    ODR_DEV_INCOMPAT = 9,
+    /** SDO abort 0x06060000 - Access failed due to hardware error */
+    ODR_HW = 10,
+    /** SDO abort 0x06070010 - Data type does not match */
+    ODR_TYPE_MISMATCH = 11,
+    /** SDO abort 0x06070012 - Data type does not match, length too high */
+    ODR_DATA_LONG = 12,
+    /** SDO abort 0x06070013 - Data type does not match, length too short */
+    ODR_DATA_SHORT = 13,
+    /** SDO abort 0x06090011 - Sub index does not exist */
+    ODR_SUB_NOT_EXIST = 14,
+    /** SDO abort 0x06090030 - Invalid value for parameter (download only) */
+    ODR_INVALID_VALUE = 15,
+    /** SDO abort 0x06090031 - Value range of parameter written too high */
+    ODR_VALUE_HIGH = 16,
+    /** SDO abort 0x06090032 - Value range of parameter written too low */
+    ODR_VALUE_LOW = 17,
+    /** SDO abort 0x06090036 - Maximum value is less than minimum value */
+    ODR_MAX_LESS_MIN = 18,
+    /** SDO abort 0x060A0023 - Resource not available: SDO connection */
+    ODR_NO_RESOURCE = 19,
+    /** SDO abort 0x08000000 - General error */
+    ODR_GENERAL = 20,
+    /** SDO abort 0x08000020 - Data cannot be transferred or stored to app */
+    ODR_DATA_TRANSF = 21,
+    /** SDO abort 0x08000021 - Data can't be transf (local control) */
+    ODR_DATA_LOC_CTRL = 22,
+    /** SDO abort 0x08000022 - Data can't be transf (present device state) */
+    ODR_DATA_DEV_STATE = 23,
+    /** SDO abort 0x08000023 - Object dictionary not present */
+    ODR_OD_MISSING = 23,
+    /** SDO abort 0x08000024 - No data available */
+    ODR_NO_DATA = 25,
+    /** Last element, number of responses */
+    ODR_COUNT = 26
 } ODR_t;
 
 
@@ -704,8 +203,15 @@ typedef enum {
  * Structure is initialized with @ref OD_getSub() function.
  */
 typedef struct {
-    /** Pointer to data object, on which will operate read/write function */
-    void *dataObject;
+    /** Pointer to original data object, defined by Object Dictionary. If
+     * memory for data object is not specified by Object Dictionary, then
+     * dataObjectOriginal is NULL. Default read/write functions operate on it.
+     */
+    void *dataObjectOriginal;
+    /** Pointer to object, passed by @ref OD_extensionIO_init(). Can be used
+     * inside read / write functions from IO extension.
+     */
+    void *object;
     /** Data length in bytes or 0, if length is not specified */
     OD_size_t dataLength;
     /** In case of large data, dataOffset indicates position of already
@@ -749,7 +255,8 @@ typedef struct {
      * be mapped. If corresponding bit is 0, TPDO will be sent. This means, that
      * if application sets variable pointed by flagsPDO to zero, it will trigger
      * sending all asynchronous TPDOs (up to first 63), to which variable is
-     * mapped. */
+     * mapped.
+     */
     OD_flagsPDO_t *flagsPDO;
     /**
      * Function pointer for reading value from specified variable from Object
@@ -867,6 +374,32 @@ typedef struct {
 
 
 /**
+ * Read value from original OD location
+ *
+ * This function can be used inside read / write functions, specified by
+ * @ref OD_extensionIO_init(). It reads data directly from memory location
+ * specified by Object dictionary. If no IO extension is used on OD entry, then
+ * subEntry->read returned by @ref OD_getSub() equals to this function. See
+ * also @ref OD_subEntry_t.
+ */
+OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
+                          void *buf, OD_size_t count, ODR_t *returnCode);
+
+
+/**
+ * Write value to original OD location
+ *
+ * This function can be used inside read / write functions, specified by
+ * @ref OD_extensionIO_init(). It writes data directly to memory location
+ * specified by Object dictionary. If no IO extension is used on OD entry, then
+ * subEntry->write returned by @ref OD_getSub() equals to this function. See
+ * also @ref OD_subEntry_t.
+ */
+OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
+                           const void *buf, OD_size_t count, ODR_t *returnCode);
+
+
+/**
  * Find OD entry in Object Dictionary
  *
  * @param od Object Dictionary
@@ -881,22 +414,41 @@ const OD_entry_t *OD_find(const OD_t *od, uint16_t index);
  * Find sub-object with specified sub-index on OD entry returned by OD_find.
  * Function populates subEntry and stream structures with sub-object data.
  *
- * @warning If this function is called on OD object, which has IO extension
- * enabled and @ref OD_extensionIO_init() was not (yet) called on that object,
- * then subEntry and stream structures are populated with properties of
- * "original OD object". Call to this function after @ref OD_extensionIO_init()
- * will populate subEntry and stream structures with properties of
- * "newly initialised OD object". This is something very different.
- *
  * @param entry OD entry returned by @ref OD_find().
  * @param subIndex Sub-index of the variable from the OD object.
  * @param [out] subEntry Structure will be populated on success.
  * @param [out] stream Structure will be populated on success.
+ * @param odOrig If true, then potential IO extension on entry will be
+ * ignored and access to data entry in the original OD location will be returned
  *
  * @return Value from @ref ODR_t, "ODR_OK" in case of success.
  */
 ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
-                OD_subEntry_t *subEntry, OD_stream_t *stream);
+                OD_subEntry_t *subEntry, OD_stream_t *stream, bool_t odOrig);
+
+
+/**
+ * Return index from OD entry
+ *
+ * @param entry OD entry returned by @ref OD_find().
+ *
+ * @return OD index
+ */
+static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
+    return entry->index;
+}
+
+
+/**
+ * Return maxSubIndex from OD entry
+ *
+ * @param entry OD entry returned by @ref OD_find().
+ *
+ * @return OD maxSubIndex
+ */
+static inline uint8_t OD_getMaxSubIndex(const OD_entry_t *entry) {
+    return entry->maxSubIndex;
+}
 
 
 /**
@@ -933,23 +485,28 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
  * object, but data are read directly from (or written directly to) application
  * specified object via custom function calls.
  *
- * One more feature is available on IO extended object. Before application calls
- * @ref OD_extensionIO_init() it can read original OD object, which can contain
- * initial values for the data. And also, as any data from OD, data can be
- * loaded from or saved to nonvolatile storage.
+ * If this function is not called yet, then normal access ("odOrig" argument is
+ * false) to OD entry is disabled.
+ *
+ * @warning
+ * Object dictionary storage works only directly on OD variables. It does not
+ * access read function specified here. So, if extended OD objects needs to be
+ * preserved, then @ref OD_writeOriginal can be used inside custom write
+ * function.
  *
  * @warning
  * Read and write functions may be called from different threads, so critical
  * sections in custom functions must be protected with @ref CO_LOCK_OD() and
  * @ref CO_UNLOCK_OD().
  *
- * See also warning in @ref OD_getSub() function.
- *
  * @param entry OD entry returned by @ref OD_find().
- * @param object Object, which will be passed to read or write function, must
- *               not be NULL.
- * @param read Read function pointer, see @ref OD_subEntry_t.
- * @param write Write function pointer, see @ref OD_subEntry_t.
+ * @param object Object, which will be passed to read or write function.
+ * @param read Read function pointer. If NULL, then read will be disabled.
+ * @ref OD_readOriginal can be used here to keep original read function.
+ * For function description see @ref OD_subEntry_t.
+ * @param write Write function pointer. If NULL, then write will be disabled.
+ * @ref OD_writeOriginal can be used here to keep original write function.
+ * For function description see @ref OD_subEntry_t.
  *
  * @return true on success, false if OD object doesn't exist or is not extended.
  */
@@ -966,49 +523,12 @@ bool_t OD_extensionIO_init(const OD_entry_t *entry,
                                               OD_size_t count,
                                               ODR_t *returnCode));
 
-/**
- * Helper function for no read access
- *
- * This function can be used by application as argument to
- * @ref OD_extensionIO_init(). It only returns ODR_WRITEONLY as returnCode.
- */
-OD_size_t OD_readDisabled(OD_stream_t *stream, uint8_t subIndex,
-                          void *buf, OD_size_t count,
-                          ODR_t *returnCode);
-
-/**
- * Helper function for no write access
- *
- * This function can be used by application as argument to
- * @ref OD_extensionIO_init(). It only returns ODR_READONLY as returnCode.
- */
-OD_size_t OD_writeDisabled(OD_stream_t *stream, uint8_t subIndex,
-                           void *buf, OD_size_t count,
-                           ODR_t *returnCode);
-
-
-/**
- * Update storage group data from OD object with IO extension.
- *
- * This function must be called, before OD variables from specified storageGroup
- * will be save to non-volatile memory. This function must be called, because
- * some OD objects have IO extension enabled. And those OD object are connected
- * with application code, which have own control over the entire OD object data.
- * Application does not use original data from the storageGroup. For that reason
- * this function scans entire object dictionary, reads data from necessary
- * OD objects and copies them to the original storageGroup.
- *
- * @param od Object Dictionary
- * @param storageGroup Group of data to update.
- */
-void OD_updateStorageGroup(OD_t *od, uint8_t storageGroup);
-
 
 /**
  * @defgroup CO_ODgetSetters Getters and setters
  * @{
  *
- * Getter and setter helpre functions for accessing different types of Object
+ * Getter and setter helper functions for accessing different types of Object
  * Dictionary variables.
  */
 /**
@@ -1016,29 +536,43 @@ void OD_updateStorageGroup(OD_t *od, uint8_t storageGroup);
  *
  * @param entry OD entry returned by @ref OD_find().
  * @param subIndex Sub-index of the variable from the OD object.
- * @param [out] val Value will be written there.
+ * @param [out] val Value will be written here.
+ * @param odOrig If true, then potential IO extension on entry will be
+ * ignored and data in the original OD location will be returned.
  *
- * @return Value from @ref ODR_t, "ODR_OK" in case of success.
+ * @return Value from @ref ODR_t, "ODR_OK" in case of success. Error, if
+ * variable does not exist in object dictionary or it does not have the correct
+ * length or other reason.
  */
-ODR_t OD_get_i8(const OD_entry_t *entry, uint16_t subIndex, int8_t *val);
+ODR_t OD_get_i8(const OD_entry_t *entry, uint8_t subIndex,
+                int8_t *val, bool_t odOrig);
 /** Get int16_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_i16(const OD_entry_t *entry, uint16_t subIndex, int16_t *val);
+ODR_t OD_get_i16(const OD_entry_t *entry, uint8_t subIndex,
+                 int16_t *val, bool_t odOrig);
 /** Get int32_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_i32(const OD_entry_t *entry, uint16_t subIndex, int32_t *val);
+ODR_t OD_get_i32(const OD_entry_t *entry, uint8_t subIndex,
+                 int32_t *val, bool_t odOrig);
 /** Get int64_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_i64(const OD_entry_t *entry, uint16_t subIndex, int64_t *val);
+ODR_t OD_get_i64(const OD_entry_t *entry, uint8_t subIndex,
+                 int64_t *val, bool_t odOrig);
 /** Get uint8_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_u8(const OD_entry_t *entry, uint16_t subIndex, uint8_t *val);
+ODR_t OD_get_u8(const OD_entry_t *entry, uint8_t subIndex,
+                uint8_t *val, bool_t odOrig);
 /** Get uint16_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_u16(const OD_entry_t *entry, uint16_t subIndex, uint16_t *val);
+ODR_t OD_get_u16(const OD_entry_t *entry, uint8_t subIndex,
+                 uint16_t *val, bool_t odOrig);
 /** Get uint32_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_u32(const OD_entry_t *entry, uint16_t subIndex, uint32_t *val);
+ODR_t OD_get_u32(const OD_entry_t *entry, uint8_t subIndex,
+                 uint32_t *val, bool_t odOrig);
 /** Get uint64_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_u64(const OD_entry_t *entry, uint16_t subIndex, uint64_t *val);
+ODR_t OD_get_u64(const OD_entry_t *entry, uint8_t subIndex,
+                 uint64_t *val, bool_t odOrig);
 /** Get float32_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_r32(const OD_entry_t *entry, uint16_t subIndex, float32_t *val);
+ODR_t OD_get_r32(const OD_entry_t *entry, uint8_t subIndex,
+                 float32_t *val, bool_t odOrig);
 /** Get float64_t variable from Object Dictionary, see @ref OD_get_i8 */
-ODR_t OD_get_r64(const OD_entry_t *entry, uint16_t subIndex, float64_t *val);
+ODR_t OD_get_r64(const OD_entry_t *entry, uint8_t subIndex,
+                 float64_t *val, bool_t odOrig);
 
 /**
  * Set int8_t variable in Object Dictionary
@@ -1046,39 +580,87 @@ ODR_t OD_get_r64(const OD_entry_t *entry, uint16_t subIndex, float64_t *val);
  * @param entry OD entry returned by @ref OD_find().
  * @param subIndex Sub-index of the variable from the OD object.
  * @param val Value to write.
+ * @param odOrig If true, then potential IO extension on entry will be
+ * ignored and data in the original OD location will be written.
  *
- * @return Value from @ref ODR_t, "ODR_OK" in case of success.
+ * @return Value from @ref ODR_t, "ODR_OK" in case of success. Error, if
+ * variable does not exist in object dictionary or it does not have the correct
+ * length or other reason.
  */
-ODR_t OD_set_i8(const OD_entry_t *entry, uint16_t subIndex, int8_t val);
+ODR_t OD_set_i8(const OD_entry_t *entry, uint8_t subIndex,
+                int8_t val, bool_t odOrig);
 /** Set int16_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_i16(const OD_entry_t *entry, uint16_t subIndex, int16_t val);
+ODR_t OD_set_i16(const OD_entry_t *entry, uint8_t subIndex,
+                 int16_t val, bool_t odOrig);
 /** Set int16_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_i32(const OD_entry_t *entry, uint16_t subIndex, int32_t val);
+ODR_t OD_set_i32(const OD_entry_t *entry, uint8_t subIndex,
+                 int32_t val, bool_t odOrig);
 /** Set int16_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_i64(const OD_entry_t *entry, uint16_t subIndex, int64_t val);
+ODR_t OD_set_i64(const OD_entry_t *entry, uint8_t subIndex,
+                 int64_t val, bool_t odOrig);
 /** Set uint8_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_u8(const OD_entry_t *entry, uint16_t subIndex, uint8_t val);
+ODR_t OD_set_u8(const OD_entry_t *entry, uint8_t subIndex,
+                uint8_t val, bool_t odOrig);
 /** Set uint16_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_u16(const OD_entry_t *entry, uint16_t subIndex, uint16_t val);
+ODR_t OD_set_u16(const OD_entry_t *entry, uint8_t subIndex,
+                 uint16_t val, bool_t odOrig);
 /** Set uint32_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_u32(const OD_entry_t *entry, uint16_t subIndex, uint32_t val);
+ODR_t OD_set_u32(const OD_entry_t *entry, uint8_t subIndex,
+                 uint32_t val, bool_t odOrig);
 /** Set uint64_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_u64(const OD_entry_t *entry, uint16_t subIndex, uint64_t val);
+ODR_t OD_set_u64(const OD_entry_t *entry, uint8_t subIndex,
+                 uint64_t val, bool_t odOrig);
 /** Set float32_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_r32(const OD_entry_t *entry, uint16_t subIndex, float32_t val);
+ODR_t OD_set_r32(const OD_entry_t *entry, uint8_t subIndex,
+                 float32_t val, bool_t odOrig);
 /** Set float64_t variable in Object Dictionary, see @ref OD_set_i8 */
-ODR_t OD_set_r64(const OD_entry_t *entry, uint16_t subIndex, float64_t val);
+ODR_t OD_set_r64(const OD_entry_t *entry, uint8_t subIndex,
+                 float64_t val, bool_t odOrig);
+
+/**
+ * Get pointer to int8_t variable from Object Dictionary
+ *
+ * Function always returns "dataObjectOriginal" pointer, which points to data
+ * in the original OD location. Take care, if IO extension is enabled on OD
+ * entry.
+ *
+ * @param entry OD entry returned by @ref OD_find().
+ * @param subIndex Sub-index of the variable from the OD object.
+ * @param [out] val Pointer to variable will be written here.
+ *
+ * @return Value from @ref ODR_t, "ODR_OK" in case of success. Error, if
+ * variable does not exist in object dictionary or it does not have the correct
+ * length or other reason.
+ */
+ODR_t OD_getPtr_i8(const OD_entry_t *entry, uint8_t subIndex, int8_t **val);
+/** Get pointer to int16_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_i16(const OD_entry_t *entry, uint8_t subIndex, int16_t **val);
+/** Get pointer to int32_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_i32(const OD_entry_t *entry, uint8_t subIndex, int32_t **val);
+/** Get pointer to int64_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_i64(const OD_entry_t *entry, uint8_t subIndex, int64_t **val);
+/** Get pointer to uint8_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_u8(const OD_entry_t *entry, uint8_t subIndex, uint8_t **val);
+/** Get pointer to uint16_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_u16(const OD_entry_t *entry, uint8_t subIndex, uint16_t **val);
+/** Get pointer to uint32_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_u32(const OD_entry_t *entry, uint8_t subIndex, uint32_t **val);
+/** Get pointer to uint64_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_u64(const OD_entry_t *entry, uint8_t subIndex, uint64_t **val);
+/** Get pointer to float32_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_r32(const OD_entry_t *entry, uint8_t subIndex, float32_t **val);
+/** Get pointer to float64_t variable from OD, see @ref OD_getPtr_i8 */
+ODR_t OD_getPtr_r64(const OD_entry_t *entry, uint8_t subIndex, float64_t **val);
 /** @} */ /* CO_ODgetSetters */
 
 
+#if defined OD_DEFINITION || defined CO_DOXYGEN
 /**
  * @defgroup CO_ODdefinition OD definition objects
  * @{
  *
  * Types and functions used only for definition of Object Dictionary
  */
-#if defined OD_DEFINITION || defined CO_DOXYGEN
-
 /**
  * Types for OD object.
  */
@@ -1166,12 +748,11 @@ typedef struct {
     const void *odObjectOriginal;
 } OD_obj_extended_t;
 
-#endif /* defined OD_DEFINITION */
-
 /** @} */ /* CO_ODdefinition */
 
+#endif /* defined OD_DEFINITION */
 
-/** @} */
+/** @} */ /* CO_ODinterface */
 
 #ifdef __cplusplus
 }

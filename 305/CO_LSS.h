@@ -27,6 +27,15 @@
 #ifndef CO_LSS_H
 #define CO_LSS_H
 
+#include "301/CO_driver.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_LSS
+#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE)
+#endif
+
+#if ((CO_CONFIG_LSS) & (CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER)) || defined CO_DOXYGEN
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -232,8 +241,11 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
       a1.identity.vendorID == a2.identity.vendorID)
 
 /** @} */ /*@defgroup CO_LSS*/
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
+
+#endif /* (CO_CONFIG_LSS) & (CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER) */
 
 #endif /*CO_LSS_H*/

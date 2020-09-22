@@ -23,9 +23,17 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_SYNC_H
 #define CO_SYNC_H
+
+#include "301/CO_driver.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_SYNC
+#define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | CO_CONFIG_SYNC_PRODUCER)
+#endif
+
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -204,9 +212,12 @@ CO_SYNC_status_t CO_SYNC_process(
         uint32_t                ObjDict_synchronousWindowLength,
         uint32_t               *timerNext_us);
 
+/** @} */ /* CO_SYNC */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE */
+
+#endif /* CO_SYNC_H */

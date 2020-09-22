@@ -23,12 +23,18 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_TIME_H
 #define CO_TIME_H
 
+#include "301/CO_driver.h"
 #include "CO_OD.h"
 
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_TIME
+#define CO_CONFIG_TIME (0)
+#endif
+
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -176,10 +182,12 @@ uint8_t CO_TIME_process(
         CO_TIME_t              *TIME,
         uint32_t                timeDifference_us);
 
-/** @} */
+/** @} */ /* CO_TIME */
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif
+#endif /* (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE */
+
+#endif /* CO_TIME_H */

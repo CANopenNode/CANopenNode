@@ -29,6 +29,20 @@
 
 #include <string.h>
 
+#include "301/CO_driver.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_SDO_SRV
+#define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED)
+#endif
+#ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
+#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 32
+#endif
+
+#define CO_CONFIG_SDO CO_CONFIG_SDO_SRV
+#define CO_CONFIG_SDO_BUFFER_SIZE CO_CONFIG_SDO_SRV_BUFFER_SIZE
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -847,54 +861,6 @@ typedef struct{
     /** CAN transmit buffer inside CANdev for CAN tx message */
     CO_CANtx_t         *CANtxBuff;
 }CO_SDO_t;
-
-
-/**
- * Helper function returns uint16 from byte array.
- *
- * @param data Location of source data.
- * @return Variable of type uint16_t.
- */
-static inline uint16_t CO_getUint16(const uint8_t data[]){
-    uint16_t value;
-    memcpy(&value, data, sizeof(value));
-    return value;
-}
-
-
-/**
- * Helper function returns uint32 from byte array.
- *
- * @param data Location of source data.
- * @return Variable of type uint32_t.
- */
-static inline uint32_t CO_getUint32(const uint8_t data[]){
-    uint32_t value;
-    memcpy(&value, data, sizeof(value));
-    return value;
-}
-
-
-/**
- * Helper function writes uint16 to byte array.
- *
- * @param data Location of destination data.
- * @param value Variable of type uint16_t to be written into data.
- */
-static inline void CO_setUint16(uint8_t data[], const uint16_t value){
-    memcpy(data, &value, sizeof(value));
-}
-
-
-/**
- * Helper function writes uint32 to byte array.
- *
- * @param data Location of destination data.
- * @param value Variable of type uint32_t to be written into data.
- */
-static inline void CO_setUint32(uint8_t data[], const uint32_t value){
-    memcpy(data, &value, sizeof(value));
-}
 
 
 /**

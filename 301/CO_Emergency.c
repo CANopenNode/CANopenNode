@@ -23,13 +23,16 @@
  * limitations under the License.
  */
 
-
 #include <string.h>
 
-#include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
 
+/* verify configuration */
+#if CO_CONFIG_EM_ERR_STATUS_BITS_COUNT < (6*8) \
+    || CO_CONFIG_EM_ERR_STATUS_BITS_COUNT > 256
+#error CO_CONFIG_EM_ERR_STATUS_BITS_COUNT is not correct
+#endif
 
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
 /*

@@ -22,11 +22,13 @@
  * limitations under the License.
  */
 
-
 #include "extra/CO_trace.h"
+
+#if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
+
 #include <stdio.h>
 #include <string.h>
-#ifndef CO_OWN_INTTYPES
+#if !((CO_CONFIG_TRACE) & CO_CONFIG_TRACE_OWN_INTTYPES)
 #include <inttypes.h> /* for PRIu32("u" or "lu") and PRId32("d" or "ld") */
 #endif
 
@@ -501,3 +503,5 @@ void CO_trace_process(CO_trace_t *trace, uint32_t timestamp) {
         trace->lastTimeStamp = timestamp;
     }
 }
+
+#endif /* (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE */

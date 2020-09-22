@@ -25,6 +25,8 @@
 
 #include "304/CO_GFC.h"
 
+#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
+
 #if (CO_CONFIG_GFC) & CO_CONFIG_GFC_CONSUMER
 
 static void CO_GFC_receive(void *object, void *msg)
@@ -125,3 +127,5 @@ CO_ReturnError_t CO_GFCsend(CO_GFC_t *GFC)
     return CO_ERROR_NO;
 }
 #endif
+
+#endif /* (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE */

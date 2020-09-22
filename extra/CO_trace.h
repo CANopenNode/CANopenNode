@@ -23,17 +23,22 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_TRACE_H
 #define CO_TRACE_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_TRACE
+#define CO_CONFIG_TRACE (0)
+#endif
+
+#if ((CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE) || defined CO_DOXYGEN
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup CO_trace Trace
@@ -163,9 +168,12 @@ void CO_trace_init(
  */
 void CO_trace_process(CO_trace_t *trace, uint32_t timestamp);
 
+/** @} */ /* CO_trace */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE */
+
+#endif /* CO_TRACE_H */

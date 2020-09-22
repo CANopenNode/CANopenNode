@@ -29,6 +29,8 @@
 #include "301/CO_NMT_Heartbeat.h"
 #include "301/CO_HBconsumer.h"
 
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
+
 /*
  * Read received message from CAN module.
  *
@@ -513,3 +515,5 @@ int8_t CO_HBconsumer_getNmtState(
     return -1;
 }
 #endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_QUERY_FUNCT */
+
+#endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE */

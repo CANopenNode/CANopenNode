@@ -25,11 +25,12 @@
 
 #include <string.h>
 
-#include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
 #include "301/CO_NMT_Heartbeat.h"
 #include "301/CO_TIME.h"
+
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
 
 #define DIV_ROUND_UP(_n, _d) (((_n) + (_d) - 1) / (_d))
 
@@ -207,3 +208,5 @@ uint8_t CO_TIME_process(
 
     return ret;
 }
+
+#endif /* (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE */

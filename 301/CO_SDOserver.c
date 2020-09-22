@@ -42,9 +42,6 @@
 #if CO_CONFIG_SDO_BUFFER_SIZE < 7
     #error CO_CONFIG_SDO_BUFFER_SIZE must be greater than 7
 #endif
-#if ((CO_CONFIG_SDO) & CO_CONFIG_SDO_BLOCK) && !((CO_CONFIG_SDO) & CO_CONFIG_SDO_SEGMENTED)
-    #error CO_CONFIG_SDO_BLOCK is enabled, CO_CONFIG_SDO_SEGMENTED must be enabled also.
-#endif
 
 static void CO_SDO_receive_done(CO_SDO_t *SDO){
 #if CO_SDO_RX_DATA_SIZE > 1

@@ -24,15 +24,16 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_LSSmaster_H
 #define CO_LSSmaster_H
+
+#include "305/CO_LSS.h"
+
+#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "305/CO_LSS.h"
 
 /**
  * @defgroup CO_LSSmaster LSS Master
@@ -469,8 +470,11 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
         CO_LSSmaster_fastscan_t         *fastscan);
 
 /** @} */ /*@defgroup CO_LSSmaster*/
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
+
+#endif /* (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER */
 
 #endif /*CO_LSSmaster_H*/

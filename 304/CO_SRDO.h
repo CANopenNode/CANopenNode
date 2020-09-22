@@ -23,13 +23,23 @@
  * limitations under the License.
  */
 
+#ifndef CO_SRDO_H
+#define CO_SRDO_H
+
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
 #include "301/CO_NMT_Heartbeat.h"
 
-#ifndef CO_SRDO_H
-#define CO_SRDO_H
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_SRDO
+#define CO_CONFIG_SRDO (0)
+#endif
+#ifndef CO_CONFIG_SRDO_MINIMUM_DELAY
+#define CO_CONFIG_SRDO_MINIMUM_DELAY 0
+#endif
+
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -293,10 +303,12 @@ void CO_SRDO_process(
         uint32_t                timeDifference_us,
         uint32_t               *timerNext_us);
 
+/** @} */ /* CO_SRDO */
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-/** @} */
-#endif
+#endif /* (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE */
 
+#endif /* CO_SRDO_H */

@@ -25,6 +25,7 @@
 
 #include "303/CO_LEDs.h"
 
+#if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
 
 /******************************************************************************/
 CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs) {
@@ -150,3 +151,5 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
     }
 #endif
 }
+
+#endif /* (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE */

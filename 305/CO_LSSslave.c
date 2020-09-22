@@ -25,12 +25,11 @@
  * limitations under the License.
  */
 
-#include <string.h>
-
-#include "301/CO_driver.h"
-#include "301/CO_SDOserver.h" /* for helper functions */
 #include "305/CO_LSSslave.h"
 
+#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
+
+#include <string.h>
 
 /*
  * Read received message from CAN module.
@@ -484,3 +483,5 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
 
     return resetCommunication;
 }
+
+#endif /* (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE */

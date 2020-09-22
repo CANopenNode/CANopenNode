@@ -24,11 +24,12 @@
  */
 
 
-#include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
 #include "301/CO_NMT_Heartbeat.h"
 #include "301/CO_SYNC.h"
+
+#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
 
 /*
  * Read received message from CAN module.
@@ -438,3 +439,5 @@ CO_SYNC_status_t CO_SYNC_process(
 
     return ret;
 }
+
+#endif /* (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE */

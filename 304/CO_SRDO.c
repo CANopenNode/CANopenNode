@@ -25,7 +25,14 @@
 
 #include "304/CO_SRDO.h"
 
+#if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
+
 #include "301/crc16-ccitt.h"
+
+/* verify configuration */
+#if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE)
+ #error CO_CONFIG_CRC16_ENABLE must be enabled.
+#endif
 
 #define CO_SRDO_INVALID          (0U)
 #define CO_SRDO_TX               (1U)
@@ -321,7 +328,7 @@ static uint16_t CO_SRDOcalcCrc(const CO_SRDO_t *SRDO){
     CO_memcpySwap2(&buffer[0], &com->safetyCycleTime);
     result = crc16_ccitt(&buffer[0], 2, result);
     result = crc16_ccitt(&com->safetyRelatedValidationTime, 1, result);
-    
+
     /* adjust COB-ID if the default is used
     Caution: if the node id changes and you are using the default COB-ID you have to recalculate the checksum
     This behaviour is controversial and could be changed or made optional.
@@ -836,3 +843,5 @@ void CO_SRDO_process(
         CO_FLAG_CLEAR(SRDO->CANrxNew[1]);
     }
 }
+
+#endif /* (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE */

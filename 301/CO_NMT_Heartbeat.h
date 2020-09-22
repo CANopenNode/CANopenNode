@@ -23,13 +23,17 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_NMT_HEARTBEAT_H
 #define CO_NMT_HEARTBEAT_H
 
 #include "301/CO_driver.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
+
+/* default configuration, see CO_config.h */
+#ifndef CO_CONFIG_NMT
+#define CO_CONFIG_NMT (0)
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -270,12 +274,13 @@ static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
 CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
                                     CO_NMT_command_t command,
                                     uint8_t nodeID);
-#endif
 
-/** @} */
+#endif /* (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER */
+
+/** @} */ /* CO_NMT_Heartbeat */
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif
+#endif /* CO_NMT_HEARTBEAT_H */
