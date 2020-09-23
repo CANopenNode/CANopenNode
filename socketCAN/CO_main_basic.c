@@ -71,7 +71,6 @@
 
 
 /* Other variables and objects */
-volatile static bool_t      CANopenConfiguredOK = false; /* Indication if CANopen modules are configured */
 static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
 static uint8_t              CO_pendingNodeId = 0xFF;/* Use value from Object Dictionary or by arguments (set to 1..127
                                                      * or unconfigured=0xFF). Can be changed by LSS slave. */
@@ -382,7 +381,6 @@ int main (int argc, char *argv[]) {
 
 
         /* Enter CAN configuration. */
-        CANopenConfiguredOK = false;
         CO_CANsetConfigurationMode((void *)&CANptr);
 
 
@@ -402,19 +400,16 @@ int main (int argc, char *argv[]) {
         CO_activeNodeId = CO_pendingNodeId;
 
         err = CO_CANopenInit(CO_activeNodeId);
-        if(err == CO_ERROR_NO) {
-            CANopenConfiguredOK = true;
-        }
-        else if(err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
+        if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
             exit(EXIT_FAILURE);
         }
 
         /* initialize part of threadMain and callbacks */
-        threadMainWait_init(CANopenConfiguredOK);
+        threadMainWait_init(!CO->nodeIdUnconfigured);
         CO_LSSslave_initCfgStoreCallback(CO->LSSslave, NULL,
                                             LSScfgStoreCallback);
-        if(CANopenConfiguredOK) {
+        if(!CO->nodeIdUnconfigured) {
             CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
             CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
             CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
@@ -468,14 +463,14 @@ int main (int argc, char *argv[]) {
 
 #ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
-            app_programStart(CANopenConfiguredOK);
+            app_programStart(!CO->nodeIdUnconfigured);
 #endif
         } /* if(firstRun) */
 
 
 #ifdef CO_USE_APPLICATION
         /* Execute optional additional application code */
-        app_communicationReset(CANopenConfiguredOK);
+        app_communicationReset(!CO->nodeIdUnconfigured);
 #endif
 
 
@@ -492,7 +487,7 @@ int main (int argc, char *argv[]) {
             uint32_t timer1usDiff = threadMainWait_process(&reset);
 
 #ifdef CO_USE_APPLICATION
-            app_programAsync(CANopenConfiguredOK, timer1usDiff);
+            app_programAsync(!CO->nodeIdUnconfigured, thrEpTm.timeDifference_us);
 #endif
 
             CO_OD_storage_autoSave(&odStorAuto, timer1usDiff, 60000000);
@@ -558,7 +553,7 @@ static void* rt_thread(void* arg) {
 
 #ifdef CO_USE_APPLICATION
         /* Execute optional additional application code */
-        app_program1ms(CANopenConfiguredOK);
+        app_program1ms(!CO->nodeIdUnconfigured);
 #endif
 
     }

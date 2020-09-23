@@ -38,7 +38,6 @@
 
 
 /* Global variables and objects */
-    volatile static bool_t CANopenConfiguredOK = false; /* Indication if CANopen modules are configured */
     volatile uint16_t   CO_timer1ms = 0U;   /* variable increments each millisecond */
     uint8_t LED_red, LED_green;
 
@@ -83,7 +82,6 @@ int main (void){
         log_printf("CANopenNode - Reset communication...\n");
 
         /* disable CAN and CAN interrupts */
-        CANopenConfiguredOK = false;
 
         /* initialize CANopen */
         err = CO_CANinit(CANmoduleAddress, pendingBitRate);
@@ -98,10 +96,7 @@ int main (void){
         }
         activeNodeId = pendingNodeId;
         err = CO_CANopenInit(activeNodeId);
-        if(err == CO_ERROR_NO) {
-            CANopenConfiguredOK = true;
-        }
-        else if(err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
+        if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             log_printf("Error: CANopen initialization failed: %d\n", err);
             return 0;
         }
@@ -113,7 +108,7 @@ int main (void){
 
 
         /* Configure CANopen callbacks, etc */
-        if(CANopenConfiguredOK) {
+        if(!CO->nodeIdUnconfigured) {
 
         }
 
