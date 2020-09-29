@@ -215,6 +215,7 @@ void CO_epoll_processLast(CO_epoll_t *ep) {
 
 
 /* MAINLINE *******************************************************************/
+#ifndef CO_SINGLE_THREAD
 /* Send event to wake CO_epoll_processMain() */
 static void wakeupCallback(void *object) {
     CO_epoll_t *ep = (CO_epoll_t *)object;
@@ -225,11 +226,14 @@ static void wakeupCallback(void *object) {
         log_printf(LOG_DEBUG, DBG_ERRNO, "write()");
     }
 }
+#endif
 
 void CO_epoll_initCANopenMain(CO_epoll_t *ep, CO_t *co) {
     if (ep == NULL || co == NULL) {
         return;
     }
+
+#ifndef CO_SINGLE_THREAD
 
     /* Configure LSS slave callback function */
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
@@ -264,6 +268,8 @@ void CO_epoll_initCANopenMain(CO_epoll_t *ep, CO_t *co) {
                                  (void *)ep, wakeupCallback);
 #endif
 #endif
+
+#endif /* CO_SINGLE_THREAD */
 }
 
 void CO_epoll_processMain(CO_epoll_t *ep,

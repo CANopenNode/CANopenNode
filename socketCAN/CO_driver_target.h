@@ -37,7 +37,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <endian.h>
+#ifndef CO_SINGLE_THREAD
 #include <pthread.h>
+#endif
 #include <linux/can.h>
 #include <net/if.h>
 #include <sys/epoll.h>
@@ -53,17 +55,23 @@ extern "C" {
 
 /* Stack configuration override default values.
  * For more information see file CO_config.h. */
+#ifdef CO_SINGLE_THREAD
+#define CO_CONFIG_FLAG_CALLBACK_PRE_USED 0
+#else
+#define CO_CONFIG_FLAG_CALLBACK_PRE_USED CO_CONFIG_FLAG_CALLBACK_PRE
+#endif
+
 #ifndef CO_CONFIG_NMT
 #define CO_CONFIG_NMT (CO_CONFIG_NMT_CALLBACK_CHANGE | \
                        CO_CONFIG_NMT_MASTER | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
                        CO_CONFIG_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_HB_CONS
 #define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | \
                            CO_CONFIG_HB_CONS_CALLBACK_CHANGE | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
                            CO_CONFIG_FLAG_TIMERNEXT)
 #endif
 
@@ -71,7 +79,7 @@ extern "C" {
 #define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER | \
                       CO_CONFIG_EM_HISTORY | \
                       CO_CONFIG_EM_CONSUMER | \
-                      CO_CONFIG_FLAG_CALLBACK_PRE | \
+                      CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
                       CO_CONFIG_FLAG_TIMERNEXT | \
                       CO_CONFIG_FLAG_OD_DYNAMIC)
 #endif
@@ -79,7 +87,7 @@ extern "C" {
 #ifndef CO_CONFIG_SDO_SRV
 #define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED | \
                            CO_CONFIG_SDO_SRV_BLOCK | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
                            CO_CONFIG_FLAG_TIMERNEXT | \
                            CO_CONFIG_FLAG_OD_DYNAMIC)
 #endif
@@ -93,7 +101,7 @@ extern "C" {
                            CO_CONFIG_SDO_CLI_SEGMENTED | \
                            CO_CONFIG_SDO_CLI_BLOCK | \
                            CO_CONFIG_SDO_CLI_LOCAL | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
                            CO_CONFIG_FLAG_TIMERNEXT | \
                            CO_CONFIG_FLAG_OD_DYNAMIC)
 #endif
@@ -105,7 +113,7 @@ extern "C" {
 #ifndef CO_CONFIG_SYNC
 #define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | \
                         CO_CONFIG_SYNC_PRODUCER | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
                         CO_CONFIG_FLAG_TIMERNEXT)
 #endif
 
@@ -115,14 +123,14 @@ extern "C" {
                        CO_CONFIG_PDO_SYNC_ENABLE | \
                        CO_CONFIG_RPDO_CALLS_EXTENSION | \
                        CO_CONFIG_TPDO_CALLS_EXTENSION | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
                        CO_CONFIG_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_TIME
 #define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
                         CO_CONFIG_TIME_PRODUCER | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE)
+                        CO_CONFIG_FLAG_CALLBACK_PRE_USED)
 #endif
 
 #ifndef CO_CONFIG_LEDS
@@ -134,7 +142,7 @@ extern "C" {
 #define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE | \
                        CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND | \
                        CO_CONFIG_LSS_MASTER | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE)
+                       CO_CONFIG_FLAG_CALLBACK_PRE_USED)
 #endif
 
 #ifndef CO_CONFIG_GTW
@@ -340,6 +348,15 @@ typedef struct {
 #endif
 } CO_CANmodule_t;
 
+#ifdef CO_SINGLE_THREAD
+#define CO_LOCK_CAN_SEND()
+#define CO_UNLOCK_CAN_SEND()
+#define CO_LOCK_EMCY()
+#define CO_UNLOCK_EMCY()
+#define CO_LOCK_OD()
+#define CO_UNLOCK_OD()
+#define CO_MemoryBarrier()
+#else
 
 /* (un)lock critical section in CO_CANsend() - unused */
 #define CO_LOCK_CAN_SEND()
@@ -365,11 +382,13 @@ static inline void CO_UNLOCK_OD() {
 
 /* Synchronization between CAN receive and message processing threads. */
 #define CO_MemoryBarrier() {__sync_synchronize();}
+#endif /* CO_SINGLE_THREAD */
+
 #define CO_FLAG_READ(rxNew) ((rxNew) != NULL)
 #define CO_FLAG_SET(rxNew) {CO_MemoryBarrier(); rxNew = (void*)1L;}
 #define CO_FLAG_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = NULL;}
 
-#endif /* CO_DOXYGEN */
+#endif /* #ifndef CO_DOXYGEN */
 
 
 #if CO_DRIVER_MULTI_INTERFACE > 0 || defined CO_DOXYGEN

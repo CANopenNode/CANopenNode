@@ -40,9 +40,10 @@
 #include "301/CO_driver.h"
 #include "CO_error.h"
 
-
+#ifndef CO_SINGLE_THREAD
 pthread_mutex_t CO_EMCY_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t CO_OD_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 #if CO_DRIVER_MULTI_INTERFACE == 0
 static CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,

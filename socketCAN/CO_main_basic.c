@@ -71,8 +71,10 @@
 
 
 /* Other variables and objects */
+#ifndef CO_SINGLE_THREAD
 CO_epoll_t                  epRT; /* Epoll-timer object for realtime thread */
 static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
+#endif
 static uint8_t              CO_pendingNodeId = 0xFF;/* Use value from Object Dictionary or by arguments (set to 1..127
                                                      * or unconfigured=0xFF). Can be changed by LSS slave. */
 static uint8_t              CO_activeNodeId = 0xFF;/* Copied from CO_pendingNodeId in the communication reset section */
@@ -86,8 +88,10 @@ static CO_time_t            CO_time;            /* Object for current time */
 #endif
 
 /* Helper functions ***********************************************************/
+#ifndef CO_SINGLE_THREAD
 /* Realtime thread */
 static void* rt_thread(void* arg);
+#endif
 
 /* Signal handler */
 volatile sig_atomic_t CO_endProgram = 0;
@@ -181,9 +185,13 @@ printf(
 "\n"
 "Options:\n"
 "  -i <Node ID>        CANopen Node-id (1..127) or 0xFF(unconfigured). If not\n"
-"                      specified, value from Object dictionary (0x2101) is used.\n"
+"                      specified, value from Object dictionary (0x2101) is used.\n");
+#ifndef CO_SINGLE_THREAD
+printf(
 "  -p <RT priority>    Real-time priority of RT thread (1 .. 99). If not set or\n"
-"                      set to -1, then normal scheduler is used for RT thread.\n"
+"                      set to -1, then normal scheduler is used for RT thread.\n");
+#endif
+printf(
 "  -r                  Enable reboot on CANopen NMT reset_node command. \n"
 "  -s <ODstorage file> Set Filename for OD storage ('od_storage' is default).\n"
 "  -a <ODstorageAuto>  Set Filename for automatic storage variables from\n"
@@ -214,7 +222,9 @@ printf(
  ******************************************************************************/
 int main (int argc, char *argv[]) {
     CO_epoll_t epMain;
+#ifndef CO_SINGLE_THREAD
     pthread_t rt_thread_id;
+#endif
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_ReturnError_t err;
     CO_ReturnError_t odStorStatus_rom, odStorStatus_eeprom;
@@ -255,8 +265,10 @@ int main (int argc, char *argv[]) {
                 CO_pendingNodeId = (uint8_t)strtol(optarg, NULL, 0);
                 nodeIdFromArgs = true;
                 break;
+#ifndef CO_SINGLE_THREAD
             case 'p': rtPriority = strtol(optarg, NULL, 0);
                 break;
+#endif
             case 'r': rebootEnable = true;
                 break;
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
@@ -317,12 +329,14 @@ int main (int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+#ifndef CO_SINGLE_THREAD
     if(rtPriority != -1 && (rtPriority < sched_get_priority_min(SCHED_FIFO)
                          || rtPriority > sched_get_priority_max(SCHED_FIFO))) {
         log_printf(LOG_CRIT, DBG_WRONG_PRIORITY, rtPriority);
         printUsage(argv[0]);
         exit(EXIT_FAILURE);
     }
+#endif
 
     if(CANptr.can_ifindex == 0) {
         log_printf(LOG_CRIT, DBG_NO_CAN_DEVICE, CANdevice);
@@ -372,14 +386,14 @@ int main (int argc, char *argv[]) {
     }
 
 
-    /* Initialize thread functions: epoll, timer, events */
+    /* Create epoll functions */
     err = CO_epoll_create(&epMain, MAIN_THREAD_INTERVAL_US);
     if(err != CO_ERROR_NO) {
         log_printf(LOG_CRIT, DBG_GENERAL,
                    "CO_epoll_create(main), err=", err);
         exit(EXIT_FAILURE);
     }
-
+#ifndef CO_SINGLE_THREAD
     err = CO_epoll_create(&epRT, TMR_THREAD_INTERVAL_US);
     if(err != CO_ERROR_NO) {
         log_printf(LOG_CRIT, DBG_GENERAL,
@@ -387,7 +401,9 @@ int main (int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
     CANptr.epoll_fd = epRT.epoll_fd;
-
+#else
+    CANptr.epoll_fd = epMain.epoll_fd;
+#endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
     err = CO_epoll_createGtw(&epGtw, epMain.epoll_fd, commandInterface,
                               socketTimeout_ms, localSocketPath);
@@ -469,7 +485,7 @@ int main (int argc, char *argv[]) {
         /* First time only initialization. */
         if(firstRun) {
             firstRun = false;
-
+#ifndef CO_SINGLE_THREAD
             /* Create rt_thread and set priority */
             if(pthread_create(&rt_thread_id, NULL, rt_thread, NULL) != 0) {
                 log_printf(LOG_CRIT, DBG_ERRNO, "pthread_create(rt_thread)");
@@ -484,7 +500,7 @@ int main (int argc, char *argv[]) {
                     exit(EXIT_FAILURE);
                 }
             }
-
+#endif
 #ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
             app_programStart(!CO->nodeIdUnconfigured);
@@ -509,6 +525,9 @@ int main (int argc, char *argv[]) {
         while(reset == CO_RESET_NOT && CO_endProgram == 0) {
 /* loop for normal program execution ******************************************/
             CO_epoll_wait(&epMain);
+#ifdef CO_SINGLE_THREAD
+            CO_epoll_processRT(&epMain, CO, false);
+#endif
             CO_epoll_processMain(&epMain, CO, &reset);
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
             CO_epoll_processGtw(&epGtw, CO, &epMain);
@@ -528,11 +547,12 @@ int main (int argc, char *argv[]) {
 /* program exit ***************************************************************/
     /* join threads */
     CO_endProgram = 1;
+#ifndef CO_SINGLE_THREAD
     if (pthread_join(rt_thread_id, NULL) != 0) {
         log_printf(LOG_CRIT, DBG_ERRNO, "pthread_join()");
         exit(EXIT_FAILURE);
     }
-
+#endif
 #ifdef CO_USE_APPLICATION
     /* Execute optional additional application code */
     app_programEnd();
@@ -543,7 +563,9 @@ int main (int argc, char *argv[]) {
     CO_OD_storage_autoSaveClose(&odStorAuto);
 
     /* delete objects from memory */
+#ifndef CO_SINGLE_THREAD
     CO_epoll_close(&epRT);
+#endif
     CO_epoll_close(&epMain);
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
     CO_epoll_closeGtw(&epGtw);
@@ -564,7 +586,7 @@ int main (int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
 }
 
-
+#ifndef CO_SINGLE_THREAD
 /*******************************************************************************
  * Realtime thread for CAN receive and threadTmr
  ******************************************************************************/
@@ -594,3 +616,4 @@ static void* rt_thread(void* arg) {
 
     return NULL;
 }
+#endif

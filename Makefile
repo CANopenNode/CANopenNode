@@ -48,8 +48,10 @@ SOURCES = \
 OBJS = $(SOURCES:%.c=%.o)
 CC ?= gcc
 OPT = -g
+#OPT = -g -DCO_SINGLE_THREAD
 CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
 LDFLAGS = -pthread
+#LDFLAGS =
 
 
 .PHONY: all clean

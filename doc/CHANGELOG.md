@@ -31,6 +31,7 @@ Change Log
 - CO_CANrxBufferInit(): remove check COB ID already used.
 - change macros CO_DRIVER_MULTI_INTERFACE and CO_DRIVER_ERROR_REPORTING. To enable(disable), set to 1(0).
 - Rename CO_Linux_threads.h/.c to CO_epoll_interface.h/.c and reorganize them. Move epoll, timerfd and eventfd system calls from CO_driver.c to here.
+- Can run in single thread, including gateway.
 ### Fixed
 - Bugfix in `CO_HBconsumer_process()`: argument `timeDifference_us` was set to 0 inside for loop, fixed now.
 - BUG in CO_HBconsumer.c #168
