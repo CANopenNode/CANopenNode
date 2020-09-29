@@ -419,15 +419,15 @@ CO_SYNC_status_t CO_SYNC_process(
             }
             else {
                 CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, CO_EMC_COMMUNICATION);
-            }
 #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
-            else if(timerNext_us != NULL) {
-                uint32_t diff = SYNC->periodTimeoutTime - SYNC->timer;
-                if(*timerNext_us > diff){
-                    *timerNext_us = diff;
+                if(timerNext_us != NULL) {
+                    uint32_t diff = SYNC->periodTimeoutTime - SYNC->timer;
+                    if(*timerNext_us > diff){
+                        *timerNext_us = diff;
+                    }
                 }
-            }
 #endif
+            }
         }
     }
     else {

@@ -186,7 +186,7 @@ void CO_SYNC_initCallbackPre(
  * CO_SYNC_process().
  *
  *
- * @param TPDO TPDO object.
+ * @param SYNC SYNC object.
  *
  * @return Same as CO_CANsend().
  */
