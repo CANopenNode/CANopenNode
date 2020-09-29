@@ -396,7 +396,7 @@ uint8_t CO_TPDOisCOS(CO_TPDO_t *TPDO);
  *
  * @return Same as CO_CANsend().
  */
-int16_t CO_TPDOsend(CO_TPDO_t *TPDO);
+CO_ReturnError_t CO_TPDOsend(CO_TPDO_t *TPDO);
 
 
 /**
