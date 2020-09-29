@@ -57,6 +57,7 @@ extern "C" {
 /*
  * Message definitions for debugging
  */
+#define DBG_GENERAL               "(%s) Error: %s%d", __func__
 #define DBG_ERRNO                 "(%s) OS error \"%s\" in %s", __func__, strerror(errno)
 #define DBG_CAN_TX_FAILED         "(%s) Transmitting CAN msg OID 0x%08x failed(%s)", __func__
 #define DBG_CAN_RX_PARAM_FAILED   "(%s) Setting CAN rx buffer failed (%s)", __func__
@@ -79,7 +80,8 @@ extern "C" {
 #define DBG_CAN_OPEN              "(%s) CANopen error in %s, err=%d", __func__
 #define DBG_CAN_OPEN_INFO         "CANopen device, Node ID = 0x%02X, %s"
 
-/* CO_Linux_threads */
+/* CO_epoll_interface */
+#define DBG_EPOLL_UNKNOWN         "(%s) CAN Epoll error, events=0x%02x, fd=%d", __func__
 #define DBG_COMMAND_LOCAL_BIND    "(%s) Can't bind local socket to path \"%s\"", __func__
 #define DBG_COMMAND_TCP_BIND      "(%s) Can't bind tcp socket to port \"%d\"", __func__
 #define DBG_COMMAND_STDIO_INFO    "CANopen command interface on \"standard IO\" started"

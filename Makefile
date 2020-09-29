@@ -20,7 +20,7 @@ INCLUDE_DIRS = \
 SOURCES = \
 	$(DRV_SRC)/CO_driver.c \
 	$(DRV_SRC)/CO_error.c \
-	$(DRV_SRC)/CO_Linux_threads.c \
+	$(DRV_SRC)/CO_epoll_interface.c \
 	$(DRV_SRC)/CO_OD_storage.c \
 	$(CANOPEN_SRC)/301/CO_ODinterface.c \
 	$(CANOPEN_SRC)/301/CO_SDOserver.c \

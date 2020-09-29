@@ -30,6 +30,7 @@ Change Log
 - CO_Linux_threads.h, function `void CANrx_threadTmr_init(uint16_t interval_in_milliseconds (changed to) uint32_t interval_in_microseconds)`
 - CO_CANrxBufferInit(): remove check COB ID already used.
 - change macros CO_DRIVER_MULTI_INTERFACE and CO_DRIVER_ERROR_REPORTING. To enable(disable), set to 1(0).
+- Rename CO_Linux_threads.h/.c to CO_epoll_interface.h/.c and reorganize them. Move epoll, timerfd and eventfd system calls from CO_driver.c to here.
 ### Fixed
 - Bugfix in `CO_HBconsumer_process()`: argument `timeDifference_us` was set to 0 inside for loop, fixed now.
 - BUG in CO_HBconsumer.c #168

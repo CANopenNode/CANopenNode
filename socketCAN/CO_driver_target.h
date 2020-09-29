@@ -40,6 +40,7 @@
 #include <pthread.h>
 #include <linux/can.h>
 #include <net/if.h>
+#include <sys/epoll.h>
 
 #ifdef CO_DRIVER_CUSTOM
 #include "CO_driver_custom.h"
@@ -309,8 +310,6 @@ typedef struct {
 typedef struct {
     int can_ifindex;            /* CAN Interface index */
     char ifName[IFNAMSIZ];      /* CAN Interface name */
-    int epoll_fd;               /* File descriptor for epoll, which waits for
-                                   CAN receive event */
     int fd;                     /* socketCAN file descriptor */
 #if CO_DRIVER_ERROR_REPORTING > 0 || defined CO_DOXYGEN
     CO_CANinterfaceErrorhandler_t errorhandler;
@@ -331,10 +330,8 @@ typedef struct {
     uint16_t txSize;
     uint16_t CANerrorStatus;
     volatile bool_t CANnormal;
-    int fdEvent;                /* notification event file descriptor */
-    int fdEpoll;                /* epoll FD for event, CANrx sockets in all
-                                   interfaces and fdTimerRead */
-    int fdTimerRead;            /* timer handle from CANrxWait() */
+    int epoll_fd;               /* File descriptor for epoll, which waits for
+                                   CAN receive event */
 #if CO_DRIVER_MULTI_INTERFACE > 0 || defined CO_DOXYGEN
     /* Lookup tables Cob ID to rx/tx array index.
      *  Only feasible for SFF Messages. */
@@ -383,13 +380,11 @@ static inline void CO_UNLOCK_OD() {
  *
  * @param CANmodule This object will be initialized.
  * @param can_ifindex CAN Interface index
- * @param epoll_fd File descriptor for epoll, which waits for CAN receive event
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT,
  * CO_ERROR_SYSCALL or CO_ERROR_INVALID_STATE.
  */
 CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
-                                           int can_ifindex,
-                                           int epoll_fd);
+                                           int can_ifindex);
 
 /**
  * Check on which interface the last message for one message buffer was received
@@ -433,13 +428,15 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(CO_CANmodule_t *CANmodule,
 
 
 /**
- * Functions receives CAN messages (blocking)
+ * Receives CAN messages from matching epoll event
  *
- * This function waits for received CAN message, CAN error frame, notification
- * event or fdTimer expiration. In case of CAN message it searches _rxArray_
-  from* CO_CANmodule_t and if matched it calls the corresponding CANrx_callback,
- * optionally copies received CAN message to _buffer_ and returns index of
- * matched _rxArray_.
+ * This function verifies, if epoll event matches event from any CANinterface.
+ * In case of match, message is read from CAN and pre-processed for CANopenNode
+ * objects. CAN error frames are also processed.
+ *
+ * In case of CAN message function searches _rxArray_ from CO_CANmodule_t and
+ * if matched it calls the corresponding CANrx_callback, optionally copies
+ * received CAN message to _buffer_ and returns index of matched _rxArray_.
  *
  * This function can be used in two ways, which can be combined:
  * - automatic mode: If CANrx_callback is specified for matched _rxArray_, then
@@ -447,16 +444,17 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(CO_CANmodule_t *CANmodule,
  * - manual mode: evaluate message filters, return received message
  *
  * @param CANmodule This object.
- * @param fdTimer File descriptor with activated timeout. If set to -1, then
- *                timer will not be used. File descriptor must be read
- *                externally if retval == -1! Read must be nonblocking and
- *                provides number of timer expirations since last read.
+ * @param ev Epoll event, which vill be verified for matches.
  * @param [out] buffer Storage for received message or _NULL_ if not used.
- * @retval >= 0 index of received message in array from CO_CANmodule_t
- *              _rxArray_, copy of CAN message is available in _buffer_.
- * @retval -1 no message received (timer expired or notification event or error)
+ * @param [out] msgIndex Index of received message in array from CO_CANmodule_t
+ * _rxArray_, copy of CAN message is available in _buffer_.
+ *
+ * @return True, if epoll event matches any CAN interface.
  */
-int32_t CO_CANrxWait(CO_CANmodule_t* CANmodule, int fdTimer, CO_CANrxMsg_t* buffer);
+bool_t CO_CANrxFromEpoll(CO_CANmodule_t *CANmodule,
+                         struct epoll_event *ev,
+                         CO_CANrxMsg_t *buffer,
+                         int32_t *msgIndex);
 
 /** @} */
 

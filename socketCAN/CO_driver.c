@@ -35,7 +35,6 @@
 #include <sys/socket.h>
 #include <asm/socket.h>
 #include <sys/eventfd.h>
-#include <sys/epoll.h>
 #include <time.h>
 
 #include "301/CO_driver.h"
@@ -47,8 +46,7 @@ pthread_mutex_t CO_OD_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #if CO_DRIVER_MULTI_INTERFACE == 0
 static CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
-                                                  int can_ifindex,
-                                                  int epoll_fd);
+                                                  int can_ifindex);
 #endif
 
 
@@ -207,40 +205,17 @@ CO_ReturnError_t CO_CANmodule_init(
 {
     int32_t ret;
     uint16_t i;
-    struct epoll_event ev;
     (void)CANbitRate;
 
     /* verify arguments */
-    if(CANmodule==NULL || rxArray==NULL || txArray==NULL){
+    if(CANmodule==NULL || CANptr == NULL || rxArray==NULL || txArray==NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    /* Create epoll FD */
-    CANmodule->fdEpoll = epoll_create(1);
-    if(CANmodule->fdEpoll < 0){
-        log_printf(LOG_DEBUG, DBG_ERRNO, "epoll_create()");
-        CO_CANmodule_disable(CANmodule);
-        return CO_ERROR_SYSCALL;
-    }
-
-    /* Create notification event */
-    CANmodule->fdEvent = eventfd(0, EFD_NONBLOCK);
-    if (CANmodule->fdEvent < 0) {
-        log_printf(LOG_DEBUG, DBG_ERRNO, "eventfd");
-        CO_CANmodule_disable(CANmodule);
-        return CO_ERROR_OUT_OF_MEMORY;
-    }
-    /* ...and add it to epoll */
-    ev.events = EPOLLIN;
-    ev.data.fd = CANmodule->fdEvent;
-    ret = epoll_ctl(CANmodule->fdEpoll, EPOLL_CTL_ADD, ev.data.fd, &ev);
-    if(ret < 0){
-        log_printf(LOG_DEBUG, DBG_ERRNO, "epoll_ctl(eventfd)");
-        CO_CANmodule_disable(CANmodule);
-        return CO_ERROR_SYSCALL;
-    }
+    CO_CANptrSocketCan_t *CANptrReal = (CO_CANptrSocketCan_t *)CANptr;
 
     /* Configure object variables */
+    CANmodule->epoll_fd = CANptrReal->epoll_fd;
     CANmodule->CANinterfaces = NULL;
     CANmodule->CANinterfaceCount = 0;
     CANmodule->rxArray = rxArray;
@@ -249,7 +224,6 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->txSize = txSize;
     CANmodule->CANerrorStatus = 0;
     CANmodule->CANnormal = false;
-    CANmodule->fdTimerRead = -1;
 #if CO_DRIVER_MULTI_INTERFACE > 0
     for (i = 0; i < CO_CAN_MSG_SFF_MAX_COB_ID; i++) {
         CANmodule->rxIdentToIndex[i] = CO_INVALID_COB_ID;
@@ -278,14 +252,8 @@ CO_ReturnError_t CO_CANmodule_init(
 
 #if CO_DRIVER_MULTI_INTERFACE == 0
     /* add one interface */
-    if (CANptr == NULL) {
-        CO_CANmodule_disable(CANmodule);
-        return CO_ERROR_ILLEGAL_ARGUMENT;
-    }
-    CO_CANptrSocketCan_t *CANptrReal = (CO_CANptrSocketCan_t *)CANptr;
     ret = CO_CANmodule_addInterface(CANmodule,
-                                    CANptrReal->can_ifindex,
-                                    CANptrReal->epoll_fd);
+                                    CANptrReal->can_ifindex);
     if (ret != CO_ERROR_NO) {
         CO_CANmodule_disable(CANmodule);
         return ret;
@@ -300,8 +268,7 @@ CO_ReturnError_t CO_CANmodule_init(
 static
 #endif
 CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
-                                           int can_ifindex,
-                                           int epoll_fd)
+                                           int can_ifindex)
 {
     int32_t ret;
     int32_t tmp;
@@ -331,7 +298,6 @@ CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
     interface = &CANmodule->CANinterfaces[CANmodule->CANinterfaceCount - 1];
 
     interface->can_ifindex = can_ifindex;
-    interface->epoll_fd = epoll_fd;
     ifName = if_indextoname(can_ifindex, interface->ifName);
     if (ifName == NULL) {
         log_printf(LOG_DEBUG, DBG_ERRNO, "if_indextoname()");
@@ -408,7 +374,7 @@ CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
     /* Add socket to epoll */
     ev.events = EPOLLIN;
     ev.data.fd = interface->fd;
-    ret = epoll_ctl(CANmodule->fdEpoll, EPOLL_CTL_ADD, ev.data.fd, &ev);
+    ret = epoll_ctl(CANmodule->epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev);
     if(ret < 0){
         log_printf(LOG_DEBUG, DBG_ERRNO, "epoll_ctl(can)");
         return CO_ERROR_SYSCALL;
@@ -425,11 +391,12 @@ CO_ReturnError_t CO_CANmodule_addInterface(CO_CANmodule_t *CANmodule,
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
 {
     uint32_t i;
-    struct timespec wait;
 
     if (CANmodule == NULL) {
         return;
     }
+
+    CANmodule->CANnormal = false;
 
     /* clear interfaces */
     for (i = 0; i < CANmodule->CANinterfaceCount; i++) {
@@ -439,34 +406,15 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
         CO_CANerror_disable(&interface->errorhandler);
 #endif
 
-        epoll_ctl(CANmodule->fdEpoll, EPOLL_CTL_DEL, interface->fd, NULL);
+        epoll_ctl(CANmodule->epoll_fd, EPOLL_CTL_DEL, interface->fd, NULL);
         close(interface->fd);
         interface->fd = -1;
     }
+    CANmodule->CANinterfaceCount = 0;
     if (CANmodule->CANinterfaces != NULL) {
         free(CANmodule->CANinterfaces);
     }
-    CANmodule->CANinterfaceCount = 0;
-
-    /* cancel rx */
-    if (CANmodule->fdEvent != -1) {
-        uint64_t u = 1;
-        ssize_t s;
-        s = write(CANmodule->fdEvent, &u, sizeof(uint64_t));
-        if (s != sizeof(uint64_t)) {
-            log_printf(LOG_DEBUG, DBG_ERRNO, "write()");
-        }
-        /* give some time for delivery */
-        wait.tv_sec = 0;
-        wait.tv_nsec = 50 /* ms */ * 1000000;
-        nanosleep(&wait, NULL);
-        close(CANmodule->fdEvent);
-    }
-
-    if (CANmodule->fdEpoll >= 0) {
-        close(CANmodule->fdEpoll);
-    }
-    CANmodule->fdEpoll = -1;
+    CANmodule->CANinterfaces = NULL;
 
     if (CANmodule->rxFilter != NULL) {
         free(CANmodule->rxFilter);
@@ -890,113 +838,69 @@ static int32_t CO_CANrxMsg(                 /* return index of received message 
 
 
 /******************************************************************************/
-int32_t CO_CANrxWait(CO_CANmodule_t *CANmodule, int fdTimer, CO_CANrxMsg_t *buffer)
+bool_t CO_CANrxFromEpoll(CO_CANmodule_t *CANmodule,
+                         struct epoll_event *ev,
+                         CO_CANrxMsg_t *buffer,
+                         int32_t *msgIndex)
 {
-    int32_t retval;
-    int32_t ret;
-    int can_ifindex = 0;
-    CO_ReturnError_t err;
-    CO_CANinterface_t *interface = NULL;
-    struct epoll_event ev[1];
-    struct can_frame msg;
-    struct timespec timestamp;
-
-    if (CANmodule==NULL || CANmodule->CANinterfaceCount==0) {
-        return -1;
+    if (CANmodule == NULL || ev == NULL || CANmodule->CANinterfaceCount == 0) {
+        return false;
     }
 
-    if (fdTimer>=0 && fdTimer!=CANmodule->fdTimerRead) {
-        /* new timer, timer changed */
-        epoll_ctl(CANmodule->fdEpoll, EPOLL_CTL_DEL, CANmodule->fdTimerRead, NULL);
-        ev[0].events = EPOLLIN;
-        ev[0].data.fd = fdTimer;
-        ret = epoll_ctl(CANmodule->fdEpoll, EPOLL_CTL_ADD, ev[0].data.fd, &ev[0]);
-        if(ret < 0){
-            return -1;
-        }
-        CANmodule->fdTimerRead = fdTimer;
-    }
+    /* Verify for epoll events in CAN socket */
+    for (uint32_t i = 0; i < CANmodule->CANinterfaceCount; i ++) {
+        CO_CANinterface_t *interface = &CANmodule->CANinterfaces[i];
 
-    /*
-     * blocking read using epoll
-     */
-    do {
-        errno = 0;
-        ret = epoll_wait(CANmodule->fdEpoll, ev, sizeof(ev) / sizeof(ev[0]), -1);
-        if (errno == EINTR) {
-            /* try again */
-            continue;
-        }
-        else if (ret < 0) {
-            /* epoll failed */
-            return -1;
-        }
-        else if ((ev[0].events & (EPOLLERR | EPOLLHUP)) != 0) {
-            /* epoll detected close/error on socket. Try to pull event */
-            errno = 0;
-            recv(ev[0].data.fd, &msg, sizeof(msg), MSG_DONTWAIT);
-            log_printf(LOG_DEBUG, DBG_CAN_RX_EPOLL, ev[0].events, strerror(errno));
-            continue;
-        }
-        else if ((ev[0].events & EPOLLIN) != 0) {
-            /* one of the sockets is ready */
-            if ((ev[0].data.fd == CANmodule->fdEvent) ||
-                (ev[0].data.fd == fdTimer)) {
-                /* timer or notification event */
-                return -1;
+        if (ev->data.fd == interface->fd) {
+            if ((ev->events & (EPOLLERR | EPOLLHUP)) != 0) {
+                struct can_frame msg;
+                /* epoll detected close/error on socket. Try to pull event */
+                errno = 0;
+                recv(ev->data.fd, &msg, sizeof(msg), MSG_DONTWAIT);
+                log_printf(LOG_DEBUG, DBG_CAN_RX_EPOLL,
+                           ev->events, strerror(errno));
             }
-            else {
-                /* CAN socket */
-                uint32_t i;
+            else if ((ev->events & EPOLLIN) != 0) {
+                struct can_frame msg;
+                struct timespec timestamp;
 
-                for (i = 0; i < CANmodule->CANinterfaceCount; i ++) {
-                    interface = &CANmodule->CANinterfaces[i];
+                /* get message */
+                CO_ReturnError_t err = CO_CANread(CANmodule, interface,
+                                                  &msg, &timestamp);
 
-                    if (ev[0].data.fd == interface->fd) {
-                        /* get interface handle */
-                        can_ifindex = interface->can_ifindex;
-                        /* get message */
-                        err = CO_CANread(CANmodule, interface, &msg, &timestamp);
-                        if (err != CO_ERROR_NO) {
-                            return -1;
+                if(err == CO_ERROR_NO && CANmodule->CANnormal) {
+
+                    if (msg.can_id & CAN_ERR_FLAG) {
+                        /* error msg */
+#if CO_DRIVER_ERROR_REPORTING > 0
+                        CO_CANerror_rxMsgError(&interface->errorhandler, &msg);
+#endif
+                    }
+                    else {
+                        /* data msg */
+#if CO_DRIVER_ERROR_REPORTING > 0
+                        /* clear listenOnly and noackCounter if necessary */
+                        CO_CANerror_rxMsg(&interface->errorhandler);
+#endif
+                        int32_t idx = CO_CANrxMsg(CANmodule, &msg, buffer);
+                        if (idx > -1) {
+                            /* Store message info */
+                            CANmodule->rxArray[idx].timestamp = timestamp;
+                            CANmodule->rxArray[idx].can_ifindex =
+                                                        interface->can_ifindex;
                         }
-                        /* no need to continue search */
-                        break;
+                        if (msgIndex != NULL) {
+                            *msgIndex = idx;
+                        }
                     }
                 }
             }
-        }
-    } while (errno != 0);
-
-    /*
-     * evaluate Rx
-     */
-    retval = -1;
-    if(CANmodule->CANnormal){
-
-        if (msg.can_id & CAN_ERR_FLAG) {
-            /* error msg */
-#if CO_DRIVER_ERROR_REPORTING > 0
-            CO_CANerror_rxMsgError(&interface->errorhandler, &msg);
-#endif
-        }
-        else {
-            /* data msg */
-            int32_t msgIndex;
-
-#if CO_DRIVER_ERROR_REPORTING > 0
-            /* clear listenOnly and noackCounter if necessary */
-            CO_CANerror_rxMsg(&interface->errorhandler);
-#endif
-
-            msgIndex = CO_CANrxMsg(CANmodule, &msg, buffer);
-            if (msgIndex > -1) {
-                /* Store message info */
-                CANmodule->rxArray[msgIndex].timestamp = timestamp;
-                CANmodule->rxArray[msgIndex].can_ifindex = can_ifindex;
+            else {
+                log_printf(LOG_DEBUG, DBG_EPOLL_UNKNOWN,
+                           ev->events, ev->data.fd);
             }
-            retval = msgIndex;
-        }
+            return true;
+        } /* if (ev->data.fd == interface->fd) */
     }
-    return retval;
+    return false;
 }

@@ -42,7 +42,7 @@
 #include "CANopen.h"
 #include "CO_OD_storage.h"
 #include "CO_error.h"
-#include "CO_Linux_threads.h"
+#include "CO_epoll_interface.h"
 
 /* Call external application functions. */
 #if __has_include("CO_application.h")
@@ -71,6 +71,7 @@
 
 
 /* Other variables and objects */
+CO_epoll_t                  epRT; /* Epoll-timer object for realtime thread */
 static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
 static uint8_t              CO_pendingNodeId = 0xFF;/* Use value from Object Dictionary or by arguments (set to 1..127
                                                      * or unconfigured=0xFF). Can be changed by LSS slave. */
@@ -212,6 +213,7 @@ printf(
  * Mainline thread
  ******************************************************************************/
 int main (int argc, char *argv[]) {
+    CO_epoll_t epMain;
     pthread_t rt_thread_id;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_ReturnError_t err;
@@ -224,6 +226,7 @@ int main (int argc, char *argv[]) {
     bool_t nodeIdFromArgs = false;  /* True, if program arguments are used for CANopen Node Id */
     bool_t rebootEnable = false;    /* Configurable by arguments */
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    CO_epoll_gtw_t epGtw;
     /* values from CO_commandInterface_t */
     int32_t commandInterface = CO_COMMAND_IF_DISABLED;
     /* local socket path if commandInterface == CO_COMMAND_IF_LOCAL_SOCKET */
@@ -369,6 +372,32 @@ int main (int argc, char *argv[]) {
     }
 
 
+    /* Initialize thread functions: epoll, timer, events */
+    err = CO_epoll_create(&epMain, MAIN_THREAD_INTERVAL_US);
+    if(err != CO_ERROR_NO) {
+        log_printf(LOG_CRIT, DBG_GENERAL,
+                   "CO_epoll_create(main), err=", err);
+        exit(EXIT_FAILURE);
+    }
+
+    err = CO_epoll_create(&epRT, TMR_THREAD_INTERVAL_US);
+    if(err != CO_ERROR_NO) {
+        log_printf(LOG_CRIT, DBG_GENERAL,
+                   "CO_epoll_create(RT), err=", err);
+        exit(EXIT_FAILURE);
+    }
+    CANptr.epoll_fd = epRT.epoll_fd;
+
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    err = CO_epoll_createGtw(&epGtw, epMain.epoll_fd, commandInterface,
+                              socketTimeout_ms, localSocketPath);
+    if(err != CO_ERROR_NO) {
+        log_printf(LOG_CRIT, DBG_GENERAL, "CO_epoll_createGtw(), err=", err);
+        exit(EXIT_FAILURE);
+    }
+#endif
+
+
     while(reset != CO_RESET_APP && reset != CO_RESET_QUIT && CO_endProgram == 0) {
 /* CANopen communication reset - initialize CANopen objects *******************/
 
@@ -379,9 +408,9 @@ int main (int argc, char *argv[]) {
             CO_UNLOCK_OD();
         }
 
-
         /* Enter CAN configuration. */
         CO_CANsetConfigurationMode((void *)&CANptr);
+        CO_CANmodule_disable(CO->CANmodule[0]);
 
 
         /* initialize CANopen */
@@ -406,9 +435,12 @@ int main (int argc, char *argv[]) {
         }
 
         /* initialize part of threadMain and callbacks */
-        threadMainWait_init(!CO->nodeIdUnconfigured);
+        CO_epoll_initCANopenMain(&epMain, CO);
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+        CO_epoll_initCANopenGtw(&epGtw, CO);
+#endif
         CO_LSSslave_initCfgStoreCallback(CO->LSSslave, NULL,
-                                            LSScfgStoreCallback);
+                                         LSScfgStoreCallback);
         if(!CO->nodeIdUnconfigured) {
             CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
             CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
@@ -437,14 +469,6 @@ int main (int argc, char *argv[]) {
         /* First time only initialization. */
         if(firstRun) {
             firstRun = false;
-
-
-            /* Init threadMainWait structure and file descriptors */
-            threadMainWait_initOnce(MAIN_THREAD_INTERVAL_US, commandInterface,
-                                    socketTimeout_ms, localSocketPath);
-
-            /* Init threadRT structure and file descriptors */
-            CANrx_threadTmr_init(TMR_THREAD_INTERVAL_US);
 
             /* Create rt_thread and set priority */
             if(pthread_create(&rt_thread_id, NULL, rt_thread, NULL) != 0) {
@@ -484,15 +508,21 @@ int main (int argc, char *argv[]) {
 
         while(reset == CO_RESET_NOT && CO_endProgram == 0) {
 /* loop for normal program execution ******************************************/
-            uint32_t timer1usDiff = threadMainWait_process(&reset);
+            CO_epoll_wait(&epMain);
+            CO_epoll_processMain(&epMain, CO, &reset);
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+            CO_epoll_processGtw(&epGtw, CO, &epMain);
+#endif
+            CO_epoll_processLast(&epMain);
 
 #ifdef CO_USE_APPLICATION
-            app_programAsync(!CO->nodeIdUnconfigured, thrEpTm.timeDifference_us);
+            app_programAsync(!CO->nodeIdUnconfigured, epMain.timeDifference_us);
 #endif
 
-            CO_OD_storage_autoSave(&odStorAuto, timer1usDiff, 60000000);
+            CO_OD_storage_autoSave(&odStorAuto,
+                                   epMain.timeDifference_us, 60000000);
         }
-    }
+    } /* while(reset != CO_RESET_APP */
 
 
 /* program exit ***************************************************************/
@@ -513,8 +543,11 @@ int main (int argc, char *argv[]) {
     CO_OD_storage_autoSaveClose(&odStorAuto);
 
     /* delete objects from memory */
-    CANrx_threadTmr_close();
-    threadMainWait_close();
+    CO_epoll_close(&epRT);
+    CO_epoll_close(&epMain);
+#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+    CO_epoll_closeGtw(&epGtw);
+#endif
     CO_delete((void *)&CANptr);
 
     log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_activeNodeId, "finished");
@@ -540,8 +573,9 @@ static void* rt_thread(void* arg) {
     /* Endless loop */
     while(CO_endProgram == 0) {
 
-        /* function may skip some milliseconds. Number of missed is returned */
-        CANrx_threadTmr_process();
+        CO_epoll_wait(&epRT);
+        CO_epoll_processRT(&epRT, CO, true);
+        CO_epoll_processLast(&epRT);
 
 #if CO_NO_TRACE > 0
         /* Monitor variables with trace objects */
