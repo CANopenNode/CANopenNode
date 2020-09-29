@@ -332,6 +332,7 @@ void CO_HBconsumer_process(
 
             if (monitoredNode->HBstate == CO_HBconsumer_UNCONFIGURED) {
                 /* continue, if node is not monitored */
+                monitoredNode++;
                 continue;
             }
             /* Verify if received message is heartbeat or bootup */

@@ -889,7 +889,7 @@ uint8_t CO_TPDOisCOS(CO_TPDO_t *TPDO){
 }
 
 /******************************************************************************/
-int16_t CO_TPDOsend(CO_TPDO_t *TPDO){
+CO_ReturnError_t CO_TPDOsend(CO_TPDO_t *TPDO){
     int16_t i;
     uint8_t* pPDOdataByte;
     uint8_t** ppODdataByte;
