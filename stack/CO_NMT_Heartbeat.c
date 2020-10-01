@@ -351,3 +351,9 @@ CO_NMT_internalState_t CO_NMT_getInternalState(
     return CO_NMT_INITIALIZING;
 }
 
+void CO_NMT_setInternalState(
+        CO_NMT_t               *NMT,
+        CO_NMT_internalState_t state)
+{
+	NMT->operatingState = state;
+}
