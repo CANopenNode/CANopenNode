@@ -252,6 +252,17 @@ CO_NMT_reset_cmd_t CO_NMT_process(
 CO_NMT_internalState_t CO_NMT_getInternalState(
         CO_NMT_t               *NMT);
 
+/**
+ * Set current NMT state
+ *
+ * @param NMT This object.
+ * @param CO_NMT_internalState_t State to set
+ *
+ */
+void CO_NMT_setInternalState(
+        CO_NMT_t               *NMT,
+        CO_NMT_internalState_t state);
+
 
 #ifdef __cplusplus
 }
