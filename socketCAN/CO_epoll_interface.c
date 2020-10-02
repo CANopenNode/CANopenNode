@@ -236,38 +236,48 @@ void CO_epoll_initCANopenMain(CO_epoll_t *ep, CO_t *co) {
 #ifndef CO_SINGLE_THREAD
 
     /* Configure LSS slave callback function */
-#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
+ #if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
+  #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
     CO_LSSslave_initCallbackPre(co->LSSslave,
                                 (void *)ep, wakeupCallback);
-#endif
+  #endif
+ #endif
 
     if (co->nodeIdUnconfigured) {
         return;
     }
 
     /* Configure callback functions */
+ #if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
     CO_NMT_initCallbackPre(co->NMT,
                            (void *)ep, wakeupCallback);
-    CO_SDO_initCallbackPre(co->SDO[0],
-                           (void *)ep, wakeupCallback);
-    CO_EM_initCallbackPre(co->em,
-                          (void *)ep, wakeupCallback);
+ #endif
+ #if (CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE
     CO_HBconsumer_initCallbackPre(co->HBcons,
                                   (void *)ep, wakeupCallback);
-#if CO_NO_SDO_CLIENT != 0
+ #endif
+ #if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
+    CO_EM_initCallbackPre(co->em,
+                          (void *)ep, wakeupCallback);
+ #endif
+ #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE
+    CO_SDO_initCallbackPre(co->SDO[0],
+                           (void *)ep, wakeupCallback);
+ #endif
+ #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE
     CO_SDOclient_initCallbackPre(co->SDOclient[0],
                                  (void *)ep, wakeupCallback);
-#endif
-#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
+ #endif
+ #if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
     CO_TIME_initCallbackPre(co->TIME,
                             (void *)ep, wakeupCallback);
-#endif
-#if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
-#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
+ #endif
+ #if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
+  #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
     CO_LSSmaster_initCallbackPre(co->LSSmaster,
                                  (void *)ep, wakeupCallback);
-#endif
-#endif
+  #endif
+ #endif
 
 #endif /* CO_SINGLE_THREAD */
 }
@@ -308,7 +318,7 @@ void CO_epoll_processRT(CO_epoll_t *ep,
         if (!co->nodeIdUnconfigured && co->CANmodule[0]->CANnormal) {
             bool_t syncWas = false;
 
-#if CO_NO_SYNC == 1
+#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
             /* Process Sync */
             syncWas = CO_process_SYNC(co, ep->timeDifference_us,
                                       pTimerNext_us);
