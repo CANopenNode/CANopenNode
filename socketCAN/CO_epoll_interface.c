@@ -261,11 +261,11 @@ void CO_epoll_initCANopenMain(CO_epoll_t *ep, CO_t *co) {
                           (void *)ep, wakeupCallback);
  #endif
  #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE
-    CO_SDO_initCallbackPre(co->SDO[0],
-                           (void *)ep, wakeupCallback);
+    CO_SDOserver_initCallbackPre(&co->SDOserver[0],
+                                 (void *)ep, wakeupCallback);
  #endif
  #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE
-    CO_SDOclient_initCallbackPre(co->SDOclient[0],
+    CO_SDOclient_initCallbackPre(&co->SDOclient[0],
                                  (void *)ep, wakeupCallback);
  #endif
  #if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
@@ -284,6 +284,7 @@ void CO_epoll_initCANopenMain(CO_epoll_t *ep, CO_t *co) {
 
 void CO_epoll_processMain(CO_epoll_t *ep,
                           CO_t *co,
+                          bool_t enableGateway,
                           CO_NMT_reset_cmd_t *reset)
 {
     if (ep == NULL || co == NULL || reset == NULL) {
@@ -291,7 +292,10 @@ void CO_epoll_processMain(CO_epoll_t *ep,
     }
 
     /* process CANopen objects */
-    *reset = CO_process(co, ep->timeDifference_us, &ep->timerNext_us);
+    *reset = CO_process(co,
+                        enableGateway,
+                        ep->timeDifference_us,
+                        &ep->timerNext_us);
 }
 
 
@@ -306,7 +310,7 @@ void CO_epoll_processRT(CO_epoll_t *ep,
 
     /* Verify for epoll events */
     if (ep->epoll_new) {
-        if (CO_CANrxFromEpoll(co->CANmodule[0], &ep->ev, NULL, NULL)) {
+        if (CO_CANrxFromEpoll(co->CANmodule, &ep->ev, NULL, NULL)) {
             ep->epoll_new = false;
         }
     }
@@ -315,21 +319,21 @@ void CO_epoll_processRT(CO_epoll_t *ep,
         uint32_t *pTimerNext_us = realtime ? NULL : &ep->timerNext_us;
 
         CO_LOCK_OD();
-        if (!co->nodeIdUnconfigured && co->CANmodule[0]->CANnormal) {
+        if (!co->nodeIdUnconfigured && co->CANmodule->CANnormal) {
             bool_t syncWas = false;
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
-            /* Process Sync */
             syncWas = CO_process_SYNC(co, ep->timeDifference_us,
                                       pTimerNext_us);
 #endif
-            /* Read inputs */
+#if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
             CO_process_RPDO(co, syncWas);
-
-            /* Write outputs */
+#endif
+#if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
             CO_process_TPDO(co, syncWas, ep->timeDifference_us,
                             pTimerNext_us);
-
+#endif
+            (void) syncWas; (void) pTimerNext_us;
         }
         CO_UNLOCK_OD();
     }

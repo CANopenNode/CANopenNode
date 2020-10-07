@@ -179,10 +179,12 @@ void CO_epoll_initCANopenMain(CO_epoll_t *ep, CO_t *co);
  *
  * @param ep This object
  * @param co CANopen object
+ * @param enableGateway If true, gateway to external world will be enabled.
  * @param [out] reset Return from @ref CO_process().
  */
 void CO_epoll_processMain(CO_epoll_t *ep,
                           CO_t *co,
+                          bool_t enableGateway,
                           CO_NMT_reset_cmd_t *reset);
 
 

@@ -28,6 +28,8 @@
 
 #include "301/CO_PDO.h"
 
+#if (CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE)
+
 /*
  * Read received message from CAN module.
  *
@@ -1093,3 +1095,4 @@ void CO_TPDO_process(
         else                                         TPDO->sendRequest = 0;
     }
 }
+#endif /* (CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE) */

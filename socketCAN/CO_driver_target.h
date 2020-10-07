@@ -53,6 +53,14 @@
 extern "C" {
 #endif
 
+/* TODO some parts are disabled in non-finished pre-release */
+#define CO_CONFIG_HB_CONS (0)
+#define CO_CONFIG_TIME (0)
+#define CO_CONFIG_SYNC (0)
+#define CO_CONFIG_PDO (0)
+#define CO_CONFIG_TRACE (0)
+
+
 /* Stack configuration override default values.
  * For more information see file CO_config.h. */
 #ifdef CO_SINGLE_THREAD
@@ -77,11 +85,13 @@ extern "C" {
 
 #ifndef CO_CONFIG_EM
 #define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER | \
+                      CO_CONFIG_EM_PROD_CONFIGURABLE | \
+                      CO_CONFIG_EM_PROD_INHIBIT | \
                       CO_CONFIG_EM_HISTORY | \
+                      CO_CONFIG_EM_STATUS_BITS | \
                       CO_CONFIG_EM_CONSUMER | \
                       CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                      CO_CONFIG_FLAG_TIMERNEXT | \
-                      CO_CONFIG_FLAG_OD_DYNAMIC)
+                      CO_CONFIG_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_SDO_SRV
@@ -172,7 +182,7 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_TRACE
-//#define CO_CONFIG_TRACE (CO_CONFIG_TRACE_ENABLE)
+#define CO_CONFIG_TRACE (CO_CONFIG_TRACE_ENABLE)
 #endif
 
 

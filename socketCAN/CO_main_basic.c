@@ -24,7 +24,7 @@
  */
 
 #ifndef CO_OD_STORAGE
-#define CO_OD_STORAGE 1
+#define CO_OD_STORAGE 0
 #endif
 
 #include <stdio.h>
@@ -43,6 +43,7 @@
 #include <sys/reboot.h>
 
 #include "CANopen.h"
+#include "OD.h"
 #include "CO_error.h"
 #include "CO_epoll_interface.h"
 #if CO_OD_STORAGE == 1
@@ -74,14 +75,31 @@
 #define TMR_THREAD_INTERVAL_US 1000
 #endif
 
+/* default values */
+#ifndef NMT_CONTROL
+#define NMT_CONTROL \
+            CO_NMT_STARTUP_TO_OPERATIONAL \
+         || CO_NMT_ERR_ON_ERR_REG \
+         || CO_ERR_REG_GENERIC_ERR \
+         || CO_ERR_REG_COMMUNICATION
+#endif
+#ifndef FIRST_HB_TIME
+#define FIRST_HB_TIME 500
+#endif
+#ifndef SDO_TIMEOUT_TIME
+#define SDO_TIMEOUT_TIME 1000
+#endif
+#ifndef GATEWAY_ENABLE
+#define GATEWAY_ENABLE true
+#endif
 
 /* Other variables and objects */
 #ifndef CO_SINGLE_THREAD
 CO_epoll_t                  epRT; /* Epoll-timer object for realtime thread */
 static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
 #endif
-static uint8_t              CO_pendingNodeId = 0xFF;/* Use value from Object Dictionary or by arguments (set to 1..127
-                                                     * or unconfigured=0xFF). Can be changed by LSS slave. */
+CO_t                       *CO = NULL; /* CANopen object */
+static uint8_t              CO_pendingNodeId = 0xFF; /* Set by arguments or by OD_CAN_NODE_ID macro, if defined. Can be changed by LSS slave. */
 static uint8_t              CO_activeNodeId = 0xFF;/* Copied from CO_pendingNodeId in the communication reset section */
 static uint16_t             CO_pendingBitRate = 0;  /* CAN bitrate, not used here */
 #if CO_OD_STORAGE == 1
@@ -166,6 +184,7 @@ static void NmtChangedCallback(CO_NMT_internalState_t state)
     log_printf(LOG_NOTICE, DBG_NMT_CHANGE, NmtState2Str(state), state);
 }
 
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
 /* callback for monitoring Heartbeat remote NMT state change */
 static void HeartbeatNmtChangedCallback(uint8_t nodeId,
                                         CO_NMT_internalState_t state,
@@ -175,6 +194,7 @@ static void HeartbeatNmtChangedCallback(uint8_t nodeId,
     log_printf(LOG_NOTICE, DBG_HB_CONS_NMT_CHANGE,
                nodeId, NmtState2Str(state), state);
 }
+#endif
 
 #if CO_OD_STORAGE == 1
 /* callback for storing node id and bitrate */
@@ -193,8 +213,7 @@ printf(
 printf(
 "\n"
 "Options:\n"
-"  -i <Node ID>        CANopen Node-id (1..127) or 0xFF(unconfigured). If not\n"
-"                      specified, value from Object dictionary (0x2101) is used.\n");
+"  -i <Node ID>        CANopen Node-id (1..127) or 0xFF (LSS unconfigured).\n");
 #ifndef CO_SINGLE_THREAD
 printf(
 "  -p <RT priority>    Real-time priority of RT thread (1 .. 99). If not set or\n"
@@ -331,14 +350,15 @@ int main (int argc, char *argv[]) {
     }
 
     if(!nodeIdFromArgs) {
+#ifdef OD_CAN_NODE_ID
         /* use value from Object dictionary, if not set by program arguments */
-        CO_pendingNodeId = OD_CANNodeID;
+        CO_pendingNodeId = OD_CAN_NODE_ID;
+#endif
     }
 
     if((CO_pendingNodeId < 1 || CO_pendingNodeId > 127)
-#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-      && CO_NO_LSS_SLAVE == 1 && CO_pendingNodeId != CO_LSS_NODE_ID_ASSIGNMENT
-#endif
+       && CO_isLSSslaveEnabled(CO)
+       && CO_pendingNodeId != CO_LSS_NODE_ID_ASSIGNMENT
     ) {
         log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_pendingNodeId);
         printUsage(argv[0]);
@@ -364,13 +384,16 @@ int main (int argc, char *argv[]) {
 
 
     /* Allocate memory for CANopen objects */
-    err = CO_new(NULL);
-    if (err != CO_ERROR_NO) {
-        log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_new()", err);
+    uint32_t heapMemoryUsed = 0;
+    CO = CO_new(NULL, &heapMemoryUsed);
+    if (CO == NULL) {
+        log_printf(LOG_CRIT, DBG_GENERAL,
+                   "CO_new(), heapMemoryUsed=", heapMemoryUsed);
         exit(EXIT_FAILURE);
     }
 
 
+#if CO_OD_STORAGE == 1
     /* Verify, if OD structures have proper alignment of initial values */
     if(CO_OD_RAM.FirstWord != CO_OD_RAM.LastWord) {
         log_printf(LOG_CRIT, DBG_OBJECT_DICTIONARY, "CO_OD_RAM");
@@ -386,7 +409,6 @@ int main (int argc, char *argv[]) {
     }
 
 
-#if CO_OD_STORAGE == 1
     /* initialize Object Dictionary storage */
     odStorStatus_rom = CO_OD_storage_init(&odStor, (uint8_t*) &CO_OD_ROM, sizeof(CO_OD_ROM), odStorFile_rom);
     odStorStatus_eeprom = CO_OD_storage_init(&odStorAuto, (uint8_t*) &CO_OD_EEPROM, sizeof(CO_OD_EEPROM), odStorFile_eeprom);
@@ -437,23 +459,30 @@ int main (int argc, char *argv[]) {
         /* Wait rt_thread. */
         if(!firstRun) {
             CO_LOCK_OD();
-            CO->CANmodule[0]->CANnormal = false;
+            CO->CANmodule->CANnormal = false;
             CO_UNLOCK_OD();
         }
 
         /* Enter CAN configuration. */
         CO_CANsetConfigurationMode((void *)&CANptr);
-        CO_CANmodule_disable(CO->CANmodule[0]);
+        CO_CANmodule_disable(CO->CANmodule);
 
 
         /* initialize CANopen */
-        err = CO_CANinit((void *)&CANptr, 0 /* bit rate not used */);
+        err = CO_CANinit(CO, (void *)&CANptr, 0 /* bit rate not used */);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANinit()", err);
             exit(EXIT_FAILURE);
         }
 
-        err = CO_LSSinit(&CO_pendingNodeId, &CO_pendingBitRate);
+        CO_LSS_address_t lssAddress = {.identity = {
+            .vendorID = 1,
+            .productCode = 2,
+            .revisionNumber = 3,
+            .serialNumber = 4
+        }};
+        err = CO_LSSinit(CO, &lssAddress,
+                         &CO_pendingNodeId, &CO_pendingBitRate);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_LSSinit()", err);
             exit(EXIT_FAILURE);
@@ -461,7 +490,15 @@ int main (int argc, char *argv[]) {
 
         CO_activeNodeId = CO_pendingNodeId;
 
-        err = CO_CANopenInit(CO_activeNodeId);
+        err = CO_CANopenInit(CO,                /* CANopen object */
+                             NULL,              /* alternate NMT */
+                             NULL,              /* alternate em */
+                             &OD,               /* Object dictionary */
+                             NULL,              /* Optional OD_statusBits */
+                             NMT_CONTROL,       /* CO_NMT_control_t */
+                             FIRST_HB_TIME,     /* firstHBTime_ms */
+                             SDO_TIMEOUT_TIME,  /* SDOtimeoutTime_ms */
+                             CO_activeNodeId);
         if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
             exit(EXIT_FAILURE);
@@ -479,8 +516,10 @@ int main (int argc, char *argv[]) {
         if(!CO->nodeIdUnconfigured) {
             CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
             CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
             CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
                                                  HeartbeatNmtChangedCallback);
+#endif
 #if CO_OD_STORAGE == 1
             /* initialize OD objects 1010 and 1011 and verify errors. */
             CO_OD_configure(CO->SDO[0], OD_H1010_STORE_PARAM_FUNC, CO_ODF_1010, (void*)&odStor, 0, 0U);
@@ -536,7 +575,7 @@ int main (int argc, char *argv[]) {
 
 
         /* start CAN */
-        CO_CANsetNormalMode(CO->CANmodule[0]);
+        CO_CANsetNormalMode(CO->CANmodule);
 
         reset = CO_RESET_NOT;
 
@@ -549,7 +588,7 @@ int main (int argc, char *argv[]) {
 #ifdef CO_SINGLE_THREAD
             CO_epoll_processRT(&epMain, CO, false);
 #endif
-            CO_epoll_processMain(&epMain, CO, &reset);
+            CO_epoll_processMain(&epMain, CO, GATEWAY_ENABLE, &reset);
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
             CO_epoll_processGtw(&epGtw, CO, &epMain);
 #endif
@@ -595,7 +634,8 @@ int main (int argc, char *argv[]) {
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
     CO_epoll_closeGtw(&epGtw);
 #endif
-    CO_delete((void *)&CANptr);
+    CO_CANsetConfigurationMode((void *)&CANptr);
+    CO_delete(CO);
 
     log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_activeNodeId, "finished");
 
@@ -627,7 +667,7 @@ static void* rt_thread(void* arg) {
 #if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
         /* Monitor variables with trace objects */
         CO_time_process(&CO_time);
-        for(i=0; i<OD_traceEnable && i<CO_NO_TRACE; i++) {
+        for(i=0; i<OD_traceEnable && i<co->CNT_TRACE; i++) {
             CO_trace_process(CO->trace[i], *CO_time.epochTimeOffsetMs);
         }
 #endif

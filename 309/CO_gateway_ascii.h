@@ -29,7 +29,6 @@
 
 #include "301/CO_driver.h"
 #include "301/CO_fifo.h"
-#include "301/CO_SDOserver.h"
 #include "301/CO_SDOclient.h"
 #include "301/CO_NMT_Heartbeat.h"
 #include "305/CO_LSSmaster.h"

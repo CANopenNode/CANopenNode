@@ -28,6 +28,7 @@
 #define CO_SDO_CLIENT_H
 
 #include "301/CO_driver.h"
+#include "301/CO_ODinterface.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_fifo.h"
 
@@ -57,39 +58,17 @@ extern "C" {
 
 
 /**
- * SDO Client Parameter. The same as record from Object dictionary
- * (index 0x1280+).
- */
-typedef struct {
-    /** Equal to 3 */
-    uint8_t             maxSubIndex;
-    /** Communication object identifier for client transmission.
-     * Meaning of the specific bits:
-        - Bit 0...10: 11-bit CAN identifier.
-        - Bit 11..30: reserved, set to 0.
-        - Bit 31: if 1, SDO client object is not used. */
-    uint32_t            COB_IDClientToServer;
-    /** Communication object identifier for message received from server.
-     * Meaning of the specific bits:
-        - Bit 0...10: 11-bit CAN identifier.
-        - Bit 11..30: reserved, set to 0.
-        - Bit 31: if 1, SDO client object is not used. */
-    uint32_t            COB_IDServerToClient;
-    /** Node-ID of the SDO server */
-    uint8_t             nodeIDOfTheSDOServer;
-} CO_SDOclientPar_t;
-
-
-/**
  * SDO client object
  */
 typedef struct {
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) || defined CO_DOXYGEN
     /** From CO_SDOclient_init() */
-    CO_SDO_t *SDO;
-#endif
+    const OD_t *OD;
     /** From CO_SDOclient_init() */
-    CO_SDOclientPar_t *SDOClientPar;
+    uint8_t nodeId;
+    /** Object dictionary interface for locally transferred object */
+    OD_IO_t OD_IO;
+#endif
     /** From CO_SDOclient_init() */
     CO_CANmodule_t *CANdevRx;
     /** From CO_SDOclient_init() */
@@ -100,6 +79,19 @@ typedef struct {
     uint16_t CANdevTxIdx;
     /** CAN transmit buffer inside CANdevTx for CAN tx message */
     CO_CANtx_t *CANtxBuff;
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+    /** Copy of CANopen COB_ID Client -> Server, meaning of the specific bits:
+        - Bit 0...10: 11-bit CAN identifier.
+        - Bit 11..30: reserved, must be 0.
+        - Bit 31: if 1, SDO client object is not used. */
+    uint32_t COB_IDClientToServer;
+    /** Copy of CANopen COB_ID Server -> Client, similar as above */
+    uint32_t COB_IDServerToClient;
+#endif
+    /** Node-ID of the SDO server */
+    uint8_t nodeIDOfTheSDOServer;
+    /* If true, SDO channel is valid */
+    bool_t valid;
     /** Index of current object in Object Dictionary */
     uint16_t index;
     /** Subindex of current object in Object Dictionary */
@@ -127,10 +119,6 @@ typedef struct {
     volatile void *CANrxNew;
     /** 8 data bytes of the received message */
     uint8_t CANrxData[8];
-    /** Previous value of the COB_IDClientToServer */
-    uint32_t COB_IDClientToServerPrev;
-    /** Previous value of the COB_IDServerToClient */
-    uint32_t COB_IDServerToClientPrev;
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_SDOclient_initCallbackPre() or NULL */
     void (*pFunctSignal)(void *object);
@@ -168,10 +156,13 @@ typedef struct {
  * Function must be called in the communication reset section.
  *
  * @param SDO_C This object will be initialized.
- * @param SDO SDO server object. It is used in case, if client is accessing
+ * @param OD Object Dictionary. It is used in case, if client is accessing
  * object dictionary from its own device. If NULL, it will be ignored.
- * @param SDOClientPar Pointer to _SDO Client Parameter_ record from Object
- * dictionary (index 0x1280+). Will be written.
+ * @param OD_1280_SDOcliPar OD entry for SDO client parameter (0x1280+). It
+ * may have IO extension enabled to allow dynamic configuration (see also
+ * @ref CO_CONFIG_FLAG_OD_DYNAMIC). Entry is required.
+ * @param nodeId CANopen Node ID of this device. It is used in case, if client
+ * is accessing object dictionary from its own device. If 0, it will be ignored.
  * @param CANdevRx CAN device for SDO client reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param CANdevTx CAN device for SDO client transmission.
@@ -180,8 +171,9 @@ typedef struct {
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
-                                   void *SDO,
-                                   CO_SDOclientPar_t *SDOClientPar,
+                                   const OD_t *OD,
+                                   const OD_entry_t *OD_1280_SDOcliPar,
+                                   uint8_t nodeId,
                                    CO_CANmodule_t *CANdevRx,
                                    uint16_t CANdevRxIdx,
                                    CO_CANmodule_t *CANdevTx,
@@ -212,23 +204,20 @@ void CO_SDOclient_initCallbackPre(CO_SDOclient_t *SDOclient,
 /**
  * Setup SDO client object.
  *
- * Function must be called before new SDO communication. If previous SDO
- * communication was with the same node, function does not need to be called.
- *
- * @remark If configuring SDO client from network is required, this function
- * should be set as callback for the corresponding SDO client parameter OD
- * entry.
+ * Function is called in from CO_SDOclient_init() and each time when
+ * "SDO client parameter" is written. Application can call this function before
+ * new SDO communication. If parameters to this function are the same as before,
+ * then CAN is not reconfigured.
  *
  * @param SDO_C This object.
- * @param COB_IDClientToServer See CO_SDOclientPar_t. If zero, then
- * nodeIDOfTheSDOServer is used with default COB-ID.
- * @param COB_IDServerToClient See CO_SDOclientPar_t. If zero, then
- * nodeIDOfTheSDOServer is used with default COB-ID.
- * @param nodeIDOfTheSDOServer Node-ID of the SDO server. If zero, SDO client
- * object is not used. If it is the same as node-ID of this node, then data will
- * be exchanged with this node (without CAN communication).
+ * @param COB_IDClientToServer See @ref CO_SDOclient_t.
+ * @param COB_IDServerToClient See @ref CO_SDOclient_t.
+ * @param nodeIDOfTheSDOServer Node-ID of the SDO server. If it is the same as
+ * node-ID of this node, then data will be exchanged with this node
+ * (without CAN communication).
  *
- * @return #CO_SDO_return_t
+ * @return #CO_SDO_return_t, CO_SDO_RT_ok_communicationEnd or
+ * CO_SDO_RT_wrongArguments
  */
 CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
                                    uint32_t COB_IDClientToServer,
@@ -303,8 +292,8 @@ void CO_SDOclientDownloadInitiateSize(CO_SDOclient_t *SDO_C,
  * @return number of bytes actually written.
  */
 size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
-                                     const char *buf,
-                                     size_t count);
+                                    const char *buf,
+                                    size_t count);
 
 
 /**
@@ -323,6 +312,8 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  * [microseconds].
  * @param abort If true, SDO client will send abort message from SDOabortCode
  * and transmission will be aborted.
+ * @param bufferPartial True indicates, not all data were copied to internal
+ * buffer yet. Buffer will be refilled later with #CO_SDOclientDownloadBufWrite.
  * @param [out] SDOabortCode In case of error in communication, SDO abort code
  * contains reason of error. Ignored if NULL.
  * @param [out] sizeTransferred Actual size of data transferred. Ignored if NULL
@@ -334,11 +325,12 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  * communication is in progress.
  */
 CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
-                                           uint32_t timeDifference_us,
-                                           bool_t abort,
-                                           CO_SDO_abortCode_t *SDOabortCode,
-                                           size_t *sizeTransferred,
-                                           uint32_t *timerNext_us);
+                                     uint32_t timeDifference_us,
+                                     bool_t abort,
+                                     bool_t bufferPartial,
+                                     CO_SDO_abortCode_t *SDOabortCode,
+                                     size_t *sizeTransferred,
+                                     uint32_t *timerNext_us);
 
 
 /**

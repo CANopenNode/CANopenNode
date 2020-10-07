@@ -1,10 +1,20 @@
 Change Log
 ==========
 
+[newOD]
+-------------------------
+- [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/master...newOD)
+### Changed
+- New Object dictionary interface. It has very similar principles as before. All parts of CANopenNode objects, which works with OD entries, are rewritten.
+- New OD.h and OD.c files, replaces CO_OD files.
+- CANopen.c and CANopen.h files redesigned. Integration of "OD.h" is optional. Configuration of multiple object dictionaries is possible with one CANopen device. Interface is the same, with some changes to function arguments.
+- Rewritten SDO server. Object dictionary part is removed.
+- CO_Emergency is mostly rewritten. Now is much easier customization.
+- CO_NMT_Heartbeat is redesigned.
+
 [Unreleased master]
 -------------------------
 - [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/v1.3...master)
-- See {TODO diff} for example of change in user application interface.
 ### Removed
 - All drivers removed from this project, except Neuberger-socketCAN for Linux.
 ### Changed
@@ -38,7 +48,7 @@ Change Log
 ### Added
 - Documentation added to `doc` directory: CHANGELOG.md, deviceSupport.md, gettingStarted.md, LSSusage.md and traceUsage.md.
 - All CANopen objects calculates next timer info for OS. Useful for energy saving.
-- Added file CO_config.h for stack configuration. Can be overridden by target specific or by custom definitions.
+- Added file CO_config.h for stack configuration. Can be overridden by target specific or by custom definitions. It enables/disables whole CanOpenNode objects or parts of them. It also specifies some constants.
 - CO_fifo.h/c for fifo data buffer, used with rewritten SDO client, etc.
 - CANopen gateway-ascii command interface according to CiA309-3 as a microcontroller independent module. It includes NMT master, LSS master and SDO client interface. Interface is non-blocking, it is added to mainline. Example for Linux stdio and socket is included.
 
@@ -92,6 +102,7 @@ Change Log
 
 Changelog written according to recommendations from https://keepachangelog.com/
 
+[newOD]: https://github.com/CANopenNode/CANopenNode/tree/newOD
 [Unreleased master]: https://github.com/CANopenNode/CANopenNode
 [v1.3]: https://github.com/CANopenNode/CANopenNode/tree/v1.3
 [v1.2]: https://github.com/CANopenNode/CANopenNode/tree/v1.2

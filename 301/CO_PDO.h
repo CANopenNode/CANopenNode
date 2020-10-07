@@ -39,6 +39,8 @@
                        CO_CONFIG_PDO_SYNC_ENABLE)
 #endif
 
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE)) || defined CO_DOXYGEN
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -435,5 +437,7 @@ void CO_TPDO_process(
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
+
+#endif /* (CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE) */
 
 #endif /* CO_PDO_H */
