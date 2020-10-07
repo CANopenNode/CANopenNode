@@ -458,6 +458,8 @@ void CO_delete(void *CANptr) {
 CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     int16_t i;
 
+    (void)heapMemoryUsed;
+
     /* If CANopen was initialized before, return. */
     if (CO != NULL) {
         return CO_ERROR_NO;
