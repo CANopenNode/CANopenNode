@@ -95,6 +95,12 @@ extern "C" {
 #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000
 #endif
 
+#ifndef CO_CONFIG_TIME
+#define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
+                        CO_CONFIG_TIME_PRODUCER | \
+                        CO_CONFIG_FLAG_CALLBACK_PRE)
+#endif
+
 #ifndef CO_CONFIG_SYNC
 #define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | \
                         CO_CONFIG_SYNC_PRODUCER | \
@@ -110,12 +116,6 @@ extern "C" {
                        CO_CONFIG_TPDO_CALLS_EXTENSION | \
                        CO_CONFIG_FLAG_CALLBACK_PRE | \
                        CO_CONFIG_FLAG_TIMERNEXT)
-#endif
-
-#ifndef CO_CONFIG_TIME
-#define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
-                        CO_CONFIG_TIME_PRODUCER | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE)
 #endif
 
 #ifndef CO_CONFIG_LEDS

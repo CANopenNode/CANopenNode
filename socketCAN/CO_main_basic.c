@@ -23,6 +23,9 @@
  * limitations under the License.
  */
 
+#ifndef CO_OD_STORAGE
+#define CO_OD_STORAGE 1
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,9 +43,11 @@
 #include <sys/reboot.h>
 
 #include "CANopen.h"
-#include "CO_OD_storage.h"
 #include "CO_error.h"
 #include "CO_epoll_interface.h"
+#if CO_OD_STORAGE == 1
+#include "CO_OD_storage.h"
+#endif
 
 /* Call external application functions. */
 #if __has_include("CO_application.h")
@@ -51,7 +56,7 @@
 #endif
 
 /* Add trace functionality for recording variables over time */
-#if CO_NO_TRACE > 0
+#if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
 #include "CO_time_trace.h"
 #endif
 
@@ -79,11 +84,13 @@ static uint8_t              CO_pendingNodeId = 0xFF;/* Use value from Object Dic
                                                      * or unconfigured=0xFF). Can be changed by LSS slave. */
 static uint8_t              CO_activeNodeId = 0xFF;/* Copied from CO_pendingNodeId in the communication reset section */
 static uint16_t             CO_pendingBitRate = 0;  /* CAN bitrate, not used here */
+#if CO_OD_STORAGE == 1
 static CO_OD_storage_t      odStor;             /* Object Dictionary storage object for CO_OD_ROM */
 static CO_OD_storage_t      odStorAuto;         /* Object Dictionary storage object for CO_OD_EEPROM */
 static char                *odStorFile_rom    = "od_storage";       /* Name of the file */
 static char                *odStorFile_eeprom = "od_storage_auto";  /* Name of the file */
-#if CO_NO_TRACE > 0
+#endif
+#if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
 static CO_time_t            CO_time;            /* Object for current time */
 #endif
 
@@ -169,6 +176,7 @@ static void HeartbeatNmtChangedCallback(uint8_t nodeId,
                nodeId, NmtState2Str(state), state);
 }
 
+#if CO_OD_STORAGE == 1
 /* callback for storing node id and bitrate */
 static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
     (void)object;
@@ -176,6 +184,7 @@ static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
     OD_CANBitRate = bitRate;
     return true;
 }
+#endif
 
 /* Print usage */
 static void printUsage(char *progName) {
@@ -192,10 +201,13 @@ printf(
 "                      set to -1, then normal scheduler is used for RT thread.\n");
 #endif
 printf(
-"  -r                  Enable reboot on CANopen NMT reset_node command. \n"
+"  -r                  Enable reboot on CANopen NMT reset_node command. \n");
+#if CO_OD_STORAGE == 1
+printf(
 "  -s <ODstorage file> Set Filename for OD storage ('od_storage' is default).\n"
 "  -a <ODstorageAuto>  Set Filename for automatic storage variables from\n"
 "                      Object dictionary. ('od_storage_auto' is default).\n");
+#endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
 printf(
 "  -c <interface>      Enable command interface for master functionality.\n"
@@ -227,7 +239,9 @@ int main (int argc, char *argv[]) {
 #endif
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_ReturnError_t err;
+#if CO_OD_STORAGE == 1
     CO_ReturnError_t odStorStatus_rom, odStorStatus_eeprom;
+#endif
     CO_CANptrSocketCan_t CANptr = {0};
     int opt;
     bool_t firstRun = true;
@@ -299,10 +313,12 @@ int main (int argc, char *argv[]) {
                 socketTimeout_ms = strtoul(optarg, NULL, 0);
                 break;
 #endif
+#if CO_OD_STORAGE == 1
             case 's': odStorFile_rom = optarg;
                 break;
             case 'a': odStorFile_eeprom = optarg;
                 break;
+#endif
             default:
                 printUsage(argv[0]);
                 exit(EXIT_FAILURE);
@@ -320,8 +336,8 @@ int main (int argc, char *argv[]) {
     }
 
     if((CO_pendingNodeId < 1 || CO_pendingNodeId > 127)
-#if CO_NO_LSS_SLAVE == 1
-        && CO_pendingNodeId != CO_LSS_NODE_ID_ASSIGNMENT
+#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
+      && CO_NO_LSS_SLAVE == 1 && CO_pendingNodeId != CO_LSS_NODE_ID_ASSIGNMENT
 #endif
     ) {
         log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_pendingNodeId);
@@ -370,10 +386,11 @@ int main (int argc, char *argv[]) {
     }
 
 
+#if CO_OD_STORAGE == 1
     /* initialize Object Dictionary storage */
     odStorStatus_rom = CO_OD_storage_init(&odStor, (uint8_t*) &CO_OD_ROM, sizeof(CO_OD_ROM), odStorFile_rom);
     odStorStatus_eeprom = CO_OD_storage_init(&odStorAuto, (uint8_t*) &CO_OD_EEPROM, sizeof(CO_OD_EEPROM), odStorFile_eeprom);
-
+#endif
 
     /* Catch signals SIGINT and SIGTERM */
     if(signal(SIGINT, sigHandler) == SIG_ERR) {
@@ -455,13 +472,16 @@ int main (int argc, char *argv[]) {
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
         CO_epoll_initCANopenGtw(&epGtw, CO);
 #endif
+#if CO_OD_STORAGE == 1
         CO_LSSslave_initCfgStoreCallback(CO->LSSslave, NULL,
                                          LSScfgStoreCallback);
+#endif
         if(!CO->nodeIdUnconfigured) {
             CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
             CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
             CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
                                                  HeartbeatNmtChangedCallback);
+#if CO_OD_STORAGE == 1
             /* initialize OD objects 1010 and 1011 and verify errors. */
             CO_OD_configure(CO->SDO[0], OD_H1010_STORE_PARAM_FUNC, CO_ODF_1010, (void*)&odStor, 0, 0U);
             CO_OD_configure(CO->SDO[0], OD_H1011_REST_PARAM_FUNC, CO_ODF_1011, (void*)&odStor, 0, 0U);
@@ -471,8 +491,9 @@ int main (int argc, char *argv[]) {
             if(odStorStatus_eeprom != CO_ERROR_NO) {
                 CO_errorReport(CO->em, CO_EM_NON_VOLATILE_MEMORY, CO_EMC_HARDWARE, (uint32_t)odStorStatus_eeprom + 1000);
             }
+#endif
 
-#if CO_NO_TRACE > 0
+#if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
             /* Initialize time */
             CO_time_init(&CO_time, CO->SDO[0], &OD_time.epochTimeBaseMs, &OD_time.epochTimeOffsetMs, 0x2130);
 #endif
@@ -538,8 +559,10 @@ int main (int argc, char *argv[]) {
             app_programAsync(!CO->nodeIdUnconfigured, epMain.timeDifference_us);
 #endif
 
+#if CO_OD_STORAGE == 1
             CO_OD_storage_autoSave(&odStorAuto,
                                    epMain.timeDifference_us, 60000000);
+#endif
         }
     } /* while(reset != CO_RESET_APP */
 
@@ -558,9 +581,11 @@ int main (int argc, char *argv[]) {
     app_programEnd();
 #endif
 
+#if CO_OD_STORAGE == 1
     /* Store CO_OD_EEPROM */
     CO_OD_storage_autoSave(&odStorAuto, 0, 0);
     CO_OD_storage_autoSaveClose(&odStorAuto);
+#endif
 
     /* delete objects from memory */
 #ifndef CO_SINGLE_THREAD
@@ -599,7 +624,7 @@ static void* rt_thread(void* arg) {
         CO_epoll_processRT(&epRT, CO, true);
         CO_epoll_processLast(&epRT);
 
-#if CO_NO_TRACE > 0
+#if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
         /* Monitor variables with trace objects */
         CO_time_process(&CO_time);
         for(i=0; i<OD_traceEnable && i<CO_NO_TRACE; i++) {

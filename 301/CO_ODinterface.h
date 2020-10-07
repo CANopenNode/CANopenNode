@@ -75,7 +75,7 @@ typedef enum {
     OD_H1012_COBID_TIME         = 0x1012U,/**< Timestamp message cob-id */
     OD_H1013_HIGH_RES_TIMESTAMP = 0x1013U,/**< High resolution timestamp */
     OD_H1014_COBID_EMERGENCY    = 0x1014U,/**< Emergency message cob-id */
-    OD_H1015_INHIBIT_TIME_MSG   = 0x1015U,/**< Inhibit time message */
+    OD_H1015_INHIBIT_TIME_EMCY  = 0x1015U,/**< Inhibit time emergency message */
     OD_H1016_CONSUMER_HB_TIME   = 0x1016U,/**< Consumer heartbeat time */
     OD_H1017_PRODUCER_HB_TIME   = 0x1017U,/**< Producer heartbeat time */
     OD_H1018_IDENTITY_OBJECT    = 0x1018U,/**< Identity object */
@@ -90,25 +90,18 @@ typedef enum {
     OD_H1027_MODULE_LIST        = 0x1027U,/**< Module list */
     OD_H1028_EMCY_CONSUMER      = 0x1028U,/**< Emergency consumer object */
     OD_H1029_ERR_BEHAVIOR       = 0x1029U,/**< Error behaviour */
-    OD_H1200_SDO_SERVER_PARAM   = 0x1200U,/**< SDO server parameters */
-    OD_H1280_SDO_CLIENT_PARAM   = 0x1280U,/**< SDO client parameters */
+    OD_H1200_SDO_SERVER_1_PARAM = 0x1200U,/**< SDO server parameter */
+    OD_H1280_SDO_CLIENT_1_PARAM = 0x1280U,/**< SDO client parameter */
+    OD_H1300_GFC_PARAM          = 0x1300U,/**< Global fail-safe command param */
+    OD_H1301_SRDO_1_PARAM       = 0x1301U,/**< SRDO communication parameter */
+    OD_H1381_SRDO_1_MAPPING     = 0x1381U,/**< SRDO mapping parameter */
+    OD_H13FE_SRDO_VALID         = 0x13FEU,/**< SRDO Configuration valid */
+    OD_H13FF_SRDO_CHECKSUM      = 0x13FFU,/**< SRDO configuration checksum */
     OD_H1400_RXPDO_1_PARAM      = 0x1400U,/**< RXPDO communication parameter */
-    OD_H1401_RXPDO_2_PARAM      = 0x1401U,/**< RXPDO communication parameter */
-    OD_H1402_RXPDO_3_PARAM      = 0x1402U,/**< RXPDO communication parameter */
-    OD_H1403_RXPDO_4_PARAM      = 0x1403U,/**< RXPDO communication parameter */
     OD_H1600_RXPDO_1_MAPPING    = 0x1600U,/**< RXPDO mapping parameters */
-    OD_H1601_RXPDO_2_MAPPING    = 0x1601U,/**< RXPDO mapping parameters */
-    OD_H1602_RXPDO_3_MAPPING    = 0x1602U,/**< RXPDO mapping parameters */
-    OD_H1603_RXPDO_4_MAPPING    = 0x1603U,/**< RXPDO mapping parameters */
     OD_H1800_TXPDO_1_PARAM      = 0x1800U,/**< TXPDO communication parameter */
-    OD_H1801_TXPDO_2_PARAM      = 0x1801U,/**< TXPDO communication parameter */
-    OD_H1802_TXPDO_3_PARAM      = 0x1802U,/**< TXPDO communication parameter */
-    OD_H1803_TXPDO_4_PARAM      = 0x1803U,/**< TXPDO communication parameter */
     OD_H1A00_TXPDO_1_MAPPING    = 0x1A00U,/**< TXPDO mapping parameters */
-    OD_H1A01_TXPDO_2_MAPPING    = 0x1A01U,/**< TXPDO mapping parameters */
-    OD_H1A02_TXPDO_3_MAPPING    = 0x1A02U,/**< TXPDO mapping parameters */
-    OD_H1A03_TXPDO_4_MAPPING    = 0x1A03U /**< TXPDO mapping parameters */
-} OD_ObjDicId_301_t;
+} OD_ObjDicId_30x_t;
 
 
 /**
@@ -369,7 +362,7 @@ typedef struct {
     /** Number of elements in the list, without last element, which is blank */
     uint16_t size;
     /** List OD entries (table of contents), ordered by index */
-    OD_entry_t list[];
+    const OD_entry_t *list;
 } OD_t;
 
 

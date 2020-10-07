@@ -153,6 +153,16 @@ extern "C" {
 #define CO_CONFIG_HB_CONS_CALLBACK_CHANGE 0x02
 #define CO_CONFIG_HB_CONS_CALLBACK_MULTI 0x04
 #define CO_CONFIG_HB_CONS_QUERY_FUNCT 0x08
+
+/**
+ * Number of heartbeat consumer objects, where each object corresponds to one
+ * sub-index in OD object 0x1016, "Consumer heartbeat time".
+ *
+ * If heartbeat consumer is enabled, then valid values are 1 to 127.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_HB_CONS_SIZE 8
+#endif
 /** @} */ /* CO_STACK_CONFIG_NMT_HB */
 
 
@@ -172,7 +182,7 @@ extern "C" {
  *   OD object 0x1015.
  * - CO_CONFIG_EM_HISTORY - Enable error history, OD object 0x1003,
  *   "Pre-defined error field"
- * - CO_CONFIG_EM_CONSUMER - Enable emergency consumer.
+ * - CO_CONFIG_EM_CONSUMER - Enable simple emergency consumer with callback.
  * - CO_CONFIG_EM_STATUS_BITS - Access @ref CO_EM_errorStatusBits_t from OD.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   emergency condition by CO_errorReport() or CO_errorReset() call.
@@ -214,7 +224,6 @@ extern "C" {
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_EM_BUFFER_SIZE 16
 #endif
-
 
 /**
  * Condition for calculating CANopen Error register, "generic" error bit.
@@ -377,6 +386,28 @@ extern "C" {
 
 
 /**
+ * @defgroup CO_STACK_CONFIG_TIME Time producer/consumer
+ * @{
+ */
+/**
+ * Configuration of @ref CO_TIME
+ *
+ * Possible flags, can be ORed:
+ * - CO_CONFIG_TIME_ENABLE - Enable TIME object and TIME consumer.
+ * - CO_CONFIG_TIME_PRODUCER - Enable TIME producer.
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received TIME CAN message.
+ *   Callback is configured by CO_TIME_initCallbackPre().
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_TIME (0)
+#endif
+#define CO_CONFIG_TIME_ENABLE 0x01
+#define CO_CONFIG_TIME_PRODUCER 0x02
+/** @} */ /* CO_STACK_CONFIG_TIME */
+
+
+/**
  * @defgroup CO_STACK_CONFIG_SYNC_PDO SYNC and PDO producer/consumer
  * @{
  */
@@ -404,6 +435,7 @@ extern "C" {
  * Possible flags, can be ORed:
  * - CO_CONFIG_RPDO_ENABLE - Enable receive PDO objects.
  * - CO_CONFIG_TPDO_ENABLE - Enable transmit PDO objects.
+ * - CO_CONFIG_PDO_SYNC_ENABLE - Enable SYNC in PDO objects.
  * - CO_CONFIG_RPDO_CALLS_EXTENSION - Enable calling configured extension
  *   callbacks when received RPDO CAN message modifies OD entries.
  * - CO_CONFIG_TPDO_CALLS_EXTENSION - Enable calling configured extension
@@ -417,32 +449,12 @@ extern "C" {
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_PDO (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE | CO_CONFIG_PDO_SYNC_ENABLE)
 #endif
-#define CO_CONFIG_PDO_SYNC_ENABLE 0x01
-#define CO_CONFIG_RPDO_CALLS_EXTENSION 0x02
-#define CO_CONFIG_TPDO_CALLS_EXTENSION 0x04
+#define CO_CONFIG_RPDO_ENABLE 0x01
+#define CO_CONFIG_TPDO_ENABLE 0x02
+#define CO_CONFIG_PDO_SYNC_ENABLE 0x04
+#define CO_CONFIG_RPDO_CALLS_EXTENSION 0x08
+#define CO_CONFIG_TPDO_CALLS_EXTENSION 0x10
 /** @} */ /* CO_STACK_CONFIG_SYNC_PDO */
-
-
-/**
- * @defgroup CO_STACK_CONFIG_TIME Time producer/consumer
- * @{
- */
-/**
- * Configuration of @ref CO_TIME
- *
- * Possible flags, can be ORed:
- * - CO_CONFIG_TIME_ENABLE - Enable TIME object and TIME consumer.
- * - CO_CONFIG_TIME_PRODUCER - Enable TIME producer.
- * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received TIME CAN message.
- *   Callback is configured by CO_TIME_initCallbackPre().
- */
-#ifdef CO_DOXYGEN
-#define CO_CONFIG_TIME (0)
-#endif
-#define CO_CONFIG_TIME_ENABLE 0x01
-#define CO_CONFIG_TIME_PRODUCER 0x02
-/** @} */ /* CO_STACK_CONFIG_TIME */
 
 
 /**
