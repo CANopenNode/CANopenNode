@@ -188,8 +188,6 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
     CO->TIME = (CO_TIME_t *)calloc(1, sizeof(CO_TIME_t));
     if (CO->TIME == NULL) errCnt++;
     CO_memoryUsed += sizeof(CO_TIME_t);
-#else
-    CO->TIME = NULL;
 #endif
 
 #if CO_NO_GFC == 1
@@ -492,8 +490,6 @@ CO_ReturnError_t CO_new(uint32_t *heapMemoryUsed) {
 #if CO_NO_TIME == 1
     /* TIME */
     CO->TIME = &COO_TIME;
-#else
-    CO->TIME = NULL;
 #endif
 
 #if CO_NO_GFC == 1
