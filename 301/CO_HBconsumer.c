@@ -133,10 +133,8 @@ CO_ReturnError_t CO_HBconsumer_init(
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE
             HBcons->monitoredNodes[i].pFunctSignalPre = NULL;
 #endif
-#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
-            HBcons->monitoredNodes[i].pFunctSignalNmtChanged = NULL;
-#endif
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI
+            HBcons->monitoredNodes[i].pFunctSignalNmtChanged = NULL;
             HBcons->monitoredNodes[i].pFunctSignalHbStarted = NULL;
             HBcons->monitoredNodes[i].pFunctSignalTimeout = NULL;
             HBcons->monitoredNodes[i].pFunctSignalRemoteReset = NULL;
@@ -185,7 +183,7 @@ CO_ReturnError_t CO_HBconsumer_initEntry(
         monitoredNode->nodeId = nodeId;
         monitoredNode->time_us = (int32_t)consumerTime_ms * 1000;
         monitoredNode->NMTstate = CO_NMT_UNKNOWN;
-#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI
         monitoredNode->NMTstatePrev = CO_NMT_UNKNOWN;
 #endif
         CO_FLAG_CLEAR(monitoredNode->CANrxNew);
@@ -234,7 +232,7 @@ void CO_HBconsumer_initCallbackPre(
 #endif
 
 
-#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI
 /******************************************************************************/
 void CO_HBconsumer_initCallbackNmtChanged(
         CO_HBconsumer_t        *HBcons,
@@ -252,10 +250,8 @@ void CO_HBconsumer_initCallbackNmtChanged(
     monitoredNode->pFunctSignalNmtChanged = pFunctSignal;
     monitoredNode->pFunctSignalObjectNmtChanged = object;
 }
-#endif
 
 
-#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI
 /******************************************************************************/
 void CO_HBconsumer_initCallbackHeartbeatStarted(
     CO_HBconsumer_t        *HBcons,
@@ -409,7 +405,7 @@ void CO_HBconsumer_process(
             if (monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
                 allMonitoredOperationalCurrent = CO_NMT_UNKNOWN;
             }
-#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI
             /* Verify, if NMT state of monitored node changed */
             if(monitoredNode->NMTstate != monitoredNode->NMTstatePrev) {
                 if (monitoredNode->pFunctSignalNmtChanged != NULL) {
@@ -427,7 +423,7 @@ void CO_HBconsumer_process(
         for(uint8_t i=0; i<HBcons->numberOfMonitoredNodes; i++) {
             CO_HBconsNode_t * const monitoredNode = &HBcons->monitoredNodes[i];
             monitoredNode->NMTstate = CO_NMT_UNKNOWN;
-#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI
             monitoredNode->NMTstatePrev = CO_NMT_UNKNOWN;
 #endif
             CO_FLAG_CLEAR(monitoredNode->CANrxNew);
