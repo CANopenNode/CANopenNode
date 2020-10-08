@@ -125,9 +125,6 @@ CO_ReturnError_t CO_HBconsumer_init(
     HBcons->NMTisPreOrOperationalPrev = false;
     HBcons->CANdevRx = CANdevRx;
     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
-#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
-    HBcons->pFunctSignalNmtChanged = NULL;
-#endif
 
     for(i=0; i<HBcons->numberOfMonitoredNodes; i++) {
         uint8_t nodeId = (HBcons->HBconsTime[i] >> 16U) & 0xFFU;
@@ -135,6 +132,9 @@ CO_ReturnError_t CO_HBconsumer_init(
         ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, time);
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE
             HBcons->monitoredNodes[i].pFunctSignalPre = NULL;
+#endif
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
+            HBcons->monitoredNodes[i].pFunctSignalNmtChanged = NULL;
 #endif
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI
             HBcons->monitoredNodes[i].pFunctSignalHbStarted = NULL;
@@ -238,17 +238,19 @@ void CO_HBconsumer_initCallbackPre(
 /******************************************************************************/
 void CO_HBconsumer_initCallbackNmtChanged(
         CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
         void                   *object,
-        void                  (*pFunctSignal)(uint8_t nodeId,
+        void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx,
                                               CO_NMT_internalState_t NMTstate,
                                               void *object))
 {
-    if (HBcons==NULL) {
+    if (HBcons==NULL || idx>=HBcons->numberOfMonitoredNodes) {
         return;
     }
 
-    HBcons->pFunctSignalNmtChanged = pFunctSignal;
-    HBcons->pFunctSignalObjectNmtChanged = object;
+    CO_HBconsNode_t * const monitoredNode = &HBcons->monitoredNodes[idx];
+    monitoredNode->pFunctSignalNmtChanged = pFunctSignal;
+    monitoredNode->pFunctSignalObjectNmtChanged = object;
 }
 #endif
 
@@ -410,10 +412,10 @@ void CO_HBconsumer_process(
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
             /* Verify, if NMT state of monitored node changed */
             if(monitoredNode->NMTstate != monitoredNode->NMTstatePrev) {
-                if (HBcons->pFunctSignalNmtChanged != NULL) {
-                    HBcons->pFunctSignalNmtChanged(
-                        monitoredNode->nodeId, monitoredNode->NMTstate,
-                        HBcons->pFunctSignalObjectNmtChanged);
+                if (monitoredNode->pFunctSignalNmtChanged != NULL) {
+                    monitoredNode->pFunctSignalNmtChanged(
+                        monitoredNode->nodeId, i, monitoredNode->NMTstate,
+                        monitoredNode->pFunctSignalObjectNmtChanged);
                 }
                 monitoredNode->NMTstatePrev = monitoredNode->NMTstate;
             }

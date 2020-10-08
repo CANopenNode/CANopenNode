@@ -167,7 +167,7 @@ static void NmtChangedCallback(CO_NMT_internalState_t state)
 }
 
 /* callback for monitoring Heartbeat remote NMT state change */
-static void HeartbeatNmtChangedCallback(uint8_t nodeId,
+static void HeartbeatNmtChangedCallback(uint8_t nodeId, uint8_t idx,
                                         CO_NMT_internalState_t state,
                                         void *object)
 {
@@ -479,8 +479,9 @@ int main (int argc, char *argv[]) {
         if(!CO->nodeIdUnconfigured) {
             CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
             CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
-            CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
-                                                 HeartbeatNmtChangedCallback);
+            for (size_t idx = 0; idx < CO->HBcons->numberOfMonitoredNodes; ++idx)
+                CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, idx, NULL,
+                                                     HeartbeatNmtChangedCallback);
 #if CO_OD_STORAGE == 1
             /* initialize OD objects 1010 and 1011 and verify errors. */
             CO_OD_configure(CO->SDO[0], OD_H1010_STORE_PARAM_FUNC, CO_ODF_1010, (void*)&odStor, 0, 0U);
