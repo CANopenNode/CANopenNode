@@ -321,18 +321,16 @@ void CO_HBconsumer_process(
 {
     (void)timerNext_us; /* may be unused */
 
-    uint8_t i;
     bool_t allMonitoredActiveCurrent = true;
     uint8_t allMonitoredOperationalCurrent = CO_NMT_OPERATIONAL;
-    CO_HBconsNode_t *monitoredNode = &HBcons->monitoredNodes[0];
 
     if (NMTisPreOrOperational && HBcons->NMTisPreOrOperationalPrev) {
-        for (i=0; i<HBcons->numberOfMonitoredNodes; i++) {
+        for (uint8_t i=0; i<HBcons->numberOfMonitoredNodes; i++) {
             uint32_t timeDifference_us_copy = timeDifference_us;
+            CO_HBconsNode_t * const monitoredNode = &HBcons->monitoredNodes[i];
 
             if (monitoredNode->HBstate == CO_HBconsumer_UNCONFIGURED) {
                 /* continue, if node is not monitored */
-                monitoredNode++;
                 continue;
             }
             /* Verify if received message is heartbeat or bootup */
@@ -420,12 +418,12 @@ void CO_HBconsumer_process(
                 monitoredNode->NMTstatePrev = monitoredNode->NMTstate;
             }
 #endif
-            monitoredNode++;
         }
     }
     else if (NMTisPreOrOperational || HBcons->NMTisPreOrOperationalPrev) {
         /* (pre)operational state changed, clear variables */
-        for(i=0; i<HBcons->numberOfMonitoredNodes; i++) {
+        for(uint8_t i=0; i<HBcons->numberOfMonitoredNodes; i++) {
+            CO_HBconsNode_t * const monitoredNode = &HBcons->monitoredNodes[i];
             monitoredNode->NMTstate = CO_NMT_UNKNOWN;
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
             monitoredNode->NMTstatePrev = CO_NMT_UNKNOWN;
@@ -434,7 +432,6 @@ void CO_HBconsumer_process(
             if (monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) {
                 monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
             }
-            monitoredNode++;
         }
         allMonitoredActiveCurrent = false;
         allMonitoredOperationalCurrent = CO_NMT_UNKNOWN;
