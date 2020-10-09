@@ -91,11 +91,16 @@ typedef struct {
     /** From CO_HBconsumer_initCallbackPre() or NULL */
     void               *functSignalObjectPre;
 #endif
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) || defined CO_DOXYGEN
     /** Previous value of the remote node (Heartbeat payload) */
     CO_NMT_internalState_t NMTstatePrev;
-#endif
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) || defined CO_DOXYGEN
+    /** Callback for remote NMT changed event.
+     *  From CO_HBconsumer_initCallbackNmtChanged() or NULL. */
+    void (*pFunctSignalNmtChanged)(uint8_t nodeId, uint8_t idx,
+                                   CO_NMT_internalState_t state,
+                                   void *object);
+    /** Pointer to object */
+    void *pFunctSignalObjectNmtChanged;
     /** Callback for heartbeat state change to active event.
      *  From CO_HBconsumer_initCallbackHeartbeatStarted() or NULL. */
     void (*pFunctSignalHbStarted)(uint8_t nodeId, uint8_t idx, void *object);
@@ -135,15 +140,6 @@ typedef struct{
     bool_t              NMTisPreOrOperationalPrev; /**< previous state of var */
     CO_CANmodule_t     *CANdevRx;         /**< From CO_HBconsumer_init() */
     uint16_t            CANdevRxIdxStart; /**< From CO_HBconsumer_init() */
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) || defined CO_DOXYGEN
-    /** Callback for remote NMT changed event.
-     *  From CO_HBconsumer_initCallbackNmtChanged() or NULL. */
-    void (*pFunctSignalNmtChanged)(uint8_t nodeId,
-                                   CO_NMT_internalState_t state,
-                                   void *object);
-    /** Pointer to object */
-    void *pFunctSignalObjectNmtChanged;
-#endif
 }CO_HBconsumer_t;
 
 
@@ -214,7 +210,7 @@ void CO_HBconsumer_initCallbackPre(
         void                  (*pFunctSignal)(void *object));
 #endif
 
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) || defined CO_DOXYGEN
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) || defined CO_DOXYGEN
 /**
  * Initialize Heartbeat consumer NMT changed callback function.
  *
@@ -222,19 +218,19 @@ void CO_HBconsumer_initCallbackPre(
  * state from the remote node changes.
  *
  * @param HBcons This object.
+ * @param idx index of the node in HBcons object
  * @param object Pointer to object, which will be passed to pFunctSignal().
  *               Can be NULL.
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
 void CO_HBconsumer_initCallbackNmtChanged(
         CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx,
         void                   *object,
-        void                  (*pFunctSignal)(uint8_t nodeId,
+        void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx,
                                               CO_NMT_internalState_t state,
                                               void *object));
-#endif
 
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) || defined CO_DOXYGEN
 /**
  * Initialize Heartbeat consumer started callback function.
  *
@@ -252,7 +248,6 @@ void CO_HBconsumer_initCallbackHeartbeatStarted(
         uint8_t                 idx,
         void                   *object,
         void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
-
 
 /**
  * Initialize Heartbeat consumer timeout callback function.

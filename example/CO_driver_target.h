@@ -53,7 +53,6 @@ extern "C" {
 
 #ifndef CO_CONFIG_HB_CONS
 #define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | \
-                           CO_CONFIG_HB_CONS_CALLBACK_CHANGE | \
                            CO_CONFIG_HB_CONS_CALLBACK_MULTI | \
                            CO_CONFIG_HB_CONS_QUERY_FUNCT | \
                            CO_CONFIG_FLAG_CALLBACK_PRE | \
