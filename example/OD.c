@@ -3,7 +3,7 @@
 #include "OD.h"
 
 static const OD_entry_t OD_list[] = {
-    {0x1000, 0, 0, 0, NULL}
+    {0x1000, 0, 0, NULL}
 };
 
 const OD_t OD = {

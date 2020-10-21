@@ -162,7 +162,7 @@ extern "C" {
 /**
  * If macro is defined externally, then configuration with multiple object
  * dictionaries will be possible. If macro is not defined, default "OD.h" file
- * with necessary definitions, such as CO_CNT_xxx, will be used, and also memory
+ * with necessary definitions, such as OD_CNT_xxx, will be used, and also memory
  * consumption and startup time will be lower.
  */
 #ifdef CO_DOXYGEN
@@ -549,7 +549,7 @@ bool_t CO_process_SYNC(CO_t *co,
 #endif
 
 
-#if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
+#if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) || defined CO_DOXYGEN
 /**
  * Process CANopen RPDO objects.
  *
@@ -565,7 +565,7 @@ void CO_process_RPDO(CO_t *co, bool_t syncWas);
 #endif
 
 
-#if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
+#if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) || defined CO_DOXYGEN
 /**
  * Process CANopen TPDO objects.
  *

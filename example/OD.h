@@ -2,23 +2,23 @@
 
 extern const OD_t OD;
 
-#define CO_CNT_NMT 1
-#define CO_CNT_HB_PROD 1
-#define CO_CNT_EM 1
-#define CO_CNT_EM_PROD 1
-#define CO_CNT_SDO_SRV 1
-#define CO_CNT_SDO_CLI 1
+#define OD_CNT_NMT 1
+#define OD_CNT_HB_PROD 1
+#define OD_CNT_EM 1
+#define OD_CNT_EM_PROD 1
+#define OD_CNT_SDO_SRV 1
+#define OD_CNT_SDO_CLI 1
 
 #if 0
-#define CO_CNT_HB_CONS 1
-#define CO_CNT_TIME 1
-#define CO_CNT_SYNC 1
-#define CO_CNT_SYNC_PROD 1
-#define CO_CNT_RPDO 4
-#define CO_CNT_TPDO 4
-#define CO_CNT_GFC 0
-#define CO_CNT_SRDO 0
-#define CO_CNT_TRACE 0
+#define OD_CNT_HB_CONS 1
+#define OD_CNT_TIME 1
+#define OD_CNT_SYNC 1
+#define OD_CNT_SYNC_PROD 1
+#define OD_CNT_RPDO 4
+#define OD_CNT_TPDO 4
+#define OD_CNT_GFC 0
+#define OD_CNT_SRDO 0
+#define OD_CNT_TRACE 0
 #endif
 
 #define OD_ENTRY_H1017 &OD.list[0]

@@ -457,7 +457,7 @@ typedef struct {
  * Emergency object has own memory buffer for this entry. Entry is optional,
  * IO extension is required.
  * @param OD_statusBits Custom OD entry for accessing errorStatusBits from
- * @ref CO_EM_t. Entry must have bytestring_t of size
+ * @ref CO_EM_t. Entry must have variable of size
  * (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT/8) bytes available for read/write access
  * on subindex 0. Emergency object has own memory buffer for this entry. Entry
  * is optional, IO extension is required.

@@ -34,52 +34,52 @@
 #else
 #include "OD.h"
 #define CO_GET_CO(obj) CO_##obj
-#define CO_GET_CNT(obj) CO_CNT_##obj
+#define CO_GET_CNT(obj) OD_CNT_##obj
 #define OD_GET(entry, index) OD_ENTRY_##entry
 
 /* Verify parameters from "OD.h" and calculate necessary values for each object:
- * - verify CO_CNT_xx or set default
+ * - verify OD_CNT_xx or set default
  * - calculate number of CANrx and CYNtx messages: CO_RX_CNT_xx and CO_TX_CNT_xx
  * - set optional undefined OD_ENTRY_Hxxxx to NULL.
  * - calculate indexes: CO_RX_IDX_xx and CO_TX_IDX_xx
  * - calculate total count of CAN message buffers: CO_CNT_ALL_RX_MSGS and
  *   CO_CNT_ALL_TX_MSGS. */
-#if CO_CNT_NMT != 1
- #error CO_CNT_NMT from OD.h not correct!
+#if OD_CNT_NMT != 1
+ #error OD_CNT_NMT from OD.h not correct!
 #endif
-#define CO_RX_CNT_NMT_SLV CO_CNT_NMT
+#define CO_RX_CNT_NMT_SLV OD_CNT_NMT
 #if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
  #define CO_TX_CNT_NMT_MST 1
 #else
  #define CO_TX_CNT_NMT_MST 0
 #endif
 
-#if CO_CNT_HB_PROD != 1
- #error CO_CNT_HB_PROD from OD.h not correct!
+#if OD_CNT_HB_PROD != 1
+ #error OD_CNT_HB_PROD from OD.h not correct!
 #endif
-#define CO_TX_CNT_HB_PROD CO_CNT_HB_PROD
-#if !defined CO_CNT_HB_CONS
- #define CO_CNT_HB_CONS 0
-#elif CO_CNT_HB_CONS < 0 || CO_CNT_HB_CONS > 1
- #error CO_CNT_HB_CONS from OD.h not correct!
+#define CO_TX_CNT_HB_PROD OD_CNT_HB_PROD
+#if !defined OD_CNT_HB_CONS
+ #define OD_CNT_HB_CONS 0
+#elif OD_CNT_HB_CONS < 0 || OD_CNT_HB_CONS > 1
+ #error OD_CNT_HB_CONS from OD.h not correct!
 #endif
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) && CO_CNT_HB_CONS == 1
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) && OD_CNT_HB_CONS == 1
  #define CO_RX_CNT_HB_CONS CO_CONFIG_HB_CONS_SIZE
 #else
  #define CO_RX_CNT_HB_CONS 0
 #endif
 
-#if CO_CNT_EM != 1
- #error CO_CNT_EM from OD.h not correct!
+#if OD_CNT_EM != 1
+ #error OD_CNT_EM from OD.h not correct!
 #endif
 #ifndef OD_ENTRY_H1003
  #define OD_ENTRY_H1003 NULL
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
- #if CO_CNT_EM_PROD == 1
-  #define CO_TX_CNT_EM_PROD CO_CNT_EM_PROD
+ #if OD_CNT_EM_PROD == 1
+  #define CO_TX_CNT_EM_PROD OD_CNT_EM_PROD
  #else
-  #error wrong CO_CNT_EM_PROD
+  #error wrong OD_CNT_EM_PROD
  #endif
  #ifndef OD_ENTRY_H1015
   #define OD_ENTRY_H1015 NULL
@@ -93,39 +93,39 @@
  #define CO_RX_CNT_EM_CONS 0
 #endif
 
-#if !defined CO_CNT_SDO_SRV
- #define CO_CNT_SDO_SRV 1
+#if !defined OD_CNT_SDO_SRV
+ #define OD_CNT_SDO_SRV 1
  #define OD_ENTRY_H1200 NULL
-#elif CO_CNT_SDO_SRV < 1 || CO_CNT_SDO_SRV > 128
- #error CO_CNT_SDO_SRV from OD.h not correct!
+#elif OD_CNT_SDO_SRV < 1 || OD_CNT_SDO_SRV > 128
+ #error OD_CNT_SDO_SRV from OD.h not correct!
 #endif
-#define CO_RX_CNT_SDO_SRV CO_CNT_SDO_SRV
-#define CO_TX_CNT_SDO_SRV CO_CNT_SDO_SRV
+#define CO_RX_CNT_SDO_SRV OD_CNT_SDO_SRV
+#define CO_TX_CNT_SDO_SRV OD_CNT_SDO_SRV
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
- #if !defined CO_CNT_SDO_CLI
-  #define CO_CNT_SDO_CLI 0
+ #if !defined OD_CNT_SDO_CLI
+  #define OD_CNT_SDO_CLI 0
   #define OD_ENTRY_H1280 NULL
- #elif CO_CNT_SDO_CLI < 0 || CO_CNT_SDO_CLI > 128
-  #error CO_CNT_SDO_CLI from OD.h not correct!
+ #elif OD_CNT_SDO_CLI < 0 || OD_CNT_SDO_CLI > 128
+  #error OD_CNT_SDO_CLI from OD.h not correct!
  #endif
- #define CO_RX_CNT_SDO_CLI CO_CNT_SDO_CLI
- #define CO_TX_CNT_SDO_CLI CO_CNT_SDO_CLI
+ #define CO_RX_CNT_SDO_CLI OD_CNT_SDO_CLI
+ #define CO_TX_CNT_SDO_CLI OD_CNT_SDO_CLI
 #else
  #define CO_RX_CNT_SDO_CLI 0
  #define CO_TX_CNT_SDO_CLI 0
 #endif
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
- #if !defined CO_CNT_TIME
-  #define CO_CNT_TIME 0
+ #if !defined OD_CNT_TIME
+  #define OD_CNT_TIME 0
   #define OD_ENTRY_H1012 NULL
- #elif CO_CNT_TIME < 0 || CO_CNT_TIME > 1
-  #error CO_CNT_TIME from OD.h not correct!
+ #elif OD_CNT_TIME < 0 || OD_CNT_TIME > 1
+  #error OD_CNT_TIME from OD.h not correct!
  #endif
- #define CO_RX_CNT_TIME CO_CNT_TIME
+ #define CO_RX_CNT_TIME OD_CNT_TIME
  #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
-  #define CO_TX_CNT_TIME CO_CNT_TIME
+  #define CO_TX_CNT_TIME OD_CNT_TIME
  #else
   #define CO_TX_CNT_TIME 0
  #endif
@@ -135,16 +135,16 @@
 #endif
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
- #if !defined CO_CNT_SYNC
-  #define CO_CNT_SYNC 0
+ #if !defined OD_CNT_SYNC
+  #define OD_CNT_SYNC 0
   #define OD_ENTRY_H1005 NULL
   #define OD_ENTRY_H1006 NULL
- #elif CO_CNT_SYNC < 0 || CO_CNT_SYNC > 1
-  #error CO_CNT_SYNC from OD.h not correct!
+ #elif OD_CNT_SYNC < 0 || OD_CNT_SYNC > 1
+  #error OD_CNT_SYNC from OD.h not correct!
  #endif
- #define CO_RX_CNT_SYNC CO_CNT_SYNC
+ #define CO_RX_CNT_SYNC OD_CNT_SYNC
  #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
-  #define CO_TX_CNT_SYNC CO_CNT_SYNC
+  #define CO_TX_CNT_SYNC OD_CNT_SYNC
  #else
   #define CO_TX_CNT_SYNC 0
  #endif
@@ -160,91 +160,91 @@
 #endif
 
 #if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
- #if !defined CO_CNT_RPDO
-  #define CO_CNT_RPDO 0
+ #if !defined OD_CNT_RPDO
+  #define OD_CNT_RPDO 0
   #define OD_ENTRY_H1400 NULL
   #define OD_ENTRY_H1600 NULL
- #elif CO_CNT_RPDO < 0 || CO_CNT_RPDO > 0x200
-  #error CO_CNT_RPDO from OD.h not correct!
+ #elif OD_CNT_RPDO < 0 || OD_CNT_RPDO > 0x200
+  #error OD_CNT_RPDO from OD.h not correct!
  #endif
- #define CO_RX_CNT_RPDO CO_CNT_RPDO
+ #define CO_RX_CNT_RPDO OD_CNT_RPDO
 #else
  #define CO_RX_CNT_RPDO 0
 #endif
 
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
- #if !defined CO_CNT_TPDO
-  #define CO_CNT_TPDO 0
+ #if !defined OD_CNT_TPDO
+  #define OD_CNT_TPDO 0
   #define OD_ENTRY_H1800 NULL
   #define OD_ENTRY_H1A00 NULL
- #elif CO_CNT_TPDO < 0 || CO_CNT_TPDO > 0x200
-  #error CO_CNT_TPDO from OD.h not correct!
+ #elif OD_CNT_TPDO < 0 || OD_CNT_TPDO > 0x200
+  #error OD_CNT_TPDO from OD.h not correct!
  #endif
- #define CO_TX_CNT_TPDO CO_CNT_TPDO
+ #define CO_TX_CNT_TPDO OD_CNT_TPDO
 #else
  #define CO_TX_CNT_TPDO 0
 #endif
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
- #define CO_CNT_LEDS 1
+ #define OD_CNT_LEDS 1
 #endif
 
 #if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
- #if !defined CO_CNT_GFC
-  #define CO_CNT_GFC 0
+ #if !defined OD_CNT_GFC
+  #define OD_CNT_GFC 0
   #define OD_ENTRY_H1300 NULL
- #elif CO_CNT_GFC < 0 || CO_CNT_GFC > 1
-  #error CO_CNT_GFC from OD.h not correct!
+ #elif OD_CNT_GFC < 0 || OD_CNT_GFC > 1
+  #error OD_CNT_GFC from OD.h not correct!
  #endif
- #define CO_RX_CNT_GFC CO_CNT_GFC
- #define CO_TX_CNT_GFC CO_CNT_GFC
+ #define CO_RX_CNT_GFC OD_CNT_GFC
+ #define CO_TX_CNT_GFC OD_CNT_GFC
 #else
  #define CO_RX_CNT_GFC 0
  #define CO_TX_CNT_GFC 0
 #endif
 
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
- #if !defined CO_CNT_SRDO
-  #define CO_CNT_SRDO 0
+ #if !defined OD_CNT_SRDO
+  #define OD_CNT_SRDO 0
   #define OD_ENTRY_H1301 NULL
   #define OD_ENTRY_H1381 NULL
   #define OD_ENTRY_H13FE NULL
   #define OD_ENTRY_H13FF NULL
- #elif CO_CNT_SRDO < 0 || CO_CNT_SRDO > 64
-  #error CO_CNT_SRDO from OD.h not correct!
+ #elif OD_CNT_SRDO < 0 || OD_CNT_SRDO > 64
+  #error OD_CNT_SRDO from OD.h not correct!
  #endif
- #define CO_RX_CNT_SRDO CO_CNT_SRDO
- #define CO_TX_CNT_SRDO CO_CNT_SRDO
+ #define CO_RX_CNT_SRDO OD_CNT_SRDO
+ #define CO_TX_CNT_SRDO OD_CNT_SRDO
 #else
  #define CO_RX_CNT_SRDO 0
  #define CO_TX_CNT_SRDO 0
 #endif
 
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
- #define CO_CNT_LSS_SLV 1
+ #define OD_CNT_LSS_SLV 1
 #else
- #define CO_CNT_LSS_SLV 0
+ #define OD_CNT_LSS_SLV 0
 #endif
-#define CO_RX_CNT_LSS_SLV CO_CNT_LSS_SLV
-#define CO_TX_CNT_LSS_SLV CO_CNT_LSS_SLV
+#define CO_RX_CNT_LSS_SLV OD_CNT_LSS_SLV
+#define CO_TX_CNT_LSS_SLV OD_CNT_LSS_SLV
 
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
- #define CO_CNT_LSS_MST 1
+ #define OD_CNT_LSS_MST 1
 #else
- #define CO_CNT_LSS_MST 0
+ #define OD_CNT_LSS_MST 0
 #endif
-#define CO_RX_CNT_LSS_MST CO_CNT_LSS_MST
-#define CO_TX_CNT_LSS_MST CO_CNT_LSS_MST
+#define CO_RX_CNT_LSS_MST OD_CNT_LSS_MST
+#define CO_TX_CNT_LSS_MST OD_CNT_LSS_MST
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
- #define CO_CNT_GTWA 1
+ #define OD_CNT_GTWA 1
 #endif
 
 #if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
- #if !defined CO_CNT_TRACE
-  #define CO_CNT_TRACE 0
- #elif CO_CNT_TRACE < 0
-  #error CO_CNT_TRACE from OD.h not correct!
+ #if !defined OD_CNT_TRACE
+  #define OD_CNT_TRACE 0
+ #elif OD_CNT_TRACE < 0
+  #error OD_CNT_TRACE from OD.h not correct!
  #endif
 #endif
 
@@ -721,16 +721,16 @@ void CO_delete(CO_t *co) {
  #endif
     static CO_t COO;
     static CO_CANmodule_t COO_CANmodule;
-    static CO_CANrx_t COO_CANmodule_rxArray[CO_CNT_ALL_RX_MSGS];
-    static CO_CANtx_t COO_CANmodule_txArray[CO_CNT_ALL_TX_MSGS];
+    static CO_CANrx_t COO_CANmodule_rxArray[OD_CNT_ALL_RX_MSGS];
+    static CO_CANtx_t COO_CANmodule_txArray[OD_CNT_ALL_TX_MSGS];
     static CO_NMT_t COO_NMT;
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     static CO_HBconsumer_t COO_HBcons;
 #endif
     static CO_EM_t COO_EM;
-    static CO_SDOserver_t COO_SDOserver[CO_CNT_SDO_SRV];
+    static CO_SDOserver_t COO_SDOserver[OD_CNT_SDO_SRV];
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
-    static CO_SDOclient_t COO_SDOclient[CO_CNT_SDO_CLI];
+    static CO_SDOclient_t COO_SDOclient[OD_CNT_SDO_CLI];
 #endif
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     static CO_TIME_t COO_TIME;
@@ -739,10 +739,10 @@ void CO_delete(CO_t *co) {
     static CO_SYNC_t COO_SYNC;
 #endif
 #if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
-    static CO_RPDO_t COO_RPDO[CO_CNT_RPDO];
+    static CO_RPDO_t COO_RPDO[OD_CNT_RPDO];
 #endif
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
-    static CO_TPDO_t COO_TPDO[CO_CNT_TPDO];
+    static CO_TPDO_t COO_TPDO[OD_CNT_TPDO];
 #endif
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     static CO_LEDs_t COO_LEDs;
@@ -752,7 +752,7 @@ void CO_delete(CO_t *co) {
 #endif
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
     static CO_SRDOGuard_t COO_SRDOGuard;
-    static CO_SRDO_t COO_SRDO[CO_CNT_SRDO];
+    static CO_SRDO_t COO_SRDO[OD_CNT_SRDO];
 #endif
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
     static CO_LSSslave_t COO_LSSslave;
@@ -767,9 +767,9 @@ void CO_delete(CO_t *co) {
   #ifndef CO_TRACE_BUFFER_SIZE_FIXED
     #define CO_TRACE_BUFFER_SIZE_FIXED 100
   #endif
-    static CO_trace_t COO_trace[CO_CNT_TRACE];
-    static uint32_t COO_traceTimeBuffers[CO_CNT_TRACE][CO_TRACE_BUFFER_SIZE_FIXED];
-    static int32_t COO_traceValueBuffers[CO_CNT_TRACE][CO_TRACE_BUFFER_SIZE_FIXED];
+    static CO_trace_t COO_trace[OD_CNT_TRACE];
+    static uint32_t COO_traceTimeBuffers[OD_CNT_TRACE][CO_TRACE_BUFFER_SIZE_FIXED];
+    static int32_t COO_traceValueBuffers[OD_CNT_TRACE][CO_TRACE_BUFFER_SIZE_FIXED];
 #endif
 
 CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {

@@ -201,7 +201,6 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
                 OD_subEntry_t *subEntry, OD_stream_t *stream, bool_t odOrig)
 {
     if (entry == NULL || entry->odObject == NULL) return ODR_IDX_NOT_EXIST;
-    else if (subIndex > entry->maxSubIndex) return ODR_SUB_NOT_EXIST;
     else if (subEntry == NULL || stream == NULL) return ODR_DEV_INCOMPAT;
 
     const void *odObjectOrig = entry->odObject;
@@ -218,13 +217,13 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     /* common properties */
     subEntry->index = entry->index;
     subEntry->subIndex = subIndex;
-    subEntry->maxSubIndex = entry->maxSubIndex;
-    subEntry->storageGroup = entry->storageGroup;
+    subEntry->subEntriesCount = entry->subEntriesCount;
     subEntry->flagsPDO = (odObjectExt != NULL ) ? odObjectExt->flagsPDO : NULL;
     stream->dataOffset = 0;
 
     /* attribute, dataObjectOriginal and dataLength, depends on object type */
     if (odBasicType == ODT_VAR) {
+        if (subIndex > 0) return ODR_SUB_NOT_EXIST;
         const OD_obj_var_t *odo = (const OD_obj_var_t *)odObjectOrig;
 
         subEntry->attribute = odo->attribute;
@@ -232,6 +231,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
         stream->dataLength = odo->dataLength;
     }
     else if (odBasicType == ODT_ARR) {
+        if (subIndex >= entry->subEntriesCount) return ODR_SUB_NOT_EXIST;
         const OD_obj_array_t *odo = (const OD_obj_array_t *)odObjectOrig;
 
         if (subIndex == 0) {
@@ -240,18 +240,28 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
             stream->dataLength = 1;
         }
         else {
-            char *data = (char *)odo->data;
-            int i = subIndex - 1;
-
             subEntry->attribute = odo->attribute;
-            if (data == NULL) return ODR_DEV_INCOMPAT;
-            stream->dataObjectOriginal = data + odo->dataElementSizeof * i;
+            if (odo->data == NULL) {
+                stream->dataObjectOriginal = NULL;
+            }
+            else {
+                char *data = (char *)odo->data;
+                int i = subIndex - 1;
+                stream->dataObjectOriginal = data + odo->dataElementSizeof * i;
+            }
             stream->dataLength = odo->dataElementLength;
         }
     }
     else if (odBasicType == ODT_REC) {
-        const OD_obj_var_t *odo_rec = (const OD_obj_var_t *)odObjectOrig;
-        const OD_obj_var_t *odo = &odo_rec[subIndex];
+        const OD_obj_record_t *odoArr = (const OD_obj_record_t *)odObjectOrig;
+        const OD_obj_record_t *odo = NULL;
+        for (int i; i< entry->subEntriesCount; i++) {
+            if (odoArr[i].subIndex == subIndex) {
+                odo = &odoArr[i];
+                break;
+            }
+        }
+        if (odo == NULL) return ODR_SUB_NOT_EXIST;
 
         subEntry->attribute = odo->attribute;
         stream->dataObjectOriginal = odo->data;

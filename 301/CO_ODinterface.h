@@ -196,9 +196,9 @@ typedef enum {
  * Structure is initialized with @ref OD_getSub() function.
  */
 typedef struct {
-    /** Pointer to original data object, defined by Object Dictionary. If
-     * memory for data object is not specified by Object Dictionary, then
-     * dataObjectOriginal is NULL. Default read/write functions operate on it.
+    /** Pointer to original data object, defined by Object Dictionary. Default
+     * read/write functions operate on it. If memory for data object is not
+     * specified by Object Dictionary, then dataObjectOriginal is NULL.
      */
     void *dataObjectOriginal;
     /** Pointer to object, passed by @ref OD_extensionIO_init(). Can be used
@@ -224,10 +224,10 @@ typedef struct {
     uint16_t index;
     /** Object Dictionary sub-index */
     uint8_t subIndex;
-    /** Maximum sub-index in the OD object */
-    uint8_t maxSubIndex;
-    /** Group for non-volatile storage of the OD object */
-    uint8_t storageGroup;
+    /** Number of sub-entries in OD object. For VAR is 1, for ARRAY is
+     * maxSubIndex + 1, for RECORD maxSubIndex may be larger, if there is a gap
+     * between sub-indexes. */
+    uint8_t subEntriesCount;
     /** Attribute bit-field of the OD sub-object, see @ref OD_attributes_t */
     OD_attr_t attribute;
     /**
@@ -337,16 +337,14 @@ typedef struct {
  * Object Dictionary entry for one OD object.
  *
  * OD entries are collected inside OD_t as array (list). Each OD entry contains
- * basic information about OD object (index, maxSubIndex and storageGroup) and
+ * basic information about OD object (index and subEntriesCount) and
  * access function together with a pointer to other details of the OD object.
  */
 typedef struct {
     /** Object Dictionary index */
     uint16_t index;
     /** Maximum sub-index in the OD object */
-    uint8_t maxSubIndex;
-    /** Group for non-volatile storage of the OD object */
-    uint8_t storageGroup;
+    uint8_t subEntriesCount;
     /** Type of the odObject, indicated by @ref OD_objectTypes_t enumerator. */
     uint8_t odObjectType;
     /** OD object of type indicated by odObjectType, from which @ref OD_getSub()
@@ -429,18 +427,6 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
  */
 static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
     return entry->index;
-}
-
-
-/**
- * Return maxSubIndex from OD entry
- *
- * @param entry OD entry returned by @ref OD_find().
- *
- * @return OD maxSubIndex
- */
-static inline uint8_t OD_getMaxSubIndex(const OD_entry_t *entry) {
-    return entry->maxSubIndex;
 }
 
 
@@ -692,7 +678,7 @@ typedef enum {
 } OD_objectTypes_t;
 
 /**
- * Object for single OD variable, used for "VAR" and "RECORD" type OD objects
+ * Object for single OD variable, used for "VAR" type OD objects
  */
 typedef struct {
     void *data; /**< Pointer to data */
@@ -714,6 +700,16 @@ typedef struct {
 } OD_obj_array_t;
 
 /**
+ * Object for OD sub-elements, used in "RECORD" type OD objects
+ */
+typedef struct {
+    void *data; /**< Pointer to data */
+    uint8_t subIndex; /**< Sub index of element. */
+    OD_attr_t attribute; /**< Attribute bitfield, see @ref OD_attributes_t */
+    OD_size_t dataLength; /**< Data length in bytes */
+} OD_obj_record_t;
+
+/**
  * Object pointed by @ref OD_obj_extended_t contains application specified
  * parameters for extended OD object
  */
@@ -733,10 +729,10 @@ typedef struct {
  * @ref OD_extensionIO_init() function
  */
 typedef struct {
-    /** Pointer to PDO flags bit-field, see @ref OD_subEntry_t, may be NULL. */
-    OD_flagsPDO_t *flagsPDO;
     /** Pointer to application specified IO extension, may be NULL. */
     OD_extensionIO_t *extIO;
+    /** Pointer to PDO flags bit-field, see @ref OD_subEntry_t, may be NULL. */
+    OD_flagsPDO_t *flagsPDO;
     /** Pointer to original odObject, see @ref OD_entry_t. */
     const void *odObjectOriginal;
 } OD_obj_extended_t;
