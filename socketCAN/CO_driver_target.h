@@ -194,6 +194,9 @@ extern "C" {
  * Linux socketCAN specific @ref CO_driver definitions for CANopenNode.
  */
 
+/* Macro for passing additional information about error, see CO_driver.h. */
+#define CO_errinfo(CANmodule, err) CANmodule->errinfo = err
+
 /**
  * Multi interface support
  *
@@ -347,6 +350,7 @@ typedef struct {
     CO_CANtx_t *txArray;
     uint16_t txSize;
     uint16_t CANerrorStatus;
+    int32_t errinfo;
     volatile bool_t CANnormal;
     int epoll_fd;               /* File descriptor for epoll, which waits for
                                    CAN receive event */

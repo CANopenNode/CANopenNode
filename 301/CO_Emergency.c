@@ -392,6 +392,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
     /* get and verify "Error register" from Object Dictionary */
     if (OD_getPtr_u8(OD_1001_errReg, 0, &em->errorRegister) != ODR_OK) {
+        CO_errinfo(CANdevTx, OD_getIndex(OD_1001_errReg));
         return CO_ERROR_OD_PARAMETERS;
     }
     *em->errorRegister = 0;
@@ -401,6 +402,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     uint32_t COB_IDEmergency32;
     ODR_t odRet0 = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
     if (odRet0 != ODR_OK || (COB_IDEmergency32 & 0x7FFFF800) != 0) {
+        CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -412,6 +414,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                              (void *) em,
                              OD_read_1014,
                              OD_write_1014)) {
+        CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
     }
     /* following two variables are used inside OD_read_1014 and OD_write_1014 */
@@ -428,6 +431,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                              (void *) em,
                              OD_read_1014_default,
                              OD_writeOriginal)) {
+        CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
     }
  #endif

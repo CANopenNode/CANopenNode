@@ -324,6 +324,7 @@ typedef struct {
     volatile uint16_t CANtxCount;      /**< Number of messages in transmit
             buffer, which are waiting to be copied to the CAN module */
     uint32_t errOld;                   /**< Previous state of CAN errors */
+    int32_t errinfo;                   /**< For use with @ref CO_errinfo() */
 } CO_CANmodule_t;
 
 
@@ -391,6 +392,24 @@ typedef struct {
 
 /** @} */
 #endif /* CO_DOXYGEN */
+
+
+/** Macro for passing additional information about error.
+ *
+ * This macro is called from several CANopen init functions, which returns
+ * @ref CO_ReturnError_t.
+ *
+ * CO_driver_target.h may implement this macro. Usually macro only sets
+ * CANmodule->errinfo to err. Application may then use CANmodule->errinfo to
+ * determine the reason of failure. errinfo must be type of int32_t. By default
+ * macro does not record anything.
+ *
+ * CO_errinfo is called in following @ref CO_ReturnError_t reasons:
+ * - 'CO_ERROR_OD_PARAMETERS' - Index of erroneous OD parameter.
+ */
+#ifndef CO_errinfo
+#define CO_errinfo(CANmodule, err)
+#endif
 
 
 /**

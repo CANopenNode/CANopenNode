@@ -500,7 +500,13 @@ int main (int argc, char *argv[]) {
                              SDO_TIMEOUT_TIME,  /* SDOtimeoutTime_ms */
                              CO_activeNodeId);
         if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
-            log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
+            if (err == CO_ERROR_OD_PARAMETERS) {
+                log_printf(LOG_CRIT, DBG_OD_ENTRY,
+                           (uint16_t)CO->CANmodule->errinfo);
+            }
+            else {
+                log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
+            }
             exit(EXIT_FAILURE);
         }
 

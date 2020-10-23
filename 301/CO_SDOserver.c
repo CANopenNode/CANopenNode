@@ -388,9 +388,11 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         if (!OD_extensionIO_init(OD_1200_SDOsrvPar,
                                  (void *) SDO,
                                  OD_read_1200_default,
-                                 NULL)) {
-        return CO_ERROR_OD_PARAMETERS;
-    }
+                                 NULL)
+        ) {
+            CO_errinfo(CANdevTx, OD_getIndex(OD_1200_SDOsrvPar));
+            return CO_ERROR_OD_PARAMETERS;
+        }
     }
     else if (OD_getIndex(OD_1200_SDOsrvPar) > OD_H1200_SDO_SERVER_1_PARAM
          && OD_getIndex(OD_1200_SDOsrvPar) <= (OD_H1200_SDO_SERVER_1_PARAM+0x7F)
@@ -409,6 +411,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         if (odRet0 != ODR_OK || (maxSubIndex != 2 && maxSubIndex != 3)
             || odRet1 != ODR_OK || odRet2 != ODR_OK
         ) {
+            CO_errinfo(CANdevTx, OD_getIndex(OD_1200_SDOsrvPar));
             return CO_ERROR_OD_PARAMETERS;
         }
 
@@ -422,9 +425,11 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         if (!OD_extensionIO_init(OD_1200_SDOsrvPar,
                                  (void *) SDO,
                                  OD_readOriginal,
-                                 OD_write_1201_additional)) {
-        return CO_ERROR_OD_PARAMETERS;
-    }
+                                 OD_write_1201_additional)
+        ) {
+            CO_errinfo(CANdevTx, OD_getIndex(OD_1200_SDOsrvPar));
+            return CO_ERROR_OD_PARAMETERS;
+        }
 #endif
     }
     else {

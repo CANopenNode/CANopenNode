@@ -126,6 +126,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     /* get and verify required "Producer heartbeat time" from Object Dict. */
     uint16_t HBprodTime_ms;
     if (OD_get_u16(OD_1017_ProducerHbTime, 0, &HBprodTime_ms, true) != ODR_OK) {
+        CO_errinfo(NMT_CANdevRx, OD_getIndex(OD_1017_ProducerHbTime));
         return CO_ERROR_OD_PARAMETERS;
     }
     NMT->HBproducerTime_us = (uint32_t)HBprodTime_ms * 1000;

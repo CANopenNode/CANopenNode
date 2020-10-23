@@ -182,6 +182,10 @@ extern "C" {
 #endif
 
 
+/* Macro for passing additional information about error, see CO_driver.h. */
+#define CO_errinfo(CANmodule, err) CANmodule->errinfo = err
+
+
 /* Basic definitions. If big endian, CO_SWAP_xx macros must swap bytes. */
 #define CO_LITTLE_ENDIAN
 #define CO_SWAP_16(x) x
@@ -234,6 +238,7 @@ typedef struct {
     volatile bool_t firstCANtxMessage;
     volatile uint16_t CANtxCount;
     uint32_t errOld;
+    int32_t errinfo;
 } CO_CANmodule_t;
 
 

@@ -284,6 +284,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
     if (odRet0 != ODR_OK || maxSubIndex != 3
         || odRet1 != ODR_OK || odRet2 != ODR_OK || odRet3 != ODR_OK
     ) {
+        CO_errinfo(CANdevTx, OD_getIndex(OD_1280_SDOcliPar));
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -292,6 +293,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
                              (void *)SDO_C,
                              OD_readOriginal,
                              OD_write_1280)) {
+        CO_errinfo(CANdevTx, OD_getIndex(OD_1280_SDOcliPar));
         return CO_ERROR_OD_PARAMETERS;
     }
 
