@@ -73,24 +73,27 @@ static void CO_LSSslave_receive(void *object, void *msg)
             }
         }
         else if(LSSslave->lssState == CO_LSS_STATE_WAITING) {
-            uint32_t valSw;
             switch (cs) {
             case CO_LSS_SWITCH_STATE_SEL_VENDOR: {
+                uint32_t valSw;
                 memcpy(&valSw, &data[1], sizeof(valSw));
                 LSSslave->lssSelect.identity.vendorID = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_PRODUCT: {
+                uint32_t valSw;
                 memcpy(&valSw, &data[1], sizeof(valSw));
                 LSSslave->lssSelect.identity.productCode = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_REV: {
+                uint32_t valSw;
                 memcpy(&valSw, &data[1], sizeof(valSw));
                 LSSslave->lssSelect.identity.revisionNumber = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_SERIAL: {
+                uint32_t valSw;
                 memcpy(&valSw, &data[1], sizeof(valSw));
                 LSSslave->lssSelect.identity.serialNumber = CO_SWAP_32(valSw);
 
