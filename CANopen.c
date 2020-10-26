@@ -1320,6 +1320,14 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     bool_t NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
                                     || NMTstate == CO_NMT_OPERATIONAL);
 
+    /* SDOserver */
+    for (uint8_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
+        CO_SDOserver_process(co->SDOserver,
+                             NMTisPreOrOperational,
+                             timeDifference_us,
+                             timerNext_us);
+    }
+
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     if (CO_GET_CNT(HB_CONS) == 1) {
         CO_HBconsumer_process(co->HBcons,
@@ -1335,14 +1343,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                       NMTisPreOrOperational,
                       timeDifference_us,
                       timerNext_us);
-    }
-
-    /* SDOserver */
-    for (uint8_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
-        CO_SDOserver_process(co->SDOserver,
-                             NMTisPreOrOperational,
-                             timeDifference_us,
-                             timerNext_us);
     }
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE

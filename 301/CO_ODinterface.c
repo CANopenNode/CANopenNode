@@ -255,7 +255,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     else if (odBasicType == ODT_REC) {
         const OD_obj_record_t *odoArr = (const OD_obj_record_t *)odObjectOrig;
         const OD_obj_record_t *odo = NULL;
-        for (int i; i< entry->subEntriesCount; i++) {
+        for (int i = 0; i< entry->subEntriesCount; i++) {
             if (odoArr[i].subIndex == subIndex) {
                 odo = &odoArr[i];
                 break;

@@ -130,10 +130,14 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
         return CO_ERROR_OD_PARAMETERS;
     }
     NMT->HBproducerTime_us = (uint32_t)HBprodTime_ms * 1000;
-    OD_extensionIO_init(OD_1017_ProducerHbTime,
-                        (void *) NMT,
-                        OD_readOriginal,
-                        OD_write_1017);
+    if (!OD_extensionIO_init(OD_1017_ProducerHbTime,
+                             (void *) NMT,
+                             OD_readOriginal,
+                             OD_write_1017)
+    ) {
+        CO_errinfo(HB_CANdevTx, OD_getIndex(OD_1017_ProducerHbTime));
+        return CO_ERROR_OD_PARAMETERS;
+    }
     if (NMT->HBproducerTimer > NMT->HBproducerTime_us) {
         NMT->HBproducerTimer = NMT->HBproducerTime_us;
     }

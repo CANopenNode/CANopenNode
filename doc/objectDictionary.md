@@ -504,7 +504,7 @@ Other elements listed in the above XML example are required by the standard and 
 | 1014  | COB-ID EMCY                   | EM_PRODUCER, req     | required       | EM_PROD       |
 | 1015  | Inhibit time EMCY             | EM_PROD_INHIBIT, opt | optional       |               |
 | 1016  | Consumer heartbeat time       | HB_CONS, req         | optional       | HB_CONS       |
-| 1017  | Producer heartbeat time       | CANopen, NMT, req    | optional       | HB_PROD       |
+| 1017  | Producer heartbeat time       | CANopen, NMT, req    | required       | HB_PROD       |
 | 1018  | Identity object               | CANopen, LSS_SL, req | no             |               |
 | 1019  | Synch. counter overflow value | SYNC, opt            | no             |               |
 | 1020  | Verify configuration          |                      |                |               |
