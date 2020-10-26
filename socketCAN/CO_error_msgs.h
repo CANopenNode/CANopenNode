@@ -70,7 +70,7 @@ extern "C" {
 /* mainline */
 #define DBG_EMERGENCY_RX          "CANopen Emergency message from node 0x%02X: errorCode=0x%04X, errorRegister=0x%02X, errorBit=0x%02X, infoCode=0x%08X"
 #define DBG_NMT_CHANGE            "CANopen NMT state changed to: \"%s\" (%d)"
-#define DBG_HB_CONS_NMT_CHANGE    "CANopen Remote node ID = 0x%02X: NMT state changed to: \"%s\" (%d)"
+#define DBG_HB_CONS_NMT_CHANGE    "CANopen Remote node ID = 0x%02X (index = %d): NMT state changed to: \"%s\" (%d)"
 #define DBG_ARGUMENT_UNKNOWN      "(%s) Unknown %s argument: \"%s\"", __func__
 #define DBG_NOT_TCP_PORT          "(%s) -c argument \"%s\" is not a valid tcp port", __func__
 #define DBG_WRONG_NODE_ID         "(%s) Wrong node ID \"%d\"", __func__
