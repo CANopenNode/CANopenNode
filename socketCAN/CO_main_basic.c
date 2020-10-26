@@ -549,10 +549,10 @@ int main (int argc, char *argv[]) {
 #ifdef CO_SINGLE_THREAD
             CO_epoll_processRT(&epMain, CO, false);
 #endif
-            CO_epoll_processMain(&epMain, CO, &reset);
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
             CO_epoll_processGtw(&epGtw, CO, &epMain);
 #endif
+            CO_epoll_processMain(&epMain, CO, &reset);
             CO_epoll_processLast(&epMain);
 
 #ifdef CO_USE_APPLICATION

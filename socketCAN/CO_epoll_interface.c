@@ -533,10 +533,6 @@ void CO_epoll_processGtw(CO_epoll_gtw_t *epGtw,
         && (ep->ev.data.fd == epGtw->gtwa_fdSocket
             || ep->ev.data.fd == epGtw->gtwa_fd)
     ) {
-        if ((ep->ev.events & (EPOLLERR | EPOLLHUP)) != 0) {
-            log_printf(LOG_DEBUG, DBG_GENERAL,
-                       "socket error or hangup, event=", ep->ev.events);
-        }
         if ((ep->ev.events & EPOLLIN) != 0
              && ep->ev.data.fd == epGtw->gtwa_fdSocket
         ) {
@@ -625,6 +621,13 @@ void CO_epoll_processGtw(CO_epoll_gtw_t *epGtw,
             epGtw->socketTimeoutTmr_us = 0;
 
             ep->epoll_new = false;
+        }
+        else if ((ep->ev.events & (EPOLLERR | EPOLLHUP)) != 0) {
+            log_printf(LOG_DEBUG, DBG_GENERAL,
+                       "socket error or hangup, event=", ep->ev.events);
+            if (close(epGtw->gtwa_fd) < 0) {
+                log_printf(LOG_CRIT, DBG_ERRNO, "close(gtwa_fd, hangup)");
+            }
         }
     } /* if (ep->epoll_new) */
 
