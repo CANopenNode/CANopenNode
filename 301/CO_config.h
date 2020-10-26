@@ -135,16 +135,19 @@ extern "C" {
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_HBconsumer_process().
  * - CO_CONFIG_HB_CONS_ENABLE - Enable heartbeat consumer.
- * - CO_CONFIG_HB_CONS_CALLBACK_CHANGE - Enable custom callback after NMT
+ * - CO_CONFIG_HB_CONS_CALLBACK_CHANGE - Enable custom common callback after NMT
  *   state of the monitored node changes. Callback is configured by
  *   CO_HBconsumer_initCallbackNmtChanged().
  * - CO_CONFIG_HB_CONS_CALLBACK_MULTI - Enable multiple custom callbacks, which
- *   can be configured for each monitored node. Callback are configured by
+ *   can be configured individually for each monitored node. Callbacks are
+ *   configured by CO_HBconsumer_initCallbackNmtChanged(),
  *   CO_HBconsumer_initCallbackHeartbeatStarted(),
  *   CO_HBconsumer_initCallbackTimeout() and
  *   CO_HBconsumer_initCallbackRemoteReset() functions.
  * - CO_CONFIG_HB_CONS_QUERY_FUNCT - Enable functions for query HB state or
  *   NMT state of the specific monitored node.
+ * Note that CO_CONFIG_HB_CONS_CALLBACK_CHANGE and
+ * CO_CONFIG_HB_CONS_CALLBACK_MULTI cannot be set simultaneously.
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE)

@@ -186,13 +186,13 @@ static void NmtChangedCallback(CO_NMT_internalState_t state)
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
 /* callback for monitoring Heartbeat remote NMT state change */
-static void HeartbeatNmtChangedCallback(uint8_t nodeId,
+static void HeartbeatNmtChangedCallback(uint8_t nodeId, uint8_t idx,
                                         CO_NMT_internalState_t state,
                                         void *object)
 {
     (void)object;
     log_printf(LOG_NOTICE, DBG_HB_CONS_NMT_CHANGE,
-               nodeId, NmtState2Str(state), state);
+               nodeId, idx, NmtState2Str(state), state);
 }
 #endif
 
