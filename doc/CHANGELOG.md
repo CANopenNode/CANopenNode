@@ -4,7 +4,6 @@ Change Log
 [Unreleased master]
 -------------------------
 - [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/v1.3...master)
-- See {TODO diff} for example of change in user application interface.
 ### Removed
 - All drivers removed from this project, except Neuberger-socketCAN for Linux.
 ### Changed
@@ -38,7 +37,7 @@ Change Log
 ### Added
 - Documentation added to `doc` directory: CHANGELOG.md, deviceSupport.md, gettingStarted.md, LSSusage.md and traceUsage.md.
 - All CANopen objects calculates next timer info for OS. Useful for energy saving.
-- Added file CO_config.h for stack configuration. Can be overridden by target specific or by custom definitions.
+- Added file CO_config.h for stack configuration. Can be overridden by target specific or by custom definitions. It enables/disables whole CanOpenNode objects or parts of them. It also specifies some constants.
 - CO_fifo.h/c for fifo data buffer, used with rewritten SDO client, etc.
 - CANopen gateway-ascii command interface according to CiA309-3 as a microcontroller independent module. It includes NMT master, LSS master and SDO client interface. Interface is non-blocking, it is added to mainline. Example for Linux stdio and socket is included.
 

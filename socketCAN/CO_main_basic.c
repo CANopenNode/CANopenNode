@@ -166,6 +166,7 @@ static void NmtChangedCallback(CO_NMT_internalState_t state)
     log_printf(LOG_NOTICE, DBG_NMT_CHANGE, NmtState2Str(state), state);
 }
 
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
 /* callback for monitoring Heartbeat remote NMT state change */
 static void HeartbeatNmtChangedCallback(uint8_t nodeId, uint8_t idx,
                                         CO_NMT_internalState_t state,
@@ -175,6 +176,7 @@ static void HeartbeatNmtChangedCallback(uint8_t nodeId, uint8_t idx,
     log_printf(LOG_NOTICE, DBG_HB_CONS_NMT_CHANGE,
                nodeId, idx, NmtState2Str(state), state);
 }
+#endif
 
 #if CO_OD_STORAGE == 1
 /* callback for storing node id and bitrate */
@@ -371,6 +373,7 @@ int main (int argc, char *argv[]) {
     }
 
 
+#if CO_OD_STORAGE == 1
     /* Verify, if OD structures have proper alignment of initial values */
     if(CO_OD_RAM.FirstWord != CO_OD_RAM.LastWord) {
         log_printf(LOG_CRIT, DBG_OBJECT_DICTIONARY, "CO_OD_RAM");
@@ -386,7 +389,6 @@ int main (int argc, char *argv[]) {
     }
 
 
-#if CO_OD_STORAGE == 1
     /* initialize Object Dictionary storage */
     odStorStatus_rom = CO_OD_storage_init(&odStor, (uint8_t*) &CO_OD_ROM, sizeof(CO_OD_ROM), odStorFile_rom);
     odStorStatus_eeprom = CO_OD_storage_init(&odStorAuto, (uint8_t*) &CO_OD_EEPROM, sizeof(CO_OD_EEPROM), odStorFile_eeprom);
@@ -479,8 +481,10 @@ int main (int argc, char *argv[]) {
         if(!CO->nodeIdUnconfigured) {
             CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
             CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
             CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
                                                  HeartbeatNmtChangedCallback);
+#endif
 #if CO_OD_STORAGE == 1
             /* initialize OD objects 1010 and 1011 and verify errors. */
             CO_OD_configure(CO->SDO[0], OD_H1010_STORE_PARAM_FUNC, CO_ODF_1010, (void*)&odStor, 0, 0U);
