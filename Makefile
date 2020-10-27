@@ -47,11 +47,11 @@ SOURCES = \
 
 OBJS = $(SOURCES:%.c=%.o)
 CC ?= gcc
-OPT = -g -pedantic
-#OPT = -g -pedantic -fanalyzer
-#OPT = -g -pedantic -DCO_USE_GLOBALS
-#OPT = -g -pedantic -DCO_MULTIPLE_OD
-#OPT = -g -pedantic -DCO_SINGLE_THREAD
+OPT = -g
+#OPT = -g -pedantic -Wshadow -fanalyzer
+#OPT = -g -DCO_USE_GLOBALS
+#OPT = -g -DCO_MULTIPLE_OD
+#OPT = -g -DCO_SINGLE_THREAD
 CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
 LDFLAGS = -pthread
 #LDFLAGS =

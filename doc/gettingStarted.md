@@ -158,13 +158,15 @@ Please be careful when exposing your CANopen network to the outside world, it is
 
 
 ### Next steps
-Now you can enter the big world of [CANopen devices](http://can-newsletter.org/hardware).
-
-You can also build your own CANopen device with your favourite microcontroller, see *deviceSupport.md*. There is also a bare-metal demo for [PIC microcontrollers](https://github.com/CANopenNode/CANopenPIC), most complete example is for PIC32.
-
 Assigning Node-ID or CAN bitrate, which support LSS configuration, is described in *LSSusage.md*.
 
 Some further CANopenNode related Linux tools are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket).
+
+Custom CANopen device can be created based on own Object Dictionary. Use *EDSEditor.exe* from https://github.com/robincornelius/libedssharp to generate one. It runs in Linux or Windows. For principles see *objectDictionary.md*. There are also many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download, for example CiA401.
+
+For own CANopen device with own microcontroller, see *deviceSupport.md*. There is a bare-metal demo for [PIC microcontrollers](https://github.com/CANopenNode/CANopenPIC), most complete example is for PIC32.
+
+Another interesting tool is [CANopen for Python](https://github.com/christiansandberg/canopen).
 
 Accessing real CANopen devices is the same as described above for virtual CAN interface. Some tested USB to CAN interfaces, which are native in Linux kernel are:
  - Simple serial [USBtin](http://www.fischl.de/usbtin/) - Start with: `sudo slcand -f -o -c -s8 /dev/ttyACM0 can0; sudo ip link set up can0`
@@ -172,7 +174,6 @@ Accessing real CANopen devices is the same as described above for virtual CAN in
  - You can get the idea of other supported CAN interfaces in [Linux kernel source](https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can) (Kconfig files).
  - Raspberry PI or similar has CAN capes available.
 
-With [CANopenNode](https://github.com/CANopenNode/CANopenNode) you can also design your own device. There are many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download.
+Now you can enter the big world of [CANopen devices](http://can-newsletter.org/hardware).
 
-Here we played with virtual CAN interface and result shows as pixels on screen. If you connect real CAN interface to your computer, things may
-become dangerous. Keep control and safety on your machines!
+Here we played with virtual CAN interface and result shown as pixels on screen. If you connect a real CAN interface to your computer, things may become dangerous. Keep control and safety on your machines!

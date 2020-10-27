@@ -721,8 +721,8 @@ void CO_delete(CO_t *co) {
  #endif
     static CO_t COO;
     static CO_CANmodule_t COO_CANmodule;
-    static CO_CANrx_t COO_CANmodule_rxArray[OD_CNT_ALL_RX_MSGS];
-    static CO_CANtx_t COO_CANmodule_txArray[OD_CNT_ALL_TX_MSGS];
+    static CO_CANrx_t COO_CANmodule_rxArray[CO_CNT_ALL_RX_MSGS];
+    static CO_CANtx_t COO_CANmodule_txArray[CO_CNT_ALL_TX_MSGS];
     static CO_NMT_t COO_NMT;
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     static CO_HBconsumer_t COO_HBcons;
