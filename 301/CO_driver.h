@@ -89,6 +89,11 @@ extern "C" {
  * (or interrupts), CAN module, etc.).
  */
 
+/** Major version number of CANopenNode */
+#define CO_VERSION_MAJOR 3
+/** Minor version number of CANopenNode */
+#define CO_VERSION_MINOR 0
+
 
 /* Macros and declarations in following part are only used for documentation. */
 #ifdef CO_DOXYGEN
