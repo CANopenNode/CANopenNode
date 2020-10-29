@@ -90,7 +90,7 @@ extern "C" {
  */
 
 /** Major version number of CANopenNode */
-#define CO_VERSION_MAJOR 3
+#define CO_VERSION_MAJOR 4
 /** Minor version number of CANopenNode */
 #define CO_VERSION_MINOR 0
 
