@@ -821,6 +821,7 @@ WARN_LOGFILE           =
 
 INPUT                  = README.md \
                          doc \
+                         example/DS301_profile.md \
                          CANopen.h \
                          301 \
                          303 \

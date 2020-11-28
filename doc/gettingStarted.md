@@ -30,6 +30,7 @@ Then clone [CANopenNode](https://github.com/CANopenNode/CANopenNode) from Github
     sudo apt-get install can-utils
     git clone https://github.com/CANopenNode/CANopenNode.git
     cd CANopenNode
+    # For update just use 'git pull' here
     make
 
 Now prepare CAN virtual device and run _candump_, which will show all CAN traffic. Use a second terminal:
@@ -51,14 +52,12 @@ You are now running a fully functional CANopen device on virtual CAN network. It
 
 On the second terminal you can see some CAN traffic. After _canopend_ startup, first messages are:
 
-    vcan0  704   [1]  00                        # Bootup message.
+    vcan0  704   [1]  00                        # Boot-up message.
     vcan0  084   [8]  00 50 01 2F F3 FF FF FF   # Emergency message.
-    vcan0  704   [1]  7F                        # Heartbeat messages each second
-    vcan0  704   [1]  7F
 
-Bootup and Heartbeat messages of node 4 have CAN-ID equal to 0x704. CAN-ID is 11-bit standard CAN identifier. 0x7F in heartbeat message means, that node is in NMT pre-operational state.
+Boot-up message of node 4 have CAN-ID equal to 0x704. CAN-ID is 11-bit standard CAN identifier.
 
-Also, both, first and second terminal shows, that there is an Emergency message after the bootup. Also Heartbeat messages shows NMT pre-operational state.
+Also, both, first and second terminal shows, that there is an Emergency message after the boot-up. Also Heartbeat messages shows NMT pre-operational state.
 
 The easiest way to find the reason of the emergency message is to check the byte 4 (errorBit). It has value of 0x2F. Go to CANopenNode source code and open the file "301/CO_Emergency.h", section "Error status bits". 0x2F means "CO_EM_NON_VOLATILE_MEMORY", which is generic, critical error with access to non volatile device memory.
 
@@ -70,11 +69,9 @@ You can follow the reason of the problem inside the source code. However, there 
     echo "-" > od4_storage_auto
     ./canopend vcan0 -i 4 -s od4_storage -a od4_storage_auto
 
-Second terminal now shows operational state (0x05) and one pre-defined PDO message with CAN-ID 0x184 and two bytes of data. To learn more about PDOs, how to configure communication and mapping parameters and how to use them see other sources of CANopen documentation. For example, you can read the article of PDO re-mapping procedure in [CAN newsletter magazine, June 2016](http://can-newsletter.org/engineering/engineering-miscellaneous/160601_can-newsletter-magazine-june-2016).
+Second terminal now shows new boot-up message without emergency.
 
     vcan0  704   [1]  00
-    vcan0  184   [2]  00 00     # PDO message
-    vcan0  704   [1]  05
 
 
 ### Second CANopen device
@@ -84,7 +81,7 @@ Open the third terminal and cd to the same directory as is in the first terminal
     echo "-" > od_storage_auto
     ./canopend vcan0 -i1 -c "stdio"
 
-Now you should see in second terminal (_candump_) two CANopen devices sending heartbeats in one second interval each. One with node-ID = 4 and one with node-ID = 1. Both should be operational.
+Now you should see in second terminal (_candump_) boot-up message of new CANopen device.
 
 
 ### CANopen command interface
@@ -98,16 +95,18 @@ For example read Heartbeat producer parameter on CANopen device with ID=4. Param
 
     [1] 4 read 0x1017 0 u16
 
-You should see the response, which says that Heartbeats are transmitted in 1000 ms intervals:
+You should see the response, which says that Heartbeats are disabled:
 
-    [1] 1000
+    [1] 0
 
 In CAN dump you can see some SDO communication. SDO communication can be quite complicated, if observing on _candump_, especially if larger data is split between multiple segments. However, there is no need to know the details, everything should work correctly in the background. Details about SDO communication can be found in CiA301 standard and partly also in 301/CO_SDOserver.h file, description of CO_SDO_state_t enumerator.
 
     [2] 4 write 0x1017 0 u16 5000
     [2] OK      #response
 
-In _candump_ you will notice, that heartbeats from node 4 are coming in 5 second interval now. You can do the same also for node 1, but you won't see anything on _candump_, because data are written into itself directly. In "stdio" you can omit sequence number, to make typing easier.
+In _candump_ you will notice, that heartbeats from node 4 are coming in 5 second interval now. Heartbeat message is similar to boot-up message. 0x7F in heartbeat message means, that node is in NMT pre-operational state. 0x05 means operational and 0x04 means stopped.
+
+You can do the same also for node 1, but you won't see SDO messages on _candump_, because data are written into itself directly. In "stdio" you can omit sequence number, to make typing easier.
 
     1 w 0x1017 0 u16 2500
     [0] OK
@@ -117,7 +116,7 @@ Now store Object dictionary on node-ID 4, so it will preserve variables on next 
     4 w 0x1010 1 u32 0x65766173
     [0] OK
 
-More details about Object dictionary variables can be found in CiA301 standard or in example/IO.html file.
+More details about Object dictionary variables can be found in CiA301 standard or in example/DS301_profile.md file.
 
 
 #### NMT master
@@ -126,10 +125,10 @@ If node is operational (started), it can exchange all objects, including PDO, SD
     set node 4
     [0] OK
 
-    preop
+    start
     [0] OK
 
-    start
+    preop
     [0] OK
 
     stop
@@ -139,6 +138,9 @@ If node is operational (started), it can exchange all objects, including PDO, SD
     [0] ERROR: 0x05040000 #SDO protocol timed out.
 
     reset communication
+    [0] OK
+
+    0 start
     [0] OK
 
     reset node
@@ -162,7 +164,7 @@ Assigning Node-ID or CAN bitrate, which support LSS configuration, is described 
 
 Some further CANopenNode related Linux tools are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket).
 
-Custom CANopen device can be created based on own Object Dictionary. Use *EDSEditor.exe* from https://github.com/robincornelius/libedssharp to generate one. It runs in Linux or Windows. For principles see *objectDictionary.md*. There are also many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download, for example CiA401.
+Custom CANopen device can be created based on own Object Dictionary, see README.md. There are also many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download, for example CiA401.
 
 For own CANopen device with own microcontroller, see *deviceSupport.md*. There is a bare-metal demo for [PIC microcontrollers](https://github.com/CANopenNode/CANopenPIC), most complete example is for PIC32.
 
