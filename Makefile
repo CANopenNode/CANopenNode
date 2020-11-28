@@ -3,8 +3,7 @@
 
 DRV_SRC = socketCAN
 CANOPEN_SRC = .
-OD_SRC = example
-APPL_SRC = socketCAN
+APPL_SRC = example
 
 
 LINK_TARGET = canopend
@@ -13,7 +12,6 @@ LINK_TARGET = canopend
 INCLUDE_DIRS = \
 	-I$(DRV_SRC) \
 	-I$(CANOPEN_SRC) \
-	-I$(OD_SRC) \
 	-I$(APPL_SRC)
 
 #	$(DRV_SRC)/CO_OD_storage.c \
@@ -41,22 +39,21 @@ SOURCES = \
 	$(CANOPEN_SRC)/309/CO_gateway_ascii.c \
 	$(CANOPEN_SRC)/extra/CO_trace.c \
 	$(CANOPEN_SRC)/CANopen.c \
-	$(OD_SRC)/OD.c \
-	$(APPL_SRC)/CO_main_basic.c
+	$(APPL_SRC)/OD.c \
+	$(DRV_SRC)/CO_main_basic.c
 
 
 OBJS = $(SOURCES:%.c=%.o)
 CC ?= gcc
-OPT = -g
+OPT = -g -DCO_SINGLE_THREAD
 #OPT = -g -pedantic -Wshadow -fanalyzer
 #OPT = -g -DCO_USE_GLOBALS
 #OPT = -g -DCO_MULTIPLE_OD
-#OPT = -g -DCO_SINGLE_THREAD
 CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
-LDFLAGS = -pthread
-#LDFLAGS =
+LDFLAGS =
+#LDFLAGS = -pthread
 
-#Options can be passed via make: 'make OPT="-g -DCO_SINGLE_THREAD" LDFLAGS=""'
+#Options can be also passed via make: 'make OPT="-g" LDFLAGS="-pthread"'
 
 
 .PHONY: all clean

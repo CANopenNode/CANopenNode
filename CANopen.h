@@ -31,20 +31,58 @@
 #include "301/CO_driver.h"
 #include "301/CO_ODinterface.h"
 #include "301/CO_NMT_Heartbeat.h"
+
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) || defined CO_DOXYGEN
 #include "301/CO_HBconsumer.h"
+#endif
+
 #include "301/CO_Emergency.h"
 #include "301/CO_SDOserver.h"
+
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) || defined CO_DOXYGEN
 #include "301/CO_SDOclient.h"
+#endif
+
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) || defined CO_DOXYGEN
 #include "301/CO_SYNC.h"
+#endif
+
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE)) || defined CO_DOXYGEN
 #include "301/CO_PDO.h"
+#endif
+
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) || defined CO_DOXYGEN
 #include "301/CO_TIME.h"
+#endif
+
+#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
 #include "303/CO_LEDs.h"
+#endif
+
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || defined CO_DOXYGEN
 #include "304/CO_GFC.h"
+#endif
+
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
 #include "304/CO_SRDO.h"
+#endif
+
+#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) || defined CO_DOXYGEN
 #include "305/CO_LSSslave.h"
+#endif
+
+#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) || defined CO_DOXYGEN
 #include "305/CO_LSSmaster.h"
+#endif
+
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
 #include "309/CO_gateway_ascii.h"
+#endif
+
+#if ((CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE) || defined CO_DOXYGEN
 #include "extra/CO_trace.h"
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {
