@@ -352,7 +352,8 @@ void CO_HBconsumer_process(
     uint8_t allMonitoredOperationalCurrent = CO_NMT_OPERATIONAL;
 
     if (NMTisPreOrOperational && HBcons->NMTisPreOrOperationalPrev) {
-        for (uint8_t i=0; i<HBcons->numberOfMonitoredNodes; i++) {
+        uint8_t i = 0;
+        for (i=0; i<HBcons->numberOfMonitoredNodes; i++) {
             uint32_t timeDifference_us_copy = timeDifference_us;
             CO_HBconsNode_t * const monitoredNode = &HBcons->monitoredNodes[i];
 
@@ -456,8 +457,9 @@ void CO_HBconsumer_process(
         }
     }
     else if (NMTisPreOrOperational || HBcons->NMTisPreOrOperationalPrev) {
+        uint8_t i = 0;
         /* (pre)operational state changed, clear variables */
-        for(uint8_t i=0; i<HBcons->numberOfMonitoredNodes; i++) {
+        for(i=0; i<HBcons->numberOfMonitoredNodes; i++) {
             CO_HBconsNode_t * const monitoredNode = &HBcons->monitoredNodes[i];
             monitoredNode->NMTstate = CO_NMT_UNKNOWN;
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE \
