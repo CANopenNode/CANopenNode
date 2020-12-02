@@ -472,7 +472,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
 #if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES
 /******************************************************************************/
 size_t CO_fifo_readU82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    uint8_t n;
+    uint8_t n=0;
 
     if (fifo != NULL && count >= 6 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -484,7 +484,7 @@ size_t CO_fifo_readU82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readU162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    uint16_t n;
+    uint16_t n=0;
 
     if (fifo != NULL && count >= 8 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -496,7 +496,7 @@ size_t CO_fifo_readU162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readU322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    uint32_t n;
+    uint32_t n=0;
 
     if (fifo != NULL && count >= 12 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -508,7 +508,7 @@ size_t CO_fifo_readU322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readU642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    uint64_t n;
+    uint64_t n=0;
 
     if (fifo != NULL && count >= 20 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -520,7 +520,7 @@ size_t CO_fifo_readU642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readX82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    uint8_t n;
+    uint8_t n=0;
 
     if (fifo != NULL && count >= 6 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -532,7 +532,7 @@ size_t CO_fifo_readX82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readX162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    uint16_t n;
+    uint16_t n=0;
 
     if (fifo != NULL && count >= 8 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -544,7 +544,7 @@ size_t CO_fifo_readX162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readX322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    uint32_t n;
+    uint32_t n=0;
 
     if (fifo != NULL && count >= 12 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -556,7 +556,7 @@ size_t CO_fifo_readX322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readX642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    uint64_t n;
+    uint64_t n=0;
 
     if (fifo != NULL && count >= 20 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -568,7 +568,7 @@ size_t CO_fifo_readX642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readI82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    int8_t n;
+    int8_t n=0;
 
     if (fifo != NULL && count >= 6 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -580,7 +580,7 @@ size_t CO_fifo_readI82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readI162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    int16_t n;
+    int16_t n=0;
 
     if (fifo != NULL && count >= 8 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -592,7 +592,7 @@ size_t CO_fifo_readI162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readI322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    int32_t n;
+    int32_t n=0;
 
     if (fifo != NULL && count >= 13 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -604,7 +604,7 @@ size_t CO_fifo_readI322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readI642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    int64_t n;
+    int64_t n=0;
 
     if (fifo != NULL && count >= 23 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -616,7 +616,7 @@ size_t CO_fifo_readI642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readR322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    float32_t n;
+    float32_t n=0;
 
     if (fifo != NULL && count >= 20 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
@@ -628,7 +628,7 @@ size_t CO_fifo_readR322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 size_t CO_fifo_readR642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
-    float64_t n;
+    float64_t n=0;
 
     if (fifo != NULL && count >= 30 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
         CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
