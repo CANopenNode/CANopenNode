@@ -109,7 +109,7 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
         odData += stream->dataOffset;
 
         if (dataLenToCopy > count) {
-            /* Reamining data space in OD variable is larger than current count
+            /* Remaining data space in OD variable is larger than current count
              * of data, so only current count of data will be copied */
             dataLenToCopy = count;
             stream->dataOffset += dataLenToCopy;
@@ -121,7 +121,7 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
     }
 
     if (dataLenToCopy < count) {
-        /* OD variable is smaller than current ammount of data */
+        /* OD variable is smaller than current amount of data */
         *returnCode = ODR_DATA_LONG;
         return 0;
     }
@@ -133,25 +133,25 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
     }
 }
 
-/* Read value from variable from Object Dictionary disabled, see OD_subEntry_t*/
+/* Read value from variable from Object Dictionary disabled, see OD_IO_t*/
 static OD_size_t OD_readDisabled(OD_stream_t *stream, uint8_t subIndex,
                                  void *buf, OD_size_t count,
                                  ODR_t *returnCode)
 {
     (void) stream; (void) subIndex; (void) buf; (void) count;
 
-    if (returnCode != NULL) *returnCode = ODR_WRITEONLY;
+    if (returnCode != NULL) *returnCode = ODR_UNSUPP_ACCESS;
     return 0;
 }
 
-/* Write value to variable from Object Dictionary disabled, see OD_subEntry_t */
+/* Write value to variable from Object Dictionary disabled, see OD_IO_t */
 static OD_size_t OD_writeDisabled(OD_stream_t *stream, uint8_t subIndex,
                                   const void *buf, OD_size_t count,
                                   ODR_t *returnCode)
 {
     (void) stream; (void) subIndex; (void) buf; (void) count;
 
-    if (returnCode != NULL) *returnCode = ODR_READONLY;
+    if (returnCode != NULL) *returnCode = ODR_UNSUPP_ACCESS;
     return 0;
 }
 
@@ -198,14 +198,15 @@ const OD_entry_t *OD_find(const OD_t *od, uint16_t index) {
 
 /******************************************************************************/
 ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
-                OD_subEntry_t *subEntry, OD_stream_t *stream, bool_t odOrig)
+                OD_subEntry_t *subEntry, OD_IO_t *io, bool_t odOrig)
 {
     if (entry == NULL || entry->odObject == NULL) return ODR_IDX_NOT_EXIST;
-    else if (subEntry == NULL || stream == NULL) return ODR_DEV_INCOMPAT;
+    else if (io == NULL) return ODR_DEV_INCOMPAT;
 
     const void *odObjectOrig = entry->odObject;
     const OD_obj_extended_t *odObjectExt = NULL;
     uint8_t odBasicType = entry->odObjectType & ODT_TYPE_MASK;
+    OD_attr_t attr = 0;
 
     /* Is object type extended? */
     if ((entry->odObjectType & ODT_EXTENSION_MASK) != 0) {
@@ -214,42 +215,35 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
         if (odObjectOrig == NULL) return ODR_DEV_INCOMPAT;
     }
 
-    /* common properties */
-    subEntry->index = entry->index;
-    subEntry->subIndex = subIndex;
-    subEntry->subEntriesCount = entry->subEntriesCount;
-    subEntry->flagsPDO = (odObjectExt != NULL ) ? odObjectExt->flagsPDO : NULL;
-    stream->dataOffset = 0;
-
     /* attribute, dataObjectOriginal and dataLength, depends on object type */
     if (odBasicType == ODT_VAR) {
         if (subIndex > 0) return ODR_SUB_NOT_EXIST;
         const OD_obj_var_t *odo = (const OD_obj_var_t *)odObjectOrig;
 
-        subEntry->attribute = odo->attribute;
-        stream->dataObjectOriginal = odo->data;
-        stream->dataLength = odo->dataLength;
+        attr = odo->attribute;
+        io->stream.dataObjectOriginal = odo->data;
+        io->stream.dataLength = odo->dataLength;
     }
     else if (odBasicType == ODT_ARR) {
         if (subIndex >= entry->subEntriesCount) return ODR_SUB_NOT_EXIST;
         const OD_obj_array_t *odo = (const OD_obj_array_t *)odObjectOrig;
 
         if (subIndex == 0) {
-            subEntry->attribute = odo->attribute0;
-            stream->dataObjectOriginal = odo->data0;
-            stream->dataLength = 1;
+            attr = odo->attribute0;
+            io->stream.dataObjectOriginal = odo->data0;
+            io->stream.dataLength = 1;
         }
         else {
-            subEntry->attribute = odo->attribute;
+            attr = odo->attribute;
             if (odo->data == NULL) {
-                stream->dataObjectOriginal = NULL;
+                io->stream.dataObjectOriginal = NULL;
             }
             else {
                 char *data = (char *)odo->data;
                 int i = subIndex - 1;
-                stream->dataObjectOriginal = data + odo->dataElementSizeof * i;
+                io->stream.dataObjectOriginal = data + odo->dataElementSizeof * i;
             }
-            stream->dataLength = odo->dataElementLength;
+            io->stream.dataLength = odo->dataElementLength;
         }
     }
     else if (odBasicType == ODT_REC) {
@@ -263,9 +257,9 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
         }
         if (odo == NULL) return ODR_SUB_NOT_EXIST;
 
-        subEntry->attribute = odo->attribute;
-        stream->dataObjectOriginal = odo->data;
-        stream->dataLength = odo->dataLength;
+        attr = odo->attribute;
+        io->stream.dataObjectOriginal = odo->data;
+        io->stream.dataLength = odo->dataLength;
     }
     else {
         return ODR_DEV_INCOMPAT;
@@ -273,17 +267,28 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
 
     /* read, write and dataObject, direct or with IO extension */
     if (odObjectExt == NULL || odObjectExt->extIO == NULL || odOrig) {
-        subEntry->read = OD_readOriginal;
-        subEntry->write = OD_writeOriginal;
-        stream->object = NULL;
+        io->read = OD_readOriginal;
+        io->write = OD_writeOriginal;
+        io->stream.object = NULL;
     }
     else {
-        subEntry->read = odObjectExt->extIO->read != NULL ?
-                         odObjectExt->extIO->read : OD_readDisabled;
-        subEntry->write = odObjectExt->extIO->write != NULL ?
-                          odObjectExt->extIO->write : OD_writeDisabled;
-        stream->object = odObjectExt->extIO->object;
+        io->read = odObjectExt->extIO->read != NULL ?
+                   odObjectExt->extIO->read : OD_readDisabled;
+        io->write = odObjectExt->extIO->write != NULL ?
+                    odObjectExt->extIO->write : OD_writeDisabled;
+        io->stream.object = odObjectExt->extIO->object;
     }
+
+    /* common properties */
+    if (subEntry != NULL) {
+        subEntry->index = entry->index;
+        subEntry->subIndex = subIndex;
+        subEntry->subEntriesCount = entry->subEntriesCount;
+        subEntry->attribute = attr;
+        subEntry->flagsPDO = odObjectExt != NULL ?
+                             odObjectExt->flagsPDO : NULL;
+    }
+    io->stream.dataOffset = 0;
 
     return ODR_OK;
 }
@@ -324,34 +329,34 @@ uint32_t OD_getSDOabCode(ODR_t returnCode) {
 }
 
 /******************************************************************************/
-bool_t OD_extensionIO_init(const OD_entry_t *entry,
-                           void *object,
-                           OD_size_t (*read)(OD_stream_t *stream,
+ODR_t OD_extensionIO_init(const OD_entry_t *entry,
+                          void *object,
+                          OD_size_t (*read)(OD_stream_t *stream,
+                                            uint8_t subIndex,
+                                            void *buf,
+                                            OD_size_t count,
+                                            ODR_t *returnCode),
+                          OD_size_t (*write)(OD_stream_t *stream,
                                              uint8_t subIndex,
-                                             void *buf,
+                                             const void *buf,
                                              OD_size_t count,
-                                             ODR_t *returnCode),
-                           OD_size_t (*write)(OD_stream_t *stream,
-                                              uint8_t subIndex,
-                                              const void *buf,
-                                              OD_size_t count,
-                                              ODR_t *returnCode))
+                                             ODR_t *returnCode))
 {
-    if (entry == NULL || (entry->odObjectType & ODT_EXTENSION_MASK) == 0) {
-        return false;
+    if (entry == NULL) {
+        return ODR_IDX_NOT_EXIST;
     }
 
     const OD_obj_extended_t *odo = (const OD_obj_extended_t *) entry->odObject;
 
-    if (odo->extIO == NULL) {
-        return false;
+    if ((entry->odObjectType & ODT_EXTENSION_MASK) == 0 || odo->extIO == NULL) {
+        return ODR_PAR_INCOMPAT;
     }
 
     odo->extIO->object = object;
     odo->extIO->read = read;
     odo->extIO->write = write;
 
-    return true;
+    return ODR_OK;
 }
 
 
@@ -359,110 +364,120 @@ bool_t OD_extensionIO_init(const OD_entry_t *entry,
 ODR_t OD_get_i8(const OD_entry_t *entry, uint8_t subIndex,
                 int8_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_i16(const OD_entry_t *entry, uint8_t subIndex,
                  int16_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_i32(const OD_entry_t *entry, uint8_t subIndex,
                  int32_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_i64(const OD_entry_t *entry, uint8_t subIndex,
                  int64_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_u8(const OD_entry_t *entry, uint8_t subIndex,
                 uint8_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_u16(const OD_entry_t *entry, uint8_t subIndex,
                  uint16_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_u32(const OD_entry_t *entry, uint8_t subIndex,
                  uint32_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_u64(const OD_entry_t *entry, uint8_t subIndex,
                  uint64_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_r32(const OD_entry_t *entry, uint8_t subIndex,
                  float32_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
 ODR_t OD_get_r64(const OD_entry_t *entry, uint8_t subIndex,
                  float64_t *val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(*val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.read(&st, subIndex, val, sizeof(*val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(*val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.read(&io.stream, subIndex, val, sizeof(*val), &ret);
     return ret;
 }
 
@@ -470,210 +485,304 @@ ODR_t OD_get_r64(const OD_entry_t *entry, uint8_t subIndex,
 ODR_t OD_set_i8(const OD_entry_t *entry, uint8_t subIndex,
                 int8_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_i16(const OD_entry_t *entry, uint8_t subIndex,
                  int16_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_i32(const OD_entry_t *entry, uint8_t subIndex,
                  int32_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_i64(const OD_entry_t *entry, uint8_t subIndex,
                  int64_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_u8(const OD_entry_t *entry, uint8_t subIndex,
                 uint8_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_u16(const OD_entry_t *entry, uint8_t subIndex,
                  uint16_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_u32(const OD_entry_t *entry, uint8_t subIndex,
                  uint32_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_u64(const OD_entry_t *entry, uint8_t subIndex,
                  uint64_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_r32(const OD_entry_t *entry, uint8_t subIndex,
                  float32_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 ODR_t OD_set_r64(const OD_entry_t *entry, uint8_t subIndex,
                  float64_t val, bool_t odOrig)
 {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, odOrig);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, odOrig);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(val)) ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) subEntry.write(&st, subIndex, &val, sizeof(val), &ret);
+    if (ret == ODR_OK && io.stream.dataLength != sizeof(val))
+        ret = ODR_TYPE_MISMATCH;
+    if (ret == ODR_OK) io.write(&io.stream, subIndex, &val, sizeof(val), &ret);
     return ret;
 }
 
 /******************************************************************************/
 ODR_t OD_getPtr_i8(const OD_entry_t *entry, uint8_t subIndex, int8_t **val) {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (int8_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (int8_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_i16(const OD_entry_t *entry, uint8_t subIndex, int16_t **val) {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (int16_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (int16_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_i32(const OD_entry_t *entry, uint8_t subIndex, int32_t **val) {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (int32_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (int32_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_i64(const OD_entry_t *entry, uint8_t subIndex, int64_t **val) {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (int64_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (int64_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_u8(const OD_entry_t *entry, uint8_t subIndex, uint8_t **val) {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (uint8_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (uint8_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_u16(const OD_entry_t *entry, uint8_t subIndex, uint16_t **val) {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (uint16_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (uint16_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_u32(const OD_entry_t *entry, uint8_t subIndex, uint32_t **val) {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (uint32_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (uint32_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_u64(const OD_entry_t *entry, uint8_t subIndex, uint64_t **val) {
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (uint64_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (uint64_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_r32(const OD_entry_t *entry, uint8_t subIndex, float32_t **val){
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (float32_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (float32_t *)io.stream.dataObjectOriginal;
     return ret;
 }
 
 ODR_t OD_getPtr_r64(const OD_entry_t *entry, uint8_t subIndex, float64_t **val){
-    OD_subEntry_t subEntry; OD_stream_t st;
-    ODR_t ret = OD_getSub(entry, subIndex, &subEntry, &st, true);
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
 
-    if (ret == ODR_OK && st.dataLength != sizeof(**val))ret = ODR_TYPE_MISMATCH;
-    if (ret == ODR_OK) *val = (float64_t *)st.dataObjectOriginal;
-    if (*val == NULL) ret = ODR_DEV_INCOMPAT;
+    if (val == NULL || io.stream.dataObjectOriginal == NULL)
+        ret = ODR_DEV_INCOMPAT;
+    else if (ret == ODR_OK && io.stream.dataLength != sizeof(**val))
+        ret = ODR_TYPE_MISMATCH;
+    else if (ret == ODR_OK)
+        *val = (float64_t *)io.stream.dataObjectOriginal;
+    return ret;
+}
+
+ODR_t OD_getPtr_vs(const OD_entry_t *entry, uint8_t subIndex,
+                   char **val, OD_size_t *dataLength)
+{
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
+
+    if (val == NULL || io.stream.dataObjectOriginal == NULL
+        || io.stream.dataLength == 0)
+    {
+        ret = ODR_DEV_INCOMPAT;
+    }
+    else if (ret == ODR_OK) {
+        *val = (char *)io.stream.dataObjectOriginal;
+        if (dataLength != NULL) *dataLength = io.stream.dataLength;
+    }
+    return ret;
+}
+
+ODR_t OD_getPtr_os(const OD_entry_t *entry, uint8_t subIndex,
+                   uint8_t **val, OD_size_t *dataLength)
+{
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
+
+    if (val == NULL || io.stream.dataObjectOriginal == NULL
+        || io.stream.dataLength == 0)
+    {
+        ret = ODR_DEV_INCOMPAT;
+    }
+    else if (ret == ODR_OK) {
+        *val = (uint8_t *)io.stream.dataObjectOriginal;
+        if (dataLength != NULL) *dataLength = io.stream.dataLength;
+    }
+    return ret;
+}
+
+ODR_t OD_getPtr_us(const OD_entry_t *entry, uint8_t subIndex,
+                   uint16_t **val, OD_size_t *dataLength)
+{
+    OD_IO_t io;
+    ODR_t ret = OD_getSub(entry, subIndex, NULL, &io, true);
+
+    if (val == NULL || io.stream.dataObjectOriginal == NULL
+        || io.stream.dataLength == 0)
+    {
+        ret = ODR_DEV_INCOMPAT;
+    }
+    else if (ret == ODR_OK) {
+        *val = (uint16_t *)io.stream.dataObjectOriginal;
+        if (dataLength != NULL) *dataLength = io.stream.dataLength;
+    }
     return ret;
 }

@@ -55,9 +55,9 @@ static void CO_NMT_receive(void *object, void *msg) {
 
 
 /*
- * Custom function for writing OD variable "Producer heartbeat time"
+ * Custom function for writing OD object "Producer heartbeat time"
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_write_1017(OD_stream_t *stream, uint8_t subIndex,
                                const void *buf, OD_size_t count,
@@ -125,19 +125,22 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
 
     /* get and verify required "Producer heartbeat time" from Object Dict. */
     uint16_t HBprodTime_ms;
-    if (OD_get_u16(OD_1017_ProducerHbTime, 0, &HBprodTime_ms, true) != ODR_OK) {
+    ODR_t odRet = OD_get_u16(OD_1017_ProducerHbTime, 0, &HBprodTime_ms, true);
+    if (odRet != ODR_OK) {
         CO_errinfo(NMT_CANdevRx, OD_getIndex(OD_1017_ProducerHbTime));
         return CO_ERROR_OD_PARAMETERS;
     }
     NMT->HBproducerTime_us = (uint32_t)HBprodTime_ms * 1000;
-    if (!OD_extensionIO_init(OD_1017_ProducerHbTime,
-                             (void *) NMT,
-                             OD_readOriginal,
-                             OD_write_1017)
-    ) {
+
+    odRet = OD_extensionIO_init(OD_1017_ProducerHbTime,
+                                (void *) NMT,
+                                OD_readOriginal,
+                                OD_write_1017);
+    if (odRet != ODR_OK) {
         CO_errinfo(HB_CANdevTx, OD_getIndex(OD_1017_ProducerHbTime));
         return CO_ERROR_OD_PARAMETERS;
     }
+
     if (NMT->HBproducerTimer > NMT->HBproducerTime_us) {
         NMT->HBproducerTimer = NMT->HBproducerTime_us;
     }

@@ -43,8 +43,7 @@ void myFunc(const OD_t *od) {
 
     /* Init IO for "Manufacturer device name" at index 0x1008, sub-index 0x00 */
     entry = OD_find(od, 0x1008);
-    ret = OD_getSub(entry, 0x00, &subEntry, &io1008.stream, false);
-    io1008.read = subEntry.read;
+    ret = OD_getSub(entry, 0x00, &subEntry, &io1008, false);
     /* Read with io1008, subindex = 0x00 */
     if (ret == ODR_OK)
         bytesRd = io1008.read(&io1008.stream, 0x00, &buf[0], sizeof(buf), &ret);

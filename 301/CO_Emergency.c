@@ -55,9 +55,9 @@
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE
 /*
- * Custom functions for read/write OD variable "COB-ID EMCY"
+ * Custom functions for read/write OD object "COB-ID EMCY"
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_read_1014(OD_stream_t *stream, uint8_t subIndex,
                               void *buf, OD_size_t count,
@@ -128,9 +128,9 @@ static OD_size_t OD_write_1014(OD_stream_t *stream, uint8_t subIndex,
 }
  #else
 /*
- * Custom functions for read/write OD variable "COB-ID EMCY"
+ * Custom functions for read/write OD object "COB-ID EMCY"
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_read_1014_default(OD_stream_t *stream, uint8_t subIndex,
                                       void *buf, OD_size_t count,
@@ -154,9 +154,9 @@ static OD_size_t OD_read_1014_default(OD_stream_t *stream, uint8_t subIndex,
 
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
 /*
- * Custom function for writing OD variable "Inhibit time EMCY"
+ * Custom function for writing OD object "Inhibit time EMCY"
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_write_1015(OD_stream_t *stream, uint8_t subIndex,
                                const void *buf, OD_size_t count,
@@ -183,9 +183,9 @@ static OD_size_t OD_write_1015(OD_stream_t *stream, uint8_t subIndex,
 
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
 /*
- * Custom functions for read/write OD variable _OD_statusBits_, optional
+ * Custom functions for read/write OD object _OD_statusBits_, optional
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_read_1003(OD_stream_t *stream, uint8_t subIndex,
                               void *buf, OD_size_t count,
@@ -251,9 +251,9 @@ static OD_size_t OD_write_1003(OD_stream_t *stream, uint8_t subIndex,
 
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS
 /*
- * Custom functions for read/write OD variable _OD_statusBits_, optional
+ * Custom functions for read/write OD object _OD_statusBits_, optional
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_read_statusBits(OD_stream_t *stream, uint8_t subIndex,
                                     void *buf, OD_size_t count,
@@ -410,10 +410,11 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     uint16_t producerCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
     em->producerEnabled = (COB_IDEmergency32 & 0x80000000) == 0
                           && producerCanId != 0;
-    if (!OD_extensionIO_init(OD_1014_cobIdEm,
-                             (void *) em,
-                             OD_read_1014,
-                             OD_write_1014)) {
+    ODR_t odRetE = OD_extensionIO_init(OD_1014_cobIdEm,
+                                       (void *) em,
+                                       OD_read_1014,
+                                       OD_write_1014);
+    if (odRetE != ODR_OK) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
     }
@@ -427,10 +428,11 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
  #else
     uint16_t producerCanId = CO_CAN_ID_EMERGENCY + nodeId;
     em->producerEnabled = (COB_IDEmergency32 & 0x80000000) == 0;
-    if (!OD_extensionIO_init(OD_1014_cobIdEm,
-                             (void *) em,
-                             OD_read_1014_default,
-                             OD_writeOriginal)) {
+    ODR_t odRetE = OD_extensionIO_init(OD_1014_cobIdEm,
+                                       (void *) em,
+                                       OD_read_1014_default,
+                                       OD_writeOriginal);
+    if (odRetE != ODR_OK) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
     }

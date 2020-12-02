@@ -154,7 +154,7 @@ static void CO_SDO_receive(void *object, void *msg) {
  * Custom function for reading OD variable _SDO server parameter_, default
  * channel
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_read_1200_default(OD_stream_t *stream, uint8_t subIndex,
                                       void *buf, OD_size_t count,
@@ -254,10 +254,10 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
 
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC
 /*
- * Custom function for writing OD variable _SDO server parameter_, additional
+ * Custom function for writing OD object _SDO server parameter_, additional
  * channels
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_write_1201_additional(OD_stream_t *stream, uint8_t subIndex,
                                           const void *buf, OD_size_t count,
@@ -385,11 +385,11 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         CanId_ClientToServer = CO_CAN_ID_SDO_CLI + nodeId;
         CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
         SDO->valid = true;
-        if (!OD_extensionIO_init(OD_1200_SDOsrvPar,
-                                 (void *) SDO,
-                                 OD_read_1200_default,
-                                 NULL)
-        ) {
+        ODR_t odRetE = OD_extensionIO_init(OD_1200_SDOsrvPar,
+                                           (void *) SDO,
+                                           OD_read_1200_default,
+                                           NULL);
+        if (odRetE != ODR_OK) {
             CO_errinfo(CANdevTx, OD_getIndex(OD_1200_SDOsrvPar));
             return CO_ERROR_OD_PARAMETERS;
         }
@@ -422,11 +422,11 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                                ? (uint16_t)(COB_IDServerToClient32 & 0x7FF) : 0;
 
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC
-        if (!OD_extensionIO_init(OD_1200_SDOsrvPar,
-                                 (void *) SDO,
-                                 OD_readOriginal,
-                                 OD_write_1201_additional)
-        ) {
+        ODR_t odRetE = OD_extensionIO_init(OD_1200_SDOsrvPar,
+                                           (void *) SDO,
+                                           OD_readOriginal,
+                                           OD_write_1201_additional);
+        if (odRetE != ODR_OK) {
             CO_errinfo(CANdevTx, OD_getIndex(OD_1200_SDOsrvPar));
             return CO_ERROR_OD_PARAMETERS;
         }
@@ -548,15 +548,13 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                              | SDO->CANrxData[1];
                 SDO->subIndex = SDO->CANrxData[3];
                 odRet = OD_getSub(OD_find(SDO->OD, SDO->index), SDO->subIndex,
-                                  &subEntry, &SDO->OD_IO.stream, false);
+                                  &subEntry, &SDO->OD_IO, false);
                 if (odRet != ODR_OK) {
                     abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
                     SDO->state = CO_SDO_ST_ABORT;
                 }
                 else {
                     SDO->attribute = subEntry.attribute;
-                    SDO->OD_IO.read = subEntry.read;
-                    SDO->OD_IO.write = subEntry.write;
 
                     /* verify read/write attributes */
                     if (upload && (SDO->attribute & ODA_SDO_R) == 0) {

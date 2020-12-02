@@ -191,29 +191,6 @@ typedef enum {
 
 
 /**
- * IO stream structure, used for read/write access to OD variable.
- *
- * Structure is initialized with @ref OD_getSub() function.
- */
-typedef struct {
-    /** Pointer to original data object, defined by Object Dictionary. Default
-     * read/write functions operate on it. If memory for data object is not
-     * specified by Object Dictionary, then dataObjectOriginal is NULL.
-     */
-    void *dataObjectOriginal;
-    /** Pointer to object, passed by @ref OD_extensionIO_init(). Can be used
-     * inside read / write functions from IO extension.
-     */
-    void *object;
-    /** Data length in bytes or 0, if length is not specified */
-    OD_size_t dataLength;
-    /** In case of large data, dataOffset indicates position of already
-     * transferred data */
-    OD_size_t dataOffset;
-} OD_stream_t;
-
-
-/**
  * Structure describing properties of a variable, located in specific index and
  * sub-index inside the Object Dictionary.
  *
@@ -251,6 +228,39 @@ typedef struct {
      * mapped.
      */
     OD_flagsPDO_t *flagsPDO;
+} OD_subEntry_t;
+
+
+/**
+ * IO stream structure, used for read/write access to OD variable, part of
+ * @ref OD_IO_t.
+ */
+typedef struct {
+    /** Pointer to original data object, defined by Object Dictionary. Default
+     * read/write functions operate on it. If memory for data object is not
+     * specified by Object Dictionary, then dataObjectOriginal is NULL.
+     */
+    void *dataObjectOriginal;
+    /** Pointer to object, passed by @ref OD_extensionIO_init(). Can be used
+     * inside read / write functions from IO extension.
+     */
+    void *object;
+    /** Data length in bytes or 0, if length is not specified */
+    OD_size_t dataLength;
+    /** In case of large data, dataOffset indicates position of already
+     * transferred data */
+    OD_size_t dataOffset;
+} OD_stream_t;
+
+
+/**
+ * Structure for input / output on the OD variable. It is initialized with
+ * @ref OD_getSub() function. Access principle to OD variable is via read/write
+ * functions operating on stream, similar as standard read/write.
+ */
+typedef struct {
+    /** Object Dictionary stream object, passed to read or write */
+    OD_stream_t stream;
     /**
      * Function pointer for reading value from specified variable from Object
      * Dictionary. If OD variable is larger than buf, then this function must
@@ -260,21 +270,20 @@ typedef struct {
      *
      * Read can be restarted with @ref OD_rwRestart() function.
      *
-     * At the moment, when Object Dictionary is initialised, every variable has
+     * At the moment, when Object Dictionary is initialized, every variable has
      * assigned the same "read" function. This default function simply copies
      * data from Object Dictionary variable. Application can bind its own "read"
      * function for specific object. In that case application is able to
      * calculate data for reading from own internal state at the moment of
      * "read" function call. For this functionality OD object must have IO
-     * extension enabled. OD object must also be initialised with
+     * extension enabled. OD object must also be initialized with
      * @ref OD_extensionIO_init() function call.
      *
      * "read" function must always copy all own data to buf, except if "buf" is
      * not large enough. ("*returnCode" must not return 'ODR_PARTIAL', if there
      * is still space in "buf".)
      *
-     * @param stream Object Dictionary stream object, returned from
-     *               @ref OD_getSub() function, see @ref OD_stream_t.
+     * @param stream Object Dictionary stream object.
      * @param subIndex Object Dictionary subIndex of the accessed element.
      * @param buf Pointer to external buffer, where to data will be copied.
      * @param count Size of the external buffer in bytes.
@@ -301,8 +310,7 @@ typedef struct {
      * "write" function must always copy all available data from buf. If OD
      * variable expect more data, then "*returnCode" must return 'ODR_PARTIAL'.
      *
-     * @param stream Object Dictionary stream object, returned from
-     *               @ref OD_getSub() function, see @ref OD_stream_t.
+     * @param stream Object Dictionary stream object.
      * @param subIndex Object Dictionary subIndex of the accessed element.
      * @param buf Pointer to external buffer, from where data will be copied.
      * @param count Size of the external buffer in bytes.
@@ -311,23 +319,6 @@ typedef struct {
      * @return Number of bytes successfully written, must be equal to count on
      * success or zero on error.
      */
-    OD_size_t (*write)(OD_stream_t *stream, uint8_t subIndex,
-                       const void *buf, OD_size_t count, ODR_t *returnCode);
-} OD_subEntry_t;
-
-
-/**
- * Helper structure for storing all objects necessary for frequent read from or
- * write to specific OD variable. Structure can be used by application and can
- * be filled inside and after @ref OD_getSub() function call.
- */
-typedef struct {
-    /** Object passed to read or write */
-    OD_stream_t stream;
-    /** Read function pointer, see @ref OD_subEntry_t */
-    OD_size_t (*read)(OD_stream_t *stream, uint8_t subIndex,
-                      void *buf, OD_size_t count, ODR_t *returnCode);
-    /** Write function pointer, see @ref OD_subEntry_t */
     OD_size_t (*write)(OD_stream_t *stream, uint8_t subIndex,
                        const void *buf, OD_size_t count, ODR_t *returnCode);
 } OD_IO_t;
@@ -370,8 +361,8 @@ typedef struct {
  * This function can be used inside read / write functions, specified by
  * @ref OD_extensionIO_init(). It reads data directly from memory location
  * specified by Object dictionary. If no IO extension is used on OD entry, then
- * subEntry->read returned by @ref OD_getSub() equals to this function. See
- * also @ref OD_subEntry_t.
+ * io->read returned by @ref OD_getSub() equals to this function. See
+ * also @ref OD_IO_t.
  */
 OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
                           void *buf, OD_size_t count, ODR_t *returnCode);
@@ -383,8 +374,8 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
  * This function can be used inside read / write functions, specified by
  * @ref OD_extensionIO_init(). It writes data directly to memory location
  * specified by Object dictionary. If no IO extension is used on OD entry, then
- * subEntry->write returned by @ref OD_getSub() equals to this function. See
- * also @ref OD_subEntry_t.
+ * io->write returned by @ref OD_getSub() equals to this function. See
+ * also @ref OD_IO_t.
  */
 OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
                            const void *buf, OD_size_t count, ODR_t *returnCode);
@@ -403,19 +394,19 @@ const OD_entry_t *OD_find(const OD_t *od, uint16_t index);
 
 /**
  * Find sub-object with specified sub-index on OD entry returned by OD_find.
- * Function populates subEntry and stream structures with sub-object data.
+ * Function populates subEntry and io structures with sub-object data.
  *
  * @param entry OD entry returned by @ref OD_find().
  * @param subIndex Sub-index of the variable from the OD object.
- * @param [out] subEntry Structure will be populated on success.
- * @param [out] stream Structure will be populated on success.
+ * @param [out] subEntry Structure will be populated on success, may be NULL.
+ * @param [out] io Structure will be populated on success.
  * @param odOrig If true, then potential IO extension on entry will be
  * ignored and access to data entry in the original OD location will be returned
  *
  * @return Value from @ref ODR_t, "ODR_OK" in case of success.
  */
 ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
-                OD_subEntry_t *subEntry, OD_stream_t *stream, bool_t odOrig);
+                OD_subEntry_t *subEntry, OD_IO_t *io, bool_t odOrig);
 
 
 /**
@@ -437,8 +428,7 @@ static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
  * @ref OD_getSub(). It is also not necessary to call this function, if prevous
  * read or write was successfully finished.
  *
- * @param stream Object Dictionary stream object, returned from
- *               @ref OD_getSub() function, see @ref OD_stream_t.
+ * @param stream Object Dictionary stream object.
  */
 static inline void OD_rwRestart(OD_stream_t *stream) {
     stream->dataOffset = 0;
@@ -482,25 +472,26 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
  * @param object Object, which will be passed to read or write function.
  * @param read Read function pointer. If NULL, then read will be disabled.
  * @ref OD_readOriginal can be used here to keep original read function.
- * For function description see @ref OD_subEntry_t.
+ * For function description see @ref OD_IO_t.
  * @param write Write function pointer. If NULL, then write will be disabled.
  * @ref OD_writeOriginal can be used here to keep original write function.
- * For function description see @ref OD_subEntry_t.
+ * For function description see @ref OD_IO_t.
  *
- * @return true on success, false if OD object doesn't exist or is not extended.
+ * @return "ODR_OK" on success, "ODR_IDX_NOT_EXIST" if OD object doesn't exist,
+ * "ODR_PAR_INCOMPAT" if OD object is not extended.
  */
-bool_t OD_extensionIO_init(const OD_entry_t *entry,
-                           void *object,
-                           OD_size_t (*read)(OD_stream_t *stream,
+ODR_t OD_extensionIO_init(const OD_entry_t *entry,
+                          void *object,
+                          OD_size_t (*read)(OD_stream_t *stream,
+                                            uint8_t subIndex,
+                                            void *buf,
+                                            OD_size_t count,
+                                            ODR_t *returnCode),
+                          OD_size_t (*write)(OD_stream_t *stream,
                                              uint8_t subIndex,
-                                             void *buf,
+                                             const void *buf,
                                              OD_size_t count,
-                                             ODR_t *returnCode),
-                           OD_size_t (*write)(OD_stream_t *stream,
-                                              uint8_t subIndex,
-                                              const void *buf,
-                                              OD_size_t count,
-                                              ODR_t *returnCode));
+                                             ODR_t *returnCode));
 
 
 /**
@@ -630,6 +621,31 @@ ODR_t OD_getPtr_u64(const OD_entry_t *entry, uint8_t subIndex, uint64_t **val);
 ODR_t OD_getPtr_r32(const OD_entry_t *entry, uint8_t subIndex, float32_t **val);
 /** Get pointer to float64_t variable from OD, see @ref OD_getPtr_i8 */
 ODR_t OD_getPtr_r64(const OD_entry_t *entry, uint8_t subIndex, float64_t **val);
+/**
+ * Get pointer to "visible string" variable from Object Dictionary
+ *
+ * Function always returns "dataObjectOriginal" pointer, which points to data
+ * in the original OD location. Take care, if IO extension is enabled on OD
+ * entry.
+ *
+ * @param entry OD entry returned by @ref OD_find().
+ * @param subIndex Sub-index of the variable from the OD object.
+ * @param [out] val Pointer to variable will be written here.
+ * @param [out] dataLength Total variable length will be written here, may be
+ * NULL.
+ *
+ * @return Value from @ref ODR_t, "ODR_OK" in case of success. Error, if
+ * variable does not exist in object dictionary or it has zero length or other
+ * reason.
+ */
+ODR_t OD_getPtr_vs(const OD_entry_t *entry, uint8_t subIndex,
+                   char **val, OD_size_t *dataLength);
+/** Get pointer to "octet string" variable from OD, see @ref OD_getPtr_vs */
+ODR_t OD_getPtr_os(const OD_entry_t *entry, uint8_t subIndex,
+                   uint8_t **val, OD_size_t *dataLength);
+/** Get pointer to "unicode string" variable from OD, see @ref OD_getPtr_vs */
+ODR_t OD_getPtr_us(const OD_entry_t *entry, uint8_t subIndex,
+                   uint16_t **val, OD_size_t *dataLength);
 /** @} */ /* CO_ODgetSetters */
 
 
@@ -716,10 +732,10 @@ typedef struct {
 typedef struct {
     /** Object on which read and write will operate */
     void *object;
-    /** Application specified function pointer, see @ref OD_subEntry_t. */
+    /** Application specified function pointer, see @ref OD_IO_t. */
     OD_size_t (*read)(OD_stream_t *stream, uint8_t subIndex,
                       void *buf, OD_size_t count, ODR_t *returnCode);
-    /** Application specified function pointer, see @ref OD_subEntry_t. */
+    /** Application specified function pointer, see @ref OD_IO_t. */
     OD_size_t (*write)(OD_stream_t *stream, uint8_t subIndex,
                        const void *buf, OD_size_t count, ODR_t *returnCode);
 } OD_extensionIO_t;

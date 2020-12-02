@@ -158,9 +158,9 @@ static void CO_SDOclient_receive(void *object, void *msg) {
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC
 /*
- * Custom function for writing OD variable _SDO client parameter_
+ * Custom function for writing OD object _SDO client parameter_
  *
- * For more information see file CO_ODinterface.h, OD_subEntry_t.
+ * For more information see file CO_ODinterface.h, OD_IO_t.
  */
 static OD_size_t OD_write_1280(OD_stream_t *stream, uint8_t subIndex,
                                const void *buf, OD_size_t count,
@@ -289,10 +289,11 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
     }
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC
-    if (!OD_extensionIO_init(OD_1280_SDOcliPar,
-                             (void *)SDO_C,
-                             OD_readOriginal,
-                             OD_write_1280)) {
+    ODR_t odRetE = OD_extensionIO_init(OD_1280_SDOcliPar,
+                                       (void *)SDO_C,
+                                       OD_readOriginal,
+                                       OD_write_1280);
+    if (odRetE != ODR_OK) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1280_SDOcliPar));
         return CO_ERROR_OD_PARAMETERS;
     }
@@ -518,7 +519,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             OD_subEntry_t subEntry;
 
             odRet = OD_getSub(OD_find(SDO_C->OD, SDO_C->index), SDO_C->subIndex,
-                              &subEntry, &SDO_C->OD_IO.stream, false);
+                              &subEntry, &SDO_C->OD_IO, false);
 
             if (odRet != ODR_OK) {
                 abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
@@ -528,12 +529,9 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 abortCode = CO_SDO_AB_READONLY;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if (subEntry.write == NULL) {
+            else if (SDO_C->OD_IO.write == NULL) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                 ret = CO_SDO_RT_endedWithClientAbort;
-            }
-            else {
-                SDO_C->OD_IO.write = subEntry.write;
             }
         }
         /* write data, in several passes if necessary */
@@ -1099,7 +1097,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             OD_subEntry_t subEntry;
 
             odRet = OD_getSub(OD_find(SDO_C->OD, SDO_C->index), SDO_C->subIndex,
-                              &subEntry, &SDO_C->OD_IO.stream, false);
+                              &subEntry, &SDO_C->OD_IO, false);
 
             if (odRet != ODR_OK) {
                 abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
@@ -1109,12 +1107,9 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 abortCode = CO_SDO_AB_WRITEONLY;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if (subEntry.read == NULL) {
+            else if (SDO_C->OD_IO.read == NULL) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                 ret = CO_SDO_RT_endedWithClientAbort;
-            }
-            else {
-                SDO_C->OD_IO.read = subEntry.read;
             }
         }
 
