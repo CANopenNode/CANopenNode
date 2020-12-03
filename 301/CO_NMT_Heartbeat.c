@@ -377,4 +377,20 @@ CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
 
     return error;
 }
+
+CO_NMT_internalState_t CO_NMT_getInternalState(
+        CO_NMT_t               *NMT)
+{
+    if(NMT != NULL){
+        return NMT->operatingState;
+    }
+    return CO_NMT_INITIALIZING;
+}
+
+void CO_NMT_setInternalState(
+        CO_NMT_t               *NMT,
+        CO_NMT_internalState_t state)
+{
+	NMT->operatingState = state;
+}
 #endif

@@ -243,18 +243,6 @@ CO_NMT_reset_cmd_t CO_NMT_process(
         uint32_t               *timerNext_us);
 
 
-/**
- * Query current NMT state
- *
- * @param NMT This object.
- *
- * @return #CO_NMT_internalState_t
- */
-static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
-    return (NMT == NULL) ? CO_NMT_INITIALIZING : NMT->operatingState;
-}
-
-
 #if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
 /**
  * Send NMT master command.
@@ -274,6 +262,30 @@ static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
 CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
                                     CO_NMT_command_t command,
                                     uint8_t nodeID);
+
+
+/**
+ * Query current NMT state
+ *
+ * @param NMT This object.
+ *
+ * @return #CO_NMT_internalState_t
+ */
+CO_NMT_internalState_t CO_NMT_getInternalState(
+        CO_NMT_t               *NMT);
+
+
+/**
+ * Set current NMT state
+ *
+ * @param NMT This object.
+ * @param CO_NMT_internalState_t State to set
+ *
+ */
+void CO_NMT_setInternalState(
+        CO_NMT_t               *NMT,
+        CO_NMT_internalState_t state);
+
 
 #endif /* (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER */
 
