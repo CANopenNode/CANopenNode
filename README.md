@@ -211,7 +211,9 @@ Windows or Linux with Mono.
 
 Please note: since rearrangement in directory structure it is necessary to
 manually update CO_OD.c file - it must include: `301/CO_driver.h`, `CO_OD.h` and
-`301/CO_SDOserver.h`.
+`301/CO_SDOserver.h`. Latest libedssharp includes `CO_VERSION_MAJOR` macro, to
+include the correct files. For this to work, C macro `CO_VERSION_MAJOR=2` has to
+be added to project options (or `-DCO_VERSION_MAJOR=2` to makefile CFLAGS).
 
 
 Device support
