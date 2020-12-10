@@ -88,9 +88,6 @@ static CO_SDO_abortCode_t CO_ODF_1003(CO_ODF_arg_t *ODF_arg){
         if(ODF_arg->subIndex == 0U){
             ODF_arg->data[0] = noOfErrors;
         }
-        else if(ODF_arg->subIndex > noOfErrors){
-            ret = CO_SDO_AB_NO_DATA;
-        }
         else{
             ret = CO_SDO_AB_NONE;
         }
@@ -100,6 +97,10 @@ static CO_SDO_abortCode_t CO_ODF_1003(CO_ODF_arg_t *ODF_arg){
         if(ODF_arg->subIndex == 0U){
             if(value == 0U){
                 emPr->preDefErrNoOfErrors = 0U;
+                // Reset error history
+                uint8_t j;
+                for(j=0; j<emPr->preDefErrSize; j++)
+                    emPr->preDefErr[j] = 0;
             }
             else{
                 ret = CO_SDO_AB_INVALID_VALUE;
