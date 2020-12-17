@@ -490,7 +490,7 @@ typedef enum {
 
 
 /**
- * Request CAN configuration (stopped) mode and *wait* untill it is set.
+ * Request CAN configuration (stopped) mode and *wait* until it is set.
  *
  * @param CANptr Pointer to CAN device
  */
@@ -498,7 +498,7 @@ void CO_CANsetConfigurationMode(void *CANptr);
 
 
 /**
- * Request CAN normal (opearational) mode and *wait* untill it is set.
+ * Request CAN normal (opearational) mode and *wait* until it is set.
  *
  * @param CANmodule CO_CANmodule_t object.
  */
