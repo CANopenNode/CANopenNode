@@ -26,8 +26,8 @@
  */
 
 
-#ifndef CO_DRIVER_TARGET
-#define CO_DRIVER_TARGET
+#ifndef CO_DRIVER_TARGET_H
+#define CO_DRIVER_TARGET_H
 
 /* This file contains device and application specific definitions.
  * It is included from CO_driver.h, which contains documentation
@@ -103,7 +103,7 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
-#define CO_CONFIG_SDO_SRV_BUFFER_SIZE (127*7)
+#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 900
 #endif
 
 #ifndef CO_CONFIG_SDO_CLI
@@ -114,10 +114,6 @@ extern "C" {
                            CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
                            CO_CONFIG_FLAG_TIMERNEXT | \
                            CO_CONFIG_FLAG_OD_DYNAMIC)
-#endif
-
-#ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
-#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000
 #endif
 
 #ifndef CO_CONFIG_TIME
@@ -183,6 +179,14 @@ extern "C" {
 
 #ifndef CO_CONFIG_TRACE
 #define CO_CONFIG_TRACE (CO_CONFIG_TRACE_ENABLE)
+#endif
+
+
+/* Print debug info from some internal parts of the stack */
+#if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_COMMON
+#include <stdio.h>
+#include <syslog.h>
+#define CO_DEBUG_COMMON(msg) log_printf(LOG_DEBUG, DBG_CO_DEBUG, msg);
 #endif
 
 
@@ -495,4 +499,4 @@ bool_t CO_CANrxFromEpoll(CO_CANmodule_t *CANmodule,
 }
 #endif /* __cplusplus */
 
-#endif /* CO_DRIVER_TARGET */
+#endif /* CO_DRIVER_TARGET_H */

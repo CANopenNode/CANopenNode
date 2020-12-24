@@ -449,9 +449,13 @@ Other elements listed in the above XML example are required by the standard. The
 | -              | (1)            | TIME_OF_DAY     | 0x0C     |
 | -              | (1)            | TIME_DIFFERENCE | 0x0D     |
 | app. specific  | BITSTRING (4)  | DOMAIN          | 0x0F     |
-(1) Data is translated into OCTET_STRING.<br/>
-(2) Additional property "CO_stringLengthMin" indicates the minimum length of the string in CANopenNode.<br/>
-(3) Default value for BITSTRING (OCTET_STRING) is written as space separated, two hex digit bytes in little-endian format.<br/>
+
+(1) Data is translated into OCTET_STRING.
+
+(2) Additional property "CO_stringLengthMin" indicates the minimum length of the string in CANopenNode. Property is ignored, if strlen(defaultValue) is larger. Otherwise remaining data locations are filled with zeroes. Strings always have additional element on the end of the array with value=0, which is never written (string is always null terminated). All strings have additional attribute "ODA_STR" in object dictionary. Attribute enables SDO to transfer data of length, which corresponds to actual string length. (Actual size of data read or written by SDO may be smaller than data size of the OD variable.) VISIBLE_STRING may contain control characters and UTF-8 characters, which should work on most target systems (like printf("%s", ...)). So VISIBLE_STRING may be more usable for printing complete set of unicode characters than UNICODE_STRING.
+
+(3) Default value for BITSTRING (OCTET_STRING) is written as space separated, two hex digit bytes in little-endian format.
+
 (4) Default value for DOMAIN is stored as empty string.
 
 

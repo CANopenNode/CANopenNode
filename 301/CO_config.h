@@ -374,13 +374,13 @@ extern "C" {
 /**
  * Size of the internal data buffer for the SDO client.
  *
- * Circular buffer is used for SDO communication. it can be read or written
+ * Circular buffer is used for SDO communication. It can be read or written
  * between successive SDO calls. So size of the buffer can be lower than size of
  * the actual size of data transferred. If only segmented transfer is used, then
  * buffer size can be as low as 7 bytes, if data are read/written each cycle. If
- * block transfer is used, buffer size should be set to at least 889 bytes, so
- * maximum blksize can be used. In that case data should be read/written proper
- * time between cycles.
+ * block transfer is used, buffer size should be set to at least 1000 bytes, so
+ * maximum blksize can be used (blksize is calculated from free buffer space).
+ * Default value for block transfer is 1000, otherwise 32.
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
@@ -710,6 +710,31 @@ extern "C" {
 #define CO_CONFIG_TRACE_ENABLE 0x01
 #define CO_CONFIG_TRACE_OWN_INTTYPES 0x02
 /** @} */ /* CO_STACK_CONFIG_TRACE */
+
+
+/**
+ * @defgroup CO_STACK_CONFIG_DEBUG Debug messages
+ * Messages from different parts of the stack.
+ * @{
+ */
+/**
+ * Configuration of debug messages from different parts of the stack, which can
+ * be logged according to target specific function.
+ *
+ * Possible flags, can be ORed:
+ * - CO_CONFIG_DEBUG_COMMON - Define default CO_DEBUG_COMMON(msg) macro. This
+ *   macro is target specific. This macro is then used as default macro in all
+ *   other defined CO_DEBUG_XXX(msg) macros.
+ * - CO_CONFIG_DEBUG_SDO_CLIENT - Define default CO_DEBUG_SDO_CLIENT(msg) macro.
+ * - CO_CONFIG_DEBUG_SDO_SERVER - Define default CO_DEBUG_SDO_SERVER(msg) macro.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_DEBUG (0)
+#endif
+#define CO_CONFIG_DEBUG_COMMON 0x01
+#define CO_CONFIG_DEBUG_SDO_CLIENT 0x02
+#define CO_CONFIG_DEBUG_SDO_SERVER 0x04
+/** @} */ /* CO_STACK_CONFIG_DEBUG */
 
 /** @} */ /* CO_STACK_CONFIG */
 

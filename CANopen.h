@@ -519,7 +519,11 @@ CO_ReturnError_t CO_LSSinit(CO_t *co,
  * @param OD_statusBits Argument passed to @ref CO_EM_init(). May be NULL.
  * @param NMTcontrol Argument passed to @ref CO_NMT_init().
  * @param firstHBTime_ms Argument passed to @ref CO_NMT_init().
- * @param SDOtimeoutTime_ms Argument passed to @ref CO_SDOserver_init().
+ * @param SDOserverTimeoutTime_ms Argument passed to @ref CO_SDOserver_init().
+ * @param SDOclientTimeoutTime_ms Default timeout in milliseconds for SDO
+ * client, 500 typically. SDO client is configured from CO_GTWA_init().
+ * @param SDOclientBlockTransfer If true, block transfer will be set in SDO
+ * client by default. SDO client is configured from by CO_GTWA_init().
  * @param nodeId CANopen Node ID (1 ... 127) or 0xFF(unconfigured). In the
  * CANopen initialization it is the same as pendingBitRate from CO_LSSinit().
  * If it is unconfigured, then some CANopen objects will not be initialized nor
@@ -534,7 +538,9 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 const OD_entry_t *OD_statusBits,
                                 CO_NMT_control_t NMTcontrol,
                                 uint16_t firstHBTime_ms,
-                                uint16_t SDOtimeoutTime_ms,
+                                uint16_t SDOserverTimeoutTime_ms,
+                                uint16_t SDOclientTimeoutTime_ms,
+                                bool_t SDOclientBlockTransfer,
                                 uint8_t nodeId);
 
 

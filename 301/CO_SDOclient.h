@@ -37,7 +37,11 @@
 #define CO_CONFIG_SDO_CLI (0)
 #endif
 #ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
-#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
+ #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000
+ #else
+  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
+ #endif
 #endif
 
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) || defined CO_DOXYGEN
@@ -68,6 +72,8 @@ typedef struct {
     uint8_t nodeId;
     /** Object dictionary interface for locally transferred object */
     OD_IO_t OD_IO;
+    /** Attribute for locally transferred OD sub-object, see OD_attributes_t */
+    OD_attr_t attribute;
 #endif
     /** From CO_SDOclient_init() */
     CO_CANmodule_t *CANdevRx;
@@ -371,6 +377,8 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  * @param SDO_C This object.
  * @param timeDifference_us Time difference from previous function call in
  * [microseconds].
+ * @param abort If true, SDO client will send abort message from SDOabortCode
+ * and reception will be aborted.
  * @param [out] SDOabortCode In case of error in communication, SDO abort code
  * contains reason of error. Ignored if NULL.
  * @param [out] sizeIndicated If larger than 0, then SDO server has indicated
@@ -385,6 +393,7 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  */
 CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                                    uint32_t timeDifference_us,
+                                   bool_t abort,
                                    CO_SDO_abortCode_t *SDOabortCode,
                                    size_t *sizeIndicated,
                                    size_t *sizeTransferred,

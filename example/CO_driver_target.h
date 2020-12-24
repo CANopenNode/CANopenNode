@@ -23,8 +23,8 @@
  */
 
 
-#ifndef CO_DRIVER_TARGET
-#define CO_DRIVER_TARGET
+#ifndef CO_DRIVER_TARGET_H
+#define CO_DRIVER_TARGET_H
 
 /* This file contains device and application specific definitions.
  * It is included from CO_driver.h, which contains documentation
@@ -79,7 +79,7 @@ extern "C" {
 #endif
 
 #ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
-#define CO_CONFIG_SDO_SRV_BUFFER_SIZE (127*7)
+#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 900
 #endif
 
 #ifndef CO_CONFIG_SDO_CLI
@@ -90,10 +90,6 @@ extern "C" {
                            CO_CONFIG_FLAG_CALLBACK_PRE | \
                            CO_CONFIG_FLAG_TIMERNEXT | \
                            CO_CONFIG_FLAG_OD_DYNAMIC)
-#endif
-
-#ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
-#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000
 #endif
 
 #ifndef CO_CONFIG_TIME
@@ -264,4 +260,4 @@ typedef struct {
 }
 #endif /* __cplusplus */
 
-#endif /* CO_DRIVER_TARGET */
+#endif /* CO_DRIVER_TARGET_H */

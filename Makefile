@@ -46,6 +46,7 @@ SOURCES = \
 OBJS = $(SOURCES:%.c=%.o)
 CC ?= gcc
 OPT = -g -DCO_SINGLE_THREAD
+#OPT = -g -DCO_SINGLE_THREAD -DCO_CONFIG_DEBUG=0xFFFF
 #OPT = -g -pedantic -Wshadow -fanalyzer
 #OPT = -g -DCO_USE_GLOBALS
 #OPT = -g -DCO_MULTIPLE_OD

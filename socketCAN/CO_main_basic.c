@@ -1,14 +1,13 @@
 /*
- * CANopen main program file for Linux SocketCAN.
+ * CANopen main program file for CANopenNode on Linux.
  *
- * @file        main.c
+ * @file        CO_main_basic.c
  * @author      Janez Paternoster
- * @copyright   2015 - 2020 Janez Paternoster
+ * @copyright   2020 Janez Paternoster
  *
- * This file is part of CANopenSocket, a Linux implementation of CANopen
- * stack with master functionality. Project home page is
- * <https://github.com/CANopenNode/CANopenSocket>. CANopenSocket is based
- * on CANopenNode: <https://github.com/CANopenNode/CANopenNode>.
+ * This file is part of CANopenNode, an opensource CANopen Stack.
+ * Project home page is <https://github.com/CANopenNode/CANopenNode>.
+ * For more information on CANopen see <http://www.can-cia.org/>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <bits/getopt_core.h>
 #include <string.h>
 #include <sched.h>
 #include <signal.h>
@@ -51,9 +51,8 @@
 #endif
 
 /* Call external application functions. */
-#if __has_include("CO_application.h")
+#ifdef CO_USE_APPLICATION
 #include "CO_application.h"
-#define CO_USE_APPLICATION
 #endif
 
 /* Add trace functionality for recording variables over time */
@@ -86,11 +85,20 @@
 #ifndef FIRST_HB_TIME
 #define FIRST_HB_TIME 500
 #endif
-#ifndef SDO_TIMEOUT_TIME
-#define SDO_TIMEOUT_TIME 1000
+#ifndef SDO_SRV_TIMEOUT_TIME
+#define SDO_SRV_TIMEOUT_TIME 1000
+#endif
+#ifndef SDO_CLI_TIMEOUT_TIME
+#define SDO_CLI_TIMEOUT_TIME 500
+#endif
+#ifndef SDO_CLI_BLOCK
+#define SDO_CLI_BLOCK false
 #endif
 #ifndef GATEWAY_ENABLE
 #define GATEWAY_ENABLE true
+#endif
+#ifndef OD_STATUS_BITS
+#define OD_STATUS_BITS NULL
 #endif
 
 /* Other variables and objects */
@@ -153,6 +161,7 @@ void log_printf(int priority, const char *format, ...) {
 #endif
 }
 
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
 /* callback for emergency messages */
 static void EmergencyRxCallback(const uint16_t ident,
                                 const uint16_t errorCode,
@@ -165,7 +174,10 @@ static void EmergencyRxCallback(const uint16_t ident,
     log_printf(LOG_NOTICE, DBG_EMERGENCY_RX, nodeIdRx, errorCode,
                errorRegister, errorBit, infoCode);
 }
+#endif
 
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) \
+ || ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE)
 /* return string description of NMT state. */
 static char *NmtState2Str(CO_NMT_internalState_t state)
 {
@@ -177,12 +189,15 @@ static char *NmtState2Str(CO_NMT_internalState_t state)
         default:                     return "unknown";
     }
 }
+#endif
 
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
 /* callback for NMT change messages */
 static void NmtChangedCallback(CO_NMT_internalState_t state)
 {
     log_printf(LOG_NOTICE, DBG_NMT_CHANGE, NmtState2Str(state), state);
 }
+#endif
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
 /* callback for monitoring Heartbeat remote NMT state change */
@@ -252,6 +267,7 @@ printf(
  * Mainline thread
  ******************************************************************************/
 int main (int argc, char *argv[]) {
+    int programExit = EXIT_SUCCESS;
     CO_epoll_t epMain;
 #ifndef CO_SINGLE_THREAD
     pthread_t rt_thread_id;
@@ -290,9 +306,6 @@ int main (int argc, char *argv[]) {
         exit(EXIT_SUCCESS);
     }
     while((opt = getopt(argc, argv, "i:p:rc:T:s:a:")) != -1) {
-        const char comm_stdio[] = "stdio";
-        const char comm_local[] = "local-";
-        const char comm_tcp[] = "tcp-";
         switch (opt) {
             case 'i':
                 CO_pendingNodeId = (uint8_t)strtol(optarg, NULL, 0);
@@ -305,7 +318,10 @@ int main (int argc, char *argv[]) {
             case 'r': rebootEnable = true;
                 break;
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
-            case 'c':
+            case 'c': {
+                const char *comm_stdio = "stdio";
+                const char *comm_local = "local-";
+                const char *comm_tcp = "tcp-";
                 if (strcmp(optarg, comm_stdio) == 0) {
                     commandInterface = CO_COMMAND_IF_STDIO;
                 }
@@ -328,6 +344,7 @@ int main (int argc, char *argv[]) {
                     exit(EXIT_FAILURE);
                 }
                 break;
+            }
             case 'T':
                 socketTimeout_ms = strtoul(optarg, NULL, 0);
                 break;
@@ -472,7 +489,9 @@ int main (int argc, char *argv[]) {
         err = CO_CANinit(CO, (void *)&CANptr, 0 /* bit rate not used */);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANinit()", err);
-            exit(EXIT_FAILURE);
+            programExit = EXIT_FAILURE;
+            CO_endProgram = 1;
+            continue;
         }
 
         CO_LSS_address_t lssAddress = {.identity = {
@@ -485,7 +504,9 @@ int main (int argc, char *argv[]) {
                          &CO_pendingNodeId, &CO_pendingBitRate);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_LSSinit()", err);
-            exit(EXIT_FAILURE);
+            programExit = EXIT_FAILURE;
+            CO_endProgram = 1;
+            continue;
         }
 
         CO_activeNodeId = CO_pendingNodeId;
@@ -494,10 +515,12 @@ int main (int argc, char *argv[]) {
                              NULL,              /* alternate NMT */
                              NULL,              /* alternate em */
                              &OD,               /* Object dictionary */
-                             NULL,              /* Optional OD_statusBits */
+                             OD_STATUS_BITS,    /* Optional OD_statusBits */
                              NMT_CONTROL,       /* CO_NMT_control_t */
                              FIRST_HB_TIME,     /* firstHBTime_ms */
-                             SDO_TIMEOUT_TIME,  /* SDOtimeoutTime_ms */
+                             SDO_SRV_TIMEOUT_TIME, /* SDOserverTimeoutTime_ms */
+                             SDO_CLI_TIMEOUT_TIME, /* SDOclientTimeoutTime_ms */
+                             SDO_CLI_BLOCK,     /* SDOclientBlockTransfer */
                              CO_activeNodeId);
         if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             if (err == CO_ERROR_OD_PARAMETERS) {
@@ -507,7 +530,9 @@ int main (int argc, char *argv[]) {
             else {
                 log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
             }
-            exit(EXIT_FAILURE);
+            programExit = EXIT_FAILURE;
+            CO_endProgram = 1;
+            continue;
         }
 
         /* initialize part of threadMain and callbacks */
@@ -520,8 +545,12 @@ int main (int argc, char *argv[]) {
                                          LSScfgStoreCallback);
 #endif
         if(!CO->nodeIdUnconfigured) {
+#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
             CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
+#endif
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
             CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
+#endif
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
             CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
                                                  HeartbeatNmtChangedCallback);
@@ -555,7 +584,9 @@ int main (int argc, char *argv[]) {
             /* Create rt_thread and set priority */
             if(pthread_create(&rt_thread_id, NULL, rt_thread, NULL) != 0) {
                 log_printf(LOG_CRIT, DBG_ERRNO, "pthread_create(rt_thread)");
-                exit(EXIT_FAILURE);
+                programExit = EXIT_FAILURE;
+                CO_endProgram = 1;
+                continue;
             }
             if(rtPriority > 0) {
                 struct sched_param param;
@@ -563,13 +594,27 @@ int main (int argc, char *argv[]) {
                 param.sched_priority = rtPriority;
                 if (pthread_setschedparam(rt_thread_id, SCHED_FIFO, &param) != 0) {
                     log_printf(LOG_CRIT, DBG_ERRNO, "pthread_setschedparam()");
-                    exit(EXIT_FAILURE);
+                    programExit = EXIT_FAILURE;
+                    CO_endProgram = 1;
+                    continue;
                 }
             }
 #endif
 #ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
-            app_programStart(!CO->nodeIdUnconfigured);
+            uint16_t errinfo = 0;
+            err = app_programStart(!CO->nodeIdUnconfigured, &errinfo);
+            if(err != CO_ERROR_NO) {
+                if (err == CO_ERROR_OD_PARAMETERS) {
+                    log_printf(LOG_CRIT, DBG_OD_ENTRY, errinfo);
+                }
+                else {
+                    log_printf(LOG_CRIT, DBG_CAN_OPEN, "app_programStart()", err);
+                }
+                programExit = EXIT_FAILURE;
+                CO_endProgram = 1;
+                continue;
+            }
 #endif
         } /* if(firstRun) */
 
@@ -654,7 +699,7 @@ int main (int argc, char *argv[]) {
         }
     }
 
-    exit(EXIT_SUCCESS);
+    exit(programExit);
 }
 
 #ifndef CO_SINGLE_THREAD
@@ -680,7 +725,7 @@ static void* rt_thread(void* arg) {
 
 #ifdef CO_USE_APPLICATION
         /* Execute optional additional application code */
-        app_program1ms(!CO->nodeIdUnconfigured);
+        app_program1ms(!CO->nodeIdUnconfigured, epRT.timeDifference_us);
 #endif
 
     }

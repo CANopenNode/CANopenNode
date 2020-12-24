@@ -63,11 +63,13 @@ Code is documented in header files. Running [doxygen](http://www.doxygen.nl/)
 in project base directory will produce complete html documentation.
 Just open CANopenNode/doc/html/index.html in the browser. Alternatively browse
 documentation [online](https://canopennode.github.io/CANopenSocket/).
+Further documented examples are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket) project.
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
 
-Older and still active discussion group is on Sourceforge
-http://sourceforge.net/p/canopennode/discussion/387151/
+Join discussion on Slack: https://canopennode.slack.com/
+
+Older discussion group is on Sourceforge: http://sourceforge.net/p/canopennode/discussion/387151/
 
 Contributions are welcome. Best way to contribute your code is to fork
 a project, modify it and then send a pull request. Some basic formatting

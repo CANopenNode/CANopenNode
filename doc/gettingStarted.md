@@ -162,7 +162,7 @@ Please be careful when exposing your CANopen network to the outside world, it is
 ### Next steps
 Assigning Node-ID or CAN bitrate, which support LSS configuration, is described in *LSSusage.md*.
 
-Some further CANopenNode related Linux tools are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket).
+Further CANopenNode related tools and examples are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket). Especially interesting is [basicDevice](https://github.com/CANopenNode/CANopenSocket/examples/basicDevice)
 
 Custom CANopen device can be created based on own Object Dictionary, see README.md. There are also many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download, for example CiA401.
 
@@ -170,11 +170,15 @@ For own CANopen device with own microcontroller, see *deviceSupport.md*. There i
 
 Another interesting tool is [CANopen for Python](https://github.com/christiansandberg/canopen).
 
+Examples here worked in virtual CAN interface, for simplicity. Virtual CAN runs inside Linux kernel only, it does not have much practical usability. If one has real CAN network configuration, then above examples are suitable also for this network, if Linux machine is connected to it and CAN interface is properly configured. When connecting your devices to real CAN network, make sure, you have at least two devices communicating, connected with ground and pair of wires, terminated with two 120ohm resistors, correct baudrate, etc.
+
 Accessing real CANopen devices is the same as described above for virtual CAN interface. Some tested USB to CAN interfaces, which are native in Linux kernel are:
  - Simple serial [USBtin](http://www.fischl.de/usbtin/) - Start with: `sudo slcand -f -o -c -s8 /dev/ttyACM0 can0; sudo ip link set up can0`
  - [EMS CPC-USB](https://www.ems-wuensche.com/?post_type=product&p=746) or [PCAN-USB FD](http://www.peak-system.com/PCAN-USB-FD.365.0.html?&L=1) - Start with: `sudo ip link set up can0 type can bitrate 250000`
  - You can get the idea of other supported CAN interfaces in [Linux kernel source](https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can) (Kconfig files).
  - Raspberry PI or similar has CAN capes available.
+
+Examples here run in Linux, for simplicity. However, real usability of CANopen network is, when simple, microcontroller based devices are connected together with or without more advanced commander device. CANopenNode is basically written for simple microcontrollers and also has more advanced commander features, like above used CANopen gateway with ascii command interface.
 
 Now you can enter the big world of [CANopen devices](http://can-newsletter.org/hardware).
 

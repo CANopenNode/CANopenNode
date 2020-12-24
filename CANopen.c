@@ -910,7 +910,9 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 const OD_entry_t *OD_statusBits,
                                 CO_NMT_control_t NMTcontrol,
                                 uint16_t firstHBTime_ms,
-                                uint16_t SDOtimeoutTime_ms,
+                                uint16_t SDOserverTimeoutTime_ms,
+                                uint16_t SDOclientTimeoutTime_ms,
+                                bool_t SDOclientBlockTransfer,
                                 uint8_t nodeId)
 {
     CO_ReturnError_t err;
@@ -1024,7 +1026,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     od,
                                     SDOsrvPar++,
                                     nodeId,
-                                    SDOtimeoutTime_ms,
+                                    SDOserverTimeoutTime_ms,
                                     co->CANmodule,
                                     CO_GET_CO(RX_IDX_SDO_SRV) + i,
                                     co->CANmodule,
@@ -1206,8 +1208,8 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
         err = CO_GTWA_init(co->gtwa,
  #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
                            &co->SDOclient[0],
-                           500,
-                           false,
+                           SDOclientTimeoutTime_ms,
+                           SDOclientBlockTransfer,
  #endif
  #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
                            co->NMT,

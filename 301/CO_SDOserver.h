@@ -492,8 +492,8 @@ typedef struct {
     uint32_t SDOtimeoutTime_us;
     /** Timeout timer for SDO communication */
     uint32_t timeoutTimer;
-    /** Interim data buffer for segmented or block transfer */
-    char buf[CO_CONFIG_SDO_SRV_BUFFER_SIZE];
+    /** Interim data buffer for segmented or block transfer + byte for '\0' */
+    char buf[CO_CONFIG_SDO_SRV_BUFFER_SIZE + 1];
     /** Offset of next free data byte available for write in the buffer. */
     OD_size_t bufOffsetWr;
     /** Offset of first data available for read in the buffer */

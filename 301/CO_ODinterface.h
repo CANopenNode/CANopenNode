@@ -118,14 +118,16 @@ typedef enum {
     ODA_RSRDO = 0x20, /**< Variable is mappable into receiving SRDO */
     ODA_TRSRDO = 0x30, /**< Variable is mappable into tx or rx SRDO */
     ODA_MB = 0x40, /**< Variable is multi-byte ((u)int16_t to (u)int64_t) */
-    ODA_RESERVED = 0x80, /**< Reserved for further use */
+    ODA_STR = 0x80 /**< Shorter value, than specified variable size, may be
+    written to the variable. SDO write will fill remaining memory with zeroes.
+    Attribute is used for VISIBLE_STRING and UNICODE_STRING. */
 } OD_attributes_t;
 
 
 /**
  * Return codes from OD access functions.
  *
- * @ref OD_getSDOabCode() can be used to retrive corresponding SDO abort code.
+ * @ref OD_getSDOabCode() can be used to retrieve corresponding SDO abort code.
  */
 typedef enum {
 /* !!!! WARNING !!!!
@@ -177,9 +179,9 @@ typedef enum {
     ODR_GENERAL = 20,
     /** SDO abort 0x08000020 - Data cannot be transferred or stored to app */
     ODR_DATA_TRANSF = 21,
-    /** SDO abort 0x08000021 - Data can't be transf (local control) */
+    /** SDO abort 0x08000021 - Data can't be transferred (local control) */
     ODR_DATA_LOC_CTRL = 22,
-    /** SDO abort 0x08000022 - Data can't be transf (present device state) */
+    /** SDO abort 0x08000022 - Data can't be transf. (present device state) */
     ODR_DATA_DEV_STATE = 23,
     /** SDO abort 0x08000023 - Object dictionary not present */
     ODR_OD_MISSING = 23,

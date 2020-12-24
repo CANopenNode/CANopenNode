@@ -43,6 +43,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 #ifndef LISTEN_BACKLOG
 #define LISTEN_BACKLOG 50
@@ -342,7 +343,11 @@ void CO_epoll_processRT(CO_epoll_t *ep,
 /* GATEWAY ********************************************************************/
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
 /* write response string from gateway-ascii object */
-static size_t gtwa_write_response(void *object, const char *buf, size_t count) {
+static size_t gtwa_write_response(void *object,
+                                  const char *buf,
+                                  size_t count,
+                                  uint8_t *connectionOK)
+{
     int* fd = (int *)object;
     /* nWritten = count -> in case of error (non-existing fd) data are purged */
     size_t nWritten = count;
@@ -353,8 +358,13 @@ static size_t gtwa_write_response(void *object, const char *buf, size_t count) {
             nWritten = (size_t)n;
         }
         else {
+            /* probably EAGAIN - "Resource temporarily unavailable". Retry. */
             log_printf(LOG_DEBUG, DBG_ERRNO, "write(gtwa_response)");
+            nWritten = 0;
         }
+    }
+    else {
+        *connectionOK = 0;
     }
     return nWritten;
 }
@@ -424,6 +434,14 @@ CO_ReturnError_t CO_epoll_createGtw(CO_epoll_gtw_t *epGtw,
             return CO_ERROR_SYSCALL;
         }
 
+        /* Ignore the SIGPIPE signal, which may happen, if remote client broke
+         * the connection. Signal may be triggered by write call inside
+         * gtwa_write_response() function */
+        if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
+            log_printf(LOG_CRIT, DBG_ERRNO, "signal");
+            return CO_ERROR_SYSCALL;
+        }
+
         log_printf(LOG_INFO, DBG_COMMAND_LOCAL_INFO, localSocketPath);
     }
     else if (commandInterface >= CO_COMMAND_IF_TCP_SOCKET_MIN &&
@@ -457,6 +475,14 @@ CO_ReturnError_t CO_epoll_createGtw(CO_epoll_gtw_t *epGtw,
         ret = listen(epGtw->gtwa_fdSocket, LISTEN_BACKLOG);
         if(ret < 0) {
             log_printf(LOG_CRIT, DBG_ERRNO, "listen(tcp)");
+            return CO_ERROR_SYSCALL;
+        }
+
+        /* Ignore the SIGPIPE signal, which may happen, if remote client broke
+         * the connection. Signal may be triggered by write call inside
+         * gtwa_write_response() function */
+        if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
+            log_printf(LOG_CRIT, DBG_ERRNO, "signal");
             return CO_ERROR_SYSCALL;
         }
 
@@ -579,8 +605,8 @@ void CO_epoll_processGtw(CO_epoll_gtw_t *epGtw,
 
             ssize_t s = read(epGtw->gtwa_fd, buf, space);
 
-            if (co->nodeIdUnconfigured) {
-                /* purge data */
+            if (space == 0 || co->nodeIdUnconfigured) {
+                /* continue or purge data */
             }
             else if (s < 0 &&  errno != EAGAIN) {
                 log_printf(LOG_DEBUG, DBG_ERRNO, "read(gtwa_fd)");

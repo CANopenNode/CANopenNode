@@ -51,8 +51,8 @@
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
                               CO_SDOclient_t* SDO_C,
-                              uint16_t SDOtimeoutTimeDefault,
-                              bool_t SDOblockTransferEnableDefault,
+                              uint16_t SDOclientTimeoutTime_ms,
+                              bool_t SDOclientBlockTransfer,
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
                               CO_NMT_t *NMT,
@@ -69,7 +69,7 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
     /* verify arguments */
     if (gtwa == NULL
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
-        || SDO_C == NULL || SDOtimeoutTimeDefault == 0
+        || SDO_C == NULL || SDOclientTimeoutTime_ms == 0
 #endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
         || NMT == NULL
@@ -90,8 +90,8 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
     /* initialize variables */
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
     gtwa->SDO_C = SDO_C;
-    gtwa->SDOtimeoutTime = SDOtimeoutTimeDefault;
-    gtwa->SDOblockTransferEnable = SDOblockTransferEnableDefault;
+    gtwa->SDOtimeoutTime = SDOclientTimeoutTime_ms;
+    gtwa->SDOblockTransferEnable = SDOclientBlockTransfer;
 #endif
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
     gtwa->NMT = NMT;
@@ -125,7 +125,8 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 void CO_GTWA_initRead(CO_GTWA_t* gtwa,
                       size_t (*readCallback)(void *object,
                                              const char *buf,
-                                             size_t count),
+                                             size_t count,
+                                             uint8_t *connectionOK),
                       void *readCallbackObject)
 {
     if (gtwa != NULL) {
@@ -153,74 +154,73 @@ void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
  * HELPER FUNCTIONS
  ******************************************************************************/
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
-/* help strings */
+/* help strings ("\n" is used between string, "\r\n" closes the response.) */
 static const char CO_GTWA_helpString[] =
-"\r\nCommand strings start with '\"[\"<sequence>\"]\"' followed by:\r\n" \
-"[[<net>] <node>] r[ead] <index> <subindex> [<datatype>]        # SDO upload.\r\n" \
-"[[<net>] <node>] w[rite] <index> <subindex> <datatype> <value> # SDO download.\r\n" \
-"\r\n" \
-"[[<net>] <node>] start                   # NMT Start node.\r\n" \
-"[[<net>] <node>] stop                    # NMT Stop node.\r\n" \
-"[[<net>] <node>] preop[erational]        # NMT Set node to pre-operational.\r\n" \
-"[[<net>] <node>] reset node              # NMT Reset node.\r\n" \
-"[[<net>] <node>] reset comm[unication]   # NMT Reset communication.\r\n" \
-"\r\n" \
-"[<net>] set network <value>              # Set default net.\r\n" \
-"[<net>] set node <value>                 # Set default node.\r\n" \
-"[<net>] set sdo_timeout <value>          # Configure SDO time-out.\r\n" \
-"[<net>] set sdo_block <value>            # Enable/disable SDO block transfer.\r\n" \
-"\r\n" \
-"help [datatype|lss]                      # Print this or datatype or lss help.\r\n" \
-"led                                      # Print status LED diodes.\r\n" \
-"log                                      # Print message log.\r\n" \
-"\r\n" \
-"Response:\r\n" \
-"\"[\"<sequence>\"]\" OK | <value> |\r\n" \
-"                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>\r\n" \
-"\r\n" \
-"* Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same\r\n" \
-"  is response. String is not null terminated, <CR> is optional in command.\r\n" \
-"* Comments started with '#' are ignored. They may be on the beginning of the\r\n" \
-"  line or after the command string.\r\n" \
-"* 'sdo_timeout' is in milliseconds, 500 by default. Block transfer is\r\n" \
-"  disabled by default.\r\n" \
-"* If '<net>' or '<node>' is not specified within commands, then value defined\r\n" \
+"\nCommand strings start with '\"[\"<sequence>\"]\"' followed by:\n" \
+"[[<net>] <node>] r[ead] <index> <subindex> [<datatype>]        # SDO upload.\n" \
+"[[<net>] <node>] w[rite] <index> <subindex> <datatype> <value> # SDO download.\n" \
+"\n" \
+"[[<net>] <node>] start                   # NMT Start node.\n" \
+"[[<net>] <node>] stop                    # NMT Stop node.\n" \
+"[[<net>] <node>] preop[erational]        # NMT Set node to pre-operational.\n" \
+"[[<net>] <node>] reset node              # NMT Reset node.\n" \
+"[[<net>] <node>] reset comm[unication]   # NMT Reset communication.\n" \
+"\n" \
+"[<net>] set network <value>              # Set default net.\n" \
+"[<net>] set node <value>                 # Set default node.\n" \
+"[<net>] set sdo_timeout <value>          # Configure SDO client time-out in ms.\n" \
+"[<net>] set sdo_block <0|1>              # Enable/disable SDO block transfer.\n" \
+"\n" \
+"help [datatype|lss]                      # Print this or datatype or lss help.\n" \
+"led                                      # Print status LEDs of this device.\n" \
+"log                                      # Print message log.\n" \
+"\n" \
+"Response:\n" \
+"\"[\"<sequence>\"]\" OK | <value> |\n" \
+"                 ERROR:<SDO-abort-code> | ERROR:<internal-error-code>\n" \
+"\n" \
+"* Every command must be terminated with <CR><LF> ('\\r\\n'). characters. Same\n" \
+"  is response. String is not null terminated, <CR> is optional in command.\n" \
+"* Comments started with '#' are ignored. They may be on the beginning of the\n" \
+"  line or after the command string.\n" \
+"* 'sdo_timeout' is in milliseconds, 500 by default. Block transfer is\n" \
+"  disabled by default.\n" \
+"* If '<net>' or '<node>' is not specified within commands, then value defined\n" \
 "  by 'set network' or 'set node' command is used.\r\n";
 
 static const char CO_GTWA_helpStringDatatypes[] =
-"\r\nDatatypes:\r\n" \
-"b                  # Boolean.\r\n" \
-"i8, i16, i32, i64  # Signed integers.\r\n" \
-"u8, u16, u32, u64  # Unsigned integers.\r\n" \
-"x8, x16, x32, x64  # Unsigned integers, displayed as hexadecimal, non-standard.\r\n" \
-"r32, r64           # Real numbers.\r\n" \
-"t, td              # Time of day, time difference.\r\n" \
-"vs                 # Visible string (between double quotes if multi-word).\r\n" \
-"os, us             # Octet, unicode string, (mime-base64 (RFC2045) based, line).\r\n" \
-"d                  # domain (mime-base64 (RFC2045) based, one line).\r\n" \
+"\nDatatypes:\n" \
+"b                  # Boolean.\n" \
+"i8, i16, i32, i64  # Signed integers.\n" \
+"u8, u16, u32, u64  # Unsigned integers.\n" \
+"x8, x16, x32, x64  # Unsigned integers, displayed as hexadecimal, non-standard.\n" \
+"r32, r64           # Real numbers.\n" \
+"vs                 # Visible string (between double quotes if multi-word).\n" \
+"os, us             # Octet, unicode string, (mime-base64 (RFC2045) based, line).\n" \
+"d                  # domain (mime-base64 (RFC2045) based, one line).\n" \
 "hex                # Hexagonal data, optionally space separated, non-standard.\r\n";
 
 static const char CO_GTWA_helpStringLss[] =
-"\r\nLSS commands:\r\n" \
-"lss_switch_glob <0|1>                  # Switch state global command.\r\n" \
-"lss_switch_sel <vendorID> <product code> \\\r\n" \
-"               <revisionNo> <serialNo> #Switch state selective.\r\n" \
-"lss_set_node <node>                    # Configure node-ID.\r\n" \
-"lss_conf_bitrate <table_selector=0> \\\r\n" \
-"                 <table_index>         # Configure bit-rate.\r\n" \
-"lss_activate_bitrate <switch_delay_ms> # Activate new bit-rate.\r\n" \
-"lss_store                              # LSS store configuration.\r\n" \
-"lss_inquire_addr [<LSSSUB=0..3>]       # Inquire LSS address.\r\n" \
-"lss_get_node                           # Inquire node-ID.\r\n" \
-"_lss_fastscan [<timeout_ms>]           # Identify fastscan, non-standard.\r\n" \
-"lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\\r\n" \
-"                [<scanType0> <vendorId> <scanType1> <productCode>\\\r\n" \
-"                 <scanType2> <revisionNo> <scanType3> <serialNo>]]]\r\n" \
-"                                       # Node-ID configuration of all nodes.\r\n" \
-"\r\n" \
-"* All LSS commands start with '\"[\"<sequence>\"]\" [<net>]'.\r\n" \
-"* <table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,\r\n" \
-"                 4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto\r\n" \
+"\nLSS commands:\n" \
+"lss_switch_glob <0|1>                  # Switch state global command.\n" \
+"lss_switch_sel <vendorID> <product code> \\\n" \
+"               <revisionNo> <serialNo> #Switch state selective.\n" \
+"lss_set_node <node>                    # Configure node-ID.\n" \
+"lss_conf_bitrate <table_selector=0> \\\n" \
+"                 <table_index>         # Configure bit-rate.\n" \
+"lss_activate_bitrate <switch_delay_ms> # Activate new bit-rate.\n" \
+"lss_store                              # LSS store configuration.\n" \
+"lss_inquire_addr [<LSSSUB=0..3>]       # Inquire LSS address.\n" \
+"lss_get_node                           # Inquire node-ID.\n" \
+"_lss_fastscan [<timeout_ms>]           # Identify fastscan, non-standard.\n" \
+"lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\\n" \
+"                [<scanType0> <vendorId> <scanType1> <productCode>\\\n" \
+"                 <scanType2> <revisionNo> <scanType3> <serialNo>]]]\n" \
+"                                       # Node-ID configuration of all nodes.\n" \
+"\n" \
+"* All LSS commands start with '\"[\"<sequence>\"]\" [<net>]'.\n" \
+"* <table_index>: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,\n" \
+"                 4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto\n" \
 "* <scanType>: 0=fastscan, 1=ignore, 2=match value in next parameter\r\n";
 #endif
 
@@ -340,12 +340,10 @@ static const CO_GTWA_dataType_t dataTypes[] = {
     {"x64", 8, CO_fifo_readX642a, CO_fifo_cpyTok2U64},  /* UNSIGNED64 */
     {"r32", 4, CO_fifo_readR322a, CO_fifo_cpyTok2R32},  /* REAL32 */
     {"r64", 8, CO_fifo_readR642a, CO_fifo_cpyTok2R64},  /* REAL64 */
-//    {"t",   0, CO_GWA_dtpHex, CO_DWA_dtsHex},         /* TIME_OF_DAY */
-//    {"td",  0, CO_GWA_dtpHex, CO_DWA_dtsHex},         /* TIME_DIFFERENCE */
-    {"vs",  0, CO_fifo_readVs2a,  CO_fifo_cpyTok2Vs}//,
-//    {"os",  0, CO_GWA_dtpHex, CO_DWA_dtsHex}, /* ochar_t (OCTET_STRING) (mime-base64 (RFC2045) should be used here) */
-//    {"us",  0, CO_GWA_dtpHex, CO_DWA_dtsHex}, /*  (UNICODE_STRING) (mime-base64 (RFC2045) should be used here) */
-//    {"d",   0, CO_GWA_dtpHex, CO_DWA_dtsHex}  /* domain_t (DOMAIN) (mime-base64 (RFC2045) should be used here) */
+    {"vs",  0, CO_fifo_readVs2a,  CO_fifo_cpyTok2Vs},   /* VISIBLE_STRING */
+    {"os",  0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},  /* OCTET_STRING base64*/
+    {"us",  0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},/* UNICODE_STRING base64*/
+    {"d",   0, CO_fifo_readB642a, CO_fifo_cpyTok2B64}   /* DOMAIN - base64 */
 };
 
 
@@ -369,8 +367,11 @@ static const CO_GTWA_dataType_t *CO_GTWA_getDataType(char *token, bool_t *err) {
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
 
-/* transfer response buffer and verify if all bytes was read */
-static void respBufTransfer(CO_GTWA_t *gtwa) {
+/* transfer response buffer and verify if all bytes was read. Return true on
+ * success, or false, if communication is broken. */
+static bool_t respBufTransfer(CO_GTWA_t *gtwa) {
+    uint8_t connectionOK = 1;
+
     if (gtwa->readCallback == NULL) {
         /* no callback registered, just purge the response */
         gtwa->respBufOffset = 0;
@@ -382,7 +383,8 @@ static void respBufTransfer(CO_GTWA_t *gtwa) {
         size_t countRead =
         gtwa->readCallback(gtwa->readCallbackObject,
                            (const char *)&gtwa->respBuf[gtwa->respBufOffset],
-                           gtwa->respBufCount);
+                           gtwa->respBufCount,
+                           &connectionOK);
 
         if (countRead < gtwa->respBufCount) {
             gtwa->respBufOffset += countRead;
@@ -395,6 +397,7 @@ static void respBufTransfer(CO_GTWA_t *gtwa) {
             gtwa->respHold = false;
         }
     }
+    return connectionOK != 0;
 }
 
 
@@ -495,10 +498,11 @@ static void responseWithError(CO_GTWA_t *gtwa,
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
 static void responseWithErrorSDO(CO_GTWA_t *gtwa,
-                                 CO_SDO_abortCode_t abortCode)
+                                 CO_SDO_abortCode_t abortCode,
+                                 bool_t postponed)
 {
     int i;
-    int len = sizeof(errorDescs) / sizeof(errorDescs_t);
+    int len = sizeof(errorDescsSDO) / sizeof(errorDescs_t);
     const char *desc = "-";
 
     for (i = 0; i < len; i++) {
@@ -508,9 +512,17 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
         }
     }
 
-    gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
-                                  "[%"PRId32"] ERROR:0x%08X #%s\r\n",
-                                  gtwa->sequence, abortCode, desc);
+    if (!postponed) {
+        gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                                      "[%"PRId32"] ERROR:0x%08X #%s\r\n",
+                                      gtwa->sequence, abortCode, desc);
+    }
+    else {
+        gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                                      "\n...ERROR:0x%08X #%s\r\n",
+                                      abortCode, desc);
+    }
+
     respBufTransfer(gtwa);
 }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
@@ -527,11 +539,20 @@ static inline void responseWithError(CO_GTWA_t *gtwa,
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
 static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
-                                        CO_SDO_abortCode_t abortCode)
+                                        CO_SDO_abortCode_t abortCode,
+                                        bool_t postponed)
 {
-    gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
-                                  "[%"PRId32"] ERROR:0x%08X\r\n",
-                                  gtwa->sequence, abortCode);
+    if (!postponed) {
+        gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                                      "[%"PRId32"] ERROR:0x%08X\r\n",
+                                      gtwa->sequence, abortCode);
+    }
+    else {
+        gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                                      "\n...ERROR:0x%08X\r\n",
+                                      abortCode);
+    }
+
     respBufTransfer(gtwa);
 }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
@@ -542,6 +563,13 @@ static inline void responseWithOK(CO_GTWA_t *gtwa) {
     gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                   "[%"PRId32"] OK\r\n",
                                   gtwa->sequence);
+    respBufTransfer(gtwa);
+}
+
+
+static inline void responseWithEmpty(CO_GTWA_t *gtwa) {
+    gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                                  "\r\n");
     respBufTransfer(gtwa);
 }
 
@@ -649,6 +677,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
         /* If empty line or just comment, continue with next command */
         else if (n == 0 && closed != 0) {
+            responseWithEmpty(gtwa);
             continue;
         }
         if (tok[0] != '[' || tok[strlen(tok)-1] != ']') {
@@ -1511,26 +1540,28 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         gtwa->state = CO_GTWA_ST_IDLE;
     }
 
-    else if (gtwa->state == CO_GTWA_ST_IDLE) {
-        return;
+    else switch (gtwa->state) {
+    case CO_GTWA_ST_IDLE: {
+        return; /* skip timerNext_us calculation */
     }
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
     /* SDO upload state */
-    else if (gtwa->state == CO_GTWA_ST_READ) {
+    case CO_GTWA_ST_READ: {
         CO_SDO_abortCode_t abortCode;
         size_t sizeTransferred;
         CO_SDO_return_t ret;
 
         ret = CO_SDOclientUpload(gtwa->SDO_C,
                                  timeDifference_us,
+                                 false,
                                  &abortCode,
                                  NULL,
                                  &sizeTransferred,
                                  timerNext_us);
 
         if (ret < 0) {
-            responseWithErrorSDO(gtwa, abortCode);
+            responseWithErrorSDO(gtwa, abortCode, gtwa->SDOdataCopyStatus);
             gtwa->state = CO_GTWA_ST_IDLE;
         }
         /* Response data must be read, partially or whole */
@@ -1568,21 +1599,34 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
 
                 /* transfer response to the application */
-                respBufTransfer(gtwa);
+                if (respBufTransfer(gtwa) == false) {
+                    /* broken communication, send SDO abort and force finish. */
+                    abortCode = CO_SDO_AB_DATA_TRANSF;
+                    CO_SDOclientUpload(gtwa->SDO_C,
+                                       0,
+                                       true,
+                                       &abortCode,
+                                       NULL,
+                                       NULL,
+                                       NULL);
+                    gtwa->state = CO_GTWA_ST_IDLE;
+                    break;
+                }
             } while (gtwa->respHold == false && fifoRemain > 0);
         }
+        break;
     }
 
     /* SDO download state */
-    else if (gtwa->state == CO_GTWA_ST_WRITE) {
+    case CO_GTWA_ST_WRITE:
+    case CO_GTWA_ST_WRITE_ABORTED: {
         CO_SDO_abortCode_t abortCode;
         size_t sizeTransferred;
         bool_t abort = false;
         bool_t hold = false;
         CO_SDO_return_t ret;
-        int loop = 0;
 
-        /* copy data to the SDO buffer if more data available */
+        /* copy data to the SDO buffer if previous dataTypeScan was partial */
         if (gtwa->SDOdataCopyStatus) {
             CO_fifo_st status;
             gtwa->SDOdataType->dataTypeScan(&gtwa->SDO_C->bufFifo,
@@ -1599,6 +1643,17 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             ) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                 abort = true; /* abort SDO communication */
+                /* clear the rest of the command, if necessary */
+                if (closed != 1)
+                    CO_fifo_CommSearch(&gtwa->commFifo, true);
+            }
+            if (gtwa->state == CO_GTWA_ST_WRITE_ABORTED) {
+                /* Stay in this state, until all data transferred via commFifo
+                 * will be purged. */
+                if (!CO_fifo_purge(&gtwa->SDO_C->bufFifo) || closed == 1) {
+                    gtwa->state = CO_GTWA_ST_IDLE;
+                }
+                break;
             }
         }
         /* If not all data were transferred, make sure, there is enough data in
@@ -1617,8 +1672,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 hold = true;
             }
         }
-        if (!hold) {
+        if (!hold || abort) {
             /* if OS has CANtx queue, speedup block transfer */
+            int loop = 0;
             do {
                 ret = CO_SDOclientDownload(gtwa->SDO_C,
                                            timeDifference_us,
@@ -1634,19 +1690,23 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* send response in case of error or finish */
             if (ret < 0) {
-                responseWithErrorSDO(gtwa, abortCode);
-                gtwa->state = CO_GTWA_ST_IDLE;
+                responseWithErrorSDO(gtwa, abortCode, false);
+                /* purge remaining data if necessary */
+                gtwa->state = gtwa->SDOdataCopyStatus
+                              ? CO_GTWA_ST_WRITE_ABORTED
+                              : CO_GTWA_ST_IDLE;
             }
             else if (ret == CO_SDO_RT_ok_communicationEnd) {
                 responseWithOK(gtwa);
                 gtwa->state = CO_GTWA_ST_IDLE;
             }
         }
+        break;
     }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
-    else if (gtwa->state == CO_GTWA_ST_LSS_SWITCH_GLOB) {
+    case CO_GTWA_ST_LSS_SWITCH_GLOB: {
         CO_LSSmaster_return_t ret;
         ret = CO_LSSmaster_switchStateSelect(gtwa->LSSmaster,
                                              timeDifference_us,
@@ -1655,8 +1715,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             responseLSS(gtwa, ret);
             gtwa->state = CO_GTWA_ST_IDLE;
         }
+        break;
     }
-    else if (gtwa->state == CO_GTWA_ST_LSS_SWITCH_SEL) {
+    case CO_GTWA_ST_LSS_SWITCH_SEL: {
         CO_LSSmaster_return_t ret;
         ret = CO_LSSmaster_switchStateSelect(gtwa->LSSmaster,
                                              timeDifference_us,
@@ -1665,8 +1726,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             responseLSS(gtwa, ret);
             gtwa->state = CO_GTWA_ST_IDLE;
         }
+        break;
     }
-    else if (gtwa->state == CO_GTWA_ST_LSS_SET_NODE) {
+    case CO_GTWA_ST_LSS_SET_NODE: {
         CO_LSSmaster_return_t ret;
         ret = CO_LSSmaster_configureNodeId(gtwa->LSSmaster,
                                            timeDifference_us,
@@ -1681,8 +1743,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
             gtwa->state = CO_GTWA_ST_IDLE;
         }
+        break;
     }
-    else if (gtwa->state == CO_GTWA_ST_LSS_CONF_BITRATE) {
+    case CO_GTWA_ST_LSS_CONF_BITRATE: {
         CO_LSSmaster_return_t ret;
         ret = CO_LSSmaster_configureBitTiming(gtwa->LSSmaster,
                                               timeDifference_us,
@@ -1697,8 +1760,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
             gtwa->state = CO_GTWA_ST_IDLE;
         }
+        break;
     }
-    else if (gtwa->state == CO_GTWA_ST_LSS_STORE) {
+    case CO_GTWA_ST_LSS_STORE: {
         CO_LSSmaster_return_t ret;
 
         ret = CO_LSSmaster_configureStore(gtwa->LSSmaster, timeDifference_us);
@@ -1712,8 +1776,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
             gtwa->state = CO_GTWA_ST_IDLE;
         }
+        break;
     }
-    else if (gtwa->state == CO_GTWA_ST_LSS_INQUIRE) {
+    case CO_GTWA_ST_LSS_INQUIRE: {
         CO_LSSmaster_return_t ret;
         uint32_t value;
 
@@ -1739,8 +1804,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
             gtwa->state = CO_GTWA_ST_IDLE;
         }
+        break;
     }
-    else if (gtwa->state == CO_GTWA_ST_LSS_INQUIRE_ADDR_ALL) {
+    case CO_GTWA_ST_LSS_INQUIRE_ADDR_ALL: {
         CO_LSSmaster_return_t ret;
 
         ret = CO_LSSmaster_InquireLssAddress(gtwa->LSSmaster, timeDifference_us,
@@ -1763,8 +1829,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
             gtwa->state = CO_GTWA_ST_IDLE;
         }
+        break;
     }
-    else if (gtwa->state == CO_GTWA_ST__LSS_FASTSCAN) {
+    case CO_GTWA_ST__LSS_FASTSCAN: {
         CO_LSSmaster_return_t ret;
 
         ret = CO_LSSmaster_IdentifyFastscan(gtwa->LSSmaster, timeDifference_us,
@@ -1789,8 +1856,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                                        CO_LSSmaster_DEFAULT_TIMEOUT);
             gtwa->state = CO_GTWA_ST_IDLE;
         }
+        break;
     }
-    else if (gtwa->state == CO_GTWA_ST_LSS_ALLNODES) {
+    case CO_GTWA_ST_LSS_ALLNODES: {
         CO_LSSmaster_return_t ret;
         if (gtwa->lssSubState == 0) { /* _lss_fastscan */
             ret = CO_LSSmaster_IdentifyFastscan(gtwa->LSSmaster,
@@ -1804,7 +1872,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     /* no (more) nodes found, send report sum and finish */
                     gtwa->respBufCount =
                         snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
-                                 "# Found %d nodes, search finished.\r\n" \
+                                 "# Found %d nodes, search finished.\n" \
                                  "[%"PRId32"] OK\r\n",
                                  gtwa->lssNodeCount,
                                  gtwa->sequence);
@@ -1877,7 +1945,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             else {
                 /* cycle finished successfully, send report */
                 uint8_t lssNidAssigned = gtwa->lssNID;
-                const char msg2Fmt[] = "# Not all nodes scanned!\r\n" \
+                const char msg2Fmt[] = "# Not all nodes scanned!\n" \
                                        "[%"PRId32"] OK\r\n";
                 char msg2[sizeof(msg2Fmt)+10] = {0};
 
@@ -1900,7 +1968,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 gtwa->respBufCount =
                     snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                              "# Node-ID %d assigned to: 0x%08"PRIX32" 0x%08" \
-                             PRIX32" 0x%08"PRIX32" 0x%08"PRIX32"\r\n%s",
+                             PRIX32" 0x%08"PRIX32" 0x%08"PRIX32"\n%s",
                              lssNidAssigned,
                              gtwa->lssFastscan.found.identity.vendorID,
                              gtwa->lssFastscan.found.identity.productCode,
@@ -1910,12 +1978,13 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 respBufTransfer(gtwa);
             }
         }
-    } /* else if (gtwa->state == CO_GTWA_ST_LSS_ALLNODES) */
+        break;
+    } /* CO_GTWA_ST_LSS_ALLNODES */
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS */
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
     /* print message log */
-    else if (gtwa->state == CO_GTWA_ST_LOG) {
+    case CO_GTWA_ST_LOG: {
         do {
             gtwa->respBufCount = CO_fifo_read(&gtwa->logFifo, gtwa->respBuf,
                                               CO_GTWA_RESP_BUF_SIZE, NULL);
@@ -1926,12 +1995,13 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 break;
             }
         } while (gtwa->respHold == false);
+        break;
     }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
     /* Print help string (in multiple segments if necessary) */
-    else if (gtwa->state == CO_GTWA_ST_HELP) {
+    case CO_GTWA_ST_HELP: {
         size_t lenBuf = CO_GTWA_RESP_BUF_SIZE;
         size_t lenHelp = strlen(gtwa->helpString);
 
@@ -1952,12 +2022,13 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 break;
             }
         } while (gtwa->respHold == false);
+        break;
     }
 #endif
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
     /* print CANopen status LED diodes */
-    else if (gtwa->state == CO_GTWA_ST_LED) {
+    case CO_GTWA_ST_LED: {
         uint8_t i;
 
         if (CO_fifo_CommSearch(&gtwa->commFifo, false)) {
@@ -1977,15 +2048,18 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             respBufTransfer(gtwa);
             gtwa->ledStringPreviousIndex = i;
         }
+        break;
     }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS */
 
     /* illegal state */
-    else {
+    default: {
         respErrorCode = CO_GTWA_respErrorInternalState;
         responseWithError(gtwa, respErrorCode);
         gtwa->state = CO_GTWA_ST_IDLE;
+        break;
     }
+    } /* switch (gtwa->state) */
 
     /* execute next CANopen processing immediately, if idle and more commands
      * available */
