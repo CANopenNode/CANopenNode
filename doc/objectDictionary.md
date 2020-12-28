@@ -3,8 +3,8 @@ Object Dictionary
 
 **THIS IS AVAILABLE IN THE NEXT VERSION**
 
-Definitions from CiA 301
-------------------------
+Definitions from CiA 301 {#definitions-from-cia-301}
+----------------------------------------------------
 The **Object Dictionary** is a collection of all the data items which have an influence on the behavior of the application objects, the communication objects and the state machine used on this device. It serves as an interface between the communication and the application.
 The object dictionary is essentially a grouping of objects accessible via the network in an ordered pre-defined fashion. Each object within the object dictionary is addressed using a 16-bit index and a 8-bit sub-index.
 
@@ -13,13 +13,12 @@ A **SDO** (Service Data Object) is providing direct access to object entries of 
 A **PDO** (Process Data Object) is providing real-time data transfer of object entries of a CANopen device's object dictionary. The transfer of PDO is performed with no protocol overhead. The PDO correspond to objects in the object dictionary and provide the interface to the application objects. Data type and mapping of application objects into a PDO is determined by a corresponding PDO mapping structure within the object dictionary.
 
 
-Operation
----------
+Operation {#operation}
+----------------------
 ### Terms
 The term **OD object** means object from object dictionary located at specific 16-bit index. There are different types of OD objects in CANopen: variables, arrays and records (structures). Each OD object contains pointer to actual data, data length(s) and attribute(s). See @ref OD_objectTypes_t.
 
-The term **OD variable** is basic variable of specified type. For example: int8_t, uint32_t, float64_t, ... or just sequence of binary data with known
-or unknown data length. Each OD variable resides in Object dictionary at specified 16-bit index and 8-bit sub-index.
+The term **OD variable** is basic variable of specified type. For example: int8_t, uint32_t, float64_t, ... or just sequence of binary data with known or unknown data length. Each OD variable resides in Object dictionary at specified 16-bit index and 8-bit sub-index.
 
 The term **OD entry** means structure element, which contains some basic properties of the OD object, indication of type of OD object and pointer to all necessary data for the OD object. An array of OD entries together with information about total number of OD entries represents object dictionary as defined inside CANopenNode. See @ref OD_entry_t and @ref OD_t.
 
@@ -46,8 +45,7 @@ void myFunc(const OD_t *od) {
 
     /* Init IO for "Manufacturer device name" at index 0x1008, sub-index 0x00 */
     entry = OD_find(od, 0x1008);
-    ret = OD_getSub(entry, 0x00, &subEntry, &io1008.stream, false);
-    io1008.read = subEntry.read;
+    ret = OD_getSub(entry, 0x00, &subEntry, &io1008, false);
     /* Read with io1008, subindex = 0x00 */
     if (ret == ODR_OK)
         bytesRd = io1008.read(&io1008.stream, 0x00, &buf[0], sizeof(buf), &ret);
@@ -84,8 +82,8 @@ void myFuncGlob(void) {
 ```
 
 
-Object dictionary example
--------------------------
+Object Dictionary Example {#object-dictionary-example}
+------------------------------------------------------
 Actual Object dictionary for one CANopen device is defined by pair of OD_xyz.h and ODxyz.h files.
 
 Suffix "xyz" is unique name of the object dictionary. If single default object dictionary is used, suffix is omitted. Such way configuration with multiple object dictionaries is possible.
@@ -249,15 +247,15 @@ const OD_t ODxyz = {
 ```
 
 
-XML device description
-----------------------
+XML Device Description {#xml-device-description}
+------------------------------------------------
 CANopen device description - XML schema definition - is specified by CiA 311 standard.
 
 CiA 311 complies with standard ISO 15745-1:2005/Amd1 (Industrial automation systems and integration - Open systems application integration framework).
 
 CANopen device description is basically a XML file with all the information about CANopen device. The larges part of the file is a list of all object dictionary variables with all necessary properties and documentation. This file can be edited with OD editor application and can be used as data source, from which Object dictionary for CANopenNode is generated. Furthermore, this file can be used with CANopen configuration tool, which interacts with CANopen devices on running CANopen network.
 
-XML schema definitions are available at: http://www.canopen.org/xml/1.1 One of the tools for viewing XML schemas is "xsddiagram" (https://github.com/dgis/xsddiagram).
+XML schema definitions are available at: http://www.canopen.org/xml/1.1 One of the tools for viewing XML schemas and validating XDD project files is "xsddiagram" (https://github.com/dgis/xsddiagram). Command line alternative to XDD file validation against schema is: `xmlstarlet val --err --xsd 311/CANopen.xsd project_file.xdd`
 
 CANopen specifies also another type of files for CANopen device description. These are EDS files, which are in INI format. It is possible to convert between those two formats. But CANopenNode uses XML format.
 
@@ -265,10 +263,12 @@ The device description file has "XDD" file extension. The name of this file shal
 
 CANopenNode includes multiple profile definition files, one for each CANopen object. Those files have "XPD" extension. They are in the same XML format as XDD files. The XML editor tool can use XPD files to insert prepared data into device description file (XDD), which is being edited.
 
+There are also device configuration files with "XDC" extension. They are describing a configured CANopen device and include additional elements, such as default value, denominator and device commissioning elements. Similar as "dcf" files in INI format.
+
 ### XDD, XPD file example
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<ISO15745ProfileContainer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.canopen.org/xml/1.0">
+<ISO15745ProfileContainer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.canopen.org/xml/1.1">
   <ISO15745Profile>
     <ProfileHeader>...</ProfileHeader>
     <ProfileBody xsi:type="ProfileBody_Device_CANopen" fileName="..." fileCreator="..." fileCreationDate="..." fileVersion="...">
@@ -335,19 +335,6 @@ CANopenNode includes multiple profile definition files, one for each CANopen obj
             <defaultValue value="0x00000000" />
           </parameter>
         </parameterList>
-        <parameterGroupList>
-          <parameterGroup uniqueID="UID_PG_CO_COMM">
-            <label lang="en">CANopen Communication Parameters</label>
-            <description lang="en">...</description>
-            <parameterGroup uniqueID="UID_PG_CO_COMM_COMMON">
-              <label lang="en">CANopen Common Communication Parameters</label>
-              <description lang="en">...</description>
-              <parameterRef uniqueIDRef="UID_PARAM_1000" />
-              <parameterRef uniqueIDRef="UID_PARAM_1001" />
-              <parameterRef uniqueIDRef="UID_PARAM_1018" />
-            </parameterGroup>
-          </parameterGroup>
-        </parameterGroupList>
       </ApplicationProcess>
     </ProfileBody>
   </ISO15745Profile>
@@ -378,16 +365,16 @@ Above XML file example shows necessary data for OD interface used by CANopenNode
 
 XML file is divided into two parts:
   1. "ProfileBody_Device_CANopen" - more standardized information
-  2. "ProfileBody_CommunicationNetwork_CANopen" - communication related info
+  2. "ProfileBody_CommunicationNetwork_CANopen" - CANopen specific information
 
-Most important part of the XML file is definition of each OD object. All OD objects are listed in "CANopenObjectList", which resides in the second part of the XML file. Each "CANopenObject" and "CANopenSubObject" of the list contains a link to parameter ("uniqueIDRef"), which resides in the first part of the XML file. So data for each OD object is split between two parts of the XML file.
+Largest part of the XML file is definition of each OD object. All OD objects are listed in "CANopenObjectList", which resides in the second part of the XML file. Each "CANopenObject" and "CANopenSubObject" of the list contains a link to parameter ("uniqueIDRef"), which resides in the first part of the XML file. So data for each OD object is split between two parts of the XML file.
 
 #### &lt;CANopenObject&gt;
   * "index" (required) - Object dictionary index
   * "name" (required) - Name of the parameter
   * "objectType" (required) - "7"=VAR, "8"=ARRAY, "9"=RECORD
   * "subNumber" (required if "objectType" is "8" or "9")
-  * "PDOmapping" (optional if "objectType" is "7", default is "no"):
+  * "PDOmapping" (optional if "objectType" is "7"):
     * "no" - mapping not allowed
     * "default" - not used, same as "optional"
     * "optional" - mapping allowed to TPDO or RPDO
@@ -399,21 +386,20 @@ Most important part of the XML file is definition of each OD object. All OD obje
   * "subIndex" (required) - Object dictionary sub-index
   * "name" (required) - Name of the parameter
   * "objectType" (required, always "7")
-  * "PDOmapping" (optional, same as above, default is "no")
+  * "PDOmapping" (optional, same as above)
   * "uniqueIDRef" (required or see below) - Reference to &lt;parameter&gt;
 
 #### uniqueIDRef
-This is required attribute from "CANopenObject" and "CANopenSubObject". It contains reference to &lt;parameter&gt; in "ProfileBody_Device_CANopen" section of the XML file. There are additional necessary properties.
+This is required attribute from "CANopenObject" and "CANopenSubObject". It contains reference to &lt;parameter&gt; in "ProfileBody_Device_CANopen" section of the XML file.
 
 If "uniqueIDRef" attribute is not specified and "objectType" is 7(VAR), then "CANopenObject" or "CANopenSubObject" must contain additional attributes:
   * "dataType" (required for VAR) - CANopen basic data type, see below
   * "accessType" (required for VAR) - "ro", "wo", "rw" or "const"
   * "defaultValue" (optional) - Default value for the variable.
-  * "denotation" (optional) - Not used by CANopenNode.
 
 #### &lt;parameter&gt;
-  * "uniqueID" (required)
-  * "access" (required for VAR) - can be one of:
+  * &quot;**uniqueID**&quot; (required)
+  * &quot;**access**&quot; (required for VAR) - can be one of:
     * "const" - same as "read"
     * "read" - only read access with SDO or PDO
     * "write" - only write access with SDO or PDO
@@ -421,22 +407,23 @@ If "uniqueIDRef" attribute is not specified and "objectType" is 7(VAR), then "CA
     * "readWriteInput" - same as "readWrite"
     * "readWriteOutput" - same as "readWrite"
     * "noAccess" - object will be in object dictionary, but no access.
-  * &lt;label lang="en"&gt; (required)
-  * &lt;description lang="en"&gt; (required)
-  * &lt;INT and similar/&gt; (required) - Basic or complex data type. Basic data type (for VAR) is specified in IEC 61131-3 (see below). If data type is complex (ARRAY or RECORD), then &lt;dataTypeIDRef&gt; must be specified and entry must be added in the &lt;dataTypeList&gt;. Such definition of complex data types is required by the standard, but it is not required by CANopenNode.
-  * &lt;defaultValue&gt; (optional for VAR) - Default value for the variable. If it is empty, then data is not stored inside object dictionary. Application should provide own data via IO extension.
+  * &lt;**label** lang="en"&gt;, &lt;**description** lang="en"&gt; (required) - several elements in multiple languages possible
+  * &lt;**INT and similar**/&gt; (required) - Basic or complex data type. Basic data type (for VAR) is specified in IEC 61131-3 (see below). If data type is complex (ARRAY or RECORD), then **&lt;dataTypeIDRef&gt;** must be specified and entry must be added in the **&lt;dataTypeList&gt;**. Such definition of complex data types is required by the standard, but it is not required by CANopenNode.
+  * &lt;**defaultValue**&gt; (optional for VAR) - Default value for the variable. If it is empty string, then data is not stored inside object dictionary. Application should provide own data via IO extension.
+  * &lt;**property** name="..." value="..."&gt; (optional) - Multiple elements may contain additional custom properties. CANopenNode uses custom properties with following names:
+    * &quot;**CO_disabled**&quot; (used for base OD entry) - Valid value is "false" (default) or "true". if OD entry is disabled, then it will not be present in generated Object Dictionary .h and .c files.
+    * &quot;**CO_countLabel**&quot; (used for base OD entry) - Valid value is any string without spaces. OD exporter will generate a macro for each different string. For example, if four OD objects have "CO_countLabel" set to "TPDO", then macro "#define ODxyz_CNT_TPDO 4" will be generated by OD exporter. "CO_countLabel" is not required for configuration with multiple object dictionaries (CO_MULTIPLE_OD), although may be useful. Default is "".
+    * &quot;**CO_storageGroup**&quot; (used for base OD entry) - group name (string) into which the C variable will belong. Variables from specific storage group may then be stored into non-volatile memory, automatically or by SDO command. Default is "RAM". Please note: if &lt;defaultValue&gt; is empty string at specific subindex, then no storage group will be used for that variable.
+    * &quot;**CO_extensionIO**&quot; (used for base OD entry) - Valid value is "false" (default) or "true", if IO extension is enabled.
+    * &quot;**CO_flagsPDO**&quot; (used for base OD entry) - Valid value is "false" (default) or "true", if PDO flags are enabled.
+    * &quot;**CO_accessSRDO**&quot; (used for each "VAR") - Valid values are: "tx", "rx", "trx", "no"(default).
+    * &quot;**CO_stringLengthMin**&quot; (used for each "VAR") - Minimum length of the string. Used with "VISIBLE_STRING" and "UNICODE_STRING". If CO_stringLengthMin is smaller than length of the string in &lt;defaultValue&gt;, then it is ignored. Byte length of unicode string is 2 * CO_stringLengthMin. If &lt;defaultValue&gt; is empty and CO_stringLengthMin is 0, then data is not stored inside object dictionary. Default is 0.
 
-Additional, optional, CANopenNode specific properties, which can be used inside parameters describing &lt;CANopenObject&gt;:
-  * &lt;property name="CO_storageGroup" value="..."&gt; - group name (string) into which the C variable will belong. Variables from specific storage group may then be stored into non-volatile memory, automatically or by SDO command.
-  * &lt;property name="CO_extensionIO" value="..."&gt; - Valid value is "false" (default) or "true", if IO extension is enabled.
-  * &lt;property name="CO_flagsPDO" value="..."&gt; - Valid value is "false" (default) or "true", if PDO flags are enabled.
-  * &lt;property name="CO_countLabel" value="..."&gt; - Valid value is any string without spaces. OD exporter will generate a macro for each different string. For example, if four OD objects have "CO_countLabel" set to "TPDO", then macro "#define ODxyz_CNT_TPDO 4" will be generated by OD exporter.
+#### Other elements
+Other elements listed in the above XML example are required by the standard. There are also many other elements, not listed above. All those does not influence the CANopenNode object dictionary exporter.
 
-Additional, optional, CANopenNode specific property, which can be used inside parameters describing "VAR":
-  * &lt;property name="CO_accessSRDO" value="..."&gt; - Valid values are: "tx", "rx", "trx", "no"(default).
-  * &lt;property name="CO_stringLength" value="..."&gt; - Minimum length of the string. Used with "VISIBLE_STRING", "OCTET_STRING" and "UNICODE_STRING". If CO_stringLength smaller than length of string in &lt;defaultValue&gt;, then it is ignored. Byte length of unicode string is 2 * CO_stringLength. If &lt;defaultValue&gt; is empty and CO_stringLength is 0, then data is not stored inside object dictionary.
 
-#### CANopen basic data types
+### CANopen basic data types
 | CANopenNode    | IEC 61131-3    | CANopen         | dataType |
 | -------------- | -------------- | --------------- | -------- |
 | bool_t         | BOOL           | BOOLEAN         | 0x01     |
@@ -450,32 +437,32 @@ Additional, optional, CANopenNode specific property, which can be used inside pa
 | uint64_t       | ULINT, (LWORD) | UNSIGNED64      | 0x1B     |
 | float32_t      | REAL           | REAL32          | 0x08     |
 | float64_t      | LREAL          | REAL64          | 0x11     |
-| uint8_t [] (1) | BITSTRING (2)  | INTEGER24       | 0x10     |
-| uint8_t [] (1) | BITSTRING (2)  | INTEGER40       | 0x12     |
-| uint8_t [] (1) | BITSTRING (2)  | INTEGER48       | 0x13     |
-| uint8_t [] (1) | BITSTRING (2)  | INTEGER56       | 0x14     |
-| uint8_t [] (1) | BITSTRING (2)  | UNSIGNED24      | 0x16     |
-| uint8_t [] (1) | BITSTRING (2)  | UNSIGNED40      | 0x18     |
-| uint8_t [] (1) | BITSTRING (2)  | UNSIGNED48      | 0x19     |
-| uint8_t [] (1) | BITSTRING (2)  | UNSIGNED56      | 0x1A     |
-| char []        | STRING         | VISIBLE_STRING  | 0x09     |
-| uint8_t []     | BITSTRING (2)  | OCTET_STRING    | 0x0A     |
-| uint16_t []    | WSTRING        | UNICODE_STRING  | 0x0B     |
-| uint8_t [] (1) | BITSTRING (2)  | TIME_OF_DAY     | 0x0C     |
-| uint8_t [] (1) | BITSTRING (2)  | TIME_DIFFERENCE | 0x0D     |
-| not used       | BITSTRING (2)  | DOMAIN          | 0x0F     |
-(1) Data is stored in little-endian format.
+| -              | (1)            | INTEGER24       | 0x10     |
+| -              | (1)            | INTEGER40       | 0x12     |
+| -              | (1)            | INTEGER48       | 0x13     |
+| -              | (1)            | INTEGER56       | 0x14     |
+| -              | (1)            | UNSIGNED24      | 0x16     |
+| -              | (1)            | UNSIGNED40      | 0x18     |
+| -              | (1)            | UNSIGNED48      | 0x19     |
+| -              | (1)            | UNSIGNED56      | 0x1A     |
+| char []        | STRING (2)     | VISIBLE_STRING  | 0x09     |
+| uint8_t []     | BITSTRING (3)  | OCTET_STRING    | 0x0A     |
+| uint16_t []    | WSTRING (2)    | UNICODE_STRING  | 0x0B     |
+| -              | (1)            | TIME_OF_DAY     | 0x0C     |
+| -              | (1)            | TIME_DIFFERENCE | 0x0D     |
+| app. specific  | BITSTRING (4)  | DOMAIN          | 0x0F     |
 
-(2) CANopen specific type is stored as &lt;BITSTRING/&gt; in &lt;parameter&gt; and additional CANopen "dataType" attribute is stored in &lt;CANopenObject&gt; or &lt;CANopenSubObject&gt;.
+(1) Data is translated into OCTET_STRING.
 
-#### &lt;parameterGroupList&gt;
-This is optional element and is not required by standard, nor by CANopenNode. This can be very useful for documentation, which can be organised into multiple chapters with multiple levels. CANopen objects can then be organised in any way, not only by index.
+(2) Additional property "CO_stringLengthMin" indicates the minimum length of the string in CANopenNode. Property is ignored, if strlen(defaultValue) is larger. Otherwise remaining data locations are filled with zeroes. Strings always have additional element on the end of the array with value=0, which is never written (string is always null terminated). All strings have additional attribute "ODA_STR" in object dictionary. Attribute enables SDO to transfer data of length, which corresponds to actual string length. (Actual size of data read or written by SDO may be smaller than data size of the OD variable.) VISIBLE_STRING may contain control characters and UTF-8 characters, which should work on most target systems (like printf("%s", ...)). So VISIBLE_STRING may be more usable for printing complete set of unicode characters than UNICODE_STRING.
 
-#### Other elements
-Other elements listed in the above XML example are required by the standard and does not influence the CANopenNode object dictionary generator.
+(3) Default value for BITSTRING (OCTET_STRING) is written as space separated, two hex digit bytes in little-endian format.
+
+(4) Default value for DOMAIN is stored as empty string.
 
 
-### Object dictionary requirements by CANopenNode
+Object Dictionary Requirements By CANopenNode {#object-dictionary-requirements-by-canopennode}
+----------------------------------------------------------------------------------------------
 * **Used by** column indicates CANopenNode object or its part, which uses the OD object. It also indicates, if OD object is required or optional for actual configuration. For the configuration of the CANopenNode objects see [Stack configuration](301/CO_config.h). If CANopenNode object or its part is disabled in stack configuration, then OD object is not used. Note that OD objects: 1000, 1001 and 1017 and 1018 are mandatory for CANopen.
 * **CO_extensionIO** column indicates, if OD object must have property "CO_extensionIO" set to true:
   * "no" - no IO extension used

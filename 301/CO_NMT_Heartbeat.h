@@ -248,10 +248,26 @@ CO_NMT_reset_cmd_t CO_NMT_process(
  *
  * @param NMT This object.
  *
- * @return #CO_NMT_internalState_t
+ * @return @ref CO_NMT_internalState_t
  */
 static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
     return (NMT == NULL) ? CO_NMT_INITIALIZING : NMT->operatingState;
+}
+
+
+/**
+ * Set internal NMT state
+ *
+ * Functions sets state directly, without any checking. @ref CO_NMT_process()
+ * may also switch between states automatically, see @ref CO_NMT_control_t.
+ *
+ * @param NMT This object.
+ * @param state New state.
+ */
+static inline void CO_NMT_setInternalState(CO_NMT_t *NMT,
+                                           CO_NMT_internalState_t state)
+{
+    if (NMT != NULL) NMT->operatingState = state;
 }
 
 

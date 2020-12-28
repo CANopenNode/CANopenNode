@@ -59,6 +59,7 @@ extern "C" {
  */
 #define DBG_GENERAL               "(%s) Error: %s%d", __func__
 #define DBG_ERRNO                 "(%s) OS error \"%s\" in %s", __func__, strerror(errno)
+#define DBG_CO_DEBUG              "(%s) CO_DEBUG: %s", __func__
 #define DBG_CAN_TX_FAILED         "(%s) Transmitting CAN msg OID 0x%08x failed(%s)", __func__
 #define DBG_CAN_RX_PARAM_FAILED   "(%s) Setting CAN rx buffer failed (%s)", __func__
 #define DBG_CAN_RX_FAILED         "(%s) Receiving CAN msg failed (%s)", __func__
@@ -77,6 +78,7 @@ extern "C" {
 #define DBG_WRONG_PRIORITY        "(%s) Wrong RT priority \"%d\"", __func__
 #define DBG_NO_CAN_DEVICE         "(%s) Can't find CAN device \"%s\"", __func__
 #define DBG_OBJECT_DICTIONARY     "(%s) Error in Object Dictionary \"%s\"", __func__
+#define DBG_OD_ENTRY              "(%s) Error in Object Dictionary entry: 0x%X", __func__
 #define DBG_CAN_OPEN              "(%s) CANopen error in %s, err=%d", __func__
 #define DBG_CAN_OPEN_INFO         "CANopen device, Node ID = 0x%02X, %s"
 

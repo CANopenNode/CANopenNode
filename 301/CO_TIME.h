@@ -87,7 +87,7 @@ typedef union {
         unsigned days:16;
         unsigned reserved2:16;
     };
-}timeOfDay_t;
+} timeOfDay_t;
 #endif
 
 typedef timeOfDay_t TIME_OF_DAY;

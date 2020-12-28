@@ -111,6 +111,24 @@ static inline void CO_fifo_reset(CO_fifo_t *fifo) {
 
 
 /**
+ * Purge all data in fifo object, keep other properties
+ *
+ * @param fifo This object
+ *
+ * @return true, if data were purged or false, if fifo were already empty
+ */
+static inline bool_t CO_fifo_purge(CO_fifo_t *fifo) {
+    if (fifo != NULL && fifo->readPtr != fifo->writePtr) {
+        fifo->readPtr = 0;
+        fifo->writePtr = 0;
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
  * Get free buffer space in CO_fifo_t object
  *
  * @param fifo This object
@@ -342,10 +360,13 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear);
  * is also removed).
  *
  * @param fifo This object.
+ * @param [in, out] insideComment if set to true as input, it skips all
+ * characters and searches only for delimiter. As output it is set to true, if
+ * fifo is empty, is inside comment and command delimiter is not found.
  *
  * @return true if command delimiter was found.
  */
-bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo);
+bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment);
 
 
 /**
@@ -400,7 +421,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
  * @param fifo This object.
  * @param buf Buffer into which ascii string will be copied.
  * @param count Available count of bytes inside the buf.
- * @param end If true, then fifo contains last bytes, which has to be read.
+ * @param end True indicates, that fifo contains last bytes of data.
  *
  * @return Number of ascii bytes written into buf.
  */
@@ -437,8 +458,14 @@ size_t CO_fifo_readHex2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 /** Read data from fifo and output as visible string. A visible string is
  * enclosed with double quotes. If a double quote is used within the string,
  * the quotes are escaped by a second quotes, e.g. “Hello “”World””, CANopen
- * is great”. See also CO_fifo_readU82a */
+ * is great”. UTF-8 characters and also line breaks works with this function.
+ * Function removes all NULL and CR characters from output string.
+ * See also CO_fifo_readU82a */
 size_t CO_fifo_readVs2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
+/** Read data from fifo and output as mime-base64 encoded string. Encoding is as
+ * specified in RFC 2045, without CR-LF, but one long string. See also
+ * CO_fifo_readU82a */
+size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 
 
 /** Bitfields for status argument from CO_fifo_cpyTok2U8 function and similar */
@@ -493,8 +520,13 @@ size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 /** Copy visible string to data. A visible string must be enclosed with double
  * quotes, if it contains space. If a double quote is used within the string,
- * the quotes are escaped by a second quotes. See CO_fifo_cpyTok2U8 */
+ * the quotes are escaped by a second quotes. Input string can not contain
+ * newline characters. See CO_fifo_cpyTok2U8 */
 size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+/** Read ascii mime-base64 encoded string from src fifo and copy as binary data
+ * to dest fifo. Encoding is as specified in RFC 2045, without CR-LF, but one
+ * long string in single line. See also CO_fifo_readU82a */
+size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
 
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES */
 

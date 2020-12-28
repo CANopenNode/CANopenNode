@@ -142,6 +142,12 @@ bit    31: set to 0</description>
       <CANopenSubObject subIndex="00" name="max sub-index" objectType="7" dataType="05" accessType="ro" PDOmapping="no" defaultValue="1"/>
       <CANopenSubObject subIndex="01" name="restore all default parameters" objectType="7" defaultValue="0x00000001"/>
     </CANopenObject>
+    <CANopenObject index="1012" name="COB-ID TIME" objectType="7" memoryType="ROM" dataType="07" accessType="rw" PDOmapping="no" defaultValue="0x00000100">
+      <description>* bit 31: If set, CANopen device consumes TIME message
+* bit 30: If set, CANopen device produces TIME message
+* bit 11-29: set to 0
+* bit 0-10: 11-bit CAN-ID</description>
+    </CANopenObject>
     <CANopenObject index="1014" name="COB-ID EMCY" objectType="7" memoryType="ROM" dataType="07" accessType="ro" PDOmapping="no" defaultValue="$NODEID+0x80" accessFunctionName="CO_ODF_1014">
       <label lang="en">COB-ID emergency message</label>
       <description lang="en">bit  0-10: COB-ID

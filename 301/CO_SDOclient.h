@@ -36,7 +36,11 @@
 #define CO_CONFIG_SDO_CLI (0)
 #endif
 #ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
-#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
+ #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000
+ #else
+  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
+ #endif
 #endif
 
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) || defined CO_DOXYGEN
@@ -303,8 +307,8 @@ void CO_SDOclientDownloadInitiateSize(CO_SDOclient_t *SDO_C,
  * @return number of bytes actually written.
  */
 size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
-                                     const char *buf,
-                                     size_t count);
+                                    const char *buf,
+                                    size_t count);
 
 
 /**
@@ -323,6 +327,8 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  * [microseconds].
  * @param abort If true, SDO client will send abort message from SDOabortCode
  * and transmission will be aborted.
+ * @param bufferPartial True indicates, not all data were copied to internal
+ * buffer yet. Buffer will be refilled later with #CO_SDOclientDownloadBufWrite.
  * @param [out] SDOabortCode In case of error in communication, SDO abort code
  * contains reason of error. Ignored if NULL.
  * @param [out] sizeTransferred Actual size of data transferred. Ignored if NULL
@@ -334,11 +340,12 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  * communication is in progress.
  */
 CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
-                                           uint32_t timeDifference_us,
-                                           bool_t abort,
-                                           CO_SDO_abortCode_t *SDOabortCode,
-                                           size_t *sizeTransferred,
-                                           uint32_t *timerNext_us);
+                                     uint32_t timeDifference_us,
+                                     bool_t abort,
+                                     bool_t bufferPartial,
+                                     CO_SDO_abortCode_t *SDOabortCode,
+                                     size_t *sizeTransferred,
+                                     uint32_t *timerNext_us);
 
 
 /**
@@ -379,6 +386,8 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  * @param SDO_C This object.
  * @param timeDifference_us Time difference from previous function call in
  * [microseconds].
+ * @param abort If true, SDO client will send abort message from SDOabortCode
+ * and reception will be aborted.
  * @param [out] SDOabortCode In case of error in communication, SDO abort code
  * contains reason of error. Ignored if NULL.
  * @param [out] sizeIndicated If larger than 0, then SDO server has indicated
@@ -393,6 +402,7 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  */
 CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                                    uint32_t timeDifference_us,
+                                   bool_t abort,
                                    CO_SDO_abortCode_t *SDOabortCode,
                                    size_t *sizeIndicated,
                                    size_t *sizeTransferred,

@@ -44,7 +44,7 @@ SOURCES = \
 
 OBJS = $(SOURCES:%.c=%.o)
 CC ?= gcc
-OPT = -g
+OPT = -g -DCO_VERSION_MAJOR=2
 CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
 LDFLAGS =
 

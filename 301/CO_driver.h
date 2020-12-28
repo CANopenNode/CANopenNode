@@ -35,6 +35,15 @@
 extern "C" {
 #endif
 
+#ifdef CO_DEBUG_COMMON
+#if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_CLIENT
+ #define CO_DEBUG_SDO_CLIENT(msg) CO_DEBUG_COMMON(msg)
+#endif
+#if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_SERVER
+ #define CO_DEBUG_SDO_SERVER(msg) CO_DEBUG_COMMON(msg)
+#endif
+#endif
+
 /**
  * @defgroup CO_driver Driver
  * @ingroup CO_CANopen_301
@@ -199,7 +208,7 @@ void CANrx_callback(void *object, void *rxMsg);
  *
  * This is target specific function and is specific for specific
  * microcontroller. It is best to implement it by using inline function or
- * macro. `rxMsg` parameter should cast to a ponter to structure. For best
+ * macro. `rxMsg` parameter should cast to a pointer to structure. For best
  * efficiency structure may have the same alignment as CAN registers inside CAN
  * module.
  *
@@ -329,6 +338,7 @@ typedef struct {
     volatile uint16_t CANtxCount;      /**< Number of messages in transmit
             buffer, which are waiting to be copied to the CAN module */
     uint32_t errOld;                   /**< Previous state of CAN errors */
+    int32_t errinfo;                   /**< For use with @ref CO_errinfo() */
 } CO_CANmodule_t;
 
 
@@ -398,12 +408,30 @@ typedef struct {
 #endif /* CO_DOXYGEN */
 
 
+/** Macro for passing additional information about error.
+ *
+ * This macro is called from several CANopen init functions, which returns
+ * @ref CO_ReturnError_t.
+ *
+ * CO_driver_target.h may implement this macro. Usually macro only sets
+ * CANmodule->errinfo to err. Application may then use CANmodule->errinfo to
+ * determine the reason of failure. errinfo must be type of int32_t. By default
+ * macro does not record anything.
+ *
+ * CO_errinfo is called in following @ref CO_ReturnError_t reasons:
+ * - 'CO_ERROR_OD_PARAMETERS' - Index of erroneous OD parameter.
+ */
+#ifndef CO_errinfo
+#define CO_errinfo(CANmodule, err) CANmodule->errinfo = err
+#endif
+
+
 /**
  * Default CANopen identifiers.
  *
  * Default CANopen identifiers for CANopen communication objects. Same as
  * 11-bit addresses of CAN messages. These are default identifiers and
- * can be changed in CANopen. Especially PDO identifiers are confgured
+ * can be changed in CANopen. Especially PDO identifiers are configured
  * in PDO linking phase of the CANopen network configuration.
  */
 typedef enum {
@@ -472,7 +500,7 @@ typedef enum {
     CO_ERROR_TX_OVERFLOW = -9,      /**< Previous message is still waiting,
                                          buffer full */
     CO_ERROR_TX_PDO_WINDOW = -10,   /**< Synchronous TPDO is outside window */
-    CO_ERROR_TX_UNCONFIGURED = -11, /**< Transmit buffer was not confugured
+    CO_ERROR_TX_UNCONFIGURED = -11, /**< Transmit buffer was not configured
                                          properly */
     CO_ERROR_OD_PARAMETERS = -12,   /**< Error in Object Dictionary parameters*/
     CO_ERROR_DATA_CORRUPT = -13,    /**< Stored data are corrupt */
@@ -490,7 +518,7 @@ typedef enum {
 
 
 /**
- * Request CAN configuration (stopped) mode and *wait* untill it is set.
+ * Request CAN configuration (stopped) mode and *wait* until it is set.
  *
  * @param CANptr Pointer to CAN device
  */
@@ -498,7 +526,7 @@ void CO_CANsetConfigurationMode(void *CANptr);
 
 
 /**
- * Request CAN normal (opearational) mode and *wait* untill it is set.
+ * Request CAN normal (operational) mode and *wait* until it is set.
  *
  * @param CANmodule CO_CANmodule_t object.
  */
@@ -588,7 +616,7 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t *CANmodule,
  * @param rtr If true, 'Remote Transmit Request' messages will be transmitted.
  * @param noOfBytes Length of CAN message in bytes (0 to 8 bytes).
  * @param syncFlag This flag bit is used for synchronous TPDO messages. If it is
- * set, message will not be sent, if curent time is outside synchronous window.
+ * set, message will not be sent, if current time is outside synchronous window.
  *
  * @return Pointer to CAN transmit message buffer. 8 bytes data array inside
  * buffer should be written, before CO_CANsend() function is called.

@@ -30,6 +30,7 @@ Then clone [CANopenNode](https://github.com/CANopenNode/CANopenNode) from Github
     sudo apt-get install can-utils
     git clone https://github.com/CANopenNode/CANopenNode.git
     cd CANopenNode
+    # For update just use 'git pull' here
     make
 
 Now prepare CAN virtual device and run _candump_, which will show all CAN traffic. Use a second terminal:
@@ -51,14 +52,14 @@ You are now running a fully functional CANopen device on virtual CAN network. It
 
 On the second terminal you can see some CAN traffic. After _canopend_ startup, first messages are:
 
-    vcan0  704   [1]  00                        # Bootup message.
+    vcan0  704   [1]  00                        # Boot-up message.
     vcan0  084   [8]  00 50 01 2F F3 FF FF FF   # Emergency message.
     vcan0  704   [1]  7F                        # Heartbeat messages each second
     vcan0  704   [1]  7F
 
-Bootup and Heartbeat messages of node 4 have CAN-ID equal to 0x704. CAN-ID is 11-bit standard CAN identifier. 0x7F in heartbeat message means, that node is in NMT pre-operational state.
+Boot-up and Heartbeat messages of node 4 have CAN-ID equal to 0x704. CAN-ID is 11-bit standard CAN identifier. 0x7F in heartbeat message means, that node is in NMT pre-operational state.
 
-Also, both, first and second terminal shows, that there is an Emergency message after the bootup. Also Heartbeat messages shows NMT pre-operational state.
+Also, both, first and second terminal shows, that there is an Emergency message after the boot-up. Also Heartbeat messages shows NMT pre-operational state.
 
 The easiest way to find the reason of the emergency message is to check the byte 4 (errorBit). It has value of 0x2F. Go to CANopenNode source code and open the file "301/CO_Emergency.h", section "Error status bits". 0x2F means "CO_EM_NON_VOLATILE_MEMORY", which is generic, critical error with access to non volatile device memory.
 
@@ -158,13 +159,19 @@ Please be careful when exposing your CANopen network to the outside world, it is
 
 
 ### Next steps
-Now you can enter the big world of [CANopen devices](http://can-newsletter.org/hardware).
-
-You can also build your own CANopen device with your favourite microcontroller, see *deviceSupport.md*. There is also a bare-metal demo for [PIC microcontrollers](https://github.com/CANopenNode/CANopenPIC), most complete example is for PIC32.
-
 Assigning Node-ID or CAN bitrate, which support LSS configuration, is described in *LSSusage.md*.
 
-Some further CANopenNode related Linux tools are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket).
+This version of CANopenNode (<= v2) contains old and outdated approach to Object Dictionary. You may try to switch to newer version, for which are available some further examples and tools.
+
+Further CANopenNode related tools and examples are available in [CANopenSocket](https://github.com/CANopenNode/CANopenSocket). Especially interesting is [basicDevice](https://github.com/CANopenNode/CANopenSocket/examples/basicDevice)
+
+Custom CANopen device can be created based on own Object Dictionary, see README.md. There are also many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download, for example CiA401.
+
+For own CANopen device with own microcontroller, see *deviceSupport.md*. There is a bare-metal demo for [PIC microcontrollers](https://github.com/CANopenNode/CANopenPIC), most complete example is for PIC32.
+
+Another interesting tool is [CANopen for Python](https://github.com/christiansandberg/canopen).
+
+Examples here worked in virtual CAN interface, for simplicity. Virtual CAN runs inside Linux kernel only, it does not have much practical usability. If one has real CAN network configuration, then above examples are suitable also for this network, if Linux machine is connected to it and CAN interface is properly configured. When connecting your devices to real CAN network, make sure, you have at least two devices communicating, connected with ground and pair of wires, terminated with two 120ohm resistors, correct baudrate, etc.
 
 Accessing real CANopen devices is the same as described above for virtual CAN interface. Some tested USB to CAN interfaces, which are native in Linux kernel are:
  - Simple serial [USBtin](http://www.fischl.de/usbtin/) - Start with: `sudo slcand -f -o -c -s8 /dev/ttyACM0 can0; sudo ip link set up can0`
@@ -172,7 +179,8 @@ Accessing real CANopen devices is the same as described above for virtual CAN in
  - You can get the idea of other supported CAN interfaces in [Linux kernel source](https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can) (Kconfig files).
  - Raspberry PI or similar has CAN capes available.
 
-With [CANopenNode](https://github.com/CANopenNode/CANopenNode) you can also design your own device. There are many very useful and high quality specifications for different [device profiles](http://www.can-cia.org/standardization/specifications/), some of them are public and free to download.
+Examples here run in Linux, for simplicity. However, real usability of CANopen network is, when simple, microcontroller based devices are connected together with or without more advanced commander device. CANopenNode is basically written for simple microcontrollers and also has more advanced commander features, like above used CANopen gateway with ascii command interface.
 
-Here we played with virtual CAN interface and result shows as pixels on screen. If you connect real CAN interface to your computer, things may
-become dangerous. Keep control and safety on your machines!
+Now you can enter the big world of [CANopen devices](http://can-newsletter.org/hardware).
+
+Here we played with virtual CAN interface and result shown as pixels on screen. If you connect a real CAN interface to your computer, things may become dangerous. Keep control and safety on your machines!

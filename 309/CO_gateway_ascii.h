@@ -29,7 +29,6 @@
 
 #include "301/CO_driver.h"
 #include "301/CO_fifo.h"
-#include "301/CO_SDOserver.h"
 #include "301/CO_SDOclient.h"
 #include "301/CO_NMT_Heartbeat.h"
 #include "305/CO_LSSmaster.h"
@@ -155,7 +154,7 @@ lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\
 
 /** Timeout time in microseconds for some internal states. */
 #ifndef CO_GTWA_STATE_TIMEOUT_TIME_US
-#define CO_GTWA_STATE_TIMEOUT_TIME_US 1000000
+#define CO_GTWA_STATE_TIMEOUT_TIME_US 1200000
 #endif
 
 
@@ -234,6 +233,8 @@ typedef enum {
     CO_GTWA_ST_READ = 0x10U,
     /** SDO 'write' (download) */
     CO_GTWA_ST_WRITE = 0x11U,
+    /** SDO 'write' (download) - aborted, purging remaining data */
+    CO_GTWA_ST_WRITE_ABORTED = 0x12U,
     /** LSS 'lss_switch_glob' */
     CO_GTWA_ST_LSS_SWITCH_GLOB = 0x20U,
     /** LSS 'lss_switch_sel' */
@@ -299,10 +300,14 @@ typedef struct {
      * @param object Void pointer to custom object
      * @param buf Buffer from which data can be read
      * @param count Count of bytes available inside buffer
+     * @param [out] connectionOK different than 0 indicates connection is OK.
      *
      * @return Count of bytes actually transferred.
      */
-    size_t (*readCallback)(void *object, const char *buf, size_t count);
+    size_t (*readCallback)(void *object,
+                           const char *buf,
+                           size_t count,
+                           uint8_t *connectionOK);
     /** Pointer to object, which will be used inside readCallback, from
      * CO_GTWA_init() */
     void *readCallbackObject;
@@ -344,7 +349,9 @@ typedef struct {
     uint16_t SDOtimeoutTime;
     /** SDO block transfer enabled? */
     bool_t SDOblockTransferEnable;
-    /** Indicate status of data copy from / to SDO buffer */
+    /** Indicate status of data copy from / to SDO buffer. If reading, true
+     * indicates, that response has started. If writing, true indicates, that
+     * SDO buffer contains only part of data and more data will follow. */
     bool_t SDOdataCopyStatus;
     /** Data type of variable in current SDO communication */
     const CO_GTWA_dataType_t *SDOdataType;
@@ -399,8 +406,8 @@ typedef struct {
  *
  * @param gtwa This object will be initialized
  * @param SDO_C SDO client object
- * @param SDOtimeoutTimeDefault in milliseconds, 500 typically
- * @param SDOblockTransferEnableDefault true or false
+ * @param SDOclientTimeoutTime_ms Default timeout in milliseconds, 500 typically
+ * @param SDOclientBlockTransfer If true, block transfer will be set by default
  * @param NMT NMT object
  * @param LSSmaster LSS master object
  * @param LEDs LEDs object
@@ -411,8 +418,8 @@ typedef struct {
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
                               CO_SDOclient_t* SDO_C,
-                              uint16_t SDOtimeoutTimeDefault,
-                              bool_t SDOblockTransferEnableDefault,
+                              uint16_t SDOclientTimeoutTime_ms,
+                              bool_t SDOclientBlockTransfer,
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
                               CO_NMT_t *NMT,
@@ -443,7 +450,8 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 void CO_GTWA_initRead(CO_GTWA_t* gtwa,
                       size_t (*readCallback)(void *object,
                                              const char *buf,
-                                             size_t count),
+                                             size_t count,
+                                             uint8_t *connectionOK),
                       void *readCallbackObject);
 
 

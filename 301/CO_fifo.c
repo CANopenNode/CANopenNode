@@ -308,27 +308,17 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
 
 
 /******************************************************************************/
-bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo) {
+bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment) {
     bool_t delimCommandFound = false;
 
-    if (fifo != NULL) {
+    if (fifo != NULL && insideComment != NULL) {
         while (fifo->readPtr != fifo->writePtr) {
             char c = fifo->buf[fifo->readPtr];
 
             if (c == DELIM_COMMENT) {
-                /* comment found, clear all until next DELIM_COMMAND */
-                while (fifo->readPtr != fifo->writePtr) {
-                    if (++fifo->readPtr == fifo->bufSize) {
-                        fifo->readPtr = 0;
-                    }
-                    if (c == DELIM_COMMAND) {
-                        delimCommandFound = true;
-                        break;
-                    }
-                }
-                break;
+                *insideComment = true;
             }
-            else if (isgraph((int)c) != 0) {
+            else if (isgraph((int)c) != 0 && !(*insideComment)) {
                 break;
             }
             if (++fifo->readPtr == fifo->bufSize) {
@@ -336,6 +326,7 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo) {
             }
             if (c == DELIM_COMMAND) {
                 delimCommandFound = true;
+                *insideComment = false;
                 break;
             }
         }
@@ -471,6 +462,24 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
 
 #if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES
 /******************************************************************************/
+/* Tables for mime-base64 encoding, as specified in RFC 2045, (without CR-LF,
+ * but one long string). Base64 is used for encoding binary data into easy
+ * transferable printable characters. In general, each three bytes of binary
+ * data are translated into four characters, where characters are selected from
+ * 64 characters long table. See https://en.wikipedia.org/wiki/Base64 */
+static const char base64EncTable[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static const char base64DecTable[] = {
+    -1, -1, -1, -1, -1, -1, -1, -1, -1,103,101, -1, -1,102, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+   103, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1,100, -1, -1,
+    -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1};
+
 size_t CO_fifo_readU82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint8_t n=0;
 
@@ -684,11 +693,80 @@ size_t CO_fifo_readVs2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
                 }
                 break;
             }
-            if (c == '"') {
-                buf[len++] = '"';
+            else if (c != 0 && c != '\r') { /* skip null and CR inside string */
+                buf[len++] = c;
+                if (c == '"') {
+                    buf[len++] = c;
+                }
             }
-            buf[len++] = c;
         }
+    }
+
+    return len;
+}
+
+size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
+    /* mime-base64 encoding, see description above base64EncTable */
+
+    size_t len = 0;
+
+    if (fifo != NULL && count >= 4) {
+        uint8_t step;
+        uint16_t word;
+
+        if (!fifo->started) {
+            fifo->started = true;
+            step = 0;
+            word = 0;
+        }
+        else {
+            /* get memorized variables from previous function calls */
+            step = (uint8_t)(fifo->aux >> 16);
+            word = (uint16_t)fifo->aux;
+        }
+
+        while ((len + 3) <= count) {
+            char c;
+
+            if(!CO_fifo_getc(fifo, &c)) {
+                /* buffer is empty, is also SDO communication finished? */
+                if (end) {
+                    /* add padding if necessary */
+                    switch (step) {
+                        case 1:
+                            buf[len++] = base64EncTable[(word >> 4) & 0x3F];
+                            buf[len++] = '=';
+                            buf[len++] = '=';
+                            break;
+                        case 2:
+                            buf[len++] = base64EncTable[(word >> 6) & 0x3F];
+                            buf[len++] = '=';
+                            break;
+                    }
+                }
+                break;
+            }
+
+            word |= (uint8_t)c;
+
+            switch (step++) {
+                case 0:
+                    buf[len++] = base64EncTable[(word >> 2) & 0x3F];
+                    break;
+                case 1:
+                    buf[len++] = base64EncTable[(word >> 4) & 0x3F];
+                    break;
+                default:
+                    buf[len++] = base64EncTable[(word >> 6) & 0x3F];
+                    buf[len++] = base64EncTable[word & 0x3F];
+                    step = 0;
+                    break;
+            }
+            word <<= 8;
+        }
+
+        /* memorize variables for next iteration */
+        fifo->aux = (uint32_t)step << 16 | word;
     }
 
     return len;
@@ -921,108 +999,8 @@ size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     size_t destSpace, destSpaceStart;
     bool_t finished = false;
-    CO_fifo_st st = 0;
-
-    if (dest == NULL || src == NULL) {
-        return 0;
-    }
-
-    /* get free space of the dest fifo */
-    destSpaceStart = destSpace = CO_fifo_getSpace(dest);
-
-    /* repeat until destination space available and no error and not finished
-     * and source characters available */
-    while (destSpace > 0 && (st & CO_fifo_st_errMask) == 0 && !finished) {
-        char c;
-        if (!CO_fifo_getc(src, &c)) {
-            break;
-        }
-
-        if (dest->started == false) {
-            /* search for first of two hex digits in token */
-            if (isxdigit((int)c) != 0) {
-                /* first hex digit is known */
-                dest->aux = c;
-                dest->started = true;
-            }
-            else if (c == DELIM_COMMAND) {
-                /* newline found, finish */
-                st |= CO_fifo_st_closed;
-                finished = true;
-            }
-            else if (c == DELIM_COMMENT) {
-                /* comment found, clear line and finish */
-                while (CO_fifo_getc(src, &c)) {
-                    if (c == DELIM_COMMAND) {
-                        st |= CO_fifo_st_closed;
-                        break;
-                    }
-                }
-                finished = true;
-            }
-            else if (isgraph((int)c) != 0) {
-                /* printable character, not hex digit, error */
-                st |= CO_fifo_st_errTok;
-            }
-            /* else just skip empty space */
-        }
-        else {
-            /* one hex digit is known, what is next */
-            if (isxdigit((int)c) != 0) {
-                /* two hex digits are known */
-                char s[3];
-                int32_t num;
-                s[0] = (char) dest->aux; s[1] = c, s[2] = 0;
-                num = strtol(s, NULL, 16);
-                /* copy the character */
-                CO_fifo_putc(dest, (char) num);
-                destSpace--;
-            }
-            else if (isgraph((int)c) != 0 && c != DELIM_COMMENT) {
-                /* printable character, not hex digit, error */
-                st |= CO_fifo_st_errTok;
-            }
-            else {
-                /* this is space or comment, single hex digit is known */
-                char s[2];
-                int32_t num;
-                s[0] = (char) dest->aux; s[1] = 0;
-                num = strtol(s, NULL, 16);
-                /* copy the character */
-                CO_fifo_putc(dest, (char) num);
-                destSpace--;
-                if (c == DELIM_COMMAND) {
-                    /* newline found, finish */
-                    st |= CO_fifo_st_closed;
-                    finished = true;
-                }
-                else if (c == DELIM_COMMENT) {
-                    /* comment found, clear line and finish */
-                    while (CO_fifo_getc(src, &c)) {
-                        if (c == DELIM_COMMAND) {
-                            st |= CO_fifo_st_closed;
-                            break;
-                        }
-                    }
-                    finished = true;
-                }
-            }
-            dest->started = false;
-        }
-    }
-
-    if (!finished) {
-        st |= CO_fifo_st_partial;
-    }
-
-    if (status != NULL) *status = st;
-
-    return destSpaceStart - destSpace;
-}
-
-size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
-    size_t destSpace, destSpaceStart;
-    bool_t finished = false;
+    uint8_t step;
+    char firstChar;
     CO_fifo_st st = 0;
 
     if (dest == NULL || src == NULL) {
@@ -1034,9 +1012,19 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
     /* is this the first write into dest? */
     if (!dest->started) {
-        /* aux variable is used as state here */
-        dest->aux = 0;
+        bool_t insideComment = false;
+        if (CO_fifo_trimSpaces(src, &insideComment) || insideComment) {
+            /* command delimiter found without string, this is an error */
+            st |= CO_fifo_st_errTok;
+        }
         dest->started = true;
+        step = 0;
+        firstChar = 0;
+    }
+    else {
+        /* get memorized variables from previous function calls */
+        step = (uint8_t)(dest->aux >> 8);
+        firstChar = (char)(dest->aux & 0xFF);
     }
 
     /* repeat until destination space available and no error and not finished
@@ -1047,43 +1035,145 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
             break;
         }
 
-        switch (dest->aux) {
-        case 0: /* beginning of the string, first write into dest */
-            if (isgraph((int)c) == 0 || c == DELIM_COMMENT) {
-                if (CO_fifo_trimSpaces(src)) {
-                    /* newline found without string, this is an error */
-                    st |= CO_fifo_st_errTok;
-                }
+        if (step == 6) {
+            /* command is inside comment, waiting for command delimiter */
+            bool_t insideComment = true;
+            if (c == DELIM_COMMAND || CO_fifo_trimSpaces(src, &insideComment)) {
+                st |= CO_fifo_st_closed;
+                finished = true;
             }
-            else if (c == '"') {
+            continue;
+        }
+
+        if (isxdigit((int)c) != 0) {
+            /* first or second hex digit */
+            if (step == 0) {
+                firstChar = c;
+                step = 1;
+            }
+            else {
+                /* write the byte */
+                char s[3];
+                int32_t num;
+                s[0] = firstChar; s[1] = c; s[2] = 0;
+                num = strtol(s, NULL, 16);
+                CO_fifo_putc(dest, (char) num);
+                destSpace--;
+                step = 0;
+            }
+        }
+        else if (isgraph((int)c) != 0) {
+            /* printable character, not hex digit */
+            if (c == '#') /* comment start */
+                step = 6;
+            else /* syntax error */
+                st |= CO_fifo_st_errTok;
+        }
+        else {
+            /* this is space or delimiter */
+            if (step == 1) {
+                /* write the byte */
+                char s[2];
+                int32_t num;
+                s[0] = firstChar; s[1] = 0;
+                num = strtol(s, NULL, 16);
+                CO_fifo_putc(dest, (char) num);
+                destSpace--;
+                step = 0;
+            }
+            bool_t insideComment = false;
+            if (c == DELIM_COMMAND || CO_fifo_trimSpaces(src, &insideComment)) {
+                /* newline found, finish */
+                st |= CO_fifo_st_closed;
+                finished = true;
+            }
+            else if (insideComment) {
+                step = 6;
+            }
+        }
+    } /* while ... */
+
+    if (!finished) {
+        st |= CO_fifo_st_partial;
+        /* memorize variables for next iteration */
+        dest->aux = (uint32_t)step << 8 | (uint8_t)firstChar;
+    }
+
+    if (status != NULL) *status = st;
+
+    return destSpaceStart - destSpace;
+}
+
+size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+    size_t destSpace, destSpaceStart;
+    bool_t finished = false;
+    uint8_t step;
+    CO_fifo_st st = 0;
+
+    if (dest == NULL || src == NULL) {
+        return 0;
+    }
+
+    /* get free space of the dest fifo */
+    destSpaceStart = destSpace = CO_fifo_getSpace(dest);
+
+    /* is this the first write into dest? */
+    if (!dest->started) {
+        bool_t insideComment = false;
+        if (CO_fifo_trimSpaces(src, &insideComment) || insideComment) {
+            /* command delimiter found without string, this is an error */
+            st |= CO_fifo_st_errTok;
+        }
+        dest->started = true;
+        step = 0;
+    }
+    else {
+        /* get memorized variables from previous function calls */
+        step = (uint8_t)dest->aux;
+    }
+
+    /* repeat until destination space available and no error and not finished
+     * and source characters available */
+    while (destSpace > 0 && (st & CO_fifo_st_errMask) == 0 && !finished) {
+        char c;
+        if (!CO_fifo_getc(src, &c)) {
+            break;
+        }
+
+        switch (step) {
+        case 0: /* beginning of the string, first write into dest */
+            if (c == '"') {
                 /* Indicated beginning of the string, skip this character. */
-                dest->aux = 1;
+                step = 1;
             }
             else {
                 /* this must be a single word string without '"' */
                 /* copy the character */
                 CO_fifo_putc(dest, c);
                 destSpace--;
-                dest->aux = 2;
+                step = 2;
             }
             break;
 
         case 1: /* inside string, quoted string */
         case 2: /* inside string, single word, no quotes */
             if (c == '"') {
-                /* double qoute found, this may be end of the string or escaped
+                /* double quote found, this may be end of the string or escaped
                  * double quote (with two double quotes) */
-                dest->aux += 2;
+                step += 2;
             }
-            else if (isgraph((int)c) == 0 && dest->aux == 2) {
+            else if (isgraph((int)c) == 0 && step == 2) {
                 /* end of single word string */
-                if (c == DELIM_COMMAND) {
+                bool_t insideComment = false;
+                if (c == DELIM_COMMAND
+                    || CO_fifo_trimSpaces(src, &insideComment)
+                ) {
                     st |= CO_fifo_st_closed;
+                    finished = true;
                 }
-                else if (CO_fifo_trimSpaces(src)) {
-                    st |= CO_fifo_st_closed;
+                else {
+                    step = insideComment ? 6 : 5;
                 }
-                finished = true;
             }
             else if (c == DELIM_COMMAND) {
                 /* no closing quote, error */
@@ -1102,24 +1192,27 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
                 /* escaped double quote, copy the character and continue */
                 CO_fifo_putc(dest, c);
                 destSpace--;
-                dest->aux -= 2;
+                step -= 2;
             }
             else {
                 /* previous character was closing double quote */
-                if (dest->aux == 4) {
+                if (step == 4) {
                     /* no opening double quote, syntax error */
                     st |= CO_fifo_st_errTok;
                 }
                 else {
                     if (isgraph((int)c) == 0) {
-                        /* string finished */
-                        if (c == DELIM_COMMAND) {
+                        /* end of quoted string */
+                        bool_t insideComment = false;
+                        if (c == DELIM_COMMAND
+                            || CO_fifo_trimSpaces(src, &insideComment)
+                        ) {
                             st |= CO_fifo_st_closed;
+                            finished = true;
                         }
-                        else if (CO_fifo_trimSpaces(src)) {
-                            st |= CO_fifo_st_closed;
+                        else {
+                            step = insideComment ? 6 : 5;
                         }
-                        finished = true;
                     }
                     else {
                         /* space must follow closing double quote, error */
@@ -1129,6 +1222,31 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
             }
             break;
 
+        case 5: { /* String token is finished, waiting for command delimiter */
+            bool_t insideComment = false;
+            if (c == DELIM_COMMAND || CO_fifo_trimSpaces(src, &insideComment)) {
+                st |= CO_fifo_st_closed;
+                finished = true;
+            }
+            else if (insideComment) {
+                step = 6;
+            }
+            else if (isgraph((int)c) != 0) {
+                if (c == '#') /* comment start */
+                    step = 6;
+                else /* syntax error */
+                    st |= CO_fifo_st_errTok;
+            }
+            break;
+        }
+        case 6: { /* String token is finished, waiting for command delimiter */
+            bool_t insideComment = true;
+            if (c == DELIM_COMMAND || CO_fifo_trimSpaces(src, &insideComment)) {
+                st |= CO_fifo_st_closed;
+                finished = true;
+            }
+            break;
+        }
         default: /* internal error */
             st |= CO_fifo_st_errInt;
             break;
@@ -1137,6 +1255,120 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
     if (!finished) {
         st |= CO_fifo_st_partial;
+        /* memorize variables for next iteration */
+        dest->aux = step;
+    }
+
+    if (status != NULL) *status = st;
+
+    return destSpaceStart - destSpace;
+}
+
+size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+    /* mime-base64 decoding, see description above base64EncTable */
+
+    size_t destSpace, destSpaceStart;
+    bool_t finished = false;
+    uint8_t step;
+    uint32_t dword;
+    CO_fifo_st st = 0;
+
+    if (dest == NULL || src == NULL) {
+        return 0;
+    }
+
+    /* get free space of the dest fifo */
+    destSpaceStart = destSpace = CO_fifo_getSpace(dest);
+
+    /* is this the first write into dest? */
+    if (!dest->started) {
+        bool_t insideComment = false;
+        if (CO_fifo_trimSpaces(src, &insideComment) || insideComment) {
+            /* command delimiter found without string, this is an error */
+            st |= CO_fifo_st_errTok;
+        }
+        dest->started = true;
+        step = 0;
+        dword = 0;
+    }
+    else {
+        /* get memorized variables from previous function calls */
+        step = (uint8_t)(dest->aux >> 24);
+        dword = dest->aux & 0xFFFFFF;
+    }
+
+    /* repeat until destination space available and no error and not finished
+     * and source characters available */
+    while (destSpace >= 3 && (st & CO_fifo_st_errMask) == 0 && !finished) {
+        char c;
+        if (!CO_fifo_getc(src, &c)) {
+            break;
+        }
+
+        if (step >= 5) {
+            /* String token is finished, waiting for command delimiter */
+            bool_t insideComment = step > 5;
+            if (c == DELIM_COMMAND || CO_fifo_trimSpaces(src, &insideComment)) {
+                st |= CO_fifo_st_closed;
+                finished = true;
+            }
+            else if (insideComment) {
+                step = 6;
+            }
+            else if (isgraph((int)c) != 0 && c != '=') {
+                if (c == '#') /* comment start */
+                    step = 6;
+                else /* syntax error */
+                    st |= CO_fifo_st_errTok;
+            }
+            continue;
+        }
+
+        char code = base64DecTable[c & 0x7F];
+
+        if (c < 0 || code < 0) {
+            st |= CO_fifo_st_errTok;
+        }
+        else if (code >= 64 /* '=' (pad) or DELIM_COMMAND or space */) {
+            /* base64 string finished, write remaining bytes */
+            switch (step) {
+                case 2:
+                    CO_fifo_putc(dest, (char)(dword >> 4));
+                    destSpace --;
+                    break;
+                case 3:
+                    CO_fifo_putc(dest, (char)(dword >> 10));
+                    CO_fifo_putc(dest, (char)(dword >> 2));
+                    destSpace -= 2;
+                    break;
+            }
+
+            bool_t insideComment = false;
+            if (c == DELIM_COMMAND || CO_fifo_trimSpaces(src, &insideComment)) {
+                st |= CO_fifo_st_closed;
+                finished = true;
+            }
+            else {
+                step = insideComment ? 6 : 5;
+            }
+        }
+        else {
+            dword = (dword << 6) | code;
+            if (step++ == 3) {
+                CO_fifo_putc(dest, (char)((dword >> 16) & 0xFF));
+                CO_fifo_putc(dest, (char)((dword >> 8) & 0xFF));
+                CO_fifo_putc(dest, (char)(dword & 0xFF));
+                destSpace -= 3;
+                dword = 0;
+                step = 0;
+            }
+        }
+    } /* while ... */
+
+    if (!finished) {
+        st |= CO_fifo_st_partial;
+        /* memorize variables for next iteration */
+        dest->aux = (uint32_t)step << 24 | (dword & 0xFFFFFF);
     }
 
     if (status != NULL) *status = st;
