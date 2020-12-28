@@ -495,10 +495,10 @@ int main (int argc, char *argv[]) {
         }
 
         CO_LSS_address_t lssAddress = {.identity = {
-            .vendorID = 1,
-            .productCode = 2,
-            .revisionNumber = 3,
-            .serialNumber = 4
+            .vendorID = OD_PERSIST_COMM.x1018_identity.vendor_ID,
+            .productCode = OD_PERSIST_COMM.x1018_identity.productCode,
+            .revisionNumber = OD_PERSIST_COMM.x1018_identity.revisionNumber,
+            .serialNumber = OD_PERSIST_COMM.x1018_identity.serialNumber
         }};
         err = CO_LSSinit(CO, &lssAddress,
                          &CO_pendingNodeId, &CO_pendingBitRate);

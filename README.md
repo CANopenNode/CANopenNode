@@ -222,12 +222,13 @@ files for Object Dictionary.
 
 If new project was started, then `DS301_profile.xpd` may be inserted.
 If existing (old) project is edited, then existing `Communication Specific Parameters`
-may be Deleted and then new `DS301_profile.xpd` may be inserted. Alternative is
+may be deleted and then new `DS301_profile.xpd` may be inserted. Alternative is
 editing existing communication parameters with observation to Object Dictionary
 Requirements By CANopenNode in [objectDictionary.md](doc/objectDictionary.md).
 
 To clone, add or delete, select object(s) and use right click. Some knowledge
-of CANopen is required to correctly set-up the custom Object Dictionary.
+of CANopen is required to correctly set-up the custom Object Dictionary. Separate
+objects can also be inserted from another project.
 
 CANopenNode includes some custom properties inside standard project file. See
 [objectDictionary.md](doc/objectDictionary.md) for more information.

@@ -459,7 +459,7 @@ size_t CO_fifo_readHex2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
  * enclosed with double quotes. If a double quote is used within the string,
  * the quotes are escaped by a second quotes, e.g. “Hello “”World””, CANopen
  * is great”. UTF-8 characters and also line breaks works with this function.
- * Function removes all '\0' and '\r' characters from output string.
+ * Function removes all NULL and CR characters from output string.
  * See also CO_fifo_readU82a */
 size_t CO_fifo_readVs2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 /** Read data from fifo and output as mime-base64 encoded string. Encoding is as

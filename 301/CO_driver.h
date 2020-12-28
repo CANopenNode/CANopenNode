@@ -422,7 +422,7 @@ typedef struct {
  * - 'CO_ERROR_OD_PARAMETERS' - Index of erroneous OD parameter.
  */
 #ifndef CO_errinfo
-#define CO_errinfo(CANmodule, err)
+#define CO_errinfo(CANmodule, err) CANmodule->errinfo = err
 #endif
 
 

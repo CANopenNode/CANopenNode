@@ -46,7 +46,7 @@ Go to the first terminal, where we have recently build executable, named _canope
 First print help, then run the program with some options.
 
     ./canopend --help
-    ./canopend vcan0 -i 4 -s od4_storage -a od4_storage_auto
+    ./canopend vcan0 -i 4 #-s od4_storage -a od4_storage_auto
 
 You are now running a fully functional CANopen device on virtual CAN network. It is running in background until you terminate the process (with CTRL+C for example) or it receives a reset message from CAN network. By default process also shows some info messages on terminal, for example changes of NMT state or emergency messages, own and remote.
 
@@ -67,7 +67,7 @@ You can follow the reason of the problem inside the source code. However, there 
 
     echo "-" > od4_storage
     echo "-" > od4_storage_auto
-    ./canopend vcan0 -i 4 -s od4_storage -a od4_storage_auto
+    ./canopend vcan0 -i 4 #-s od4_storage -a od4_storage_auto
 
 Second terminal now shows new boot-up message without emergency.
 

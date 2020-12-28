@@ -198,9 +198,6 @@ extern "C" {
  * Linux socketCAN specific @ref CO_driver definitions for CANopenNode.
  */
 
-/* Macro for passing additional information about error, see CO_driver.h. */
-#define CO_errinfo(CANmodule, err) CANmodule->errinfo = err
-
 /**
  * Multi interface support
  *
