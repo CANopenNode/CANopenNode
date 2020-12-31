@@ -223,10 +223,6 @@ format. Generated project file can then be saved in XDD v1.1 file format
 other formats, it can be used to generate documentation and CANopenNode source
 files for Object Dictionary.
 
-Main project file format for this (old) version of CANopenNode is customized XML.
-It is advised to export project to this format also, before exporting to the old
-CANopenNode source files (<= v2, legacy).
-
 To clone, add or delete, select object(s) and use right click. Some knowledge
 of CANopen is required to correctly set-up the custom Object Dictionary. Separate
 objects can also be inserted from another project.

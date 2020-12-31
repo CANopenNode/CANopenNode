@@ -307,7 +307,7 @@ const CO_OD_entry_t CO_OD[CO_OD_NoOfElements] = {
 {0x100A, 0x00, 0x05,  4, (void*)&CO_OD_ROM.manufacturerSoftwareVersion[0]},
 {0x1010, 0x01, 0x8E,  4, (void*)&CO_OD_RAM.storeParameters[0]},
 {0x1011, 0x01, 0x8E,  4, (void*)&CO_OD_RAM.restoreDefaultParameters[0]},
-{0x1012, 0x00, 0x85,  4, (void*)&CO_OD_ROM.COB_ID_TIME},
+{0x1012, 0x00, 0x8D,  4, (void*)&CO_OD_ROM.COB_ID_TIME},
 {0x1014, 0x00, 0x85,  4, (void*)&CO_OD_ROM.COB_ID_EMCY},
 {0x1015, 0x00, 0x8D,  2, (void*)&CO_OD_ROM.inhibitTimeEMCY},
 {0x1016, 0x04, 0x8D,  4, (void*)&CO_OD_ROM.consumerHeartbeatTime[0]},
