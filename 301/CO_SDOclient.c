@@ -115,7 +115,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
                     /* Copy data. There is always enough space in fifo buffer,
                      * because block_blksize was calculated before */
                     CO_fifo_write(&SDO_C->bufFifo,
-                                  (const char *)&data[1],
+                                  &data[1],
                                   7, &SDO_C->block_crc);
                     SDO_C->sizeTran += 7;
                     /* all segments in sub-block has been transferred */
@@ -382,7 +382,7 @@ void CO_SDOclientDownloadInitiateSize(CO_SDOclient_t *SDO_C,
 
 /******************************************************************************/
 size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
-                                    const char *buf,
+                                    const uint8_t *buf,
                                     size_t count)
 {
     size_t ret = 0;
@@ -689,7 +689,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
 
                 /* copy data */
                 CO_fifo_read(&SDO_C->bufFifo,
-                             (char *)&SDO_C->CANtxBuff->data[4], count, NULL);
+                             &SDO_C->CANtxBuff->data[4], count, NULL);
                 SDO_C->sizeTran = count;
                 SDO_C->finished = true;
             }
@@ -720,7 +720,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: {
             /* fill data bytes */
             count = CO_fifo_read(&SDO_C->bufFifo,
-                                 (char *)&SDO_C->CANtxBuff->data[1],
+                                 &SDO_C->CANtxBuff->data[1],
                                  7, NULL);
 
             /* verify if sizeTran is too large */
@@ -784,7 +784,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
 
             /* get up to 7 data bytes */
             count = CO_fifo_altRead(&SDO_C->bufFifo,
-                                    (char *)&SDO_C->CANtxBuff->data[1], 7);
+                                    &SDO_C->CANtxBuff->data[1], 7);
             SDO_C->block_noData = 7 - count;
 
             /* verify if sizeTran is too large */
@@ -1032,7 +1032,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         }
                         /* copy data, indicate size and finish */
                         CO_fifo_write(&SDO_C->bufFifo,
-                                      (const char *)&SDO_C->CANrxData[4],
+                                      &SDO_C->CANrxData[4],
                                       count, NULL);
                         SDO_C->sizeTran = count;
                         SDO_C->state = CO_SDO_ST_IDLE;
@@ -1078,7 +1078,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     /* get data size and write data to the buffer */
                     count = 7 - ((SDO_C->CANrxData[0] >> 1) & 0x07);
                     countWr = CO_fifo_write(&SDO_C->bufFifo,
-                                            (const char *)&SDO_C->CANrxData[1],
+                                            &SDO_C->CANrxData[1],
                                             count, NULL);
                     SDO_C->sizeTran += countWr;
 
@@ -1176,7 +1176,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         }
                         /* copy data, indicate size and finish */
                         CO_fifo_write(&SDO_C->bufFifo,
-                                      (const char *)&SDO_C->CANrxData[4],
+                                      &SDO_C->CANrxData[4],
                                       count, NULL);
                         SDO_C->sizeTran = count;
                         SDO_C->state = CO_SDO_ST_IDLE;
@@ -1211,7 +1211,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                      * contain data. Then copy remaining data into fifo */
                     uint8_t noData = ((SDO_C->CANrxData[0] >> 2) & 0x07);
                     CO_fifo_write(&SDO_C->bufFifo,
-                                  (const char *)&SDO_C->block_dataUploadLast[0],
+                                  &SDO_C->block_dataUploadLast[0],
                                   7 - noData,
                                   &SDO_C->block_crc);
                     SDO_C->sizeTran += 7 - noData;
@@ -1524,7 +1524,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
 
 /******************************************************************************/
 size_t CO_SDOclientUploadBufRead(CO_SDOclient_t *SDO_C,
-                                 char *buf,
+                                 uint8_t *buf,
                                  size_t count)
 {
     size_t ret = 0;

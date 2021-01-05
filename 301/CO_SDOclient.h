@@ -125,7 +125,7 @@ typedef struct {
     CO_fifo_t bufFifo;
     /** Data buffer of usable size @ref CO_CONFIG_SDO_CLI_BUFFER_SIZE, used
      * inside bufFifo. Must be one byte larger for fifo usage. */
-    char buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1];
+    uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1];
     /** Indicates, if new SDO message received from CAN bus. It is not cleared,
      * until received message is completely processed. */
     volatile void *CANrxNew;
@@ -307,7 +307,7 @@ void CO_SDOclientDownloadInitiateSize(CO_SDOclient_t *SDO_C,
  * @return number of bytes actually written.
  */
 size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
-                                    const char *buf,
+                                    const uint8_t *buf,
                                     size_t count);
 
 
@@ -430,7 +430,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
  * @return number of bytes actually read.
  */
 size_t CO_SDOclientUploadBufRead(CO_SDOclient_t *SDO_C,
-                                 char *buf,
+                                 uint8_t *buf,
                                  size_t count);
 
 

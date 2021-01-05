@@ -141,7 +141,7 @@ typedef enum {
     CO_LSS_FASTSCAN_CONFIRM = 0x80U  /**< All LSS slaves waiting for scan respond and previous scan is reset */
 } CO_LSS_fastscan_bitcheck;
 
-
+/* comparision is always true: bit>=CO_LSS_FASTSCAN_BIT0 */
 #define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) (bit<=CO_LSS_FASTSCAN_BIT31 || bit==CO_LSS_FASTSCAN_CONFIRM)
 
 /**
