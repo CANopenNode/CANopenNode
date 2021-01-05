@@ -143,7 +143,7 @@ void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
         const char *c;
 
         for (c = &message[0]; *c != 0; c++) {
-            CO_fifo_putc_ov(&gtwa->logFifo, *c);
+            CO_fifo_putc_ov(&gtwa->logFifo, (const uint8_t)*c);
         }
     }
 }
@@ -623,7 +623,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     (void)timerNext_us; /* may be unused */
 
     bool_t err = false; /* syntax or other error, true or false, I/O variable */
-    char closed; /* indication of command delimiter, I/O variable */
+    int8_t closed; /* indication of command delimiter, I/O variable */
     CO_GTWA_respErrorCode_t respErrorCode = CO_GTWA_respErrorNone;
 
     if (gtwa == NULL) {
@@ -1986,7 +1986,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     /* print message log */
     case CO_GTWA_ST_LOG: {
         do {
-            gtwa->respBufCount = CO_fifo_read(&gtwa->logFifo, gtwa->respBuf,
+            gtwa->respBufCount = CO_fifo_read(&gtwa->logFifo,
+                                              (uint8_t *)gtwa->respBuf,
                                               CO_GTWA_RESP_BUF_SIZE, NULL);
             respBufTransfer(gtwa);
 

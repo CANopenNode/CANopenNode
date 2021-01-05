@@ -324,7 +324,7 @@ typedef struct {
     /** CO_fifo_t object for command (not pointer) */
     CO_fifo_t commFifo;
     /** Command buffer of usable size @ref CO_CONFIG_GTWA_COMM_BUF_SIZE */
-    char commBuf[CO_CONFIG_GTWA_COMM_BUF_SIZE + 1];
+    uint8_t commBuf[CO_CONFIG_GTWA_COMM_BUF_SIZE + 1];
     /** Response buffer of usable size @ref CO_GTWA_RESP_BUF_SIZE */
     char respBuf[CO_GTWA_RESP_BUF_SIZE];
     /** Actual size of data in respBuf */
@@ -384,7 +384,7 @@ typedef struct {
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) || defined CO_DOXYGEN
     /** Message log buffer of usable size @ref CO_CONFIG_GTWA_LOG_BUF_SIZE */
-    char logBuf[CO_CONFIG_GTWA_LOG_BUF_SIZE + 1];
+    uint8_t logBuf[CO_CONFIG_GTWA_LOG_BUF_SIZE + 1];
     /** CO_fifo_t object for message log (not pointer) */
     CO_fifo_t logFifo;
 #endif
@@ -486,7 +486,7 @@ static inline size_t CO_GTWA_write(CO_GTWA_t* gtwa,
                                    const char *buf,
                                    size_t count)
 {
-    return CO_fifo_write(&gtwa->commFifo, buf, count, NULL);
+    return CO_fifo_write(&gtwa->commFifo, (const uint8_t *)buf, count, NULL);
 }
 
 

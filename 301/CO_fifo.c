@@ -37,9 +37,11 @@
 #include <inttypes.h>
 
 /* Non-graphical character for command delimiter */
-#define DELIM_COMMAND '\n'
+#define DELIM_COMMAND ((uint8_t)'\n')
 /* Graphical character for comment delimiter */
-#define DELIM_COMMENT '#'
+#define DELIM_COMMENT ((uint8_t)'#')
+/* Graphical character for double quotes */
+#define DELIM_DQUOTE ((uint8_t)'"')
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
 /* verify configuration */
@@ -50,7 +52,7 @@
 #endif
 
 /******************************************************************************/
-void CO_fifo_init(CO_fifo_t *fifo, char *buf, size_t bufSize) {
+void CO_fifo_init(CO_fifo_t *fifo, uint8_t *buf, size_t bufSize) {
 
     if (fifo == NULL || buf == NULL || bufSize < 2) {
         return;
@@ -79,12 +81,12 @@ void CO_fifo_init(CO_fifo_t *fifo, char *buf, size_t bufSize) {
  *        buffer      in buff       in buff       full                        *
  ******************************************************************************/
 size_t CO_fifo_write(CO_fifo_t *fifo,
-                     const char *buf,
+                     const uint8_t *buf,
                      size_t count,
                      uint16_t *crc)
 {
     size_t i;
-    char *bufDest;
+    uint8_t *bufDest;
 
     if (fifo == NULL || fifo->buf == NULL || buf == NULL) {
         return 0;
@@ -104,7 +106,7 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
 
 #if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT
         if (crc != NULL) {
-            crc16_ccitt_single(crc, (unsigned char)*buf);
+            crc16_ccitt_single(crc, *buf);
         }
 #endif
 
@@ -125,9 +127,9 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
 
 
 /******************************************************************************/
-size_t CO_fifo_read(CO_fifo_t *fifo, char *buf, size_t count, bool_t *eof) {
+size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof) {
     size_t i;
-    const char *bufSrc;
+    const uint8_t *bufSrc;
 
     if (eof != NULL) {
         *eof = false;
@@ -138,7 +140,7 @@ size_t CO_fifo_read(CO_fifo_t *fifo, char *buf, size_t count, bool_t *eof) {
 
     bufSrc = &fifo->buf[fifo->readPtr];
     for (i = count; i > 0; ) {
-        const char c = *bufSrc;
+        const uint8_t c = *bufSrc;
 
         /* is circular buffer empty */
         if (fifo->readPtr == fifo->writePtr) {
@@ -205,10 +207,10 @@ void CO_fifo_altFinish(CO_fifo_t *fifo, uint16_t *crc) {
         fifo->readPtr = fifo->altReadPtr;
     }
     else {
-        const char *bufSrc = &fifo->buf[fifo->readPtr];
+        const uint8_t *bufSrc = &fifo->buf[fifo->readPtr];
         while (fifo->readPtr != fifo->altReadPtr) {
 #if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT
-            crc16_ccitt_single(crc, (unsigned char)*bufSrc);
+            crc16_ccitt_single(crc, *bufSrc);
 #endif
             /* increment variable */
             if (++fifo->readPtr == fifo->bufSize) {
@@ -222,13 +224,13 @@ void CO_fifo_altFinish(CO_fifo_t *fifo, uint16_t *crc) {
     }
 }
 
-size_t CO_fifo_altRead(CO_fifo_t *fifo, char *buf, size_t count) {
+size_t CO_fifo_altRead(CO_fifo_t *fifo, uint8_t *buf, size_t count) {
     size_t i;
-    const char *bufSrc;
+    const uint8_t *bufSrc;
 
     bufSrc = &fifo->buf[fifo->altReadPtr];
     for (i = count; i > 0; i--) {
-        const char c = *bufSrc;
+        const uint8_t c = *bufSrc;
 
         /* is there no more data */
         if (fifo->altReadPtr == fifo->writePtr) {
@@ -257,7 +259,7 @@ size_t CO_fifo_altRead(CO_fifo_t *fifo, char *buf, size_t count) {
 bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
     bool_t newCommand = false;
     size_t count;
-    char *commandEnd;
+    uint8_t *commandEnd;
 
     if (fifo == NULL || fifo->readPtr == fifo->writePtr) {
         return 0;
@@ -269,17 +271,17 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
     } else {
         count = fifo->bufSize - fifo->readPtr;
     }
-    commandEnd = (char *)memchr((const void *)&fifo->buf[fifo->readPtr],
-                                DELIM_COMMAND,
-                                count);
+    commandEnd = (uint8_t *)memchr((const void *)&fifo->buf[fifo->readPtr],
+                                   (int)DELIM_COMMAND,
+                                   count);
     if (commandEnd != NULL) {
         newCommand = true;
     }
     else if (fifo->readPtr > fifo->writePtr) {
         /* not found, search in the beginning of the circular buffer */
-        commandEnd = (char *)memchr((const void *)&fifo->buf[0],
-                                    DELIM_COMMAND,
-                                    fifo->writePtr);
+        commandEnd = (uint8_t *)memchr((const void *)&fifo->buf[0],
+                                       (int)DELIM_COMMAND,
+                                       fifo->writePtr);
         if (commandEnd != NULL || fifo->readPtr == (fifo->writePtr + 1)) {
             /* command delimiter found or buffer full */
             newCommand = true;
@@ -293,7 +295,7 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
     /* Clear buffer if set so */
     if (clear) {
         if (commandEnd != NULL) {
-            fifo->readPtr = (int)(commandEnd - fifo->buf) + 1;
+            fifo->readPtr = (size_t)(commandEnd - fifo->buf) + 1;
             if (fifo->readPtr == fifo->bufSize) {
                 fifo->readPtr = 0;
             }
@@ -313,7 +315,7 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment) {
 
     if (fifo != NULL && insideComment != NULL) {
         while (fifo->readPtr != fifo->writePtr) {
-            char c = fifo->buf[fifo->readPtr];
+            uint8_t c = fifo->buf[fifo->readPtr];
 
             if (c == DELIM_COMMENT) {
                 *insideComment = true;
@@ -339,7 +341,7 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment) {
 size_t CO_fifo_readToken(CO_fifo_t *fifo,
                          char *buf,
                          size_t count,
-                         char *closed,
+                         int8_t *closed,
                          bool_t *err)
 {
     bool_t delimCommandFound = false;
@@ -350,9 +352,9 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
         && fifo->readPtr != fifo->writePtr
     ) {
         bool_t finished = false;
-        char step = 0;
+        uint8_t step = 0;
         size_t ptr = fifo->readPtr; /* current pointer (integer, 0 based) */
-        char *c = &fifo->buf[ptr];  /* current char */
+        uint8_t *c = &fifo->buf[ptr]; /* current character */
         do {
             switch (step) {
             case 0: /* skip leading empty characters, stop on delimiter */
@@ -360,7 +362,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                     if (*c == DELIM_COMMENT) {
                         delimCommentFound = true;
                     } else {
-                        buf[tokenSize++] = *c;
+                        buf[tokenSize++] = (char)*c;
                         step++;
                     }
                 }
@@ -373,7 +375,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                     if (*c == DELIM_COMMENT) {
                         delimCommentFound = true;
                     } else if (tokenSize < count) {
-                        buf[tokenSize++] = *c;
+                        buf[tokenSize++] = (char)*c;
                     }
                 }
                 else {
@@ -446,7 +448,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
         *closed = delimCommandFound ? 1 : 0;
     }
 
-    /* token was larger then size of the buffer, all was cleaned, return '' */
+    /* token was larger then size of the buffer, all was cleaned, return empty*/
     if (tokenSize == count) {
         tokenSize = 0;
     }
@@ -470,21 +472,21 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
 static const char base64EncTable[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-static const char base64DecTable[] = {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1,103,101, -1, -1,102, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-   103, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
-    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1,100, -1, -1,
-    -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1};
+static const uint8_t base64DecTable[] = {
+   255,255,255,255,255,255,255,255,255,103,101,255,255,102,255,255,
+   255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
+   103,255,255,255,255,255,255,255,255,255,255, 62,255,255,255, 63,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61,255,255,255,100,255,255,
+   255,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,255,255,255,255,255,
+   255, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,255,255,255,255,255};
 
 size_t CO_fifo_readU82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint8_t n=0;
 
     if (fifo != NULL && count >= 6 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, &n, sizeof(n), NULL);
         return sprintf(buf, "%"PRIu8, n);
     }
     else {
@@ -496,7 +498,7 @@ size_t CO_fifo_readU162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint16_t n=0;
 
     if (fifo != NULL && count >= 8 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%"PRIu16, CO_SWAP_16(n));
     }
     else {
@@ -508,7 +510,7 @@ size_t CO_fifo_readU322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint32_t n=0;
 
     if (fifo != NULL && count >= 12 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%"PRIu32, CO_SWAP_32(n));
     }
     else {
@@ -520,7 +522,7 @@ size_t CO_fifo_readU642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint64_t n=0;
 
     if (fifo != NULL && count >= 20 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%"PRIu64, CO_SWAP_64(n));
     }
     else {
@@ -532,7 +534,7 @@ size_t CO_fifo_readX82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint8_t n=0;
 
     if (fifo != NULL && count >= 6 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "0x%02"PRIX8, n);
     }
     else {
@@ -544,7 +546,7 @@ size_t CO_fifo_readX162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint16_t n=0;
 
     if (fifo != NULL && count >= 8 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "0x%04"PRIX16, CO_SWAP_16(n));
     }
     else {
@@ -556,7 +558,7 @@ size_t CO_fifo_readX322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint32_t n=0;
 
     if (fifo != NULL && count >= 12 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "0x%08"PRIX32, CO_SWAP_32(n));
     }
     else {
@@ -568,7 +570,7 @@ size_t CO_fifo_readX642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     uint64_t n=0;
 
     if (fifo != NULL && count >= 20 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "0x%016"PRIX64, CO_SWAP_64(n));
     }
     else {
@@ -580,7 +582,7 @@ size_t CO_fifo_readI82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     int8_t n=0;
 
     if (fifo != NULL && count >= 6 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%"PRId8, n);
     }
     else {
@@ -592,7 +594,7 @@ size_t CO_fifo_readI162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     int16_t n=0;
 
     if (fifo != NULL && count >= 8 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%"PRId16, CO_SWAP_16(n));
     }
     else {
@@ -604,7 +606,7 @@ size_t CO_fifo_readI322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     int32_t n=0;
 
     if (fifo != NULL && count >= 13 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%"PRId32, CO_SWAP_32(n));
     }
     else {
@@ -616,7 +618,7 @@ size_t CO_fifo_readI642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     int64_t n=0;
 
     if (fifo != NULL && count >= 23 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%"PRId64, CO_SWAP_64(n));
     }
     else {
@@ -628,7 +630,7 @@ size_t CO_fifo_readR322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     float32_t n=0;
 
     if (fifo != NULL && count >= 20 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%g", CO_SWAP_32(n));
     }
     else {
@@ -640,7 +642,7 @@ size_t CO_fifo_readR642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     float64_t n=0;
 
     if (fifo != NULL && count >= 30 && CO_fifo_getOccupied(fifo) == sizeof(n)) {
-        CO_fifo_read(fifo, (char *)&n, sizeof(n), NULL);
+        CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
         return sprintf(buf, "%g", CO_SWAP_64(n));
     }
     else {
@@ -656,19 +658,19 @@ size_t CO_fifo_readHex2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     if (fifo != NULL && count > 3) {
         /* Very first write is without leading space */
         if (!fifo->started) {
-            char c;
+            uint8_t c;
             if(CO_fifo_getc(fifo, &c)) {
-                len = sprintf(&buf[0], "%02"PRIX8, (uint8_t)c);
+                len = sprintf(&buf[0], "%02"PRIX8, c);
                 fifo->started = true;
             }
         }
 
         while ((len + 3) < count) {
-            char c;
+            uint8_t c;
             if(!CO_fifo_getc(fifo, &c)) {
                 break;
             }
-            len += sprintf(&buf[len], " %02"PRIX8, (uint8_t)c);
+            len += sprintf(&buf[len], " %02"PRIX8, c);
         }
     }
 
@@ -686,17 +688,18 @@ size_t CO_fifo_readVs2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
         }
 
         while ((len + 2) < count) {
-            char c;
+            uint8_t c;
             if(!CO_fifo_getc(fifo, &c)) {
                 if (end) {
                     buf[len++] = '"';
                 }
                 break;
             }
-            else if (c != 0 && c != '\r') { /* skip null and CR inside string */
-                buf[len++] = c;
-                if (c == '"') {
-                    buf[len++] = c;
+            else if (c != 0 && c != (uint8_t)'\r') {
+                /* skip null and CR inside string */
+                buf[len++] = (char)c;
+                if (c == DELIM_DQUOTE) {
+                    buf[len++] = '"';
                 }
             }
         }
@@ -726,7 +729,7 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
         }
 
         while ((len + 3) <= count) {
-            char c;
+            uint8_t c;
 
             if(!CO_fifo_getc(fifo, &c)) {
                 /* buffer is empty, is also SDO communication finished? */
@@ -747,7 +750,7 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
                 break;
             }
 
-            word |= (uint8_t)c;
+            word |= c;
 
             switch (step++) {
                 case 0:
@@ -776,7 +779,7 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 /******************************************************************************/
 size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[15];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -788,7 +791,7 @@ size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         if (sRet != strchr(buf, '\0') || u32 > UINT8_MAX) st |= CO_fifo_st_errVal;
         else {
             uint8_t num = (uint8_t) u32;
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, &num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -798,7 +801,7 @@ size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[15];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -810,7 +813,7 @@ size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         if (sRet != strchr(buf, '\0') || u32 > UINT16_MAX) st |= CO_fifo_st_errVal;
         else {
             uint16_t num = CO_SWAP_16((uint16_t) u32);
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -820,7 +823,7 @@ size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[15];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -832,7 +835,7 @@ size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         if (sRet != strchr(buf, '\0')) st |= CO_fifo_st_errVal;
         else {
             uint32_t num = CO_SWAP_32(u32);
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -842,7 +845,7 @@ size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[25];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -854,7 +857,7 @@ size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         if (sRet != strchr(buf, '\0')) st |= CO_fifo_st_errVal;
         else {
             uint64_t num = CO_SWAP_64(u64);
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -864,7 +867,7 @@ size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2I8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[15];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -877,7 +880,7 @@ size_t CO_fifo_cpyTok2I8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
             st |= CO_fifo_st_errVal;
         } else {
             int8_t num = (int8_t) i32;
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -887,7 +890,7 @@ size_t CO_fifo_cpyTok2I8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[15];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -900,7 +903,7 @@ size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
             st |= CO_fifo_st_errVal;
         } else {
             int16_t num = CO_SWAP_16((int16_t) i32);
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -910,7 +913,7 @@ size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[15];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -922,7 +925,7 @@ size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         if (sRet != strchr(buf, '\0')) st |= CO_fifo_st_errVal;
         else {
             int32_t num = CO_SWAP_32(i32);
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -932,7 +935,7 @@ size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[25];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -944,7 +947,7 @@ size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         if (sRet != strchr(buf, '\0')) st |= CO_fifo_st_errVal;
         else {
             int64_t num = CO_SWAP_64(i64);
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -954,7 +957,7 @@ size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[30];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -966,7 +969,7 @@ size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         if (sRet != strchr(buf, '\0')) st |= CO_fifo_st_errVal;
         else {
             float32_t num = CO_SWAP_32(f32);
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -976,7 +979,7 @@ size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
 size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     char buf[40];
-    char closed = -1;
+    int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
@@ -988,7 +991,7 @@ size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         if (sRet != strchr(buf, '\0')) st |= CO_fifo_st_errVal;
         else {
             float64_t num = CO_SWAP_64(f64);
-            nWr = CO_fifo_write(dest, (const char *)&num, sizeof(num), NULL);
+            nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);
             if (nWr != sizeof(num)) st |= CO_fifo_st_errBuf;
         }
     }
@@ -1000,7 +1003,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     size_t destSpace, destSpaceStart;
     bool_t finished = false;
     uint8_t step;
-    char firstChar;
+    uint8_t firstChar;
     CO_fifo_st st = 0;
 
     if (dest == NULL || src == NULL) {
@@ -1024,13 +1027,13 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     else {
         /* get memorized variables from previous function calls */
         step = (uint8_t)(dest->aux >> 8);
-        firstChar = (char)(dest->aux & 0xFF);
+        firstChar = (uint8_t)(dest->aux & 0xFF);
     }
 
     /* repeat until destination space available and no error and not finished
      * and source characters available */
     while (destSpace > 0 && (st & CO_fifo_st_errMask) == 0 && !finished) {
-        char c;
+        uint8_t c;
         if (!CO_fifo_getc(src, &c)) {
             break;
         }
@@ -1053,18 +1056,18 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
             }
             else {
                 /* write the byte */
-                char s[3];
+                uint8_t s[3];
                 int32_t num;
                 s[0] = firstChar; s[1] = c; s[2] = 0;
-                num = strtol(s, NULL, 16);
-                CO_fifo_putc(dest, (char) num);
+                num = strtol((char *)&s[0], NULL, 16);
+                CO_fifo_putc(dest, (uint8_t) num);
                 destSpace--;
                 step = 0;
             }
         }
         else if (isgraph((int)c) != 0) {
             /* printable character, not hex digit */
-            if (c == '#') /* comment start */
+            if (c == DELIM_COMMENT) /* comment start */
                 step = 6;
             else /* syntax error */
                 st |= CO_fifo_st_errTok;
@@ -1073,11 +1076,11 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
             /* this is space or delimiter */
             if (step == 1) {
                 /* write the byte */
-                char s[2];
+                uint8_t s[2];
                 int32_t num;
                 s[0] = firstChar; s[1] = 0;
-                num = strtol(s, NULL, 16);
-                CO_fifo_putc(dest, (char) num);
+                num = strtol((char *)&s[0], NULL, 16);
+                CO_fifo_putc(dest, (uint8_t) num);
                 destSpace--;
                 step = 0;
             }
@@ -1096,7 +1099,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     if (!finished) {
         st |= CO_fifo_st_partial;
         /* memorize variables for next iteration */
-        dest->aux = (uint32_t)step << 8 | (uint8_t)firstChar;
+        dest->aux = (uint32_t)step << 8 | firstChar;
     }
 
     if (status != NULL) *status = st;
@@ -1135,14 +1138,14 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     /* repeat until destination space available and no error and not finished
      * and source characters available */
     while (destSpace > 0 && (st & CO_fifo_st_errMask) == 0 && !finished) {
-        char c;
+        uint8_t c;
         if (!CO_fifo_getc(src, &c)) {
             break;
         }
 
         switch (step) {
         case 0: /* beginning of the string, first write into dest */
-            if (c == '"') {
+            if (c == DELIM_DQUOTE) {
                 /* Indicated beginning of the string, skip this character. */
                 step = 1;
             }
@@ -1157,7 +1160,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
         case 1: /* inside string, quoted string */
         case 2: /* inside string, single word, no quotes */
-            if (c == '"') {
+            if (c == DELIM_DQUOTE) {
                 /* double quote found, this may be end of the string or escaped
                  * double quote (with two double quotes) */
                 step += 2;
@@ -1188,7 +1191,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
 
         case 3: /* previous was double quote, parsing quoted string */
         case 4: /* previous was double quote, parsing no quoted word */
-            if (c == '"') {
+            if (c == DELIM_DQUOTE) {
                 /* escaped double quote, copy the character and continue */
                 CO_fifo_putc(dest, c);
                 destSpace--;
@@ -1232,7 +1235,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
                 step = 6;
             }
             else if (isgraph((int)c) != 0) {
-                if (c == '#') /* comment start */
+                if (c == DELIM_COMMENT) /* comment start */
                     step = 6;
                 else /* syntax error */
                     st |= CO_fifo_st_errTok;
@@ -1300,7 +1303,7 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     /* repeat until destination space available and no error and not finished
      * and source characters available */
     while (destSpace >= 3 && (st & CO_fifo_st_errMask) == 0 && !finished) {
-        char c;
+        uint8_t c;
         if (!CO_fifo_getc(src, &c)) {
             break;
         }
@@ -1315,8 +1318,8 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
             else if (insideComment) {
                 step = 6;
             }
-            else if (isgraph((int)c) != 0 && c != '=') {
-                if (c == '#') /* comment start */
+            else if (isgraph((int)c) != 0 && c != (uint8_t)'=') {
+                if (c == DELIM_COMMENT) /* comment start */
                     step = 6;
                 else /* syntax error */
                     st |= CO_fifo_st_errTok;
@@ -1324,21 +1327,21 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
             continue;
         }
 
-        char code = base64DecTable[c & 0x7F];
+        uint8_t code = base64DecTable[c & 0x7F];
 
-        if (c < 0 || code < 0) {
+        if ((c & 0x80) != 0 || (code & 0x80) != 0) {
             st |= CO_fifo_st_errTok;
         }
         else if (code >= 64 /* '=' (pad) or DELIM_COMMAND or space */) {
             /* base64 string finished, write remaining bytes */
             switch (step) {
                 case 2:
-                    CO_fifo_putc(dest, (char)(dword >> 4));
+                    CO_fifo_putc(dest, (uint8_t)(dword >> 4));
                     destSpace --;
                     break;
                 case 3:
-                    CO_fifo_putc(dest, (char)(dword >> 10));
-                    CO_fifo_putc(dest, (char)(dword >> 2));
+                    CO_fifo_putc(dest, (uint8_t)(dword >> 10));
+                    CO_fifo_putc(dest, (uint8_t)(dword >> 2));
                     destSpace -= 2;
                     break;
             }
@@ -1355,9 +1358,9 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
         else {
             dword = (dword << 6) | code;
             if (step++ == 3) {
-                CO_fifo_putc(dest, (char)((dword >> 16) & 0xFF));
-                CO_fifo_putc(dest, (char)((dword >> 8) & 0xFF));
-                CO_fifo_putc(dest, (char)(dword & 0xFF));
+                CO_fifo_putc(dest, (uint8_t)((dword >> 16) & 0xFF));
+                CO_fifo_putc(dest, (uint8_t)((dword >> 8) & 0xFF));
+                CO_fifo_putc(dest, (uint8_t)(dword & 0xFF));
                 destSpace -= 3;
                 dword = 0;
                 step = 0;

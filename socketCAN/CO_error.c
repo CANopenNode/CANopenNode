@@ -40,7 +40,7 @@
  */
 static CO_CANinterfaceState_t CO_CANerrorSetListenOnly(
         CO_CANinterfaceErrorhandler_t     *CANerrorhandler,
-        unsigned char                      resetIf)
+        bool_t                             resetIf)
 {
     char command[100];
 

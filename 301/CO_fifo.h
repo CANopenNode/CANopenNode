@@ -59,7 +59,7 @@ extern "C" {
  */
 typedef struct {
     /** Buffer of size bufSize. Initialized by CO_fifo_init() */
-    char *buf;
+    uint8_t *buf;
     /** Initialized by CO_fifo_init() */
     size_t bufSize;
     /** Location in the buffer, which will be next written. */
@@ -89,7 +89,7 @@ typedef struct {
  * @param bufSize Size of the above buffer. Usable size of the buffer will be
  * one byte less than bufSize, it is used for operation of the circular buffer.
  */
-void CO_fifo_init(CO_fifo_t *fifo, char *buf, size_t bufSize);
+void CO_fifo_init(CO_fifo_t *fifo, uint8_t *buf, size_t bufSize);
 
 
 /**
@@ -170,7 +170,7 @@ static inline size_t CO_fifo_getOccupied(CO_fifo_t *fifo) {
  *
  * @return true, if write was successful (enough space in fifo buffer)
  */
-static inline bool_t CO_fifo_putc(CO_fifo_t *fifo, const char c) {
+static inline bool_t CO_fifo_putc(CO_fifo_t *fifo, const uint8_t c) {
     if (fifo != NULL && fifo->buf != NULL) {
         size_t writePtrNext = fifo->writePtr + 1;
         if (writePtrNext != fifo->readPtr &&
@@ -193,7 +193,7 @@ static inline bool_t CO_fifo_putc(CO_fifo_t *fifo, const char c) {
  * @param fifo This object
  * @param c Character to put
  */
-static inline void CO_fifo_putc_ov(CO_fifo_t *fifo, const char c) {
+static inline void CO_fifo_putc_ov(CO_fifo_t *fifo, const uint8_t c) {
     if (fifo != NULL && fifo->buf != NULL) {
         fifo->buf[fifo->writePtr] = c;
 
@@ -213,7 +213,7 @@ static inline void CO_fifo_putc_ov(CO_fifo_t *fifo, const char c) {
  *
  * @return true, if read was successful (non-empty fifo buffer)
  */
-static inline bool_t CO_fifo_getc(CO_fifo_t *fifo, char *buf) {
+static inline bool_t CO_fifo_getc(CO_fifo_t *fifo, uint8_t *buf) {
     if (fifo != NULL && buf != NULL && fifo->readPtr != fifo->writePtr) {
         *buf = fifo->buf[fifo->readPtr];
         if (++fifo->readPtr == fifo->bufSize) {
@@ -241,7 +241,7 @@ static inline bool_t CO_fifo_getc(CO_fifo_t *fifo, char *buf) {
  * @return number of bytes actually written.
  */
 size_t CO_fifo_write(CO_fifo_t *fifo,
-                     const char *buf,
+                     const uint8_t *buf,
                      size_t count,
                      uint16_t *crc);
 
@@ -262,7 +262,7 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
  *
  * @return number of bytes actually read.
  */
-size_t CO_fifo_read(CO_fifo_t *fifo, char *buf, size_t count, bool_t *eof);
+size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof);
 
 
 #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) || defined CO_DOXYGEN
@@ -320,7 +320,7 @@ static inline size_t CO_fifo_altGetOccupied(CO_fifo_t *fifo) {
  *
  * @return number of bytes actually read.
  */
-size_t CO_fifo_altRead(CO_fifo_t *fifo, char *buf, size_t count);
+size_t CO_fifo_altRead(CO_fifo_t *fifo, uint8_t *buf, size_t count);
 #endif /* #if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ */
 
 
@@ -409,7 +409,7 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment);
 size_t CO_fifo_readToken(CO_fifo_t *fifo,
                          char *buf,
                          size_t count,
-                         char *closed,
+                         int8_t *closed,
                          bool_t *err);
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
