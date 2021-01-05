@@ -265,12 +265,9 @@ extern "C" {
 /* NULL is defined in stddef.h */
 /* true and false are defined in stdbool.h */
 /* int8_t to uint64_t are defined in stdint.h */
-typedef unsigned char           bool_t;
+typedef uint_fast8_t            bool_t;
 typedef float                   float32_t;
 typedef double                  float64_t;
-typedef char                    char_t;
-typedef unsigned char           oChar_t;
-typedef unsigned char           domain_t;
 
 
 /* CAN receive message structure as aligned in socketCAN. */

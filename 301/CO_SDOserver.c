@@ -579,9 +579,7 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
     /* calculate crc on current data */
     if (SDO->block_crcEnabled && crcOperation > 0) {
-        SDO->block_crc = crc16_ccitt((unsigned char *)SDO->buf,
-                                     bufOffsetWrOrig,
-                                     SDO->block_crc);
+        SDO->block_crc = crc16_ccitt(SDO->buf, bufOffsetWrOrig, SDO->block_crc);
         if (crcOperation == 2 && crcClient != SDO->block_crc) {
             *abortCode = CO_SDO_AB_CRC;
             SDO->state = CO_SDO_ST_ABORT;
@@ -650,7 +648,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 
         /* load data from OD variable into the buffer */
         ODR_t odRet;
-        char *bufShifted = SDO->buf + countRemain;
+        uint8_t *bufShifted = SDO->buf + countRemain;
         OD_size_t countRd = SDO->OD_IO.read(&SDO->OD_IO.stream, SDO->subIndex,
                                             bufShifted,
                                             countRdRequest,
@@ -665,7 +663,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
         /* if data is string, send only data up to null termination */
         if (countRd > 0 && (SDO->attribute & ODA_STR) != 0) {
             bufShifted[countRd] = 0; /* (SDO->buf is one byte larger) */
-            OD_size_t countStr = strlen(bufShifted);
+            OD_size_t countStr = strlen((char *)bufShifted);
             if (countStr == 0) countStr = 1; /* zero length is not allowed */
             if (countStr < countRd) {
                 /* string terminator found, read is finished, shorten data */
@@ -707,9 +705,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
         /* update the crc */
         if (calculateCrc && SDO->block_crcEnabled) {
-            SDO->block_crc = crc16_ccitt((uint8_t *)bufShifted,
-                                         countRd,
-                                         SDO->block_crc);
+            SDO->block_crc = crc16_ccitt(bufShifted, countRd, SDO->block_crc);
         }
 #endif
 
@@ -1098,9 +1094,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 /* data were already loaded from OD variable, verify crc */
                 if ((SDO->CANrxData[0] & 0x04) != 0) {
                     SDO->block_crcEnabled = true;
-                    SDO->block_crc = crc16_ccitt((unsigned char *)SDO->buf,
-                                                 SDO->bufOffsetWr,
-                                                 0);
+                    SDO->block_crc = crc16_ccitt(SDO->buf, SDO->bufOffsetWr, 0);
                 }
                 else {
                     SDO->block_crcEnabled = false;

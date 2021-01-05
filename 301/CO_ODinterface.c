@@ -39,7 +39,7 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
     }
 
     OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
-    const char *odData = (const char *)stream->dataObjectOriginal;
+    const uint8_t *odData = stream->dataObjectOriginal;
 
     if (odData == NULL) {
         *returnCode = ODR_SUB_NOT_EXIST;
@@ -49,18 +49,18 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
     *returnCode = ODR_OK;
 
     /* If previous read was partial or OD variable length is larger than
-     * current buffer len, then data was (will be) read in several segments */
+     * current buffer size, then data was (will be) read in several segments */
     if (stream->dataOffset > 0 || dataLenToCopy > count) {
         if (stream->dataOffset >= dataLenToCopy) {
             *returnCode = ODR_DEV_INCOMPAT;
             return 0;
         }
-        /* reduce for already copied data */
+        /* Reduce for already copied data */
         dataLenToCopy -= stream->dataOffset;
         odData += stream->dataOffset;
 
         if (dataLenToCopy > count) {
-            /* not enough space in destionation buffer */
+            /* Not enough space in destination buffer */
             dataLenToCopy = count;
             stream->dataOffset += dataLenToCopy;
             *returnCode = ODR_PARTIAL;
@@ -88,7 +88,7 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
     }
 
     OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
-    char *odData = (char *)stream->dataObjectOriginal;
+    uint8_t *odData = stream->dataObjectOriginal;
 
     if (odData == NULL) {
         *returnCode = ODR_SUB_NOT_EXIST;
@@ -98,7 +98,8 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
     *returnCode = ODR_OK;
 
     /* If previous write was partial or OD variable length is larger than
-     * current data len, then data was (will be) written in several segments */
+     * current buffer size, then data was (will be) written in several
+     * segments */
     if (stream->dataOffset > 0 || dataLenToCopy > count) {
         if (stream->dataOffset >= dataLenToCopy) {
             *returnCode = ODR_DEV_INCOMPAT;
@@ -125,12 +126,11 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
         *returnCode = ODR_DATA_LONG;
         return 0;
     }
-    else {
-        CO_LOCK_OD();
-        memcpy(odData, buf, dataLenToCopy);
-        CO_UNLOCK_OD();
-        return dataLenToCopy;
-    }
+
+    CO_LOCK_OD();
+    memcpy(odData, buf, dataLenToCopy);
+    CO_UNLOCK_OD();
+    return dataLenToCopy;
 }
 
 /* Read value from variable from Object Dictionary disabled, see OD_IO_t*/
@@ -158,17 +158,17 @@ static OD_size_t OD_writeDisabled(OD_stream_t *stream, uint8_t subIndex,
 
 /******************************************************************************/
 const OD_entry_t *OD_find(const OD_t *od, uint16_t index) {
-    unsigned int cur;
-    unsigned int min = 0;
-    unsigned int max = od->size - 1;
-
     if (od == NULL || od->size == 0) {
         return NULL;
     }
 
+    uint16_t cur;
+    uint16_t min = 0;
+    uint16_t max = od->size - 1;
+
     /* Fast search in ordered Object Dictionary. If indexes are mixed,
-     * this won't work. If Object Dictionary has up to 2^N entries, then N is
-     * max number of loop passes. */
+     * this won't work. If Object Dictionary has up to N entries, then the
+     * max number of loop passes is log2(N) */
     while (min < max) {
         /* get entry between min and max */
         cur = (min + max) >> 1;
@@ -177,9 +177,9 @@ const OD_entry_t *OD_find(const OD_t *od, uint16_t index) {
         if (index == entry->index) {
             return entry;
         }
-        else if (index < entry->index) {
-            max = cur;
-            if(max > 0) max--;
+
+        if (index < entry->index) {
+            max = (cur > 0) ? (cur - 1) : cur;
         }
         else {
             min = cur + 1;
@@ -239,7 +239,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
                 io->stream.dataObjectOriginal = NULL;
             }
             else {
-                char *data = (char *)odo->data;
+                uint8_t *data = odo->data;
                 int i = subIndex - 1;
                 io->stream.dataObjectOriginal = data + odo->dataElementSizeof * i;
             }
@@ -318,7 +318,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode) {
         0x060A0023UL, /* Resource not available: SDO connection */
         0x08000000UL, /* General error */
         0x08000020UL, /* Data cannot be transferred or stored to application */
-        0x08000021UL, /* Data cannot be transf. because of local control */
+        0x08000021UL, /* Data cannot be transferred because of local control */
         0x08000022UL, /* Data cannot be tran. because of present device state */
         0x08000023UL, /* Object dict. not present or dynamic generation fails */
         0x08000024UL  /* No data available */

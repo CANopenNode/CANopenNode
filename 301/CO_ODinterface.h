@@ -304,7 +304,7 @@ typedef struct {
      *
      * Write can be restarted with @ref OD_rwRestart() function.
      *
-     * At the moment, when Object Dictionary is initialised, every variable has
+     * At the moment, when Object Dictionary is initialized, every variable has
      * assigned the same "write" function, which simply copies data to Object
      * Dictionary variable. Application can bind its own "write" function,
      * similar as it can bind "read" function.
@@ -426,9 +426,9 @@ static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
 /**
  * Restart read or write operation on OD variable
  *
- * It is not necessary to call this function, if stream was initialised by
- * @ref OD_getSub(). It is also not necessary to call this function, if prevous
- * read or write was successfully finished.
+ * It is not necessary to call this function, if stream was initialized by
+ * @ref OD_getSub(). It is also not necessary to call this function, if
+ * previous read or write was successfully finished.
  *
  * @param stream Object Dictionary stream object.
  */
@@ -448,7 +448,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
 
 
 /**
- * Initialise extended OD object with own read/write functions
+ * Initialize extended OD object with own read/write functions
  *
  * This function works on OD object, which has IO extension enabled. It gives
  * application very powerful tool: definition of own IO access on own OD

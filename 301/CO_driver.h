@@ -110,8 +110,7 @@ extern "C" {
  * @defgroup CO_dataTypes Basic definitions
  * @{
  *
- * Target specific basic definitions and data types according to Misra C
- * specification.
+ * Target specific basic definitions and data types.
  *
  * Must be defined in the **CO_driver_target.h** file.
  *
@@ -138,7 +137,7 @@ extern "C" {
 /** Logical false, for general use */
 #define false 0
 /** Boolean data type for general use */
-typedef unsigned char bool_t;
+typedef uint_fast8_t bool_t;
 /** INTEGER8 in CANopen (0002h), 8-bit signed integer */
 typedef signed char int8_t;
 /** INTEGER16 in CANopen (0003h), 16-bit signed integer */
@@ -159,12 +158,6 @@ typedef unsigned long long int uint64_t;
 typedef float float32_t;
 /** REAL64 in CANopen (0011h), double precision floating point value, 64-bit */
 typedef double float64_t;
-/** VISIBLE_STRING in CANopen (0009h), string of signed 8-bit values */
-typedef char char_t;
-/** OCTET_STRING in CANopen (000Ah), string of unsigned 8-bit values */
-typedef unsigned char oChar_t;
-/** DOMAIN in CANopen (000Fh), used to transfer a large block of data */
-typedef unsigned char domain_t;
 /** @} */
 
 

@@ -562,7 +562,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         /* write data, in several passes if necessary */
         if (SDO_C->OD_IO.write != NULL) {
             size_t count = CO_fifo_getOccupied(&SDO_C->bufFifo);
-            char buf[count + 2];
+            uint8_t buf[count + 2];
 
             CO_fifo_read(&SDO_C->bufFifo, buf, count, NULL);
             SDO_C->sizeTran += count;
@@ -1213,7 +1213,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             OD_size_t countData = SDO_C->OD_IO.stream.dataLength;
             OD_size_t countBuf = (countData > 0 && countData <= countFifo)
                                  ? countData : countFifo;
-            char buf[countBuf + 1];
+            uint8_t buf[countBuf + 1];
             ODR_t odRet;
 
             /* load data from OD variable into the buffer */
@@ -1229,7 +1229,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 /* if data is string, send only data up to null termination */
                 if (countRd > 0 && (SDO_C->attribute & ODA_STR) != 0) {
                     buf[countRd] = 0; /* (buf is one byte larger) */
-                    OD_size_t countStr = strlen(buf);
+                    OD_size_t countStr = strlen((char *)buf);
                     if (countStr == 0) countStr = 1; /* ne zero length */
                     if (countStr < countRd) {
                         /* string terminator found, finish read, shorten data */
