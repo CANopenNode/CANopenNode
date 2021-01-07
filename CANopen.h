@@ -230,57 +230,57 @@ typedef struct {
      * @ref CO_CONFIG_NMT. Start indexes inside CANrx and CANtx are always 0.
      * There must be one NMT object in the device. */
     uint8_t CNT_NMT;
-    const OD_entry_t *ENTRY_H1017; /**< OD entry for @ref CO_NMT_init() */
+    OD_entry_t *ENTRY_H1017; /**< OD entry for @ref CO_NMT_init() */
     /** Number of Heartbeat consumer objects, 0 or 1: object uses from 1 to 127
      * internal consumers (CANrx), as specified by @ref CO_CONFIG_HB_CONS_SIZE.
      */
     uint8_t CNT_HB_CONS;
-    const OD_entry_t *ENTRY_H1016; /**< OD entry for @ref CO_HBconsumer_init()*/
+    OD_entry_t *ENTRY_H1016; /**< OD entry for @ref CO_HBconsumer_init()*/
     /** Number of Emergency objects, 0 or 1: optional producer (CANtx) +
      * optional consumer (CANrx), configurable by @ref CO_CONFIG_EM.
      * There must be one Emergency object in the device. */
     uint8_t CNT_EM;
     const OD_entry_t *ENTRY_H1001; /**< OD entry for @ref CO_EM_init() */
-    const OD_entry_t *ENTRY_H1014; /**< OD entry for @ref CO_EM_init() */
-    const OD_entry_t *ENTRY_H1015; /**< OD entry for @ref CO_EM_init() */
-    const OD_entry_t *ENTRY_H1003; /**< OD entry for @ref CO_EM_init() */
+    OD_entry_t *ENTRY_H1014; /**< OD entry for @ref CO_EM_init() */
+    OD_entry_t *ENTRY_H1015; /**< OD entry for @ref CO_EM_init() */
+    OD_entry_t *ENTRY_H1003; /**< OD entry for @ref CO_EM_init() */
     /** Number of SDO server objects, from 0 to 128 (CANrx + CANtx). There must
      * be at least one SDO server object in the device. */
     uint8_t CNT_SDO_SRV;
-    const OD_entry_t *ENTRY_H1200; /**< OD entry for @ref CO_SDOserver_init()*/
+    OD_entry_t *ENTRY_H1200; /**< OD entry for @ref CO_SDOserver_init()*/
     /** Number of SDO client objects, from 0 to 128 (CANrx + CANtx). */
     uint8_t CNT_SDO_CLI;
-    const OD_entry_t *ENTRY_H1280; /**< OD entry for @ref CO_SDOclient_init()*/
+    OD_entry_t *ENTRY_H1280; /**< OD entry for @ref CO_SDOclient_init()*/
     /** Number of TIME objects, 0 or 1: consumer (CANrx) + optional producer
      * (CANtx), configurable by @ref CO_CONFIG_TIME. */
     uint8_t CNT_TIME;
-    const OD_entry_t *ENTRY_H1012; /**< OD entry for @ref CO_TIME_init() */
+    OD_entry_t *ENTRY_H1012; /**< OD entry for @ref CO_TIME_init() */
     /** Number of SYNC objects, 0 or 1:  consumer (CANrx) + optional producer
      * (CANtx), configurable by @ref CO_CONFIG_SYNC. */
     uint8_t CNT_SYNC;
-    const OD_entry_t *ENTRY_H1005; /**< OD entry for @ref CO_SYNC_init() */
-    const OD_entry_t *ENTRY_H1006; /**< OD entry for @ref CO_SYNC_init() */
-    const OD_entry_t *ENTRY_H1007; /**< OD entry for @ref CO_SYNC_init() */
-    const OD_entry_t *ENTRY_H1019; /**< OD entry for @ref CO_SYNC_init() */
+    OD_entry_t *ENTRY_H1005; /**< OD entry for @ref CO_SYNC_init() */
+    OD_entry_t *ENTRY_H1006; /**< OD entry for @ref CO_SYNC_init() */
+    OD_entry_t *ENTRY_H1007; /**< OD entry for @ref CO_SYNC_init() */
+    OD_entry_t *ENTRY_H1019; /**< OD entry for @ref CO_SYNC_init() */
     /** Number of RPDO objects, from 0 to 512 consumers (CANrx) */
     uint16_t CNT_RPDO;
-    const OD_entry_t *ENTRY_H1400; /**< OD entry for @ref CO_RPDO_init() */
-    const OD_entry_t *ENTRY_H1600; /**< OD entry for @ref CO_RPDO_init() */
+    OD_entry_t *ENTRY_H1400; /**< OD entry for @ref CO_RPDO_init() */
+    OD_entry_t *ENTRY_H1600; /**< OD entry for @ref CO_RPDO_init() */
     /** Number of TPDO objects, from 0 to 512 producers (CANtx) */
     uint16_t CNT_TPDO;
-    const OD_entry_t *ENTRY_H1800; /**< OD entry for @ref CO_TPDO_init() */
-    const OD_entry_t *ENTRY_H1A00; /**< OD entry for @ref CO_TPDO_init() */
+    OD_entry_t *ENTRY_H1800; /**< OD entry for @ref CO_TPDO_init() */
+    OD_entry_t *ENTRY_H1A00; /**< OD entry for @ref CO_TPDO_init() */
     /** Number of LEDs objects, 0 or 1. */
     uint8_t CNT_LEDS;
     /** Number of GFC objects, 0 or 1 (CANrx + CANtx). */
     uint8_t CNT_GFC;
-    const OD_entry_t *ENTRY_H1300; /**< OD entry for @ref CO_GFC_init() */
+    OD_entry_t *ENTRY_H1300; /**< OD entry for @ref CO_GFC_init() */
     /** Number of SRDO objects, from 0 to 64 (2*CANrx + 2*CANtx). */
     uint8_t CNT_SRDO;
-    const OD_entry_t *ENTRY_H1301; /**< OD entry for @ref CO_SRDO_init() */
-    const OD_entry_t *ENTRY_H1381; /**< OD entry for @ref CO_SRDO_init() */
-    const OD_entry_t *ENTRY_H13FE; /**< OD entry for @ref CO_SRDOGuard_init() */
-    const OD_entry_t *ENTRY_H13FF; /**< OD entry for @ref CO_SRDOGuard_init() */
+    OD_entry_t *ENTRY_H1301; /**< OD entry for @ref CO_SRDO_init() */
+    OD_entry_t *ENTRY_H1381; /**< OD entry for @ref CO_SRDO_init() */
+    OD_entry_t *ENTRY_H13FE; /**< OD entry for @ref CO_SRDOGuard_init() */
+    OD_entry_t *ENTRY_H13FF; /**< OD entry for @ref CO_SRDOGuard_init() */
     /** Number of LSSslave objects, 0 or 1 (CANrx + CANtx). */
     uint8_t CNT_LSS_SLV;
     /** Number of LSSmaster objects, 0 or 1 (CANrx + CANtx). */
@@ -534,8 +534,8 @@ CO_ReturnError_t CO_LSSinit(CO_t *co,
 CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 CO_NMT_t *NMT,
                                 CO_EM_t *em,
-                                const OD_t *od,
-                                const OD_entry_t *OD_statusBits,
+                                OD_t *od,
+                                OD_entry_t *OD_statusBits,
                                 CO_NMT_control_t NMTcontrol,
                                 uint16_t firstHBTime_ms,
                                 uint16_t SDOserverTimeoutTime_ms,

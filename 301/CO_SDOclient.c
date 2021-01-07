@@ -249,8 +249,8 @@ static OD_size_t OD_write_1280(OD_stream_t *stream, uint8_t subIndex,
 
 /******************************************************************************/
 CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
-                                   const OD_t *OD,
-                                   const OD_entry_t *OD_1280_SDOcliPar,
+                                   OD_t *OD,
+                                   OD_entry_t *OD_1280_SDOcliPar,
                                    uint8_t nodeId,
                                    CO_CANmodule_t *CANdevRx,
                                    uint16_t CANdevRxIdx,
@@ -300,10 +300,11 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
     }
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC
-    ODR_t odRetE = OD_extensionIO_init(OD_1280_SDOcliPar,
-                                       (void *)SDO_C,
-                                       OD_readOriginal,
-                                       OD_write_1280);
+    SDO_C->OD_1280_extension.object = SDO_C;
+    SDO_C->OD_1280_extension.read = OD_readOriginal;
+    SDO_C->OD_1280_extension.write = OD_write_1280;
+    ODR_t odRetE = OD_extension_init(OD_1280_SDOcliPar,
+                                     &SDO_C->OD_1280_extension);
     if (odRetE != ODR_OK) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1280_SDOcliPar));
         return CO_ERROR_OD_PARAMETERS;
@@ -535,22 +536,19 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         /* search object dictionary in first pass */
         if (SDO_C->OD_IO.write == NULL) {
             ODR_t odRet;
-            OD_subEntry_t subEntry;
 
             odRet = OD_getSub(OD_find(SDO_C->OD, SDO_C->index), SDO_C->subIndex,
-                              &subEntry, &SDO_C->OD_IO, false);
-
-            SDO_C->attribute = subEntry.attribute;
+                              &SDO_C->OD_IO, false);
 
             if (odRet != ODR_OK) {
                 abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if ((SDO_C->attribute & ODA_SDO_RW) == 0) {
+            else if ((SDO_C->OD_IO.stream.attribute & ODA_SDO_RW) == 0) {
                 abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if ((SDO_C->attribute & ODA_SDO_W) == 0) {
+            else if ((SDO_C->OD_IO.stream.attribute & ODA_SDO_W) == 0) {
                 abortCode = CO_SDO_AB_READONLY;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
@@ -589,7 +587,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             else if (!bufferPartial) {
 #ifdef CO_BIG_ENDIAN
                 /* swap int16_t .. uint64_t data if necessary */
-                if ((SDO_C->attribute & ODA_MB) != 0) {
+                if ((SDO_C->OD_IO.stream.attribute & ODA_MB) != 0) {
                     reverseBytes(buf, count);
                 }
 #endif
@@ -599,7 +597,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                  * shorter than size of OD data buffer. If so, add two zero
                  * bytes to terminate (unicode) string. Shorten also OD data
                  * size, (temporary, send info about EOF into OD_IO.write) */
-                if ((SDO_C->attribute & ODA_STR) != 0
+                if ((SDO_C->OD_IO.stream.attribute & ODA_STR) != 0
                     && (sizeInOd == 0 || SDO_C->sizeTran < sizeInOd)
                 ) {
                     buf[count++] = 0;
@@ -1175,22 +1173,19 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         /* search object dictionary in first pass */
         if (SDO_C->OD_IO.read == NULL) {
             ODR_t odRet;
-            OD_subEntry_t subEntry;
 
             odRet = OD_getSub(OD_find(SDO_C->OD, SDO_C->index), SDO_C->subIndex,
-                              &subEntry, &SDO_C->OD_IO, false);
-
-            SDO_C->attribute = subEntry.attribute;
+                              &SDO_C->OD_IO, false);
 
             if (odRet != ODR_OK) {
                 abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if ((SDO_C->attribute & ODA_SDO_RW) == 0) {
+            else if ((SDO_C->OD_IO.stream.attribute & ODA_SDO_RW) == 0) {
                 abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if ((SDO_C->attribute & ODA_SDO_R) == 0) {
+            else if ((SDO_C->OD_IO.stream.attribute & ODA_SDO_R) == 0) {
                 abortCode = CO_SDO_AB_WRITEONLY;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
@@ -1227,10 +1222,12 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             }
             else {
                 /* if data is string, send only data up to null termination */
-                if (countRd > 0 && (SDO_C->attribute & ODA_STR) != 0) {
+                if (countRd > 0
+                    && (SDO_C->OD_IO.stream.attribute & ODA_STR) != 0
+                ) {
                     buf[countRd] = 0; /* (buf is one byte larger) */
                     OD_size_t countStr = strlen((char *)buf);
-                    if (countStr == 0) countStr = 1; /* ne zero length */
+                    if (countStr == 0) countStr = 1; /* no zero length */
                     if (countStr < countRd) {
                         /* string terminator found, finish read, shorten data */
                         countRd = countStr;

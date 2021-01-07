@@ -349,18 +349,18 @@ static void CO_EM_receive(void *object, void *msg) {
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             const OD_entry_t *OD_1001_errReg,
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
-                            const OD_entry_t *OD_1014_cobIdEm,
+                            OD_entry_t *OD_1014_cobIdEm,
                             CO_CANmodule_t *CANdevTx,
                             uint16_t CANdevTxIdx,
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
-                            const OD_entry_t *OD_1015_InhTime,
+                            OD_entry_t *OD_1015_InhTime,
 #endif
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
-                            const OD_entry_t *OD_1003_preDefErr,
+                            OD_entry_t *OD_1003_preDefErr,
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS
-                            const OD_entry_t *OD_statusBits,
+                            OD_entry_t *OD_statusBits,
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
                             CO_CANmodule_t *CANdevRx,
@@ -410,10 +410,12 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     uint16_t producerCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
     em->producerEnabled = (COB_IDEmergency32 & 0x80000000) == 0
                           && producerCanId != 0;
-    ODR_t odRetE = OD_extensionIO_init(OD_1014_cobIdEm,
-                                       (void *) em,
-                                       OD_read_1014,
-                                       OD_write_1014);
+
+    em->OD_1014_extension.object = em;
+    em->OD_1014_extension.read = OD_read_1014;
+    em->OD_1014_extension.write = OD_write_1014;
+    ODR_t odRetE = OD_extension_init(OD_1014_cobIdEm,
+                                     &em->OD_1014_extension);
     if (odRetE != ODR_OK) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
@@ -428,10 +430,12 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
  #else
     uint16_t producerCanId = CO_CAN_ID_EMERGENCY + nodeId;
     em->producerEnabled = (COB_IDEmergency32 & 0x80000000) == 0;
-    ODR_t odRetE = OD_extensionIO_init(OD_1014_cobIdEm,
-                                       (void *) em,
-                                       OD_read_1014_default,
-                                       OD_writeOriginal);
+
+    em->OD_1014_extension.object = em;
+    em->OD_1014_extension.read = OD_read_1014_default;
+    em->OD_1014_extension.write = OD_writeOriginal;
+    ODR_t odRetE = OD_extension_init(OD_1014_cobIdEm,
+                                     &em->OD_1014_extension);
     if (odRetE != ODR_OK) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
@@ -462,10 +466,12 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     ODR_t odRet1 = OD_get_u16(OD_1015_InhTime, 0, &inhibitTime_100us, true);
     if (odRet1 == ODR_OK) {
         em->inhibitEmTime_us = (uint32_t)inhibitTime_100us * 100;
-        OD_extensionIO_init(OD_1015_InhTime,
-                            (void *) em,
-                            OD_readOriginal,
-                            OD_write_1015);
+
+        em->OD_1015_extension.object = em;
+        em->OD_1015_extension.read = OD_readOriginal;
+        em->OD_1015_extension.write = OD_write_1015;
+        OD_extension_init(OD_1015_InhTime,
+                          &em->OD_1015_extension);
     }
  #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT */
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER */
@@ -473,19 +479,21 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
     /* If OD entry available, make access to em->preDefErr */
-    OD_extensionIO_init(OD_1003_preDefErr,
-                        (void *) em,
-                        OD_read_1003,
-                        OD_write_1003);
+    em->OD_1003_extension.object = em;
+    em->OD_1003_extension.read = OD_read_1003;
+    em->OD_1003_extension.write = OD_write_1003;
+    OD_extension_init(OD_1003_preDefErr,
+                      &em->OD_1003_extension);
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY */
 
 
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS
     /* If OD entry available, make access to em->errorStatusBits */
-    OD_extensionIO_init(OD_statusBits,
-                        (void *) em,
-                        OD_read_statusBits,
-                        OD_write_statusBits);
+    em->OD_statusBits_extension.object = em;
+    em->OD_statusBits_extension.read = OD_read_statusBits;
+    em->OD_statusBits_extension.write = OD_write_statusBits;
+    OD_extension_init(OD_statusBits,
+                      &em->OD_statusBits_extension);
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS */
 
 

@@ -39,15 +39,20 @@ extern "C" {
  * See @ref doc/objectDictionary.md
  */
 
-#ifndef OD_size_t
+#ifndef CO_OD_OWN_TYPES
 /** Variable of type OD_size_t contains data length in bytes of OD variable */
-#define OD_size_t uint32_t
-/** Type of flagsPDO variable from OD_subEntry_t */
-#define OD_flagsPDO_t uint32_t
+typedef uint32_t OD_size_t;
+/** Type (and size) of Object Dictionary attribute */
+typedef uint8_t OD_attr_t;
+/** Size of of flagsPDO variable inside OD_extension_t, from 1 to 64 */
+#define OD_FLAGS_PDO_SIZE 4
 #endif
 
-/** Size of Object Dictionary attribute */
-#define OD_attr_t uint8_t
+#ifndef CO_PROGMEM
+/** Modifier for OD objects. This is large amount of data and is specified in
+ * Object Dictionary (OD.c file usually) */
+#define CO_PROGMEM const
+#endif
 
 
 /**
@@ -193,57 +198,16 @@ typedef enum {
 
 
 /**
- * Structure describing properties of a variable, located in specific index and
- * sub-index inside the Object Dictionary.
- *
- * Structure is initialized with @ref OD_getSub() function.
- */
-typedef struct {
-    /** Object Dictionary index */
-    uint16_t index;
-    /** Object Dictionary sub-index */
-    uint8_t subIndex;
-    /** Number of sub-entries in OD object. For VAR is 1, for ARRAY is
-     * maxSubIndex + 1, for RECORD maxSubIndex may be larger, if there is a gap
-     * between sub-indexes. */
-    uint8_t subEntriesCount;
-    /** Attribute bit-field of the OD sub-object, see @ref OD_attributes_t */
-    OD_attr_t attribute;
-    /**
-     * Pointer to PDO flags bit-field. This is optional extension of OD object.
-     * If OD object has enabled this extension, then each sub-element is coupled
-     * with own flagsPDO variable of size 8 to 64 bits (size is configurable
-     * by @ref OD_flagsPDO_t). Flag is useful, when variable is mapped to RPDO
-     * or TPDO.
-     *
-     * If sub-element is mapped to RPDO, then bit0 is set to 1 each time, when
-     * any RPDO writes new data into variable. Application may clear bit0.
-     *
-     * If sub-element is mapped to TPDO, then TPDO will set one bit on the time,
-     * it is sent. First TPDO will set bit1, second TPDO will set bit2, etc. Up
-     * to 63 TPDOs can use flagsPDO.
-     *
-     * Another functionality is with asynchronous TPDOs, to which variable may
-     * be mapped. If corresponding bit is 0, TPDO will be sent. This means, that
-     * if application sets variable pointed by flagsPDO to zero, it will trigger
-     * sending all asynchronous TPDOs (up to first 63), to which variable is
-     * mapped.
-     */
-    OD_flagsPDO_t *flagsPDO;
-} OD_subEntry_t;
-
-
-/**
  * IO stream structure, used for read/write access to OD variable, part of
  * @ref OD_IO_t.
  */
 typedef struct {
     /** Pointer to original data object, defined by Object Dictionary. Default
      * read/write functions operate on it. If memory for data object is not
-     * specified by Object Dictionary, then dataObjectOriginal is NULL.
+     * specified by Object Dictionary, then dataOrig is NULL.
      */
-    void *dataObjectOriginal;
-    /** Pointer to object, passed by @ref OD_extensionIO_init(). Can be used
+    void *dataOrig;
+    /** Pointer to object, passed by @ref OD_extension_init(). Can be used
      * inside read / write functions from IO extension.
      */
     void *object;
@@ -252,6 +216,8 @@ typedef struct {
     /** In case of large data, dataOffset indicates position of already
      * transferred data */
     OD_size_t dataOffset;
+    /** Attribute bit-field of the OD sub-object, see @ref OD_attributes_t */
+    OD_attr_t attribute;
 } OD_stream_t;
 
 
@@ -277,9 +243,8 @@ typedef struct {
      * data from Object Dictionary variable. Application can bind its own "read"
      * function for specific object. In that case application is able to
      * calculate data for reading from own internal state at the moment of
-     * "read" function call. For this functionality OD object must have IO
-     * extension enabled. OD object must also be initialized with
-     * @ref OD_extensionIO_init() function call.
+     * "read" function call. Own "read" function on OD object can be initialized
+     * with @ref OD_extension_init() function.
      *
      * "read" function must always copy all own data to buf, except if "buf" is
      * not large enough. ("*returnCode" must not return 'ODR_PARTIAL', if there
@@ -327,11 +292,50 @@ typedef struct {
 
 
 /**
+ * Extension of OD object, which can optionally be specified by application in
+ * initialization phase with @ref OD_extension_init() function.
+ */
+typedef struct {
+    /** Object on which read and write will operate, part of @ref OD_stream_t */
+    void *object;
+    /** Application specified read function pointer. If NULL, then read will be
+     * disabled. @ref OD_readOriginal can be used here to keep the original read
+     * function. For function description see @ref OD_IO_t. */
+    OD_size_t (*read)(OD_stream_t *stream, uint8_t subIndex,
+                      void *buf, OD_size_t count, ODR_t *returnCode);
+    /** Application specified write function pointer. If NULL, then write will
+     * be disabled. @ref OD_writeOriginal can be used here to keep the original
+     * write function. For function description see @ref OD_IO_t. */
+    OD_size_t (*write)(OD_stream_t *stream, uint8_t subIndex,
+                       const void *buf, OD_size_t count, ODR_t *returnCode);
+    /**
+     * PDO flags bit-field. If available, then each sub-element is coupled
+     * with own flagsPDO variable of size 8 to 512 bits (size is configurable
+     * by @ref OD_FLAGS_PDO_SIZE). Flag is useful, when variable is mapped to
+     * RPDO or TPDO.
+     *
+     * If sub-element is mapped to RPDO, then bit0 is set to 1 each time, when
+     * any RPDO writes new data into variable. Application may clear bit0.
+     *
+     * If sub-element is mapped to TPDO, then TPDO will set one bit on the time,
+     * it is sent. First TPDO will set bit1, second TPDO will set bit2, etc.
+     *
+     * Another functionality is with asynchronous TPDOs, to which variable may
+     * be mapped. If corresponding bit is 0, TPDO will be sent. This means, that
+     * if application sets variable pointed by flagsPDO to zero, it will trigger
+     * sending all asynchronous TPDOs, to which variable is mapped.
+     */
+    uint8_t flagsPDO[OD_FLAGS_PDO_SIZE];
+} OD_extension_t;
+
+
+/**
  * Object Dictionary entry for one OD object.
  *
  * OD entries are collected inside OD_t as array (list). Each OD entry contains
- * basic information about OD object (index and subEntriesCount) and
- * access function together with a pointer to other details of the OD object.
+ * basic information about OD object (index and subEntriesCount), pointer to
+ * odObject with additional information about var, array or record entry and
+ * pointer to extension, configurable by application.
  */
 typedef struct {
     /** Object Dictionary index */
@@ -342,7 +346,9 @@ typedef struct {
     uint8_t odObjectType;
     /** OD object of type indicated by odObjectType, from which @ref OD_getSub()
      * fetches the information */
-    const void *odObject;
+    CO_PROGMEM void *odObject;
+    /** Extension to OD, specified by application */
+    OD_extension_t *extension;
 } OD_entry_t;
 
 
@@ -353,7 +359,7 @@ typedef struct {
     /** Number of elements in the list, without last element, which is blank */
     uint16_t size;
     /** List OD entries (table of contents), ordered by index */
-    const OD_entry_t *list;
+    OD_entry_t *list;
 } OD_t;
 
 
@@ -361,7 +367,7 @@ typedef struct {
  * Read value from original OD location
  *
  * This function can be used inside read / write functions, specified by
- * @ref OD_extensionIO_init(). It reads data directly from memory location
+ * @ref OD_extension_init(). It reads data directly from memory location
  * specified by Object dictionary. If no IO extension is used on OD entry, then
  * io->read returned by @ref OD_getSub() equals to this function. See
  * also @ref OD_IO_t.
@@ -374,7 +380,7 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
  * Write value to original OD location
  *
  * This function can be used inside read / write functions, specified by
- * @ref OD_extensionIO_init(). It writes data directly to memory location
+ * @ref OD_extension_init(). It writes data directly to memory location
  * specified by Object dictionary. If no IO extension is used on OD entry, then
  * io->write returned by @ref OD_getSub() equals to this function. See
  * also @ref OD_IO_t.
@@ -391,16 +397,15 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
  *
  * @return Pointer to OD entry or NULL if not found
  */
-const OD_entry_t *OD_find(const OD_t *od, uint16_t index);
+OD_entry_t *OD_find(OD_t *od, uint16_t index);
 
 
 /**
  * Find sub-object with specified sub-index on OD entry returned by OD_find.
- * Function populates subEntry and io structures with sub-object data.
+ * Function populates io structure with sub-object data.
  *
  * @param entry OD entry returned by @ref OD_find().
  * @param subIndex Sub-index of the variable from the OD object.
- * @param [out] subEntry Structure will be populated on success, may be NULL.
  * @param [out] io Structure will be populated on success.
  * @param odOrig If true, then potential IO extension on entry will be
  * ignored and access to data entry in the original OD location will be returned
@@ -408,7 +413,7 @@ const OD_entry_t *OD_find(const OD_t *od, uint16_t index);
  * @return Value from @ref ODR_t, "ODR_OK" in case of success.
  */
 ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
-                OD_subEntry_t *subEntry, OD_IO_t *io, bool_t odOrig);
+                OD_IO_t *io, bool_t odOrig);
 
 
 /**
@@ -448,16 +453,20 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
 
 
 /**
- * Initialize extended OD object with own read/write functions
+ * Extend OD object with own read/write functions and/or flagsPDO
  *
- * This function works on OD object, which has IO extension enabled. It gives
- * application very powerful tool: definition of own IO access on own OD
- * object. Structure and attributes are the same as defined in original OD
- * object, but data are read directly from (or written directly to) application
- * specified object via custom function calls.
+ * This function gives application very powerful tool: definition of own IO
+ * access on OD object. Structure and attributes are the same as defined in
+ * original OD object, but data are read directly from (or written directly to)
+ * application specified object via custom function calls.
  *
- * If this function is not called yet, then normal access ("odOrig" argument is
- * false) to OD entry is disabled.
+ * Before this function specifies extension, OD variables are accessed from
+ * original OD location. After this function specifies extension OD variables
+ * are accessed from read/write functions specified by extension. (Except when
+ * "odOrig" argument to @ref OD_getSub() is set to true.)
+ *
+ * This function must also be used, when flagsPDO needs to be enabled for
+ * specific entry.
  *
  * @warning
  * Object dictionary storage works only directly on OD variables. It does not
@@ -471,29 +480,18 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
  * @ref CO_UNLOCK_OD().
  *
  * @param entry OD entry returned by @ref OD_find().
- * @param object Object, which will be passed to read or write function.
- * @param read Read function pointer. If NULL, then read will be disabled.
- * @ref OD_readOriginal can be used here to keep original read function.
- * For function description see @ref OD_IO_t.
- * @param write Write function pointer. If NULL, then write will be disabled.
- * @ref OD_writeOriginal can be used here to keep original write function.
- * For function description see @ref OD_IO_t.
+ * @param extension Extension object, which must be initialized externally.
+ * Extension object must exist permanently. If NULL, extension will be removed.
  *
- * @return "ODR_OK" on success, "ODR_IDX_NOT_EXIST" if OD object doesn't exist,
- * "ODR_PAR_INCOMPAT" if OD object is not extended.
+ * @return "ODR_OK" on success, "ODR_IDX_NOT_EXIST" if OD object doesn't exist.
  */
-ODR_t OD_extensionIO_init(const OD_entry_t *entry,
-                          void *object,
-                          OD_size_t (*read)(OD_stream_t *stream,
-                                            uint8_t subIndex,
-                                            void *buf,
-                                            OD_size_t count,
-                                            ODR_t *returnCode),
-                          OD_size_t (*write)(OD_stream_t *stream,
-                                             uint8_t subIndex,
-                                             const void *buf,
-                                             OD_size_t count,
-                                             ODR_t *returnCode));
+static inline ODR_t OD_extension_init(OD_entry_t *entry,
+                                      OD_extension_t *extension)
+{
+    if (entry == NULL) return ODR_IDX_NOT_EXIST;
+    entry->extension = extension;
+    return ODR_OK;
+}
 
 
 /**
@@ -592,7 +590,7 @@ ODR_t OD_set_r64(const OD_entry_t *entry, uint8_t subIndex,
 /**
  * Get pointer to int8_t variable from Object Dictionary
  *
- * Function always returns "dataObjectOriginal" pointer, which points to data
+ * Function always returns "dataOrig" pointer, which points to data
  * in the original OD location. Take care, if IO extension is enabled on OD
  * entry.
  *
@@ -626,7 +624,7 @@ ODR_t OD_getPtr_r64(const OD_entry_t *entry, uint8_t subIndex, float64_t **val);
 /**
  * Get pointer to "visible string" variable from Object Dictionary
  *
- * Function always returns "dataObjectOriginal" pointer, which points to data
+ * Function always returns "dataOrig" pointer, which points to data
  * in the original OD location. Take care, if IO extension is enabled on OD
  * entry.
  *
@@ -680,26 +678,15 @@ typedef enum {
      * @ref OD_obj_var_t. Variable at sub-index 0 is of type uint8_t and usually
      * represents number of sub-elements in the structure. */
     ODT_REC = 0x03,
-
-    /** Same as ODT_VAR, but extended with OD_obj_extended_t type. It includes
-     * additional pointer to IO extension and PDO flags */
-    ODT_EVAR = 0x11,
-    /** Same as ODT_ARR, but extended with OD_obj_extended_t type */
-    ODT_EARR = 0x12,
-    /** Same as ODT_REC, but extended with OD_obj_extended_t type */
-    ODT_EREC = 0x13,
-
     /** Mask for basic type */
     ODT_TYPE_MASK = 0x0F,
-    /** Mask for extension */
-    ODT_EXTENSION_MASK = 0x10
 } OD_objectTypes_t;
 
 /**
  * Object for single OD variable, used for "VAR" type OD objects
  */
 typedef struct {
-    void *data; /**< Pointer to data */
+    void *dataOrig; /**< Pointer to data */
     OD_attr_t attribute; /**< Attribute bitfield, see @ref OD_attributes_t */
     OD_size_t dataLength; /**< Data length in bytes */
 } OD_obj_var_t;
@@ -708,8 +695,8 @@ typedef struct {
  * Object for OD array of variables, used for "ARRAY" type OD objects
  */
 typedef struct {
-    uint8_t *data0; /**< Pointer to data for sub-index 0 */
-    void *data; /**< Pointer to array of data */
+    uint8_t *dataOrig0; /**< Pointer to data for sub-index 0 */
+    void *dataOrig; /**< Pointer to array of data */
     OD_attr_t attribute0; /**< Attribute bitfield for sub-index 0, see
                                @ref OD_attributes_t */
     OD_attr_t attribute; /**< Attribute bitfield for array elements */
@@ -721,39 +708,11 @@ typedef struct {
  * Object for OD sub-elements, used in "RECORD" type OD objects
  */
 typedef struct {
-    void *data; /**< Pointer to data */
+    void *dataOrig; /**< Pointer to data */
     uint8_t subIndex; /**< Sub index of element. */
     OD_attr_t attribute; /**< Attribute bitfield, see @ref OD_attributes_t */
     OD_size_t dataLength; /**< Data length in bytes */
 } OD_obj_record_t;
-
-/**
- * Object pointed by @ref OD_obj_extended_t contains application specified
- * parameters for extended OD object
- */
-typedef struct {
-    /** Object on which read and write will operate */
-    void *object;
-    /** Application specified function pointer, see @ref OD_IO_t. */
-    OD_size_t (*read)(OD_stream_t *stream, uint8_t subIndex,
-                      void *buf, OD_size_t count, ODR_t *returnCode);
-    /** Application specified function pointer, see @ref OD_IO_t. */
-    OD_size_t (*write)(OD_stream_t *stream, uint8_t subIndex,
-                       const void *buf, OD_size_t count, ODR_t *returnCode);
-} OD_extensionIO_t;
-
-/**
- * Object for extended type of OD variable, configurable by
- * @ref OD_extensionIO_init() function
- */
-typedef struct {
-    /** Pointer to application specified IO extension, may be NULL. */
-    OD_extensionIO_t *extIO;
-    /** Pointer to PDO flags bit-field, see @ref OD_subEntry_t, may be NULL. */
-    OD_flagsPDO_t *flagsPDO;
-    /** Pointer to original odObject, see @ref OD_entry_t. */
-    const void *odObjectOriginal;
-} OD_obj_extended_t;
 
 /** @} */ /* CO_ODdefinition */
 

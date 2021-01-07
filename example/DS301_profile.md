@@ -10,12 +10,17 @@ CANopen documentation
 | File Version | 1                              |
 | Created      | 23. 11. 2020 12:00:00          |
 | Created By   |                                |
-| Modified     | 24. 11. 2020 13:31:53          |
+| Modified     | 6. 01. 2021 16:21:52           |
 | Modified By  |                                |
 
-This file was automatically generated with [libedssharp](https://github.com/robincornelius/libedssharp) Object Dictionary Editor v0.8-99-g0425f94
+This file was automatically generated with [libedssharp](https://github.com/robincornelius/libedssharp) Object Dictionary Editor v0.8-116-g2e8a14a
 
-* [Device Information](#device-information)* [PDO Mapping](#pdo-mapping)* [Communication Specific Parameters](#communication-specific-parameters)* [Manufacturer Specific Parameters](#manufacturer-specific-parameters)* [Device Profile Specific Parameters](#device-profile-specific-parameters)
+* [Device Information](#device-information)
+* [PDO Mapping](#pdo-mapping)
+* [Communication Specific Parameters](#communication-specific-parameters)
+* [Manufacturer Specific Parameters](#manufacturer-specific-parameters)
+* [Device Profile Specific Parameters](#device-profile-specific-parameters)
+
 
 Device Information {#device-information}
 ----------------------------------------
@@ -50,9 +55,9 @@ Communication Specific Parameters {#communication-specific-parameters}
 ----------------------------------------------------------------------
 
 ### 0x1000 - Device type
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         | NMT            | PERSIST_COMM   | False         | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         | NMT            | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -62,9 +67,9 @@ Communication Specific Parameters {#communication-specific-parameters}
 * bit 0-15: Device profile number
 
 ### 0x1001 - Error register
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         | EM             | RAM            | False         | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         | EM             | RAM            |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -80,9 +85,9 @@ Communication Specific Parameters {#communication-specific-parameters}
 * bit 0: generic error
 
 ### 0x1003 - Pre-defined error field
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| ARRAY       |                | RAM            | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| ARRAY       |                | RAM            |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -102,9 +107,9 @@ Communication Specific Parameters {#communication-specific-parameters}
   * bit 0-15: Error code as transmited in the Emergency object
 
 ### 0x1005 - COB-ID SYNC message
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         | SYNC           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         | SYNC           | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -116,9 +121,9 @@ Communication Specific Parameters {#communication-specific-parameters}
 * bit 0-10: 11-bit CAN-ID
 
 ### 0x1006 - Communication cycle period
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         | SYNC_PROD      | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         | SYNC_PROD      | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -127,9 +132,9 @@ Communication Specific Parameters {#communication-specific-parameters}
 Period of SYNC transmission in µs (0 = transmission disabled).
 
 ### 0x1007 - Synchronous window length
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -138,9 +143,9 @@ Period of SYNC transmission in µs (0 = transmission disabled).
 Synchronous window leghth in µs (0 = not used). All synchronous PDOs must be transmitted within this time window.
 
 ### 0x1010 - Store parameters
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| ARRAY       |                | RAM            | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| ARRAY       |                | RAM            |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -157,9 +162,9 @@ Sub-indexes 1 and above:
 * Writing value 0x65766173 ('s','a','v','e' from LSB to MSB) stores corresponding data.
 
 ### 0x1011 - Restore default parameters
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| ARRAY       |                | RAM            | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| ARRAY       |                | RAM            |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -175,9 +180,9 @@ Sub-indexes 1 and above:
 * Writing value 0x64616F6C ('l','o','a','d' from LSB to MSB) restores corresponding data.
 
 ### 0x1012 - COB-ID time stamp object
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         | TIME           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         | TIME           | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -189,9 +194,9 @@ Sub-indexes 1 and above:
 * bit 0-10: 11-bit CAN-ID
 
 ### 0x1014 - COB-ID EMCY
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         | EM_PROD        | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         | EM_PROD        | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -202,9 +207,9 @@ Sub-indexes 1 and above:
 * bit 0-10: 11-bit CAN-ID
 
 ### 0x1015 - Inhibit time EMCY
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -213,9 +218,9 @@ Sub-indexes 1 and above:
 Inhibit time of emergency message in multiples of 100µs. The value 0 disables the inhibit time.
 
 ### 0x1016 - Consumer heartbeat time
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| ARRAY       | HB_CONS        | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| ARRAY       | HB_CONS        | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -235,9 +240,9 @@ Consumer Heartbeat Time:
   * bit 0-15: Heartbeat time in ms (if 0, sub-intry is not used). Value should be higher than the corresponding producer heartbeat time.
 
 ### 0x1017 - Producer heartbeat time
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         | HB_PROD        | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         | HB_PROD        | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -246,9 +251,9 @@ Consumer Heartbeat Time:
 Heartbeat producer time in ms (0 = disable transmission).
 
 ### 0x1018 - Identity
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | False         | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -266,9 +271,9 @@ Heartbeat producer time in ms (0 = disable transmission).
 * Serial number, manufacturer specific
 
 ### 0x1019 - Synchronous counter overflow value
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| VAR         |                | PERSIST_COMM   | False         | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | PERSIST_COMM   |
 
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
@@ -280,9 +285,9 @@ Heartbeat producer time in ms (0 = disable transmission).
 * Value 241-255: reserved.
 
 ### 0x1200 - SDO server parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | SDO_SRV        | RAM            | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | SDO_SRV        | RAM            |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -295,9 +300,9 @@ Sub-indexes 1 and 2:
 * bit 0-10: 11-bit CAN-ID
 
 ### 0x1280 - SDO client parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | SDO_CLI        | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | SDO_CLI        | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -314,9 +319,9 @@ Sub-indexes 1 and 2:
 * Node-ID of the SDO server, 0x01 to 0x7F
 
 ### 0x1400 - RPDO communication parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | RPDO           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | RPDO           | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -337,9 +342,9 @@ Sub-indexes 1 and 2:
 * Event timer in ms (0 = disabled) for deadline monitoring.
 
 ### 0x1401 - RPDO communication parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | RPDO           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | RPDO           | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -360,9 +365,9 @@ Sub-indexes 1 and 2:
 * Event timer in ms (0 = disabled) for deadline monitoring.
 
 ### 0x1402 - RPDO communication parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | RPDO           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | RPDO           | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -383,9 +388,9 @@ Sub-indexes 1 and 2:
 * Event timer in ms (0 = disabled) for deadline monitoring.
 
 ### 0x1403 - RPDO communication parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | RPDO           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | RPDO           | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -406,9 +411,9 @@ Sub-indexes 1 and 2:
 * Event timer in ms (0 = disabled) for deadline monitoring.
 
 ### 0x1600 - RPDO mapping parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -432,9 +437,9 @@ Sub-indexes 1 and 2:
   * bit 0-7: data length in bits
 
 ### 0x1601 - RPDO mapping parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -458,9 +463,9 @@ Sub-indexes 1 and 2:
   * bit 0-7: data length in bits
 
 ### 0x1602 - RPDO mapping parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -484,9 +489,9 @@ Sub-indexes 1 and 2:
   * bit 0-7: data length in bits
 
 ### 0x1603 - RPDO mapping parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -510,9 +515,9 @@ Sub-indexes 1 and 2:
   * bit 0-7: data length in bits
 
 ### 0x1800 - TPDO communication parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | TPDO           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | TPDO           | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -541,9 +546,9 @@ Sub-indexes 1 and 2:
   * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.
 
 ### 0x1801 - TPDO communication parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | TPDO           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | TPDO           | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -572,9 +577,9 @@ Sub-indexes 1 and 2:
   * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.
 
 ### 0x1802 - TPDO communication parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | TPDO           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | TPDO           | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -603,9 +608,9 @@ Sub-indexes 1 and 2:
   * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.
 
 ### 0x1803 - TPDO communication parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      | TPDO           | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      | TPDO           | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -634,9 +639,9 @@ Sub-indexes 1 and 2:
   * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.
 
 ### 0x1A00 - TPDO mapping parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -660,9 +665,9 @@ Sub-indexes 1 and 2:
   * bit 0-7: data length in bits
 
 ### 0x1A01 - TPDO mapping parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -686,9 +691,9 @@ Sub-indexes 1 and 2:
   * bit 0-7: data length in bits
 
 ### 0x1A02 - TPDO mapping parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
@@ -712,9 +717,9 @@ Sub-indexes 1 and 2:
   * bit 0-7: data length in bits
 
 ### 0x1A03 - TPDO mapping parameter
-| Object Type | Count Label    | Storage Group  | IO extension  | PDO flags    |
-| ----------- | -------------- | -------------- | ------------- | ------------ |
-| RECORD      |                | PERSIST_COMM   | True          | False        |
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | PERSIST_COMM   |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |

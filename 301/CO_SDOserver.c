@@ -163,46 +163,6 @@ static void CO_SDO_receive(void *object, void *msg) {
 }
 
 
-/*
- * Custom function for reading OD variable _SDO server parameter_, default
- * channel
- *
- * For more information see file CO_ODinterface.h, OD_IO_t.
- */
-static OD_size_t OD_read_1200_default(OD_stream_t *stream, uint8_t subIndex,
-                                      void *buf, OD_size_t count,
-                                      ODR_t *returnCode)
-{
-    if (stream == NULL || buf == NULL || returnCode == NULL
-        || count < 1 || (count < 4 && subIndex > 0)
-    ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
-    }
-
-    CO_SDOserver_t *SDO = (CO_SDOserver_t *)stream->object;
-    *returnCode = ODR_OK;
-
-    switch (subIndex) {
-        case 0: /* Highest sub-index supported */
-            CO_setUint8(buf, 2);
-            return stream->dataLength = sizeof(uint8_t);
-
-        case 1: /* COB-ID client -> server */
-            CO_setUint32(buf, CO_CAN_ID_SDO_CLI + SDO->nodeId);
-            return stream->dataLength = sizeof(uint32_t);
-
-        case 2: /* COB-ID server -> client */
-            CO_setUint32(buf, CO_CAN_ID_SDO_SRV + SDO->nodeId);
-            return stream->dataLength = sizeof(uint32_t);
-
-        default:
-            *returnCode = ODR_SUB_NOT_EXIST;
-            return 0;
-    }
-}
-
-
 /* helper for configuring CANrx and CANtx *************************************/
 static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
                                                   CO_CANmodule_t *CANdevRx,
@@ -355,8 +315,8 @@ static OD_size_t OD_write_1201_additional(OD_stream_t *stream, uint8_t subIndex,
 
 /******************************************************************************/
 CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
-                                   const OD_t *OD,
-                                   const OD_entry_t *OD_1200_SDOsrvPar,
+                                   OD_t *OD,
+                                   OD_entry_t *OD_1200_SDOsrvPar,
                                    uint8_t nodeId,
                                    uint16_t SDOtimeoutTime_ms,
                                    CO_CANmodule_t *CANdevRx,
@@ -385,6 +345,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
 
     /* configure CAN identifiers and SDO server parameters if available */
     uint16_t CanId_ClientToServer, CanId_ServerToClient;
+    uint16_t OD_SDOsrvParIdx = OD_getIndex(OD_1200_SDOsrvPar);
 
     if (OD_1200_SDOsrvPar == NULL) {
         /* configure default SDO channel */
@@ -394,24 +355,19 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
         SDO->valid = true;
     }
-    else if (OD_getIndex(OD_1200_SDOsrvPar) == OD_H1200_SDO_SERVER_1_PARAM) {
+    else if (OD_SDOsrvParIdx == OD_H1200_SDO_SERVER_1_PARAM) {
         /* configure default SDO channel and SDO server parameters for it */
         if (nodeId < 1 || nodeId > 127) return CO_ERROR_ILLEGAL_ARGUMENT;
 
         CanId_ClientToServer = CO_CAN_ID_SDO_CLI + nodeId;
         CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
         SDO->valid = true;
-        ODR_t odRetE = OD_extensionIO_init(OD_1200_SDOsrvPar,
-                                           (void *) SDO,
-                                           OD_read_1200_default,
-                                           NULL);
-        if (odRetE != ODR_OK) {
-            CO_errinfo(CANdevTx, OD_getIndex(OD_1200_SDOsrvPar));
-            return CO_ERROR_OD_PARAMETERS;
-        }
+
+        OD_set_u32(OD_1200_SDOsrvPar, 1, CanId_ClientToServer, true);
+        OD_set_u32(OD_1200_SDOsrvPar, 2, CanId_ServerToClient, true);
     }
-    else if (OD_getIndex(OD_1200_SDOsrvPar) > OD_H1200_SDO_SERVER_1_PARAM
-         && OD_getIndex(OD_1200_SDOsrvPar) <= (OD_H1200_SDO_SERVER_1_PARAM+0x7F)
+    else if (OD_SDOsrvParIdx > OD_H1200_SDO_SERVER_1_PARAM
+             && OD_SDOsrvParIdx <= (OD_H1200_SDO_SERVER_1_PARAM + 0x7F)
     ) {
         /* configure additional SDO channel and SDO server parameters for it */
         uint8_t maxSubIndex;
@@ -427,7 +383,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         if (odRet0 != ODR_OK || (maxSubIndex != 2 && maxSubIndex != 3)
             || odRet1 != ODR_OK || odRet2 != ODR_OK
         ) {
-            CO_errinfo(CANdevTx, OD_getIndex(OD_1200_SDOsrvPar));
+            CO_errinfo(CANdevTx, OD_SDOsrvParIdx);
             return CO_ERROR_OD_PARAMETERS;
         }
 
@@ -438,12 +394,13 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                                ? (uint16_t)(COB_IDServerToClient32 & 0x7FF) : 0;
 
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC
-        ODR_t odRetE = OD_extensionIO_init(OD_1200_SDOsrvPar,
-                                           (void *) SDO,
-                                           OD_readOriginal,
-                                           OD_write_1201_additional);
+        SDO->OD_1200_extension.object = SDO;
+        SDO->OD_1200_extension.read = OD_readOriginal;
+        SDO->OD_1200_extension.write = OD_write_1201_additional;
+        ODR_t odRetE = OD_extension_init(OD_1200_SDOsrvPar,
+                                         &SDO->OD_1200_extension);
         if (odRetE != ODR_OK) {
-            CO_errinfo(CANdevTx, OD_getIndex(OD_1200_SDOsrvPar));
+            CO_errinfo(CANdevTx, OD_SDOsrvParIdx);
             return CO_ERROR_OD_PARAMETERS;
         }
 #endif
@@ -532,7 +489,7 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
 
 #ifdef CO_BIG_ENDIAN
         /* swap int16_t .. uint64_t data if necessary */
-        if ((SDO->attribute & ODA_MB) != 0) {
+        if ((SDO->OD_IO.stream.attribute & ODA_MB) != 0) {
             reverseBytes(SDO->buf, SDO->bufOffsetWr);
         }
 #endif
@@ -543,7 +500,7 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
          * shorter than size of OD data buffer. If so, add two zero bytes
          * to terminate (unicode) string. Shorten also OD data size,
          * (temporary, send information about EOF into OD_IO.write) */
-        if ((SDO->attribute & ODA_STR) != 0
+        if ((SDO->OD_IO.stream.attribute & ODA_STR) != 0
             && (sizeInOd == 0 || SDO->sizeTran < sizeInOd)
             && (SDO->bufOffsetWr + 2) <= CO_CONFIG_SDO_SRV_BUFFER_SIZE
         ) {
@@ -661,7 +618,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
         }
 
         /* if data is string, send only data up to null termination */
-        if (countRd > 0 && (SDO->attribute & ODA_STR) != 0) {
+        if (countRd > 0 && (SDO->OD_IO.stream.attribute & ODA_STR) != 0) {
             bufShifted[countRd] = 0; /* (SDO->buf is one byte larger) */
             OD_size_t countStr = strlen((char *)bufShifted);
             if (countStr == 0) countStr = 1; /* zero length is not allowed */
@@ -689,7 +646,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 
 #ifdef CO_BIG_ENDIAN
         /* swap data if necessary */
-        if ((SDO->attribute & ODA_MB) != 0) {
+        if ((SDO->OD_IO.stream.attribute & ODA_MB) != 0) {
             if (SDO->finished) {
                 /* int16_t .. uint64_t */
                 reverseBytes(bufShifted, countRd);
@@ -771,30 +728,30 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             /* if no error search object dictionary for new SDO request */
             if (abortCode == CO_SDO_AB_NONE) {
                 ODR_t odRet;
-                OD_subEntry_t subEntry;
-
                 SDO->index = ((uint16_t)SDO->CANrxData[2]) << 8
                              | SDO->CANrxData[1];
                 SDO->subIndex = SDO->CANrxData[3];
                 odRet = OD_getSub(OD_find(SDO->OD, SDO->index), SDO->subIndex,
-                                  &subEntry, &SDO->OD_IO, false);
+                                  &SDO->OD_IO, false);
                 if (odRet != ODR_OK) {
                     abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
                     SDO->state = CO_SDO_ST_ABORT;
                 }
                 else {
-                    SDO->attribute = subEntry.attribute;
-
                     /* verify read/write attributes */
-                    if ((SDO->attribute & ODA_SDO_RW) == 0) {
+                    if ((SDO->OD_IO.stream.attribute & ODA_SDO_RW) == 0) {
                         abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
                         SDO->state = CO_SDO_ST_ABORT;
                     }
-                    else if (upload && (SDO->attribute & ODA_SDO_R) == 0) {
+                    else if (upload
+                             && (SDO->OD_IO.stream.attribute & ODA_SDO_R) == 0
+                    ) {
                         abortCode = CO_SDO_AB_WRITEONLY;
                         SDO->state = CO_SDO_ST_ABORT;
                     }
-                    else if (!upload && (SDO->attribute & ODA_SDO_W) == 0) {
+                    else if (!upload
+                             && (SDO->OD_IO.stream.attribute & ODA_SDO_W) == 0
+                    ) {
                         abortCode = CO_SDO_AB_READONLY;
                         SDO->state = CO_SDO_ST_ABORT;
                     }
@@ -825,7 +782,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     }
                     else {
                         /* If data type is string, size is not known */
-                        SDO->sizeInd = (SDO->attribute & ODA_STR) == 0
+                        SDO->sizeInd = (SDO->OD_IO.stream.attribute&ODA_STR)==0
                                      ? SDO->OD_IO.stream.dataLength
                                      : 0;
                     }
@@ -854,7 +811,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 uint8_t buf[6] = {0};
                 memcpy(buf, &SDO->CANrxData[4], dataSizeToWrite);
 #ifdef CO_BIG_ENDIAN
-                if ((SDO->attribute & ODA_MB) != 0) {
+                if ((SDO->OD_IO.stream.attribute & ODA_MB) != 0) {
                     reverseBytes(buf, dataSizeToWrite);
                 }
 #endif
@@ -863,7 +820,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                  * shorter as size of OD data buffer. If so, add two zero bytes
                  * to terminate (unicode) string. Shorten also OD data size,
                  * (temporary, send information about EOF into OD_IO.write) */
-                if ((SDO->attribute & ODA_STR) != 0
+                if ((SDO->OD_IO.stream.attribute & ODA_STR) != 0
                     && (sizeInOd == 0 || dataSizeToWrite < sizeInOd)
                 ) {
                     OD_size_t delta = sizeInOd - dataSizeToWrite;
@@ -916,7 +873,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                         }
                         /* strings are allowed to be shorter */
                         else if (SDO->sizeInd < sizeInOd
-                                 && (SDO->attribute & ODA_STR) == 0
+                                 && (SDO->OD_IO.stream.attribute & ODA_STR) == 0
                         ) {
                             abortCode = CO_SDO_AB_DATA_SHORT;
                             SDO->state = CO_SDO_ST_ABORT;
@@ -1029,7 +986,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     }
                     /* strings are allowed to be shorter */
                     else if (SDO->sizeInd < sizeInOd
-                             && (SDO->attribute & ODA_STR) == 0
+                             && (SDO->OD_IO.stream.attribute & ODA_STR) == 0
                     ) {
                         abortCode = CO_SDO_AB_DATA_SHORT;
                         SDO->state = CO_SDO_ST_ABORT;
@@ -1324,7 +1281,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                                               &odRet);
 
             /* strings are allowed to be shorter */
-            if (odRet == ODR_PARTIAL && (SDO->attribute & ODA_STR) != 0) {
+            if (odRet == ODR_PARTIAL
+                && (SDO->OD_IO.stream.attribute & ODA_STR) != 0
+            ) {
                 odRet = ODR_OK;
             }
 
@@ -1337,7 +1296,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
 #ifdef CO_BIG_ENDIAN
             /* swap data if necessary */
-            if ((SDO->attribute & ODA_MB) != 0) {
+            if ((SDO->OD_IO.stream.attribute & ODA_MB) != 0) {
                 reverseBytes(buf, dataSizeToWrite);
             }
 #endif

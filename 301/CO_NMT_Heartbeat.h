@@ -175,6 +175,8 @@ typedef struct {
     uint32_t HBproducerTime_us;
     /** Internal timer for HB producer */
     uint32_t HBproducerTimer;
+    /** Extension for OD object */
+    OD_extension_t OD_1017_extension;
     /** From CO_NMT_init() */
     CO_EM_t *em;
 #if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
@@ -229,7 +231,7 @@ typedef struct {
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
 CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
-                             const OD_entry_t *OD_1017_ProducerHbTime,
+                             OD_entry_t *OD_1017_ProducerHbTime,
                              CO_EM_t *em,
                              uint8_t nodeId,
                              CO_NMT_control_t NMTcontrol,

@@ -67,13 +67,11 @@ extern "C" {
 typedef struct {
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) || defined CO_DOXYGEN
     /** From CO_SDOclient_init() */
-    const OD_t *OD;
+    OD_t *OD;
     /** From CO_SDOclient_init() */
     uint8_t nodeId;
     /** Object dictionary interface for locally transferred object */
     OD_IO_t OD_IO;
-    /** Attribute for locally transferred OD sub-object, see OD_attributes_t */
-    OD_attr_t attribute;
 #endif
     /** From CO_SDOclient_init() */
     CO_CANmodule_t *CANdevRx;
@@ -93,6 +91,8 @@ typedef struct {
     uint32_t COB_IDClientToServer;
     /** Copy of CANopen COB_ID Server -> Client, similar as above */
     uint32_t COB_IDServerToClient;
+    /** Extension for OD object */
+    OD_extension_t OD_1280_extension;
 #endif
     /** Node-ID of the SDO server */
     uint8_t nodeIDOfTheSDOServer;
@@ -177,8 +177,8 @@ typedef struct {
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
-                                   const OD_t *OD,
-                                   const OD_entry_t *OD_1280_SDOcliPar,
+                                   OD_t *OD,
+                                   OD_entry_t *OD_1280_SDOcliPar,
                                    uint8_t nodeId,
                                    CO_CANmodule_t *CANdevRx,
                                    uint16_t CANdevRxIdx,

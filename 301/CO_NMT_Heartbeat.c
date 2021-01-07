@@ -83,7 +83,7 @@ static OD_size_t OD_write_1017(OD_stream_t *stream, uint8_t subIndex,
 
 /******************************************************************************/
 CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
-                             const OD_entry_t *OD_1017_ProducerHbTime,
+                             OD_entry_t *OD_1017_ProducerHbTime,
                              CO_EM_t *em,
                              uint8_t nodeId,
                              CO_NMT_control_t NMTcontrol,
@@ -132,10 +132,11 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     }
     NMT->HBproducerTime_us = (uint32_t)HBprodTime_ms * 1000;
 
-    odRet = OD_extensionIO_init(OD_1017_ProducerHbTime,
-                                (void *) NMT,
-                                OD_readOriginal,
-                                OD_write_1017);
+    NMT->OD_1017_extension.object = NMT;
+    NMT->OD_1017_extension.read = OD_readOriginal;
+    NMT->OD_1017_extension.write = OD_write_1017;
+    odRet = OD_extension_init(OD_1017_ProducerHbTime,
+                              &NMT->OD_1017_extension);
     if (odRet != ODR_OK) {
         CO_errinfo(HB_CANdevTx, OD_getIndex(OD_1017_ProducerHbTime));
         return CO_ERROR_OD_PARAMETERS;

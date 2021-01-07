@@ -514,7 +514,7 @@ int main (int argc, char *argv[]) {
         err = CO_CANopenInit(CO,                /* CANopen object */
                              NULL,              /* alternate NMT */
                              NULL,              /* alternate em */
-                             &OD,               /* Object dictionary */
+                             OD,                /* Object dictionary */
                              OD_STATUS_BITS,    /* Optional OD_statusBits */
                              NMT_CONTROL,       /* CO_NMT_control_t */
                              FIRST_HB_TIME,     /* firstHBTime_ms */

@@ -442,7 +442,7 @@ typedef struct {
     /** CAN transmit buffer inside CANdevTx for CAN tx message */
     CO_CANtx_t *CANtxBuff;
     /** From CO_SDOserver_init() */
-    const OD_t *OD;
+    OD_t *OD;
     /** From CO_SDOserver_init() */
     uint8_t nodeId;
     /* If true, SDO channel is valid */
@@ -455,8 +455,6 @@ typedef struct {
     uint16_t index;
     /** Subindex of the current object in Object Dictionary */
     uint8_t subIndex;
-    /** Attribute bit-field of the current OD sub-object, see OD_attributes_t */
-    OD_attr_t attribute;
     /** Indicates, if new SDO message received from CAN bus. It is not cleared,
      * until received message is completely processed. */
     volatile void *CANrxNew;
@@ -476,6 +474,8 @@ typedef struct {
     uint32_t COB_IDClientToServer;
     /** Copy of CANopen COB_ID Server -> Client, similar as above */
     uint32_t COB_IDServerToClient;
+    /** Extension for OD object */
+    OD_extension_t OD_1200_extension;
 #endif
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) || defined CO_DOXYGEN
     /** Size of data, which will be transferred. It is optionally indicated by
@@ -546,8 +546,8 @@ typedef struct {
  * @return @ref CO_ReturnError_t CO_ERROR_NO in case of success.
  */
 CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
-                                   const OD_t *OD,
-                                   const OD_entry_t *OD_1200_SDOsrvPar,
+                                   OD_t *OD,
+                                   OD_entry_t *OD_1200_SDOsrvPar,
                                    uint8_t nodeId,
                                    uint16_t SDOtimeoutTime_ms,
                                    CO_CANmodule_t *CANdevRx,
