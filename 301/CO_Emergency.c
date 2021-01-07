@@ -391,7 +391,12 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     memset(em, 0, sizeof(CO_EM_t));
 
     /* get and verify "Error register" from Object Dictionary */
-    if (OD_getPtr_u8(OD_1001_errReg, 0, &em->errorRegister) != ODR_OK) {
+    OD_size_t len;
+    ODR_t odRet;
+
+    odRet = OD_getPtr(OD_1001_errReg, 0, (void **)&em->errorRegister, &len);
+
+    if (odRet != ODR_OK || len != sizeof(uint8_t)) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1001_errReg));
         return CO_ERROR_OD_PARAMETERS;
     }
@@ -400,8 +405,8 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
     /* get initial and verify "COB-ID EMCY" from Object Dictionary */
     uint32_t COB_IDEmergency32;
-    ODR_t odRet0 = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
-    if (odRet0 != ODR_OK || (COB_IDEmergency32 & 0x7FFFF800) != 0) {
+    odRet = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
+    if (odRet != ODR_OK || (COB_IDEmergency32 & 0x7FFFF800) != 0) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
     }
@@ -414,9 +419,8 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->OD_1014_extension.object = em;
     em->OD_1014_extension.read = OD_read_1014;
     em->OD_1014_extension.write = OD_write_1014;
-    ODR_t odRetE = OD_extension_init(OD_1014_cobIdEm,
-                                     &em->OD_1014_extension);
-    if (odRetE != ODR_OK) {
+    odRet = OD_extension_init(OD_1014_cobIdEm, &em->OD_1014_extension);
+    if (odRet != ODR_OK) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
     }
@@ -434,9 +438,8 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->OD_1014_extension.object = em;
     em->OD_1014_extension.read = OD_read_1014_default;
     em->OD_1014_extension.write = OD_writeOriginal;
-    ODR_t odRetE = OD_extension_init(OD_1014_cobIdEm,
-                                     &em->OD_1014_extension);
-    if (odRetE != ODR_OK) {
+    odRet = OD_extension_init(OD_1014_cobIdEm, &em->OD_1014_extension);
+    if (odRet != ODR_OK) {
         CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
         return CO_ERROR_OD_PARAMETERS;
     }
@@ -463,8 +466,8 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->inhibitEmTime_us = 0;
     em->inhibitEmTimer = 0;
     uint16_t inhibitTime_100us;
-    ODR_t odRet1 = OD_get_u16(OD_1015_InhTime, 0, &inhibitTime_100us, true);
-    if (odRet1 == ODR_OK) {
+    odRet = OD_get_u16(OD_1015_InhTime, 0, &inhibitTime_100us, true);
+    if (odRet == ODR_OK) {
         em->inhibitEmTime_us = (uint32_t)inhibitTime_100us * 100;
 
         em->OD_1015_extension.object = em;
