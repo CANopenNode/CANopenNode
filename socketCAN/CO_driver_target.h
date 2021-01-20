@@ -348,7 +348,6 @@ typedef struct {
     CO_CANtx_t *txArray;
     uint16_t txSize;
     uint16_t CANerrorStatus;
-    int32_t errinfo;
     volatile bool_t CANnormal;
     int epoll_fd;               /* File descriptor for epoll, which waits for
                                    CAN receive event */

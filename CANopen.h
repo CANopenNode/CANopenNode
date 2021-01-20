@@ -528,6 +528,7 @@ CO_ReturnError_t CO_LSSinit(CO_t *co,
  * CANopen initialization it is the same as pendingBitRate from CO_LSSinit().
  * If it is unconfigured, then some CANopen objects will not be initialized nor
  * processed.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
  *
  * @return CO_ERROR_NO in case of success.
  */
@@ -541,7 +542,8 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 uint16_t SDOserverTimeoutTime_ms,
                                 uint16_t SDOclientTimeoutTime_ms,
                                 bool_t SDOclientBlockTransfer,
-                                uint8_t nodeId);
+                                uint8_t nodeId,
+                                uint32_t *errInfo);
 
 
 /**

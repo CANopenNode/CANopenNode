@@ -913,7 +913,8 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 uint16_t SDOserverTimeoutTime_ms,
                                 uint16_t SDOclientTimeoutTime_ms,
                                 bool_t SDOclientBlockTransfer,
-                                uint8_t nodeId)
+                                uint8_t nodeId,
+                                uint32_t *errInfo)
 {
     CO_ReturnError_t err;
 
@@ -978,7 +979,8 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                          co->CANmodule,
                          CO_GET_CO(RX_IDX_EM_CONS),
  #endif
-                         nodeId);
+                         nodeId,
+                         errInfo);
         if (err) return err;
     }
 
@@ -1000,7 +1002,8 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
  #endif
                           co->CANmodule,
                           CO_GET_CO(TX_IDX_HB_PROD),
-                          CO_CAN_ID_HEARTBEAT + nodeId);
+                          CO_CAN_ID_HEARTBEAT + nodeId,
+                          errInfo);
         if (err) return err;
     }
 
@@ -1030,7 +1033,8 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(RX_IDX_SDO_SRV) + i,
                                     co->CANmodule,
-                                    CO_GET_CO(TX_IDX_SDO_SRV) + i);
+                                    CO_GET_CO(TX_IDX_SDO_SRV) + i,
+                                    errInfo);
             if (err) return err;
         }
     }
@@ -1046,7 +1050,8 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(RX_IDX_SDO_CLI) + i,
                                     co->CANmodule,
-                                    CO_GET_CO(TX_IDX_SDO_CLI) + i);
+                                    CO_GET_CO(TX_IDX_SDO_CLI) + i,
+                                    errInfo);
             if (err) return err;
         }
     }

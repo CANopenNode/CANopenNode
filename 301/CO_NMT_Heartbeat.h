@@ -227,6 +227,7 @@ typedef struct {
  * @param HB_CANdevTx CAN device for HB transmission.
  * @param HB_txIdx Index of transmit buffer in the above CAN device.
  * @param CANidTxHB CAN identifier for HB message.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
  *
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
@@ -246,7 +247,8 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
 #endif
                              CO_CANmodule_t *HB_CANdevTx,
                              uint16_t HB_txIdx,
-                             uint16_t CANidTxHB);
+                             uint16_t CANidTxHB,
+                             uint32_t *errInfo);
 
 
 #if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN

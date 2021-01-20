@@ -542,6 +542,7 @@ typedef struct {
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param CANdevTx CAN device for SDO server transmission.
  * @param CANdevTxIdx Index of transmit buffer in the above CAN device.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
  *
  * @return @ref CO_ReturnError_t CO_ERROR_NO in case of success.
  */
@@ -553,7 +554,8 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                                    CO_CANmodule_t *CANdevRx,
                                    uint16_t CANdevRxIdx,
                                    CO_CANmodule_t *CANdevTx,
-                                   uint16_t CANdevTxIdx);
+                                   uint16_t CANdevTxIdx,
+                                   uint32_t *errInfo);
 
 
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN

@@ -471,6 +471,7 @@ int main (int argc, char *argv[]) {
 
 
     while(reset != CO_RESET_APP && reset != CO_RESET_QUIT && CO_endProgram == 0) {
+        uint32_t errInfo;
 /* CANopen communication reset - initialize CANopen objects *******************/
 
         /* Wait rt_thread. */
@@ -510,6 +511,7 @@ int main (int argc, char *argv[]) {
         }
 
         CO_activeNodeId = CO_pendingNodeId;
+        errInfo = 0;
 
         err = CO_CANopenInit(CO,                /* CANopen object */
                              NULL,              /* alternate NMT */
@@ -521,11 +523,11 @@ int main (int argc, char *argv[]) {
                              SDO_SRV_TIMEOUT_TIME, /* SDOserverTimeoutTime_ms */
                              SDO_CLI_TIMEOUT_TIME, /* SDOclientTimeoutTime_ms */
                              SDO_CLI_BLOCK,     /* SDOclientBlockTransfer */
-                             CO_activeNodeId);
+                             CO_activeNodeId,
+                             &errInfo);
         if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             if (err == CO_ERROR_OD_PARAMETERS) {
-                log_printf(LOG_CRIT, DBG_OD_ENTRY,
-                           (uint16_t)CO->CANmodule->errinfo);
+                log_printf(LOG_CRIT, DBG_OD_ENTRY, errInfo);
             }
             else {
                 log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
@@ -602,11 +604,11 @@ int main (int argc, char *argv[]) {
 #endif
 #ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
-            uint16_t errinfo = 0;
-            err = app_programStart(!CO->nodeIdUnconfigured, &errinfo);
+            errInfo = 0;
+            err = app_programStart(!CO->nodeIdUnconfigured, &errInfo);
             if(err != CO_ERROR_NO) {
                 if (err == CO_ERROR_OD_PARAMETERS) {
-                    log_printf(LOG_CRIT, DBG_OD_ENTRY, errinfo);
+                    log_printf(LOG_CRIT, DBG_OD_ENTRY, errInfo);
                 }
                 else {
                     log_printf(LOG_CRIT, DBG_CAN_OPEN, "app_programStart()", err);

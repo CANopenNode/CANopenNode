@@ -98,7 +98,8 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
 #endif
                              CO_CANmodule_t *HB_CANdevTx,
                              uint16_t HB_txIdx,
-                             uint16_t CANidTxHB)
+                             uint16_t CANidTxHB,
+                             uint32_t *errInfo)
 {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
@@ -127,7 +128,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     uint16_t HBprodTime_ms;
     ODR_t odRet = OD_get_u16(OD_1017_ProducerHbTime, 0, &HBprodTime_ms, true);
     if (odRet != ODR_OK) {
-        CO_errinfo(NMT_CANdevRx, OD_getIndex(OD_1017_ProducerHbTime));
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1017_ProducerHbTime);
         return CO_ERROR_OD_PARAMETERS;
     }
     NMT->HBproducerTime_us = (uint32_t)HBprodTime_ms * 1000;
@@ -138,7 +139,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     odRet = OD_extension_init(OD_1017_ProducerHbTime,
                               &NMT->OD_1017_extension);
     if (odRet != ODR_OK) {
-        CO_errinfo(HB_CANdevTx, OD_getIndex(OD_1017_ProducerHbTime));
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1017_ProducerHbTime);
         return CO_ERROR_OD_PARAMETERS;
     }
 

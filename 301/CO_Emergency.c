@@ -366,7 +366,8 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             CO_CANmodule_t *CANdevRx,
                             uint16_t CANdevRxIdx,
 #endif
-                            const uint8_t nodeId)
+                            const uint8_t nodeId,
+                            uint32_t *errInfo)
 {
     (void) nodeId; /* may be unused */
     CO_ReturnError_t ret = CO_ERROR_NO;
@@ -397,7 +398,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     odRet = OD_getPtr(OD_1001_errReg, 0, (void **)&em->errorRegister, &len);
 
     if (odRet != ODR_OK || len != sizeof(uint8_t)) {
-        CO_errinfo(CANdevTx, OD_getIndex(OD_1001_errReg));
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1001_errReg);
         return CO_ERROR_OD_PARAMETERS;
     }
     *em->errorRegister = 0;
@@ -407,7 +408,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     uint32_t COB_IDEmergency32;
     odRet = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
     if (odRet != ODR_OK || (COB_IDEmergency32 & 0x7FFFF800) != 0) {
-        CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1014_cobIdEm);
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -421,7 +422,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->OD_1014_extension.write = OD_write_1014;
     odRet = OD_extension_init(OD_1014_cobIdEm, &em->OD_1014_extension);
     if (odRet != ODR_OK) {
-        CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1014_cobIdEm);
         return CO_ERROR_OD_PARAMETERS;
     }
     /* following two variables are used inside OD_read_1014 and OD_write_1014 */
@@ -440,7 +441,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->OD_1014_extension.write = OD_writeOriginal;
     odRet = OD_extension_init(OD_1014_cobIdEm, &em->OD_1014_extension);
     if (odRet != ODR_OK) {
-        CO_errinfo(CANdevTx, OD_getIndex(OD_1014_cobIdEm));
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1014_cobIdEm);
         return CO_ERROR_OD_PARAMETERS;
     }
  #endif

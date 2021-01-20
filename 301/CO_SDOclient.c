@@ -255,7 +255,8 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
                                    CO_CANmodule_t *CANdevRx,
                                    uint16_t CANdevRxIdx,
                                    CO_CANmodule_t *CANdevTx,
-                                   uint16_t CANdevTxIdx)
+                                   uint16_t CANdevTxIdx,
+                                   uint32_t *errInfo)
 {
     /* verify arguments */
     if (SDO_C == NULL || OD_1280_SDOcliPar == NULL
@@ -295,7 +296,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
     if (odRet0 != ODR_OK || maxSubIndex != 3
         || odRet1 != ODR_OK || odRet2 != ODR_OK || odRet3 != ODR_OK
     ) {
-        CO_errinfo(CANdevTx, OD_getIndex(OD_1280_SDOcliPar));
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1280_SDOcliPar);
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -306,7 +307,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
     ODR_t odRetE = OD_extension_init(OD_1280_SDOcliPar,
                                      &SDO_C->OD_1280_extension);
     if (odRetE != ODR_OK) {
-        CO_errinfo(CANdevTx, OD_getIndex(OD_1280_SDOcliPar));
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1280_SDOcliPar);
         return CO_ERROR_OD_PARAMETERS;
     }
 

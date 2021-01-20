@@ -322,7 +322,8 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                                    CO_CANmodule_t *CANdevRx,
                                    uint16_t CANdevRxIdx,
                                    CO_CANmodule_t *CANdevTx,
-                                   uint16_t CANdevTxIdx)
+                                   uint16_t CANdevTxIdx,
+                                   uint32_t *errInfo)
 {
     /* verify arguments */
     if (SDO == NULL || OD == NULL || CANdevRx == NULL || CANdevTx == NULL) {
@@ -383,7 +384,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         if (odRet0 != ODR_OK || (maxSubIndex != 2 && maxSubIndex != 3)
             || odRet1 != ODR_OK || odRet2 != ODR_OK
         ) {
-            CO_errinfo(CANdevTx, OD_SDOsrvParIdx);
+            if (errInfo != NULL) *errInfo = OD_SDOsrvParIdx;
             return CO_ERROR_OD_PARAMETERS;
         }
 
@@ -400,7 +401,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         ODR_t odRetE = OD_extension_init(OD_1200_SDOsrvPar,
                                          &SDO->OD_1200_extension);
         if (odRetE != ODR_OK) {
-            CO_errinfo(CANdevTx, OD_SDOsrvParIdx);
+            if (errInfo != NULL) *errInfo = OD_SDOsrvParIdx;
             return CO_ERROR_OD_PARAMETERS;
         }
 #endif

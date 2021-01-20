@@ -478,6 +478,7 @@ typedef struct {
  * @param CANdevRx CAN device for Emergency consumer reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param nodeId CANopen node ID of this device (for default emergency producer)
+ * @param [out] errInfo Additional information in case of error, may be NULL.
  *
  * @return @ref CO_ReturnError_t CO_ERROR_NO in case of success.
  */
@@ -501,7 +502,8 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             CO_CANmodule_t *CANdevRx,
                             uint16_t CANdevRxIdx,
 #endif
-                            const uint8_t nodeId);
+                            const uint8_t nodeId,
+                            uint32_t *errInfo);
 
 
 #if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN

@@ -226,7 +226,6 @@ typedef struct {
     volatile bool_t firstCANtxMessage;
     volatile uint16_t CANtxCount;
     uint32_t errOld;
-    int32_t errinfo;
 } CO_CANmodule_t;
 
 
