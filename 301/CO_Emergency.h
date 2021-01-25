@@ -198,8 +198,6 @@ typedef enum {
     CO_EMC_SYNC_DATA_LENGTH = 0x8240U,
     /** 0x8250, RPDO timeout */
     CO_EMC_RPDO_TIMEOUT = 0x8250U,
-    /** 0x8260, Unexpected TIME data length */
-    CO_EMC_TIME_DATA_LENGTH = 0x8260U,
     /** 0x90xx, External Error */
     CO_EMC_EXTERNAL_ERROR = 0x9000U,
     /** 0xF0xx, Additional Functions */
@@ -267,8 +265,8 @@ typedef enum {
     CO_EM_NMT_WRONG_COMMAND         = 0x08U,
     /** 0x09, communication, info, TIME message timeout */
     CO_EM_TIME_TIMEOUT              = 0x09U,
-    /** 0x0A, communication, info, Unexpected TIME data length */
-    CO_EM_TIME_LENGTH               = 0x0AU,
+    /** 0x0A, communication, info, (unused) */
+    CO_EM_0A_unused                 = 0x0AU,
     /** 0x0B, communication, info, (unused) */
     CO_EM_0B_unused                 = 0x0BU,
     /** 0x0C, communication, info, (unused) */

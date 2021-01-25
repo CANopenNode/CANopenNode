@@ -25,14 +25,9 @@
 
 #include <string.h>
 
-#include "301/CO_SDOserver.h"
-#include "301/CO_Emergency.h"
-#include "301/CO_NMT_Heartbeat.h"
 #include "301/CO_TIME.h"
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
-
-#define DIV_ROUND_UP(_n, _d) (((_n) + (_d) - 1) / (_d))
 
 /*
  * Read received message from CAN module.
@@ -40,173 +35,202 @@
  * Function will be called (by CAN receive interrupt) every time, when CAN
  * message with correct identifier will be received.
  */
-static void CO_TIME_receive(void *object, void *msg){
-    CO_TIME_t *TIME;
-    CO_NMT_internalState_t operState;
+static void CO_TIME_receive(void *object, void *msg) {
+    CO_TIME_t *TIME = object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     uint8_t *data = CO_CANrxMsg_readData(msg);
 
-    TIME = (CO_TIME_t*)object;   /* this is the correct pointer type of the first argument */
-    operState = *TIME->operatingState;
-
-    if((operState == CO_NMT_OPERATIONAL) || (operState == CO_NMT_PRE_OPERATIONAL)){
-        // Process Time from msg buffer
-        memcpy(&TIME->Time.ullValue, data, DLC);
+    if (DLC == CO_TIME_MSG_LENGTH) {
+        memcpy(TIME->timeStamp, data, sizeof(TIME->timeStamp));
         CO_FLAG_SET(TIME->CANrxNew);
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
-        /* Optional signal to RTOS, which can resume task, which handles TIME. */
-        if(TIME->pFunctSignalPre != NULL) {
+        /* Optional signal to RTOS, which can resume task, which handles TIME.*/
+        if (TIME->pFunctSignalPre != NULL) {
             TIME->pFunctSignalPre(TIME->functSignalObjectPre);
         }
 #endif
     }
-    else{
-        TIME->receiveError = (uint16_t)DLC;
-    }
 }
 
-/******************************************************************************/
-CO_ReturnError_t CO_TIME_init(
-        CO_TIME_t              *TIME,
-        CO_EM_t                *em,
-        CO_SDO_t               *SDO,
-        CO_NMT_internalState_t *operatingState,
-        uint32_t                COB_ID_TIMEMessage,
-        uint32_t                TIMECyclePeriod,
-        CO_CANmodule_t         *CANdevRx,
-        uint16_t                CANdevRxIdx,
-        CO_CANmodule_t         *CANdevTx,
-        uint16_t                CANdevTxIdx)
-{
-    CO_ReturnError_t ret = CO_ERROR_NO;
 
-    /* verify arguments */
-    if(TIME==NULL || em==NULL || SDO==NULL || operatingState==NULL ||
-    CANdevRx==NULL || CANdevTx==NULL){
-        return CO_ERROR_ILLEGAL_ARGUMENT;
+#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC
+/*
+ * Custom function for writing OD object "COB-ID time stamp"
+ *
+ * For more information see file CO_ODinterface.h, OD_IO_t.
+ */
+static OD_size_t OD_write_1012(OD_stream_t *stream, uint8_t subIndex,
+                               const void *buf, OD_size_t count,
+                               ODR_t *returnCode)
+{
+    /* "count" is already verified in *_init() function */
+    if (stream == NULL || subIndex != 0 || buf == NULL || returnCode == NULL) {
+        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
+        return 0;
     }
 
-    /* Configure object variables */
-    TIME->isConsumer = (COB_ID_TIMEMessage&0x80000000L) ? true : false;
-    TIME->isProducer = (COB_ID_TIMEMessage&0x40000000L) ? true : false;
-    TIME->COB_ID = COB_ID_TIMEMessage&0x7FF; // 11 bit ID
+    CO_TIME_t *TIME = stream->object;
+    *returnCode = ODR_OK;
 
-    TIME->periodTime = TIMECyclePeriod;
-    TIME->periodTimeoutTime = TIMECyclePeriod / 2 * 3;
-    /* overflow? */
-    if(TIME->periodTimeoutTime < TIMECyclePeriod)
-        TIME->periodTimeoutTime = 0xFFFFFFFFL;
+    /* update object */
+    uint32_t cobIdTimeStamp = CO_getUint32(buf);
+    TIME->isConsumer = (cobIdTimeStamp & 0x80000000L) != 0;
+    TIME->isProducer = (cobIdTimeStamp & 0x40000000L) != 0;
 
-    CO_FLAG_CLEAR(TIME->CANrxNew);
-    TIME->timer = 0;
-    TIME->receiveError = 0U;
-
-    TIME->em = em;
-    TIME->operatingState = operatingState;
-
-#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
-    TIME->pFunctSignalPre = NULL;
-    TIME->functSignalObjectPre = NULL;
+    /* write value to the original location in the Object Dictionary */
+    return OD_writeOriginal(stream, subIndex, buf, count, returnCode);
+}
 #endif
 
 
-    /* configure TIME consumer message reception */
-    TIME->CANdevRx = CANdevRx;
-    TIME->CANdevRxIdx = CANdevRxIdx;
-	if (TIME->isConsumer) {
-        ret = CO_CANrxBufferInit(
-                CANdevRx,               /* CAN device */
-                CANdevRxIdx,            /* rx buffer index */
-                TIME->COB_ID,           /* CAN identifier */
-                0x7FF,                  /* mask */
-                0,                      /* rtr */
-                (void*)TIME,            /* object passed to receive function */
-                CO_TIME_receive);       /* this function will process received message */
+CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
+                              OD_entry_t *OD_1012_cobIdTimeStamp,
+                              CO_CANmodule_t *CANdevRx,
+                              uint16_t CANdevRxIdx,
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
+                              CO_CANmodule_t *CANdevTx,
+                              uint16_t CANdevTxIdx,
+#endif
+                              uint32_t *errInfo)
+{
+    /* verify arguments */
+    if (TIME == NULL || OD_1012_cobIdTimeStamp == NULL || CANdevRx == NULL
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
+        || CANdevTx == NULL
+#endif
+    ) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
+    memset(TIME, 0, sizeof(CO_TIME_t));
+
+    /* get parameters from object dictionary and configure extension */
+    uint32_t cobIdTimeStamp;
+    ODR_t odRet = OD_get_u32(OD_1012_cobIdTimeStamp, 0, &cobIdTimeStamp, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1012_cobIdTimeStamp);
+        return CO_ERROR_OD_PARAMETERS;
+    }
+#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC
+    TIME->OD_1012_extension.object = TIME;
+    TIME->OD_1012_extension.read = OD_readOriginal;
+    TIME->OD_1012_extension.write = OD_write_1012;
+    OD_extension_init(OD_1012_cobIdTimeStamp, &TIME->OD_1012_extension);
+#endif
+
+    /* Configure object variables */
+    uint16_t cobId = cobIdTimeStamp & 0x7FF;
+    TIME->isConsumer = (cobIdTimeStamp & 0x80000000L) != 0;
+    TIME->isProducer = (cobIdTimeStamp & 0x40000000L) != 0;
+    CO_FLAG_CLEAR(TIME->CANrxNew);
+
+    /* configure TIME consumer message reception */
+	if (TIME->isConsumer) {
+        CO_ReturnError_t ret = CO_CANrxBufferInit(
+                CANdevRx,       /* CAN device */
+                CANdevRxIdx,    /* rx buffer index */
+                cobId,          /* CAN identifier */
+                0x7FF,          /* mask */
+                0,              /* rtr */
+                (void*)TIME,    /* object passed to receive function */
+                CO_TIME_receive);/*this function will process received message*/
+        if (ret != CO_ERROR_NO)
+            return ret;
+    }
+
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
     /* configure TIME producer message transmission */
     TIME->CANdevTx = CANdevTx;
-    TIME->CANdevTxIdx = CANdevTxIdx;
-    if (TIME->isProducer) {
-        TIME->TXbuff = CO_CANtxBufferInit(
-            CANdevTx,               /* CAN device */
-            CANdevTxIdx,            /* index of specific buffer inside CAN module */
-            TIME->COB_ID,           /* CAN identifier */
-            0,                      /* rtr */
-            TIME_MSG_LENGTH,        /* number of data bytes */
-            0);                     /* synchronous message flag bit */
+    TIME->CANtxBuff = CO_CANtxBufferInit(
+            CANdevTx,           /* CAN device */
+            CANdevTxIdx,        /* index of specific buffer inside CAN module */
+            cobId,              /* CAN identifier */
+            0,                  /* rtr */
+            CO_TIME_MSG_LENGTH, /* number of data bytes */
+            0);                 /* synchronous message flag bit */
 
-        if (TIME->TXbuff == NULL) {
-            ret = CO_ERROR_ILLEGAL_ARGUMENT;
-        }
+    if (TIME->CANtxBuff == NULL) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
     }
+#endif
 
-    return ret;
+    return CO_ERROR_NO;
 }
 
+
 #if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
-/******************************************************************************/
-void CO_TIME_initCallbackPre(
-        CO_TIME_t              *TIME,
-        void                   *object,
-        void                  (*pFunctSignalPre)(void *object))
+void CO_TIME_initCallbackPre(CO_TIME_t *TIME,
+                             void *object,
+                             void (*pFunctSignalPre)(void *object))
 {
-    if(TIME != NULL){
+    if (TIME != NULL) {
         TIME->functSignalObjectPre = object;
         TIME->pFunctSignalPre = pFunctSignalPre;
     }
 }
 #endif
 
-/******************************************************************************/
-uint8_t CO_TIME_process(
-        CO_TIME_t              *TIME,
-        uint32_t                timeDifference_us)
+
+bool_t CO_TIME_process(CO_TIME_t *TIME,
+                       bool_t NMTisPreOrOperational,
+                       uint32_t timeDifference_us)
 {
-    uint8_t ret = 0;
-    uint32_t timerNew;
+    bool_t timestampReceived = false;
 
-    if(*TIME->operatingState == CO_NMT_OPERATIONAL || *TIME->operatingState == CO_NMT_PRE_OPERATIONAL){
-        /* update TIME timer, no overflow */
-        uint32_t timeDifference_ms = DIV_ROUND_UP(timeDifference_us, 1000);
-        timerNew = TIME->timer + timeDifference_ms;
-        if(timerNew > TIME->timer)
-            TIME->timer = timerNew;
+    /* Was TIME stamp message just received */
+    if (NMTisPreOrOperational && TIME->isConsumer) {
+        if(CO_FLAG_READ(TIME->CANrxNew)) {
+            uint32_t ms_swapped = CO_getUint32(&TIME->timeStamp[0]);
+            uint16_t days_swapped = CO_getUint16(&TIME->timeStamp[4]);
+            TIME->ms = CO_SWAP_32(ms_swapped) & 0x0FFFFFFF;
+            TIME->days = CO_SWAP_16(days_swapped);
+            TIME->residual_us = 0;
+            timestampReceived = true;
 
-        /* was TIME just received */
-        if(CO_FLAG_READ(TIME->CANrxNew)){
-            TIME->timer = 0;
-            ret = 1;
             CO_FLAG_CLEAR(TIME->CANrxNew);
         }
-
-        /* TIME producer */
-        if(TIME->isProducer && TIME->periodTime){
-            if(TIME->timer >= TIME->periodTime){
-                TIME->timer = 0;
-                ret = 1;
-                memcpy(TIME->TXbuff->data, &TIME->Time.ullValue, TIME_MSG_LENGTH);
-                CO_CANsend(TIME->CANdevTx, TIME->TXbuff);
-            }
-        }
-
-        /* Verify TIME timeout if node is consumer */
-        if(TIME->isConsumer && TIME->periodTime && TIME->timer > TIME->periodTimeoutTime
-        && *TIME->operatingState == CO_NMT_OPERATIONAL)
-            CO_errorReport(TIME->em, CO_EM_TIME_TIMEOUT, CO_EMC_COMMUNICATION, TIME->timer);
     }
     else {
         CO_FLAG_CLEAR(TIME->CANrxNew);
     }
 
-    /* verify error from receive function */
-    if(TIME->receiveError != 0U){
-        CO_errorReport(TIME->em, CO_EM_TIME_LENGTH, CO_EMC_TIME_DATA_LENGTH, (uint32_t)TIME->receiveError);
-        TIME->receiveError = 0U;
+    /* Update time */
+    uint32_t ms = 0;
+    if (!timestampReceived && timeDifference_us > 0) {
+        uint32_t us = timeDifference_us + TIME->residual_us;
+        ms = us / 1000;
+        TIME->residual_us = us % 1000;
+        TIME->ms += ms;
+        if (TIME->ms >= (1000*60*60*24)) {
+            TIME->ms -= (1000*60*60*24);
+            TIME->days += 1;
+        }
     }
 
-    return ret;
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
+    if (NMTisPreOrOperational && TIME->isProducer
+        && TIME->producerInterval_ms > 0
+    ) {
+        if (TIME->producerTimer_ms >= TIME->producerInterval_ms) {
+            TIME->producerTimer_ms -= TIME->producerInterval_ms;
+
+            uint32_t ms_swapped = CO_SWAP_32(TIME->ms);
+            uint16_t days_swapped = CO_SWAP_16(TIME->days);
+            CO_setUint32(&TIME->CANtxBuff->data[0], ms_swapped);
+            CO_setUint16(&TIME->CANtxBuff->data[4], days_swapped);
+            CO_CANsend(TIME->CANdevTx, TIME->CANtxBuff);
+        }
+        else {
+            TIME->producerTimer_ms += ms;
+        }
+    }
+    else {
+        TIME->producerTimer_ms = TIME->producerInterval_ms;
+    }
+#endif
+
+    return timestampReceived;
 }
 
 #endif /* (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE */

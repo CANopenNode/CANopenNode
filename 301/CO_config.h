@@ -401,6 +401,8 @@ extern "C" {
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received TIME CAN message.
  *   Callback is configured by CO_TIME_initCallbackPre().
+ * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration - writing to
+ *   object 0x1012 enables / disables time producer or consumer.
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_TIME (0)

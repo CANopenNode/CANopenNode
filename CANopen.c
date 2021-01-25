@@ -1067,7 +1067,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 
     /* SDOserver */
     if (CO_GET_CNT(SDO_SRV) > 0) {
-        OD_entry_t *SDOsrvPar = OD_GET(H1200,OD_H1200_SDO_SERVER_1_PARAM);
+        OD_entry_t *SDOsrvPar = OD_GET(H1200, OD_H1200_SDO_SERVER_1_PARAM);
         for (int16_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
             err = CO_SDOserver_init(&co->SDOserver[i],
                                     od,
@@ -1085,7 +1085,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
     if (CO_GET_CNT(SDO_CLI) > 0) {
-        OD_entry_t *SDOcliPar = OD_GET(H1280,OD_H1280_SDO_CLIENT_1_PARAM);
+        OD_entry_t *SDOcliPar = OD_GET(H1280, OD_H1280_SDO_CLIENT_1_PARAM);
         for (int16_t i = 0; i < CO_GET_CNT(SDO_CLI); i++) {
             err = CO_SDOclient_init(&co->SDOclient[i],
                                     od,
@@ -1104,15 +1104,14 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     if (CO_GET_CNT(TIME) == 1) {
         err = CO_TIME_init(co->TIME,
-                           em,
-                           co->SDO[0],
-                           &co->NMT->operatingState,
-                           OD_COB_ID_TIME,
-                           0,
+                           OD_GET(H1012, OD_H1012_COBID_TIME),
                            co->CANmodule,
                            CO_GET_CO(RX_IDX_TIME),
+#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
                            co->CANmodule,
-                           CO_GET_CO(TX_IDX_TIME));
+                           CO_GET_CO(TX_IDX_TIME),
+#endif
+                           errInfo);
         if (err) return err;
     }
 #endif
@@ -1398,7 +1397,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     if (CO_GET_CNT(TIME) == 1) {
-        CO_TIME_process(co->TIME, timeDifference_us);
+        CO_TIME_process(co->TIME, NMTisPreOrOperational, timeDifference_us);
     }
 #endif
 

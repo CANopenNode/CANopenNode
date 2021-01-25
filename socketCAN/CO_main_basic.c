@@ -90,6 +90,10 @@
 #ifndef GATEWAY_ENABLE
 #define GATEWAY_ENABLE true
 #endif
+/* Interval for time stamp message in milliseconds */
+#ifndef TIME_STAMP_INTERVAL_MS
+#define TIME_STAMP_INTERVAL_MS 10000
+#endif
 
 /* CANopen object */
 CO_t *CO = NULL;
@@ -491,6 +495,16 @@ int main (int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    /* get current time for CO_TIME_set(), since January 1, 1984, UTC. */
+    struct timespec ts;
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+        log_printf(LOG_CRIT, DBG_GENERAL, "clock_gettime(main)", 0);
+        exit(EXIT_FAILURE);
+    }
+    uint16_t time_days = (uint16_t)(ts.tv_sec / (24 * 60 * 60));
+    time_days -= 5113; /* difference between Unix epoch and CANopen Epoch */
+    uint32_t time_ms = (uint32_t)(ts.tv_sec % (24 * 60 * 60)) * 1000;
+    time_ms += ts.tv_nsec / 1000000;
 
     /* Create epoll functions */
     err = CO_epoll_create(&epMain, MAIN_THREAD_INTERVAL_US);
@@ -625,6 +639,7 @@ int main (int argc, char *argv[]) {
         /* First time only initialization. */
         if(firstRun) {
             firstRun = false;
+            CO_TIME_set(CO->TIME, time_ms, time_days, TIME_STAMP_INTERVAL_MS);
 #ifndef CO_SINGLE_THREAD
             /* Create rt_thread and set priority */
             if(pthread_create(&rt_thread_id, NULL, rt_thread, NULL) != 0) {

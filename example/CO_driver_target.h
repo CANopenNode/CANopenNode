@@ -95,7 +95,8 @@ extern "C" {
 #ifndef CO_CONFIG_TIME
 #define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
                         CO_CONFIG_TIME_PRODUCER | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE)
+                        CO_CONFIG_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_SYNC

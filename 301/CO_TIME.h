@@ -27,10 +27,13 @@
 #define CO_TIME_H
 
 #include "301/CO_driver.h"
+#include "301/CO_ODinterface.h"
+#include "301/CO_NMT_Heartbeat.h"
+
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_TIME
-#define CO_CONFIG_TIME (0)
+#define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE)
 #endif
 
 #if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) || defined CO_DOXYGEN
@@ -46,92 +49,73 @@ extern "C" {
  *
  * CANopen Time-stamp protocol.
  *
- * For CAN identifier see #CO_Default_CAN_ID_t
+ * For CAN identifier see  @ref CO_Default_CAN_ID_t
  *
- * TIME message is used for time synchronization of the nodes on network. One node
- * should be TIME producer, others can be TIME consumers. This is configured with
- * COB_ID_TIME object 0x1012 :
+ * TIME message is used for time synchronization of the nodes on the network.
+ * One node should be TIME producer, others can be TIME consumers. This is
+ * configured by COB_ID_TIME object 0x1012:
  *
  * - bit 31 should be set for a consumer
  * - bit 30 should be set for a producer
+ * - bits 0..10 is CAN-ID, 0x100 by default
  *
+ * Current time can be read from @p CO_TIME_t->ms (milliseconds after midnight)
+ * and @p CO_TIME_t->days (number of days since January 1, 1984). Those values
+ * are updated on each @ref CO_TIME_process() call, either from internal timer
+ * or from received time stamp message.
  *
- * ###TIME CONSUMER
- *
- * CO_TIME_init() configuration :
- * - COB_ID_TIME : 0x80000100L -> TIME consumer with TIME_COB_ID = 0x100
- * - TIMECyclePeriod :
- *      - 0 -> no EMCY will be transmitted in case of TIME timeout
- *      - X -> an EMCY will be transmitted in case of TIME timeout (X * 1.5) ms
- *
- * Latest time value is stored in \p CO->TIME->Time variable.
- *
- *
- * ###TIME PRODUCER
- *
- * CO_TIME_init() configuration :
- * - COB_ID_TIME : 0x40000100L -> TIME producer with TIME_COB_ID = 0x100
- * - TIMECyclePeriod : Time transmit period in ms
- *
- * Write time value in \p CO->TIME->Time variable, this will be sent at TIMECyclePeriod.
+ * Current time can be set with @ref CO_TIME_set() function, which is necessary
+ * at least once, if time producer. If configured, time stamp message is
+ * send from @ref CO_TIME_process() in intervals specified by @ref CO_TIME_set()
  */
 
-#define TIME_MSG_LENGTH 6U
 
-#ifndef timeOfDay_t
-typedef union {
-    unsigned long long ullValue;
-    struct {
-        unsigned long ms:28;
-        unsigned reserved:4;
-        unsigned days:16;
-        unsigned reserved2:16;
-    };
-} timeOfDay_t;
-#endif
+/** Length of the TIME message */
+#define CO_TIME_MSG_LENGTH 6
 
-typedef timeOfDay_t TIME_OF_DAY;
-typedef timeOfDay_t TIME_DIFFERENCE;
 
 /**
  * TIME producer and consumer object.
  */
-typedef struct{
-    CO_EM_t            *em;             /**< From CO_TIME_init() */
-    CO_NMT_internalState_t *operatingState; /**< From CO_TIME_init() */
+typedef struct {
+    /** Received timestamp data */
+    uint8_t timeStamp[CO_TIME_MSG_LENGTH];
+    /** Milliseconds after midnight */
+    uint32_t ms;
+    /** Number of days since January 1, 1984 */
+    uint16_t days;
+    /** Residual microseconds calculated inside CO_TIME_process() */
+    uint16_t residual_us;
 	/** True, if device is TIME consumer. Calculated from _COB ID TIME Message_
     variable from Object dictionary (index 0x1012). */
-    bool_t              isConsumer;
-	/** True, if device is TIME producer. Calculated from _COB ID TIME Message_
+    bool_t isConsumer;
+    /** True, if device is TIME producer. Calculated from _COB ID TIME Message_
     variable from Object dictionary (index 0x1012). */
-    bool_t              isProducer;
-    uint16_t            COB_ID;         /**< From CO_TIME_init() */
-    /** TIME period time in [milliseconds]. Set to TIME period to enable
-    timeout detection */
-    uint32_t            periodTime;
-    /** TIME period timeout time in [milliseconds].
-    (periodTimeoutTime = periodTime * 1,5) */
-    uint32_t            periodTimeoutTime;
+    bool_t isProducer;
     /** Variable indicates, if new TIME message received from CAN bus */
-    volatile void      *CANrxNew;
-    /** Timer for the TIME message in [microseconds].
-    Set to zero after received or transmitted TIME message */
-    uint32_t            timer;
-    /** Set to nonzero value, if TIME with wrong data length is received from CAN */
-    uint16_t            receiveError;
+    volatile void *CANrxNew;
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) || defined CO_DOXYGEN
+    /** Interval for time producer in milli seconds */
+    uint32_t producerInterval_ms;
+    /** Sync producer timer */
+    uint32_t producerTimer_ms;
+    /** From CO_TIME_init() */
+    CO_CANmodule_t *CANdevTx;
+    /** CAN transmit buffer */
+    CO_CANtx_t *CANtxBuff;
+#endif
 #if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_TIME_initCallbackPre() or NULL */
-    void              (*pFunctSignalPre)(void *object);
+    void (*pFunctSignalPre)(void *object);
     /** From CO_TIME_initCallbackPre() or NULL */
-    void               *functSignalObjectPre;
+    void *functSignalObjectPre;
 #endif
-    CO_CANmodule_t     *CANdevRx;       /**< From CO_TIME_init() */
-    uint16_t            CANdevRxIdx;    /**< From CO_TIME_init() */
-	CO_CANmodule_t     *CANdevTx;       /**< From CO_TIME_init() */
-    uint16_t            CANdevTxIdx;    /**< From CO_TIME_init() */
-    CO_CANtx_t         *TXbuff;         /**< CAN transmit buffer */
-    TIME_OF_DAY         Time;
-}CO_TIME_t;
+#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+    /** Extension for OD object */
+    OD_extension_t OD_1012_extension;
+#endif
+} CO_TIME_t;
+
 
 /**
  * Initialize TIME object.
@@ -139,29 +123,26 @@ typedef struct{
  * Function must be called in the communication reset section.
  *
  * @param TIME This object will be initialized.
- * @param em Emergency object.
- * @param SDO SDO server object.
- * @param operatingState Pointer to variable indicating CANopen device NMT internal state.
- * @param COB_ID_TIMEMessage Should be intialized with CO_CAN_ID_TIME_STAMP
- * @param TIMECyclePeriod TIME period in ms (may also be used in consumer mode for timeout detection (1.5x period)).
+ * @param OD_1012_cobIdTimeStamp OD entry for 0x1012 -"COB-ID time stamp",
+ * entry is required.
  * @param CANdevRx CAN device for TIME reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param CANdevTx CAN device for TIME transmission.
  * @param CANdevTxIdx Index of transmit buffer in the above CAN device.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
  *
- * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
+ * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
-CO_ReturnError_t CO_TIME_init(
-        CO_TIME_t              *TIME,
-        CO_EM_t                *em,
-        CO_SDO_t               *SDO,
-        CO_NMT_internalState_t *operatingState,
-        uint32_t                COB_ID_TIMEMessage,
-        uint32_t                TIMECyclePeriod,
-        CO_CANmodule_t         *CANdevRx,
-        uint16_t                CANdevRxIdx,
-        CO_CANmodule_t         *CANdevTx,
-        uint16_t                CANdevTxIdx);
+CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
+                              OD_entry_t *OD_1012_cobIdTimeStamp,
+                              CO_CANmodule_t *CANdevRx,
+                              uint16_t CANdevRxIdx,
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) || defined CO_DOXYGEN
+                              CO_CANmodule_t *CANdevTx,
+                              uint16_t CANdevTxIdx,
+#endif
+                              uint32_t *errInfo);
+
 
 #if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
 /**
@@ -172,29 +153,56 @@ CO_ReturnError_t CO_TIME_init(
  * Callback is called after TIME message is received from the CAN bus.
  *
  * @param TIME This object.
- * @param object Pointer to object, which will be passed to pFunctSignalPre(). Can be NULL
+ * @param object Pointer to object, which will be passed to pFunctSignalPre().
  * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
  */
-void CO_TIME_initCallbackPre(
-        CO_TIME_t              *TIME,
-        void                   *object,
-        void                  (*pFunctSignalPre)(void *object));
+void CO_TIME_initCallbackPre(CO_TIME_t *TIME,
+                             void *object,
+                             void (*pFunctSignalPre)(void *object));
 #endif
 
+
 /**
- * Process TIME communication.
- *
- * Function must be called cyclically.
+ * Set current time
  *
  * @param TIME This object.
- * @param timeDifference_us Time difference from previous function call in [microseconds].
- *
- * @return 0: No special meaning.
- * @return 1: New TIME message recently received (consumer) / transmited (producer).
+ * @param ms Milliseconds after midnight
+ * @param days Number of days since January 1, 1984
+ * @param producerInterval_ms Interval time for time producer in milliseconds
  */
-uint8_t CO_TIME_process(
-        CO_TIME_t              *TIME,
-        uint32_t                timeDifference_us);
+static inline void CO_TIME_set(CO_TIME_t *TIME,
+                               uint32_t ms,
+                               uint16_t days,
+                               uint32_t producerInterval_ms)
+{
+    if (TIME != NULL) {
+        TIME->residual_us = 0;
+        TIME->ms = ms;
+        TIME->days = days;
+        TIME->producerTimer_ms = TIME->producerInterval_ms =producerInterval_ms;
+    }
+}
+
+
+/**
+ * Process TIME object.
+ *
+ * Function must be called cyclically. It updates internal time from received
+ * time stamp message or from timeDifference_us. It also sends produces
+ * timestamp message, if producer and producerInterval_ms is set.
+ *
+ * @param TIME This object.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds].
+ * @param NMTisPreOrOperational True if this node is NMT_PRE_OPERATIONAL or
+ * NMT_OPERATIONAL state.
+ *
+ * @return True if new TIME stamp message recently received (consumer).
+ */
+bool_t CO_TIME_process(CO_TIME_t *TIME,
+                       bool_t NMTisPreOrOperational,
+                       uint32_t timeDifference_us);
+
 
 /** @} */ /* CO_TIME */
 
