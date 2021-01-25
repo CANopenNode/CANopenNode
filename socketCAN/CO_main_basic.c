@@ -59,11 +59,6 @@
 #include "CO_time_trace.h"
 #endif
 
-/* Use DS309-3 standard - ASCII command interface to CANopen: NMT master,
- * LSS master and SDO client */
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
-#include "309/CO_gateway_ascii.h"
-#endif
 
 /* Interval of mainline and real-time thread in microseconds */
 #ifndef MAIN_THREAD_INTERVAL_US
@@ -73,16 +68,13 @@
 #define TMR_THREAD_INTERVAL_US 1000
 #endif
 
+/* Configurable CAN bit-rate and CANopen node-id, store-able to non-volatile
+ * memory. Can be set by argument and changed by LSS slave. */
+typedef struct { uint16_t bitRate; uint8_t nodeId; } CO_pending_t;
+CO_pending_t CO_pending = { .bitRate = 0, .nodeId = CO_LSS_NODE_ID_ASSIGNMENT };
+/* Active node-id, copied from CO_pending.nodeId in the communication reset */
+static uint8_t CO_activeNodeId = CO_LSS_NODE_ID_ASSIGNMENT;
 
-/* Other variables and objects */
-#ifndef CO_SINGLE_THREAD
-CO_epoll_t                  epRT; /* Epoll-timer object for realtime thread */
-static int                  rtPriority = -1;    /* Real time priority, configurable by arguments. (-1=RT disabled) */
-#endif
-static uint8_t              CO_pendingNodeId = 0xFF;/* Use value from Object Dictionary or by arguments (set to 1..127
-                                                     * or unconfigured=0xFF). Can be changed by LSS slave. */
-static uint8_t              CO_activeNodeId = 0xFF;/* Copied from CO_pendingNodeId in the communication reset section */
-static uint16_t             CO_pendingBitRate = 0;  /* CAN bitrate, not used here */
 #if CO_OD_STORAGE == 1
 static CO_OD_storage_t      odStor;             /* Object Dictionary storage object for CO_OD_ROM */
 static CO_OD_storage_t      odStorAuto;         /* Object Dictionary storage object for CO_OD_EEPROM */
@@ -93,9 +85,11 @@ static char                *odStorFile_eeprom = "od_storage_auto";  /* Name of t
 static CO_time_t            CO_time;            /* Object for current time */
 #endif
 
+
 /* Helper functions ***********************************************************/
 #ifndef CO_SINGLE_THREAD
 /* Realtime thread */
+CO_epoll_t epRT;
 static void* rt_thread(void* arg);
 #endif
 
@@ -245,6 +239,7 @@ int main (int argc, char *argv[]) {
     CO_epoll_t epMain;
 #ifndef CO_SINGLE_THREAD
     pthread_t rt_thread_id;
+    int rtPriority = -1;
 #endif
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_ReturnError_t err;
@@ -282,8 +277,8 @@ int main (int argc, char *argv[]) {
     while((opt = getopt(argc, argv, "i:p:rc:T:s:a:")) != -1) {
         switch (opt) {
             case 'i':
-                CO_pendingNodeId = (uint8_t)strtol(optarg, NULL, 0);
                 nodeIdFromArgs = true;
+                CO_pending.nodeId = (uint8_t)strtol(optarg, NULL, 0);
                 break;
 #ifndef CO_SINGLE_THREAD
             case 'p': rtPriority = strtol(optarg, NULL, 0);
@@ -342,15 +337,15 @@ int main (int argc, char *argv[]) {
 
     if(!nodeIdFromArgs) {
         /* use value from Object dictionary, if not set by program arguments */
-        CO_pendingNodeId = OD_CANNodeID;
+        CO_pending.nodeId = OD_CANNodeID;
     }
 
-    if((CO_pendingNodeId < 1 || CO_pendingNodeId > 127)
+    if((CO_pending.nodeId < 1 || CO_pending.nodeId > 127)
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-      && CO_NO_LSS_SLAVE == 1 && CO_pendingNodeId != CO_LSS_NODE_ID_ASSIGNMENT
+      && CO_NO_LSS_SLAVE == 1 && CO_pending.nodeId != CO_LSS_NODE_ID_ASSIGNMENT
 #endif
     ) {
-        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_pendingNodeId);
+        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_pending.nodeId);
         printUsage(argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -370,7 +365,7 @@ int main (int argc, char *argv[]) {
     }
 
 
-    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_pendingNodeId, "starting");
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_pending.nodeId, "starting");
 
 
     /* Allocate memory for CANopen objects */
@@ -465,7 +460,7 @@ int main (int argc, char *argv[]) {
             continue;
         }
 
-        err = CO_LSSinit(&CO_pendingNodeId, &CO_pendingBitRate);
+        err = CO_LSSinit(&CO_pending.nodeId, &CO_pending.bitRate);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_LSSinit()", err);
             programExit = EXIT_FAILURE;
@@ -473,17 +468,11 @@ int main (int argc, char *argv[]) {
             continue;
         }
 
-        CO_activeNodeId = CO_pendingNodeId;
+        CO_activeNodeId = CO_pending.nodeId;
 
         err = CO_CANopenInit(CO_activeNodeId);
         if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
-            if (err == CO_ERROR_OD_PARAMETERS) {
-                log_printf(LOG_CRIT, DBG_OD_ENTRY,
-                           (uint16_t)CO->CANmodule[0]->errinfo);
-            }
-            else {
-                log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
-            }
+            log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInit()", err);
             programExit = EXIT_FAILURE;
             CO_endProgram = 1;
             continue;
@@ -556,11 +545,11 @@ int main (int argc, char *argv[]) {
 #endif
 #ifdef CO_USE_APPLICATION
             /* Execute optional additional application code */
-            uint16_t errinfo = 0;
-            err = app_programStart(!CO->nodeIdUnconfigured, &errinfo);
+            uint32_t errInfo = 0;
+            err = app_programStart(!CO->nodeIdUnconfigured, &errInfo);
             if(err != CO_ERROR_NO) {
                 if (err == CO_ERROR_OD_PARAMETERS) {
-                    log_printf(LOG_CRIT, DBG_OD_ENTRY, errinfo);
+                    log_printf(LOG_CRIT, DBG_OD_ENTRY, errInfo);
                 }
                 else {
                     log_printf(LOG_CRIT, DBG_CAN_OPEN, "app_programStart()", err);

@@ -28,7 +28,7 @@
 
 /* This file contains device and application specific definitions.
  * It is included from CO_driver.h, which contains documentation
- * for definitions below. */
+ * for common definitions below. */
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -42,38 +42,40 @@
 extern "C" {
 #endif
 
-/* Stack configuration override default values.
+/* Stack configuration override default values (all enabled in this example).
  * For more information see file CO_config.h. */
+#define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE CO_CONFIG_FLAG_CALLBACK_PRE
+#define CO_CONFIG_GLOBAL_FLAG_TIMERNEXT CO_CONFIG_FLAG_TIMERNEXT
+
 #ifndef CO_CONFIG_NMT
 #define CO_CONFIG_NMT (CO_CONFIG_NMT_CALLBACK_CHANGE | \
                        CO_CONFIG_NMT_MASTER | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE | \
-                       CO_CONFIG_FLAG_TIMERNEXT)
+                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_HB_CONS
 #define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | \
                            CO_CONFIG_HB_CONS_CALLBACK_MULTI | \
                            CO_CONFIG_HB_CONS_QUERY_FUNCT | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE | \
-                           CO_CONFIG_FLAG_TIMERNEXT)
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_EM
 #define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER | \
                       CO_CONFIG_EM_HISTORY | \
                       CO_CONFIG_EM_CONSUMER | \
-                      CO_CONFIG_FLAG_CALLBACK_PRE | \
-                      CO_CONFIG_FLAG_TIMERNEXT | \
-                      CO_CONFIG_FLAG_OD_DYNAMIC)
+                      CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                      CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_SDO_SRV
 #define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED | \
                            CO_CONFIG_SDO_SRV_BLOCK | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE | \
-                           CO_CONFIG_FLAG_TIMERNEXT | \
-                           CO_CONFIG_FLAG_OD_DYNAMIC)
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
@@ -85,22 +87,24 @@ extern "C" {
                            CO_CONFIG_SDO_CLI_SEGMENTED | \
                            CO_CONFIG_SDO_CLI_BLOCK | \
                            CO_CONFIG_SDO_CLI_LOCAL | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE | \
-                           CO_CONFIG_FLAG_TIMERNEXT | \
-                           CO_CONFIG_FLAG_OD_DYNAMIC)
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_TIME
 #define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
                         CO_CONFIG_TIME_PRODUCER | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE)
+                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_SYNC
 #define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | \
                         CO_CONFIG_SYNC_PRODUCER | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_FLAG_TIMERNEXT)
+                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_PDO
@@ -109,13 +113,8 @@ extern "C" {
                        CO_CONFIG_PDO_SYNC_ENABLE | \
                        CO_CONFIG_RPDO_CALLS_EXTENSION | \
                        CO_CONFIG_TPDO_CALLS_EXTENSION | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE | \
-                       CO_CONFIG_FLAG_TIMERNEXT)
-#endif
-
-#ifndef CO_CONFIG_LEDS
-#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE | \
-                        CO_CONFIG_FLAG_TIMERNEXT)
+                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_GFC
@@ -129,8 +128,8 @@ extern "C" {
                         CO_CONFIG_SRDO_CHECK_TX | \
                         CO_CONFIG_RSRDO_CALLS_EXTENSION | \
                         CO_CONFIG_TSRDO_CALLS_EXTENSION | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_FLAG_TIMERNEXT)
+                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_SRDO_MINIMUM_DELAY
@@ -141,7 +140,7 @@ extern "C" {
 #define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE | \
                        CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND | \
                        CO_CONFIG_LSS_MASTER | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE)
+                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
 #endif
 
 #ifndef CO_CONFIG_GTW
@@ -183,7 +182,7 @@ extern "C" {
 /* NULL is defined in stddef.h */
 /* true and false are defined in stdbool.h */
 /* int8_t to uint64_t are defined in stdint.h */
-typedef unsigned char           bool_t;
+typedef uint_fast8_t            bool_t;
 typedef float                   float32_t;
 typedef double                  float64_t;
 typedef char                    char_t;
@@ -227,7 +226,6 @@ typedef struct {
     volatile bool_t firstCANtxMessage;
     volatile uint16_t CANtxCount;
     uint32_t errOld;
-    int32_t errinfo;
 } CO_CANmodule_t;
 
 

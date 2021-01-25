@@ -66,7 +66,7 @@ documentation [online](https://canopennode.github.io/CANopenSocket/).
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
 
-Join discussion on Slack: https://canopennode.slack.com/
+For discussion on [Slack](https://canopennode.slack.com/) see: https://github.com/robincornelius/libedssharp
 
 Older discussion group is on Sourceforge: http://sourceforge.net/p/canopennode/discussion/387151/
 

@@ -30,7 +30,9 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_HB_CONS
-#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE)
+#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | \
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) || defined CO_DOXYGEN

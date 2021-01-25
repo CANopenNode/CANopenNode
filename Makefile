@@ -3,8 +3,7 @@
 
 DRV_SRC = socketCAN
 CANOPEN_SRC = .
-OD_SRC = example
-APPL_SRC = socketCAN
+APPL_SRC = example
 
 
 LINK_TARGET = canopend
@@ -13,7 +12,6 @@ LINK_TARGET = canopend
 INCLUDE_DIRS = \
 	-I$(DRV_SRC) \
 	-I$(CANOPEN_SRC) \
-	-I$(OD_SRC) \
 	-I$(APPL_SRC)
 
 
@@ -22,14 +20,14 @@ SOURCES = \
 	$(DRV_SRC)/CO_error.c \
 	$(DRV_SRC)/CO_epoll_interface.c \
 	$(DRV_SRC)/CO_OD_storage.c \
-	$(CANOPEN_SRC)/301/CO_SDOserver.c \
-	$(CANOPEN_SRC)/301/CO_Emergency.c \
 	$(CANOPEN_SRC)/301/CO_NMT_Heartbeat.c \
 	$(CANOPEN_SRC)/301/CO_HBconsumer.c \
+	$(CANOPEN_SRC)/301/CO_Emergency.c \
+	$(CANOPEN_SRC)/301/CO_SDOserver.c \
+	$(CANOPEN_SRC)/301/CO_SDOclient.c \
+	$(CANOPEN_SRC)/301/CO_TIME.c \
 	$(CANOPEN_SRC)/301/CO_SYNC.c \
 	$(CANOPEN_SRC)/301/CO_PDO.c \
-	$(CANOPEN_SRC)/301/CO_TIME.c \
-	$(CANOPEN_SRC)/301/CO_SDOclient.c \
 	$(CANOPEN_SRC)/301/crc16-ccitt.c \
 	$(CANOPEN_SRC)/301/CO_fifo.c \
 	$(CANOPEN_SRC)/303/CO_LEDs.c \
@@ -40,17 +38,24 @@ SOURCES = \
 	$(CANOPEN_SRC)/309/CO_gateway_ascii.c \
 	$(CANOPEN_SRC)/extra/CO_trace.c \
 	$(CANOPEN_SRC)/CANopen.c \
-	$(OD_SRC)/CO_OD.c \
-	$(APPL_SRC)/CO_main_basic.c
+	$(APPL_SRC)/CO_OD.c \
+	$(DRV_SRC)/CO_main_basic.c
 
 
 OBJS = $(SOURCES:%.c=%.o)
 CC ?= gcc
-OPT = -g -DCO_VERSION_MAJOR=2
-#OPT = -g -DCO_VERSION_MAJOR=2 -DCO_SINGLE_THREAD
+OPT =
+OPT += -DCO_VERSION_MAJOR=2
+OPT += -DCO_SINGLE_THREAD
+OPT += -g
+#OPT += -Wextra -Wshadow -pedantic -fanalyzer
+#OPT += -DCO_USE_GLOBALS
 CFLAGS = -Wall $(OPT) $(INCLUDE_DIRS)
-LDFLAGS = -pthread
-#LDFLAGS =
+LDFLAGS =
+LDFLAGS += -g
+LDFLAGS += -pthread
+
+#Options can be also passed via make: 'make OPT="-g" LDFLAGS="-pthread"'
 
 
 .PHONY: all clean

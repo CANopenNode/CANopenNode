@@ -23,21 +23,15 @@ The term **OD variable** is basic variable of specified type. For example: int8_
 The term **OD entry** means structure element, which contains some basic properties of the OD object, indication of type of OD object and pointer to all necessary data for the OD object. An array of OD entries together with information about total number of OD entries represents object dictionary as defined inside CANopenNode. See @ref OD_entry_t and @ref OD_t.
 
 ### Access
-Application and the stack have access to OD objects via universal @ref OD_t object and @ref OD_find() function. No direct access to custom structures, which define object dictionary, is required. Properties for specific OD variable is fetched with @ref OD_getSub() function. Access to actual variable is via **read** and **write** functions. Pointer to those two functions is fetched by @ref OD_getSub(). See @ref OD_stream_t and @ref OD_subEntry_t. See also shortcuts: @ref CO_ODgetSetters, for access to data of different type.
-
-### Optional extensions
-There are some optional extensions to the object dictionary:
-  * **PDO flags** informs application, if specific OD variable was received or sent by PDO. And also gives the application ability to request a TPDO, to which variable is possibly mapped.
-  * **IO extension** gives the application ability to take full control over the OD object. Application can specify own **read** and **write** functions and own object, on which they operate.
+Application and the stack have access to OD objects via universal @ref OD_t object and @ref OD_find() function. No direct access to custom structures, which define object dictionary, is required. Properties for specific OD variable is fetched with @ref OD_getSub() function. Access to actual variable is via **read** and **write** functions. Pointer to those two functions is fetched by @ref OD_getSub(). See @ref OD_stream_t. See also shortcuts: @ref CO_ODgetSetters, for access to data of different type.
 
 ### Example usage
 ```c
-extern const OD_t ODxyz;
+extern OD_t *ODxyz;
 
-void myFunc(const OD_t *od) {
+void myFunc(OD_t *od) {
     ODR_t ret;
-    const OD_entry_t *entry;
-    OD_subEntry_t subEntry;
+    OD_entry_t *entry;
     OD_IO_t io1008;
     char buf[50];
     OD_size_t bytesRd;
@@ -45,7 +39,7 @@ void myFunc(const OD_t *od) {
 
     /* Init IO for "Manufacturer device name" at index 0x1008, sub-index 0x00 */
     entry = OD_find(od, 0x1008);
-    ret = OD_getSub(entry, 0x00, &subEntry, &io1008, false);
+    ret = OD_getSub(entry, 0x00, &io1008, false);
     /* Read with io1008, subindex = 0x00 */
     if (ret == ODR_OK)
         bytesRd = io1008.read(&io1008.stream, 0x00, &buf[0], sizeof(buf), &ret);
@@ -66,14 +60,14 @@ If access to the same variable is very frequent, it is better to use first examp
 Some simple user applications can also access some OD variables directly via globals.
 
 @warning
-If OD object has IO extension enabled, then direct access to its OD variables must not be used. Only valid access is via read or write or helper functions.
+If OD object has OD extension enabled, then direct access to its OD variables must not be used. Only valid access is via read or write or helper functions.
 
 ```c
 #include ODxyz.h
 
 void myFuncGlob(void) {
     //Direct address instead of OD_find()
-    const OD_entry_t *entry_errReg = ODxyz_1001_errorRegister;
+    OD_entry_t *entry_errReg = ODxyz_1001_errorRegister;
 
     //Direct access to OD variable
     uint32_t devType = ODxyz_0.x1000_deviceType;
@@ -119,18 +113,18 @@ typedef struct {
 
 extern ODxyz_PERSIST_COMM_t ODxyz_PERSIST_COMM;
 extern ODxyz_RAM_t ODxyz_RAM;
-extern const OD_t ODxyz;
+extern OD_t *ODxyz;
 
 /* Object dictionary entries - shortcuts **************************************/
-#define ODxyz_ENTRY_H1000 &ODxyz.list[0]
-#define ODxyz_ENTRY_H1001 &ODxyz.list[1]
-#define ODxyz_ENTRY_H1003 &ODxyz.list[2]
-#define ODxyz_ENTRY_H1018 &ODxyz.list[3]
+#define ODxyz_ENTRY_H1000 &ODxyz->list[0]
+#define ODxyz_ENTRY_H1001 &ODxyz->list[1]
+#define ODxyz_ENTRY_H1003 &ODxyz->list[2]
+#define ODxyz_ENTRY_H1018 &ODxyz->list[3]
 
-#define ODxyz_ENTRY_H1000_deviceType &ODxyz.list[0]
-#define ODxyz_ENTRY_H1001_errorRegister &ODxyz.list[1]
-#define ODxyz_ENTRY_H1003_preDefinedErrorField &ODxyz.list[2]
-#define ODxyz_ENTRY_H1018_identity &ODxyz.list[3]
+#define ODxyz_ENTRY_H1000_deviceType &ODxyz->list[0]
+#define ODxyz_ENTRY_H1001_errorRegister &ODxyz->list[1]
+#define ODxyz_ENTRY_H1003_preDefinedErrorField &ODxyz->list[2]
+#define ODxyz_ENTRY_H1018_identity &ODxyz->list[3]
 ```
 
 ### Example ODxyz.c file
@@ -141,13 +135,13 @@ extern const OD_t ODxyz;
 
 /* OD data initialization of all groups ***************************************/
 ODxyz_PERSIST_COMM_t ODxyz_PERSIST_COMM = {
-    .x1000_deviceType = 0L,
+    .x1000_deviceType = 0,
     .x1018_identity = {
         .maxSubIndex = 4,
-        .vendorID = 0L,
-        .productCode = 0L,
-        .revisionNumber = 0L,
-        .serialNumber = 0L
+        .vendorID = 0,
+        .productCode = 0,
+        .revisionNumber = 0,
+        .serialNumber = 0
     }
 };
 
@@ -157,45 +151,32 @@ ODxyz_RAM_t ODxyz_RAM = {
     .x1003_preDefinedErrorField = {0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-/* IO extensions and flagsPDO (configurable by application) *******************/
-typedef struct {
-    OD_extensionIO_t xio_1003_preDefinedErrorField;
-} ODxyzExts_t;
-
-static ODxyzExts_t ODxyzExts = {0};
-
 /* All OD objects (constant) **************************************************/
 typedef struct {
     OD_obj_var_t o_1000_deviceType;
     OD_obj_var_t o_1001_errorRegister;
     OD_obj_array_t o_1003_preDefinedErrorField;
-    OD_obj_extended_t oE_1003_preDefinedErrorField;
     OD_obj_record_t o_1018_identity[5];
 } ODxyzObjs_t;
 
-static const ODxyzObjs_t ODxyzObjs = {
+static CO_PROGMEM ODxyzObjs_t ODxyzObjs = {
     .o_1000_deviceType = {
-        .data = &ODxyz_PERSIST_COMM.x1000_deviceType,
+        .dataOrig = &ODxyz_PERSIST_COMM.x1000_deviceType,
         .attribute = ODA_SDO_R | ODA_MB,
         .dataLength = 4
     },
     .o_1001_errorRegister = {
-        .data = &ODxyz_RAM.x1001_errorRegister,
+        .dataOrig = &ODxyz_RAM.x1001_errorRegister,
         .attribute = ODA_SDO_R,
         .dataLength = 1
     },
     .o_1003_preDefinedErrorField = {
-        .data0 = &ODxyz_RAM.x1003_preDefinedErrorField_sub0,
-        .data = &ODxyz_RAM.x1003_preDefinedErrorField[0],
+        .dataOrig0 = &ODxyz_RAM.x1003_preDefinedErrorField_sub0,
+        .dataOrig = &ODxyz_RAM.x1003_preDefinedErrorField[0],
         .attribute0 = ODA_SDO_RW,
         .attribute = ODA_SDO_R | ODA_MB,
         .dataElementLength = 4,
         .dataElementSizeof = sizeof(uint32_t)
-    },
-    .oE_1003_preDefinedErrorField = {
-        .extIO = &ODxyzExts.xio_1003_preDefinedErrorField,
-        .flagsPDO = NULL,
-        .odObjectOriginal = &ODxyzObjs.o_1003_preDefinedErrorField
     },
     .o_1018_identity = {
         {
@@ -232,18 +213,20 @@ static const ODxyzObjs_t ODxyzObjs = {
 };
 
 /* Object dictionary **********************************************************/
-static const OD_entry_t ODxyzList[] = {
-    {0x1000, 1, ODT_VAR, &ODxyzObjs.o_1000_deviceType},
-    {0x1001, 1, ODT_VAR, &ODxyzObjs.o_1001_errorRegister},
-    {0x1003, 9, ODT_EVAR, &ODxyzObjs.oE_1003_preDefinedErrorField},
-    {0x1018, 5, ODT_REC, &ODxyzObjs.o_1018_identity},
-    {0x0000, 0, 0, NULL}
+static OD_entry_t ODxyzList[] = {
+    {0x1000, 0x01, ODT_VAR, &ODxyzObjs.o_1000_deviceType, NULL},
+    {0x1001, 0x01, ODT_VAR, &ODxyzObjs.o_1001_errorRegister, NULL},
+    {0x1003, 0x09, ODT_VAR, &ODxyzObjs.o_1003_preDefinedErrorField, NULL},
+    {0x1018, 0x05, ODT_REC, &ODxyzObjs.o_1018_identity, NULL},
+    {0x0000, 0x00, 0, NULL, NULL}
 };
 
-const OD_t ODxyz = {
+OD_t _ODxyz = {
     (sizeof(ODxyzList) / sizeof(ODxyzList[0])) - 1,
     &ODxyzList[0]
 };
+
+OD_t *ODxyz = &_ODxyz;
 ```
 
 
@@ -291,7 +274,6 @@ There are also device configuration files with "XDC" extension. They are describ
             <BYTE/>
             <defaultValue value="0" />
             <property name="CO_storageGroup" value="RAM">
-            <property name="CO_extensionIO" value="true">
           </parameter>
           <parameter uniqueID="UID_PARAM_1018">
             <label lang="en">Identity</label>
@@ -409,13 +391,11 @@ If "uniqueIDRef" attribute is not specified and "objectType" is 7(VAR), then "CA
     * "noAccess" - object will be in object dictionary, but no access.
   * &lt;**label** lang="en"&gt;, &lt;**description** lang="en"&gt; (required) - several elements in multiple languages possible
   * &lt;**INT and similar**/&gt; (required) - Basic or complex data type. Basic data type (for VAR) is specified in IEC 61131-3 (see below). If data type is complex (ARRAY or RECORD), then **&lt;dataTypeIDRef&gt;** must be specified and entry must be added in the **&lt;dataTypeList&gt;**. Such definition of complex data types is required by the standard, but it is not required by CANopenNode.
-  * &lt;**defaultValue**&gt; (optional for VAR) - Default value for the variable. If it is empty string, then data is not stored inside object dictionary. Application should provide own data via IO extension.
+  * &lt;**defaultValue**&gt; (optional for VAR) - Default value for the variable. If it is empty string, then data is not stored inside object dictionary. Application should provide own data via OD extension.
   * &lt;**property** name="..." value="..."&gt; (optional) - Multiple elements may contain additional custom properties. CANopenNode uses custom properties with following names:
     * &quot;**CO_disabled**&quot; (used for base OD entry) - Valid value is "false" (default) or "true". if OD entry is disabled, then it will not be present in generated Object Dictionary .h and .c files.
     * &quot;**CO_countLabel**&quot; (used for base OD entry) - Valid value is any string without spaces. OD exporter will generate a macro for each different string. For example, if four OD objects have "CO_countLabel" set to "TPDO", then macro "#define ODxyz_CNT_TPDO 4" will be generated by OD exporter. "CO_countLabel" is not required for configuration with multiple object dictionaries (CO_MULTIPLE_OD), although may be useful. Default is "".
     * &quot;**CO_storageGroup**&quot; (used for base OD entry) - group name (string) into which the C variable will belong. Variables from specific storage group may then be stored into non-volatile memory, automatically or by SDO command. Default is "RAM". Please note: if &lt;defaultValue&gt; is empty string at specific subindex, then no storage group will be used for that variable.
-    * &quot;**CO_extensionIO**&quot; (used for base OD entry) - Valid value is "false" (default) or "true", if IO extension is enabled.
-    * &quot;**CO_flagsPDO**&quot; (used for base OD entry) - Valid value is "false" (default) or "true", if PDO flags are enabled.
     * &quot;**CO_accessSRDO**&quot; (used for each "VAR") - Valid values are: "tx", "rx", "trx", "no"(default).
     * &quot;**CO_stringLengthMin**&quot; (used for each "VAR") - Minimum length of the string. Used with "VISIBLE_STRING" and "UNICODE_STRING". If CO_stringLengthMin is smaller than length of the string in &lt;defaultValue&gt;, then it is ignored. Byte length of unicode string is 2 * CO_stringLengthMin. If &lt;defaultValue&gt; is empty and CO_stringLengthMin is 0, then data is not stored inside object dictionary. Default is 0.
 
@@ -464,62 +444,56 @@ Other elements listed in the above XML example are required by the standard. The
 Object Dictionary Requirements By CANopenNode {#object-dictionary-requirements-by-canopennode}
 ----------------------------------------------------------------------------------------------
 * **Used by** column indicates CANopenNode object or its part, which uses the OD object. It also indicates, if OD object is required or optional for actual configuration. For the configuration of the CANopenNode objects see [Stack configuration](301/CO_config.h). If CANopenNode object or its part is disabled in stack configuration, then OD object is not used. Note that OD objects: 1000, 1001 and 1017 and 1018 are mandatory for CANopen.
-* **CO_extensionIO** column indicates, if OD object must have property "CO_extensionIO" set to true:
-  * "no" - no IO extension used
-  * "optional" - If IO extension is enabled, then writing to the OD parameter will reflect in CANopen run time, otherwise reset communication is required for changes to take effect.
-  * "required" - IO extension is required on OD object and init function will return error if not enabled.
-  * "req if DYNAMIC" - IO extension is required on OD object if CO_CONFIG_FLAG_OD_DYNAMIC is set.
-  * "yes, own data" - OD object don't need own data and IO extension is necessary for OD object to work. Init function will not return error, if OD object does not exist or doesn't have IO extension enabled.
 * **CO_countLabel** column indicates, which value must have property "CO_countLabel" inside OD object.
 
-| index | Description                   | Used by              | CO_extensionIO | CO_countLabel |
-| ----- | ----------------------------- | ---------------------| -------------- | ------------- |
-| 1000  | Device type                   | CANopen, req         | no             | NMT              |
-| 1001  | Error register                | CANopen, EM, req     | no             | EM            |
-| 1002  | Manufacturer status register  |                      |                |               |
-| 1003  | Pre-defined error field       | EM_HISTORY, opt      | yes, own data  |               |
-| 1005  | COB-ID SYNC message           | SYNC, req            | req if DYNAMIC | SYNC          |
-| 1006  | Communication cycle period    | SYNC_PRODUCER, req   | opt            | SYNC_PROD     |
-| 1007  | Synchronous window length     | SYNC, opt            | opt            |               |
-| 1008  | Manufacturer device name      |                      |                |               |
-| 1009  | Manufacturer hardware version |                      |                |               |
-| 100A  | Manufacturer software version |                      |                |               |
-| 100C  | Guard time                    |                      |                |               |
-| 100D  | Life time factor              |                      |                |               |
-| 1010  | Store parameters              |                      |                |               |
-| 1011  | Restore default parameters    |                      |                |               |
-| 1012  | COB-ID time stamp object      | TIME, req            | required       | TIME          |
-| 1013  | High resolution time stamp    |                      |                |               |
-| 1014  | COB-ID EMCY                   | EM_PRODUCER, req     | required       | EM_PROD       |
-| 1015  | Inhibit time EMCY             | EM_PROD_INHIBIT, opt | optional       |               |
-| 1016  | Consumer heartbeat time       | HB_CONS, req         | optional       | HB_CONS       |
-| 1017  | Producer heartbeat time       | CANopen, NMT, req    | required       | HB_PROD       |
-| 1018  | Identity object               | CANopen, LSS_SL, req | no             |               |
-| 1019  | Synch. counter overflow value | SYNC, opt            | no             |               |
-| 1020  | Verify configuration          |                      |                |               |
-| 1021  | Store EDS                     |                      |                |               |
-| 1022  | Store format                  |                      |                |               |
-| 1023  | OS command                    |                      |                |               |
-| 1024  | OS command mode               |                      |                |               |
-| 1025  | OS debugger interface         |                      |                |               |
-| 1026  | OS prompt                     |                      |                |               |
-| 1027  | Module list                   |                      |                |               |
-| 1028  | Emergency consumer object     |                      |                |               |
-| 1029  | Error behavior object         |                      |                |               |
-| 1200  | SDO server parameter (first)  | SDO optional         | required       | SDO_SRV       |
-| 1201+ | SDO server parameter          | SDO+, req            | req if DYNAMIC | SDO_SRV       |
-| 1280+ | SDO client parameter          | SDO_CLI, req         | req if DYNAMIC | SDO_CLI       |
-| 1300  | Global fail-safe command par  | GFC, req             |                | GFC           |
-| 1301+ | SRDO communication parameter  | SRDO, req            |                | SRDO          |
-| 1381+ | SRDO mapping parameter        | SRDO, req            |                |               |
-| 13FE  | Configuration valid           | SRDO, req            |                |               |
-| 13FF  | Safety configuration checksum | SRDO, req            |                |               |
-| 1400+ | RPDO communication parameter  | RPDO, req            | req if DYNAMIC | RPDO          |
-| 1600+ | RPDO mapping parameter        | RPDO, req            | req if DYNAMIC |               |
-| 1800+ | TPDO communication parameter  | TPDO, req            | req if DYNAMIC | TPDO          |
-| 1A00+ | TPDO mapping parameter        | TPDO, req            | req if DYNAMIC |               |
-| 1FA0+ | Object scanner list           |                      |                |               |
-| 1FD0+ | Object dispatching list       |                      |                |               |
-|       | Custom objects                |                      |                |               |
-| any   | Error status bits             | EM_STATUS_BITS, opt  | yes, own data  |               |
-| any+  | Trace                         | TRACE, req           | yes, own data  | TRACE         |
+| index | Description                   | Used by              | CO_countLabel |
+| ----- | ----------------------------- | ---------------------| ------------- |
+| 1000  | Device type                   | CANopen, req         | NMT           |
+| 1001  | Error register                | CANopen, EM, req     | EM            |
+| 1002  | Manufacturer status register  |                      |               |
+| 1003  | Pre-defined error field       | EM_HISTORY, opt      |               |
+| 1005  | COB-ID SYNC message           | SYNC, req            | SYNC          |
+| 1006  | Communication cycle period    | SYNC_PRODUCER, req   | SYNC_PROD     |
+| 1007  | Synchronous window length     | SYNC, opt            |               |
+| 1008  | Manufacturer device name      |                      |               |
+| 1009  | Manufacturer hardware version |                      |               |
+| 100A  | Manufacturer software version |                      |               |
+| 100C  | Guard time                    |                      |               |
+| 100D  | Life time factor              |                      |               |
+| 1010  | Store parameters              |                      | STORAGE       |
+| 1011  | Restore default parameters    |                      |               |
+| 1012  | COB-ID time stamp object      | TIME, req            | TIME          |
+| 1013  | High resolution time stamp    |                      |               |
+| 1014  | COB-ID EMCY                   | EM_PRODUCER, req     | EM_PROD       |
+| 1015  | Inhibit time EMCY             | EM_PROD_INHIBIT, opt |               |
+| 1016  | Consumer heartbeat time       | HB_CONS, req         | HB_CONS       |
+| 1017  | Producer heartbeat time       | CANopen, NMT, req    | HB_PROD       |
+| 1018  | Identity object               | CANopen, LSS_SL, req |               |
+| 1019  | Synch. counter overflow value | SYNC, opt            |               |
+| 1020  | Verify configuration          |                      |               |
+| 1021  | Store EDS                     |                      |               |
+| 1022  | Store format                  |                      |               |
+| 1023  | OS command                    |                      |               |
+| 1024  | OS command mode               |                      |               |
+| 1025  | OS debugger interface         |                      |               |
+| 1026  | OS prompt                     |                      |               |
+| 1027  | Module list                   |                      |               |
+| 1028  | Emergency consumer object     |                      |               |
+| 1029  | Error behavior object         |                      |               |
+| 1200  | SDO server parameter (first)  | SDO optional         | SDO_SRV       |
+| 1201+ | SDO server parameter          | SDO+, req            | SDO_SRV       |
+| 1280+ | SDO client parameter          | SDO_CLI, req         | SDO_CLI       |
+| 1300  | Global fail-safe command par  | GFC, req             | GFC           |
+| 1301+ | SRDO communication parameter  | SRDO, req            | SRDO          |
+| 1381+ | SRDO mapping parameter        | SRDO, req            |               |
+| 13FE  | Configuration valid           | SRDO, req            |               |
+| 13FF  | Safety configuration checksum | SRDO, req            |               |
+| 1400+ | RPDO communication parameter  | RPDO, req            | RPDO          |
+| 1600+ | RPDO mapping parameter        | RPDO, req            |               |
+| 1800+ | TPDO communication parameter  | TPDO, req            | TPDO          |
+| 1A00+ | TPDO mapping parameter        | TPDO, req            |               |
+| 1FA0+ | Object scanner list           |                      |               |
+| 1FD0+ | Object dispatching list       |                      |               |
+|       | Custom objects                |                      |               |
+| any   | Error status bits             | EM_STATUS_BITS, opt  |               |
+| any+  | Trace                         | TRACE, req           | TRACE         |
