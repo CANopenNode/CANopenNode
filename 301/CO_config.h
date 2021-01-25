@@ -98,6 +98,21 @@ extern "C" {
  * This flag is common to multiple configuration macros.
  */
 #define CO_CONFIG_FLAG_OD_DYNAMIC 0x4000
+
+/** This flag may be set globally to @ref CO_CONFIG_FLAG_CALLBACK_PRE */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE (0)
+#endif
+
+/** This flag may be set globally to @ref CO_CONFIG_FLAG_TIMERNEXT */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GLOBAL_FLAG_TIMERNEXT (0)
+#endif
+
+/** This flag may be set globally to (0) */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC CO_CONFIG_FLAG_OD_DYNAMIC
+#endif
 /** @} */ /* CO_STACK_CONFIG_COMMON */
 
 
@@ -120,7 +135,7 @@ extern "C" {
  *   inside CO_NMT_process().
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_NMT (0)
+#define CO_CONFIG_NMT (CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 #define CO_CONFIG_NMT_CALLBACK_CHANGE 0x01
 #define CO_CONFIG_NMT_MASTER 0x02
@@ -129,11 +144,6 @@ extern "C" {
  * Configuration of @ref CO_HBconsumer
  *
  * Possible flags, can be ORed:
- * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received heartbeat CAN message.
- *   Callback is configured by CO_HBconsumer_initCallbackPre().
- * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
- *   inside CO_HBconsumer_process().
  * - CO_CONFIG_HB_CONS_ENABLE - Enable heartbeat consumer.
  * - CO_CONFIG_HB_CONS_CALLBACK_CHANGE - Enable custom common callback after NMT
  *   state of the monitored node changes. Callback is configured by
@@ -146,11 +156,16 @@ extern "C" {
  *   CO_HBconsumer_initCallbackRemoteReset() functions.
  * - CO_CONFIG_HB_CONS_QUERY_FUNCT - Enable functions for query HB state or
  *   NMT state of the specific monitored node.
+ * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
+ *   received heartbeat CAN message.
+ *   Callback is configured by CO_HBconsumer_initCallbackPre().
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_HBconsumer_process().
  * Note that CO_CONFIG_HB_CONS_CALLBACK_CHANGE and
  * CO_CONFIG_HB_CONS_CALLBACK_MULTI cannot be set simultaneously.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE)
+#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 #define CO_CONFIG_HB_CONS_ENABLE 0x01
 #define CO_CONFIG_HB_CONS_CALLBACK_CHANGE 0x02
@@ -194,7 +209,7 @@ extern "C" {
  *   inside CO_EM_process().
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+#define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 #define CO_CONFIG_EM_PRODUCER 0x01
 #define CO_CONFIG_EM_PROD_CONFIGURABLE 0x02
@@ -326,7 +341,7 @@ extern "C" {
  *   servers (Writing to object 0x1201+ re-configures the additional server).
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED)
+#define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #define CO_CONFIG_SDO_SRV_SEGMENTED 0x02
 #define CO_CONFIG_SDO_SRV_BLOCK 0x04
@@ -405,7 +420,7 @@ extern "C" {
  *   object 0x1012 enables / disables time producer or consumer.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_TIME (0)
+#define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #define CO_CONFIG_TIME_ENABLE 0x01
 #define CO_CONFIG_TIME_PRODUCER 0x02
@@ -427,9 +442,10 @@ extern "C" {
  *   Callback is configured by CO_SYNC_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SYNC_process().
+ * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of SYNC.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | CO_CONFIG_SYNC_PRODUCER)
+#define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | CO_CONFIG_SYNC_PRODUCER | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #define CO_CONFIG_SYNC_ENABLE 0x01
 #define CO_CONFIG_SYNC_PRODUCER 0x02
@@ -450,9 +466,10 @@ extern "C" {
  *   Callback is configured by CO_RPDO_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_TPDO_process().
+ * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of PDO.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_PDO (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE | CO_CONFIG_PDO_SYNC_ENABLE)
+#define CO_CONFIG_PDO (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE | CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #define CO_CONFIG_RPDO_ENABLE 0x01
 #define CO_CONFIG_TPDO_ENABLE 0x02
@@ -494,7 +511,7 @@ extern "C" {
  *   inside CO_NMT_process().
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE)
+#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 #define CO_CONFIG_LEDS_ENABLE 0x01
 /** @} */ /* CO_STACK_CONFIG_LEDS */
@@ -574,7 +591,7 @@ extern "C" {
  *   Callback is configured by CO_LSSmaster_initCallbackPre().
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE)
+#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
 #endif
 #define CO_CONFIG_LSS_SLAVE 0x01
 #define CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND 0x02

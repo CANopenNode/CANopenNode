@@ -63,23 +63,24 @@ extern "C" {
 /* Stack configuration override default values.
  * For more information see file CO_config.h. */
 #ifdef CO_SINGLE_THREAD
-#define CO_CONFIG_FLAG_CALLBACK_PRE_USED 0
+#define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE 0
 #else
-#define CO_CONFIG_FLAG_CALLBACK_PRE_USED CO_CONFIG_FLAG_CALLBACK_PRE
+#define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE CO_CONFIG_FLAG_CALLBACK_PRE
 #endif
+#define CO_CONFIG_GLOBAL_FLAG_TIMERNEXT CO_CONFIG_FLAG_TIMERNEXT
 
 #ifndef CO_CONFIG_NMT
 #define CO_CONFIG_NMT (CO_CONFIG_NMT_CALLBACK_CHANGE | \
                        CO_CONFIG_NMT_MASTER | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                       CO_CONFIG_FLAG_TIMERNEXT)
+                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_HB_CONS
 #define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | \
                            CO_CONFIG_HB_CONS_CALLBACK_CHANGE | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                           CO_CONFIG_FLAG_TIMERNEXT)
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_EM
@@ -89,16 +90,16 @@ extern "C" {
                       CO_CONFIG_EM_HISTORY | \
                       CO_CONFIG_EM_STATUS_BITS | \
                       CO_CONFIG_EM_CONSUMER | \
-                      CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                      CO_CONFIG_FLAG_TIMERNEXT)
+                      CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                      CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_SDO_SRV
 #define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED | \
                            CO_CONFIG_SDO_SRV_BLOCK | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                           CO_CONFIG_FLAG_TIMERNEXT | \
-                           CO_CONFIG_FLAG_OD_DYNAMIC)
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
@@ -110,23 +111,24 @@ extern "C" {
                            CO_CONFIG_SDO_CLI_SEGMENTED | \
                            CO_CONFIG_SDO_CLI_BLOCK | \
                            CO_CONFIG_SDO_CLI_LOCAL | \
-                           CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                           CO_CONFIG_FLAG_TIMERNEXT | \
-                           CO_CONFIG_FLAG_OD_DYNAMIC)
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_TIME
 #define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
                         CO_CONFIG_TIME_PRODUCER | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                        CO_CONFIG_FLAG_OD_DYNAMIC)
+                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_SYNC
 #define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | \
                         CO_CONFIG_SYNC_PRODUCER | \
-                        CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                        CO_CONFIG_FLAG_TIMERNEXT)
+                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_PDO
@@ -135,20 +137,15 @@ extern "C" {
                        CO_CONFIG_PDO_SYNC_ENABLE | \
                        CO_CONFIG_RPDO_CALLS_EXTENSION | \
                        CO_CONFIG_TPDO_CALLS_EXTENSION | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE_USED | \
-                       CO_CONFIG_FLAG_TIMERNEXT)
-#endif
-
-#ifndef CO_CONFIG_LEDS
-#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE | \
-                        CO_CONFIG_FLAG_TIMERNEXT)
+                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                       CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifndef CO_CONFIG_LSS
 #define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE | \
                        CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND | \
                        CO_CONFIG_LSS_MASTER | \
-                       CO_CONFIG_FLAG_CALLBACK_PRE_USED)
+                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
 #endif
 
 #ifndef CO_CONFIG_GTW

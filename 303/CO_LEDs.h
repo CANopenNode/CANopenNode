@@ -31,7 +31,8 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_LEDS
-#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE)
+#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE | \
+                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN

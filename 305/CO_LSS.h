@@ -31,7 +31,8 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_LSS
-#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE)
+#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE \
+                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
 #endif
 
 #if ((CO_CONFIG_LSS) & (CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER)) || defined CO_DOXYGEN

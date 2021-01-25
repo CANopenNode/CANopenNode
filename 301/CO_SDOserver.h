@@ -31,7 +31,10 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_SDO_SRV
-#define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED)
+#define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED | \
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
 #define CO_CONFIG_SDO_SRV_BUFFER_SIZE 32
