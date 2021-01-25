@@ -2,7 +2,7 @@
     CANopen Object Dictionary definition for CANopenNode V4
 
     This file was automatically generated with
-    libedssharp Object Dictionary Editor v0.8-116-g2e8a14a
+    libedssharp Object Dictionary Editor v0.8-114-gc3a898f
 
     https://github.com/CANopenNode/CANopenNode
     https://github.com/robincornelius/libedssharp
@@ -17,7 +17,7 @@
 
         Created:      23. 11. 2020 12:00:00
         Created By:   
-        Modified:     6. 01. 2021 16:21:52
+        Modified:     20. 01. 2021 15:01:07
         Modified By:  
 
     Device Info:
@@ -38,6 +38,7 @@
 #define OD_CNT_EM 1
 #define OD_CNT_SYNC 1
 #define OD_CNT_SYNC_PROD 1
+#define OD_CNT_STORAGE 1
 #define OD_CNT_TIME 1
 #define OD_CNT_EM_PROD 1
 #define OD_CNT_HB_CONS 1

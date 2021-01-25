@@ -2,7 +2,7 @@
     CANopen Object Dictionary definition for CANopenNode V4
 
     This file was automatically generated with
-    libedssharp Object Dictionary Editor v0.8-116-g2e8a14a
+    libedssharp Object Dictionary Editor v0.8-114-gc3a898f
 
     https://github.com/CANopenNode/CANopenNode
     https://github.com/robincornelius/libedssharp

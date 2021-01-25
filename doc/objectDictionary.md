@@ -458,7 +458,7 @@ Object Dictionary Requirements By CANopenNode {#object-dictionary-requirements-b
 | 100A  | Manufacturer software version |                      |               |
 | 100C  | Guard time                    |                      |               |
 | 100D  | Life time factor              |                      |               |
-| 1010  | Store parameters              |                      |               |
+| 1010  | Store parameters              |                      | STORAGE       |
 | 1011  | Restore default parameters    |                      |               |
 | 1012  | COB-ID time stamp object      | TIME, req            | TIME          |
 | 1013  | High resolution time stamp    |                      |               |

@@ -75,8 +75,8 @@ typedef enum {
     OD_H100D_LIFETIME_FACTOR    = 0x100DU,/**< Life time factor */
     OD_H100E_RSV                = 0x100EU,/**< Reserved */
     OD_H100F_RSV                = 0x100FU,/**< Reserved */
-    OD_H1010_STORE_PARAM_FUNC   = 0x1010U,/**< Store params in persistent mem.*/
-    OD_H1011_REST_PARAM_FUNC    = 0x1011U,/**< Restore default parameters */
+    OD_H1010_STORE_PARAMETERS   = 0x1010U,/**< Store params in persistent mem.*/
+    OD_H1011_RESTORE_DEFAULT    = 0x1011U,/**< Restore default parameters */
     OD_H1012_COBID_TIME         = 0x1012U,/**< Timestamp message cob-id */
     OD_H1013_HIGH_RES_TIMESTAMP = 0x1013U,/**< High resolution timestamp */
     OD_H1014_COBID_EMERGENCY    = 0x1014U,/**< Emergency message cob-id */

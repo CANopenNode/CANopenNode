@@ -31,57 +31,21 @@
 #include "301/CO_driver.h"
 #include "301/CO_ODinterface.h"
 #include "301/CO_NMT_Heartbeat.h"
-
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) || defined CO_DOXYGEN
 #include "301/CO_HBconsumer.h"
-#endif
-
 #include "301/CO_Emergency.h"
 #include "301/CO_SDOserver.h"
-
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) || defined CO_DOXYGEN
 #include "301/CO_SDOclient.h"
-#endif
-
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) || defined CO_DOXYGEN
 #include "301/CO_SYNC.h"
-#endif
-
-#if ((CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE)) || defined CO_DOXYGEN
 #include "301/CO_PDO.h"
-#endif
-
-#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) || defined CO_DOXYGEN
 #include "301/CO_TIME.h"
-#endif
-
-#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
+#include "301/CO_storage.h"
 #include "303/CO_LEDs.h"
-#endif
-
-#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || defined CO_DOXYGEN
 #include "304/CO_GFC.h"
-#endif
-
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
 #include "304/CO_SRDO.h"
-#endif
-
-#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) || defined CO_DOXYGEN
 #include "305/CO_LSSslave.h"
-#endif
-
-#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) || defined CO_DOXYGEN
 #include "305/CO_LSSmaster.h"
-#endif
-
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
 #include "309/CO_gateway_ascii.h"
-#endif
-
-#if ((CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE) || defined CO_DOXYGEN
 #include "extra/CO_trace.h"
-#endif
 
 
 #ifdef __cplusplus
@@ -270,6 +234,10 @@ typedef struct {
     uint16_t CNT_TPDO;
     OD_entry_t *ENTRY_H1800; /**< OD entry for @ref CO_TPDO_init() */
     OD_entry_t *ENTRY_H1A00; /**< OD entry for @ref CO_TPDO_init() */
+    /** Number of storage objects, 0 or 1. */
+    uint8_t CNT_STORAGE;
+    OD_entry_t *ENTRY_H1010; /**< OD entry for @ref CO_storage_init() */
+    OD_entry_t *ENTRY_H1011; /**< OD entry for @ref CO_storage_init() */
     /** Number of LEDs objects, 0 or 1. */
     uint8_t CNT_LEDS;
     /** Number of GFC objects, 0 or 1 (CANrx + CANtx). */
@@ -374,6 +342,10 @@ typedef struct {
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
     uint16_t TX_IDX_TPDO; /**< Start index in CANtx. */
  #endif
+#endif
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) || defined CO_DOXYGEN
+    /** Storage object, initialised by @ref CO_storage_init() */
+    CO_storage_t *storage;
 #endif
 #if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
     /** LEDs object, initialised by @ref CO_LEDs_init() */

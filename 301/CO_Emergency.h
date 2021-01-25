@@ -330,8 +330,8 @@ typedef enum {
     CO_EM_25_unused                 = 0x25U,
     /** 0x26, generic, info, (unused) */
     CO_EM_26_unused                 = 0x26U,
-    /** 0x27, generic, info, (unused) */
-    CO_EM_27_unused                 = 0x27U,
+    /** 0x27, generic, info, Automatic store to non-volatile memory failed */
+    CO_EM_NON_VOLATILE_AUTO_SAVE    = 0x27U,
 
     /** 0x28, generic, critical, Wrong parameters to CO_errorReport() function*/
     CO_EM_WRONG_ERROR_REPORT        = 0x28U,

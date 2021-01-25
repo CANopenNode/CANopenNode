@@ -49,7 +49,8 @@ Characteristics
  - [Suitable for 16-bit microcontrollers and above](#device-support)
  - [Multithreaded, real-time](#flowchart-of-a-typical-canopennode-implementation)
  - [Object Dictionary editor](#object-dictionary-editor)
- - Non-volatile storage for Object Dictionary variables.
+ - Non-volatile storage for Object Dictionary or other variables. Automatic or
+   controlled by standard CANopen commands, configurable.
  - [Power saving possible](#power-saving)
  - [Bootloader possible](https://github.com/CANopenNode/CANopenNode/issues/111) (for firmware update)
 
@@ -67,7 +68,7 @@ Further documented examples are available in [CANopenSocket](https://github.com/
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
 
-Join discussion on Slack: https://canopennode.slack.com/
+For discussion on [Slack](https://canopennode.slack.com/) see: https://github.com/robincornelius/libedssharp
 
 Older discussion group is on Sourceforge: http://sourceforge.net/p/canopennode/discussion/387151/
 

@@ -1,7 +1,8 @@
 /example/canopennode_blank
 /canopend
 *.o
-/od_storage*
+*.persist
+*.persist.old
 
 doc/html/
 

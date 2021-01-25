@@ -136,8 +136,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     NMT->OD_1017_extension.object = NMT;
     NMT->OD_1017_extension.read = OD_readOriginal;
     NMT->OD_1017_extension.write = OD_write_1017;
-    odRet = OD_extension_init(OD_1017_ProducerHbTime,
-                              &NMT->OD_1017_extension);
+    odRet = OD_extension_init(OD_1017_ProducerHbTime, &NMT->OD_1017_extension);
     if (odRet != ODR_OK) {
         if (errInfo != NULL) *errInfo = OD_getIndex(OD_1017_ProducerHbTime);
         return CO_ERROR_OD_PARAMETERS;

@@ -461,6 +461,24 @@ extern "C" {
 
 
 /**
+ * @defgroup CO_STACK_CONFIG_STORAGE Data storage
+ * Data storage with CANopen OD objects 1010 and 1011
+ * @{
+ */
+/**
+ * Configuration of @ref CO_storage
+ *
+ * Possible flags, can be ORed:
+ * - CO_CONFIG_STORAGE_ENABLE - Enable data storage
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_STORAGE (CO_CONFIG_STORAGE_ENABLE)
+#endif
+#define CO_CONFIG_STORAGE_ENABLE 0x01
+/** @} */ /* CO_STACK_CONFIG_STORAGE */
+
+
+/**
  * @defgroup CO_STACK_CONFIG_LEDS CANopen LED diodes
  * Specified in standard CiA 303-3
  * @{

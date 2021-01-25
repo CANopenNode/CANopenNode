@@ -261,7 +261,6 @@ extern "C" {
     #define CO_SWAP_64(x) bswap_64(x)
 #endif
 #endif
-/* #define CO_USE_LEDS */
 /* NULL is defined in stddef.h */
 /* true and false are defined in stdbool.h */
 /* int8_t to uint64_t are defined in stdint.h */

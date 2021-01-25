@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--File is generated with libedssharp Object Dictionary Editor v0.8-116-g2e8a14a, URL: https://github.com/robincornelius/libedssharp-->
+<!--File is generated with libedssharp Object Dictionary Editor v0.8-114-gc3a898f, URL: https://github.com/robincornelius/libedssharp-->
 <!--File includes additional custom properties for CANopenNode, CANopen protocol stack, URL: https://github.com/CANopenNode/CANopenNode-->
 <ISO15745ProfileContainer xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.canopen.org/xml/1.1">
   <ISO15745Profile>
@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="DS301_profile.xpd" fileCreator="" fileCreationDate="2020-11-23" fileCreationTime="12:00:00.0000000+01:00" fileModifiedBy="" fileModificationDate="2021-01-06" fileModificationTime="16:21:52.3514396+01:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="DS301_profile.xpd" fileCreator="" fileCreationDate="2020-11-23" fileCreationTime="12:00:00.0000000+01:00" fileModifiedBy="" fileModificationDate="2021-01-20" fileModificationTime="15:01:07.2848060+01:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName></q1:vendorName>
         <q1:vendorID></q1:vendorID>
@@ -753,6 +753,7 @@
   * bit 0: If set, CANopen device saves parameters on command
 * Writing value 0x65766173 ('s','a','v','e' from LSB to MSB) stores corresponding data.</description>
             <q1:dataTypeIDRef uniqueIDRef="UID_ARR_1010" />
+            <q1:property name="CO_countLabel" value="STORAGE" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_101000">
             <label lang="en">Highest sub-index supported</label>
@@ -2253,7 +2254,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="DS301_profile.xpd" fileCreator="" fileCreationDate="2020-11-23" fileCreationTime="12:00:00.0000000+01:00" fileModificationDate="2021-01-06" fileModificationTime="16:21:52.3514396+01:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="DS301_profile.xpd" fileCreator="" fileCreationDate="2020-11-23" fileCreationTime="12:00:00.0000000+01:00" fileModificationDate="2021-01-20" fileModificationTime="15:01:07.2848060+01:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />

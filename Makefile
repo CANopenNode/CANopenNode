@@ -14,12 +14,12 @@ INCLUDE_DIRS = \
 	-I$(CANOPEN_SRC) \
 	-I$(APPL_SRC)
 
-#	$(DRV_SRC)/CO_OD_storage.c \
 
 SOURCES = \
 	$(DRV_SRC)/CO_driver.c \
 	$(DRV_SRC)/CO_error.c \
 	$(DRV_SRC)/CO_epoll_interface.c \
+	$(DRV_SRC)/CO_storageLinux.c \
 	$(CANOPEN_SRC)/301/CO_ODinterface.c \
 	$(CANOPEN_SRC)/301/CO_NMT_Heartbeat.c \
 	$(CANOPEN_SRC)/301/CO_HBconsumer.c \
@@ -31,6 +31,7 @@ SOURCES = \
 	$(CANOPEN_SRC)/301/CO_PDO.c \
 	$(CANOPEN_SRC)/301/crc16-ccitt.c \
 	$(CANOPEN_SRC)/301/CO_fifo.c \
+	$(CANOPEN_SRC)/301/CO_storage.c \
 	$(CANOPEN_SRC)/303/CO_LEDs.c \
 	$(CANOPEN_SRC)/304/CO_GFC.c \
 	$(CANOPEN_SRC)/304/CO_SRDO.c \

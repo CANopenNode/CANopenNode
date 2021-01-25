@@ -474,8 +474,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
         em->OD_1015_extension.object = em;
         em->OD_1015_extension.read = OD_readOriginal;
         em->OD_1015_extension.write = OD_write_1015;
-        OD_extension_init(OD_1015_InhTime,
-                          &em->OD_1015_extension);
+        OD_extension_init(OD_1015_InhTime, &em->OD_1015_extension);
     }
  #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT */
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER */
@@ -486,8 +485,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->OD_1003_extension.object = em;
     em->OD_1003_extension.read = OD_read_1003;
     em->OD_1003_extension.write = OD_write_1003;
-    OD_extension_init(OD_1003_preDefErr,
-                      &em->OD_1003_extension);
+    OD_extension_init(OD_1003_preDefErr, &em->OD_1003_extension);
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY */
 
 
@@ -496,8 +494,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->OD_statusBits_extension.object = em;
     em->OD_statusBits_extension.read = OD_read_statusBits;
     em->OD_statusBits_extension.write = OD_write_statusBits;
-    OD_extension_init(OD_statusBits,
-                      &em->OD_statusBits_extension);
+    OD_extension_init(OD_statusBits, &em->OD_statusBits_extension);
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS */
 
 

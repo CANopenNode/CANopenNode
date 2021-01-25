@@ -10,10 +10,10 @@ CANopen documentation
 | File Version | 1                              |
 | Created      | 23. 11. 2020 12:00:00          |
 | Created By   |                                |
-| Modified     | 6. 01. 2021 16:21:52           |
+| Modified     | 20. 01. 2021 15:01:07          |
 | Modified By  |                                |
 
-This file was automatically generated with [libedssharp](https://github.com/robincornelius/libedssharp) Object Dictionary Editor v0.8-116-g2e8a14a
+This file was automatically generated with [libedssharp](https://github.com/robincornelius/libedssharp) Object Dictionary Editor v0.8-114-gc3a898f
 
 * [Device Information](#device-information)
 * [PDO Mapping](#pdo-mapping)
@@ -145,7 +145,7 @@ Synchronous window leghth in µs (0 = not used). All synchronous PDOs must be tr
 ### 0x1010 - Store parameters
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
-| ARRAY       |                | RAM            |
+| ARRAY       | STORAGE        | RAM            |
 
 | Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
 | ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |
