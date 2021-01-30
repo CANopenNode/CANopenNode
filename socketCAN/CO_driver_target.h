@@ -54,7 +54,6 @@ extern "C" {
 #endif
 
 /* TODO some parts are disabled in non-finished pre-release */
-#define CO_CONFIG_HB_CONS (0)
 #define CO_CONFIG_SYNC (0)
 #define CO_CONFIG_PDO (0)
 #define CO_CONFIG_TRACE (0)
@@ -80,7 +79,8 @@ extern "C" {
 #define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | \
                            CO_CONFIG_HB_CONS_CALLBACK_CHANGE | \
                            CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_EM

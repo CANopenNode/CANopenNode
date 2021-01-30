@@ -409,7 +409,9 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     odRet = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
     if (odRet != ODR_OK || (COB_IDEmergency32 & 0x7FFFF800) != 0) {
         if (errInfo != NULL) *errInfo = OD_getIndex(OD_1014_cobIdEm);
-        return CO_ERROR_OD_PARAMETERS;
+         /* don't break a program, if only value of a parameter is wrong */
+        if (odRet != ODR_OK)
+            return CO_ERROR_OD_PARAMETERS;
     }
 
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE

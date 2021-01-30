@@ -1055,12 +1055,10 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     if (CO_GET_CNT(HB_CONS) == 1) {
         err = CO_HBconsumer_init(co->HBcons,
                                  em,
-                                 co->SDO[0],
-                                 &OD_consumerHeartbeatTime[0],
-                                 CO_HBcons_monitoredNodes,
-                                 CO_GET_CNT(HB_CONS),
+                                 OD_GET(H1016, OD_H1016_CONSUMER_HB_TIME),
                                  co->CANmodule,
-                                 CO_GET_CO(RX_IDX_HB_CONS));
+                                 CO_GET_CO(RX_IDX_HB_CONS),
+                                 errInfo);
         if (err) return err;
     }
 #endif

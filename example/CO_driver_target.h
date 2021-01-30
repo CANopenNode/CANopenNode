@@ -59,7 +59,8 @@ extern "C" {
                            CO_CONFIG_HB_CONS_CALLBACK_MULTI | \
                            CO_CONFIG_HB_CONS_QUERY_FUNCT | \
                            CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #ifndef CO_CONFIG_EM

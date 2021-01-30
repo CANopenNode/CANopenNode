@@ -161,11 +161,14 @@ extern "C" {
  *   Callback is configured by CO_HBconsumer_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_HBconsumer_process().
- * Note that CO_CONFIG_HB_CONS_CALLBACK_CHANGE and
+ * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of monitored
+ *   nodes (Writing to object 0x1016 re-configures the monitored nodes).
+ *
+ * @warning CO_CONFIG_HB_CONS_CALLBACK_CHANGE and
  * CO_CONFIG_HB_CONS_CALLBACK_MULTI cannot be set simultaneously.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #define CO_CONFIG_HB_CONS_ENABLE 0x01
 #define CO_CONFIG_HB_CONS_CALLBACK_CHANGE 0x02
@@ -174,7 +177,9 @@ extern "C" {
 
 /**
  * Number of heartbeat consumer objects, where each object corresponds to one
- * sub-index in OD object 0x1016, "Consumer heartbeat time".
+ * sub-index in OD object 0x1016, "Consumer heartbeat time". Each heartbeat
+ * consumer uses own CANrx object. Actual number of heartbeat consumer objects
+ * may be lower, if OD variable 1016 has lower number of sub entries.
  *
  * If heartbeat consumer is enabled, then valid values are 1 to 127.
  */

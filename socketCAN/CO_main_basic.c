@@ -609,6 +609,10 @@ int main (int argc, char *argv[]) {
         CO_LSSslave_initCfgStoreCallback(CO->LSSslave, NULL,
                                          LSScfgStoreCallback);
         if(!CO->nodeIdUnconfigured) {
+            if(errInfo != 0) {
+                CO_errorReport(CO->em, CO_EM_INCONSISTENT_OBJECT_DICT,
+                               CO_EMC_DATA_SET, errInfo);
+            }
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
             CO_EM_initCallbackRx(CO->em, EmergencyRxCallback);
 #endif
@@ -616,7 +620,7 @@ int main (int argc, char *argv[]) {
             CO_NMT_initCallbackChanged(CO->NMT, NmtChangedCallback);
 #endif
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE
-            CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, NULL,
+            CO_HBconsumer_initCallbackNmtChanged(CO->HBcons, 0, NULL,
                                                  HeartbeatNmtChangedCallback);
 #endif
 #if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
@@ -670,6 +674,10 @@ int main (int argc, char *argv[]) {
                 }
                 else {
                     log_printf(LOG_CRIT, DBG_CAN_OPEN, "app_programStart()", err);
+                    if(errInfo != 0 && !CO->nodeIdUnconfigured) {
+                        CO_errorReport(CO->em, CO_EM_INCONSISTENT_OBJECT_DICT,
+                                       CO_EMC_DATA_SET, errInfo);
+                    }
                 }
                 programExit = EXIT_FAILURE;
                 CO_endProgram = 1;
@@ -721,7 +729,7 @@ int main (int argc, char *argv[]) {
                     if (st->subIndexOD == 0) {
                         bool_t storageOK = CO_storageLinux_auto_process(
                                                         &st->entryAuto, false);
-                        if(!storageOK) {
+                        if(!storageOK && !CO->nodeIdUnconfigured) {
                             CO_errorReport(CO->em, CO_EM_NON_VOLATILE_AUTO_SAVE,
                                            CO_EMC_HARDWARE, i);
                         }

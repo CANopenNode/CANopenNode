@@ -4,7 +4,7 @@
  * @file        CO_HBconsumer.h
  * @ingroup     CO_HBconsumer
  * @author      Janez Paternoster
- * @copyright   2004 - 2020 Janez Paternoster
+ * @copyright   2021 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -27,10 +27,19 @@
 #define CO_HB_CONS_H
 
 #include "301/CO_driver.h"
+#include "301/CO_ODinterface.h"
+#include "301/CO_NMT_Heartbeat.h"
+#include "301/CO_Emergency.h"
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_HB_CONS
-#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE)
+#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | \
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+#endif
+#ifndef CO_CONFIG_HB_CONS_SIZE
+#define CO_CONFIG_HB_CONS_SIZE 8
 #endif
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) || defined CO_DOXYGEN
@@ -52,10 +61,11 @@ extern "C" {
  * variable _allMonitoredOperational_ inside CO_HBconsumer_t is set to true.
  * Monitoring starts after the reception of the first HeartBeat (not bootup).
  *
- * Heartbeat set up is done by writing to the OD registers 0x1016 or by using
- * the function _CO_HBconsumer_initEntry()_
+ * Heartbeat set up is done by writing to the OD registers 0x1016.
+ * To setup heartbeat consumer by application, use
+ * @code ODR_t odRet = OD_set_u32(entry, subIndex, val, false); @endcode
  *
- * @see  @ref CO_NMT_Heartbeat
+ * @see @ref CO_NMT_Heartbeat
  */
 
 /**
@@ -75,9 +85,9 @@ typedef enum {
 typedef struct {
     /** Node Id of the monitored node */
     uint8_t nodeId;
-    /** Of the remote node (Heartbeat payload) */
+    /** NMT state of the remote node (Heartbeat payload) */
     CO_NMT_internalState_t NMTstate;
-    /** Current heartbeat state */
+    /** Current heartbeat monitoring state of the remote node */
     CO_HBconsumer_state_t HBstate;
     /** Time since last heartbeat received */
     uint32_t timeoutTimer;
@@ -87,9 +97,9 @@ typedef struct {
     volatile void *CANrxNew;
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_HBconsumer_initCallbackPre() or NULL */
-    void              (*pFunctSignalPre)(void *object);
+    void (*pFunctSignalPre)(void *object);
     /** From CO_HBconsumer_initCallbackPre() or NULL */
-    void               *functSignalObjectPre;
+    void *functSignalObjectPre;
 #endif
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) \
     || ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) \
@@ -101,7 +111,7 @@ typedef struct {
     /** Callback for remote NMT changed event.
      *  From CO_HBconsumer_initCallbackNmtChanged() or NULL. */
     void (*pFunctSignalNmtChanged)(uint8_t nodeId, uint8_t idx,
-                                   CO_NMT_internalState_t state,
+                                   CO_NMT_internalState_t NMTstate,
                                    void *object);
     /** Pointer to object */
     void *pFunctSignalObjectNmtChanged;
@@ -130,30 +140,40 @@ typedef struct {
  * Object is initilaized by CO_HBconsumer_init(). It contains an array of
  * CO_HBconsNode_t objects.
  */
-typedef struct{
-    CO_EM_t            *em;               /**< From CO_HBconsumer_init() */
-    const uint32_t     *HBconsTime;       /**< From CO_HBconsumer_init() */
-    CO_HBconsNode_t    *monitoredNodes;   /**< From CO_HBconsumer_init() */
-    uint8_t             numberOfMonitoredNodes; /**< From CO_HBconsumer_init() */
-    /** True, if all monitored nodes are active or no node is
-        monitored. Can be read by the application */
-    bool_t              allMonitoredActive;
+typedef struct {
+    /** From CO_HBconsumer_init() */
+    CO_EM_t *em;
+    /** Array of monitored nodes, maximum size CO_CONFIG_HB_CONS_SIZE */
+    CO_HBconsNode_t monitoredNodes[CO_CONFIG_HB_CONS_SIZE];
+    /** Actual number of monitored nodes,
+     * MIN(CO_CONFIG_HB_CONS_SIZE or number-of-array-elements-in-OD-0x1016) */
+    uint8_t numberOfMonitoredNodes;
+    /** True, if all monitored nodes are active or no node is monitored. Can be
+     * read by the application */
+    bool_t allMonitoredActive;
     /** True, if all monitored nodes are NMT operational or no node is
-        monitored. Can be read by the application */
-    uint8_t             allMonitoredOperational;
-    bool_t              NMTisPreOrOperationalPrev; /**< previous state of var */
-    CO_CANmodule_t     *CANdevRx;         /**< From CO_HBconsumer_init() */
-    uint16_t            CANdevRxIdxStart; /**< From CO_HBconsumer_init() */
+     * monitored. Can be read by the application */
+    bool_t allMonitoredOperational;
+    /** previous state of the variable */
+    bool_t NMTisPreOrOperationalPrev;
+    /** From CO_HBconsumer_init() */
+    CO_CANmodule_t *CANdevRx;
+    /** From CO_HBconsumer_init() */
+    uint16_t CANdevRxIdxStart;
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+    /** Extension for OD object */
+    OD_extension_t OD_1016_extension;
+#endif
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) || defined CO_DOXYGEN
     /** Callback for remote NMT changed event.
      *  From CO_HBconsumer_initCallbackNmtChanged() or NULL. */
     void (*pFunctSignalNmtChanged)(uint8_t nodeId, uint8_t idx,
-                                   CO_NMT_internalState_t state,
+                                   CO_NMT_internalState_t NMTstate,
                                    void *object);
     /** Pointer to object */
     void *pFunctSignalObjectNmtChanged;
 #endif
-}CO_HBconsumer_t;
+} CO_HBconsumer_t;
 
 
 /**
@@ -163,47 +183,22 @@ typedef struct{
  *
  * @param HBcons This object will be initialized.
  * @param em Emergency object.
- * @param SDO SDO server object.
- * @param HBconsTime Pointer to _Consumer Heartbeat Time_ array
- * from Object Dictionary (index 0x1016). Size of array is equal to numberOfMonitoredNodes.
- * @param monitoredNodes Pointer to the externaly defined array of the same size
- * as numberOfMonitoredNodes.
- * @param numberOfMonitoredNodes Total size of the above arrays.
+ * @param OD_1016_HBcons OD entry for 0x1016 - "Consumer heartbeat time", entry
+ * is required, IO extension will be applied.
  * @param CANdevRx CAN device for Heartbeat reception.
- * @param CANdevRxIdxStart Starting index of receive buffer in the above CAN device.
- * Number of used indexes is equal to numberOfMonitoredNodes.
+ * @param CANdevRxIdxStart Starting index of receive buffer in the above CAN
+ * device. Number of used indexes is equal to CO_CONFIG_HB_CONS_SIZE.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
  *
- * @return #CO_ReturnError_t CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
+ * @return @ref CO_ReturnError_t CO_ERROR_NO in case of success.
  */
-CO_ReturnError_t CO_HBconsumer_init(
-        CO_HBconsumer_t        *HBcons,
-        CO_EM_t                *em,
-        CO_SDO_t               *SDO,
-        const uint32_t          HBconsTime[],
-        CO_HBconsNode_t         monitoredNodes[],
-        uint8_t                 numberOfMonitoredNodes,
-        CO_CANmodule_t         *CANdevRx,
-        uint16_t                CANdevRxIdxStart);
+CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
+                                    CO_EM_t *em,
+                                    OD_entry_t *OD_1016_HBcons,
+                                    CO_CANmodule_t *CANdevRx,
+                                    uint16_t CANdevRxIdxStart,
+                                    uint32_t *errInfo);
 
-/**
- * Initialize one Heartbeat consumer entry
- *
- * Calling this function has the same affect as writing to the corresponding
- * entries in the Object Dictionary (index 0x1016)
- * @remark The values in the Object Dictionary must be set manually by the
- * calling function so that heartbeat consumer behaviour matches the OD value.
- *
- * @param HBcons This object.
- * @param idx index of the node in HBcons object
- * @param nodeId see OD 0x1016 description
- * @param consumerTime_ms in milliseconds. see OD 0x1016 description
- * @return
- */
-CO_ReturnError_t CO_HBconsumer_initEntry(
-        CO_HBconsumer_t        *HBcons,
-        uint8_t                 idx,
-        uint8_t                 nodeId,
-        uint16_t                consumerTime_ms);
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
 /**
@@ -241,12 +236,10 @@ void CO_HBconsumer_initCallbackPre(
  */
 void CO_HBconsumer_initCallbackNmtChanged(
         CO_HBconsumer_t        *HBcons,
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) || defined CO_DOXYGEN
         uint8_t                 idx,
-#endif
         void                   *object,
         void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx,
-                                              CO_NMT_internalState_t state,
+                                              CO_NMT_internalState_t NMTstate,
                                               void *object));
 #endif
 
