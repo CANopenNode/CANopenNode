@@ -185,18 +185,6 @@
  #define CO_TX_CNT_TPDO 0
 #endif
 
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
- #if !defined OD_CNT_STORAGE
-  #define OD_CNT_STORAGE 0
-  #define OD_ENTRY_H1010 NULL
- #elif OD_CNT_STORAGE < 0 || OD_CNT_STORAGE > 1
-  #error OD_CNT_STORAGE from OD.h not correct!
- #endif
- #ifndef OD_ENTRY_H1011
-  #define OD_ENTRY_H1011 NULL
- #endif
-#endif
-
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
  #define OD_CNT_LEDS 1
 #endif
@@ -325,8 +313,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
             || config->CNT_EM > 1 || config->CNT_SDO_SRV > 128
             || config->CNT_SDO_CLI > 128 || config->CNT_SYNC > 1
             || config->CNT_RPDO > 512 || config->CNT_TPDO > 512
-            || config->CNT_TIME > 1
-            || config->OD_CNT_STORAGE > 1 || config->CNT_LEDS > 1
+            || config->CNT_TIME > 1 || config->CNT_LEDS > 1
             || config->CNT_GFC > 1 || config->CNT_SRDO > 64
             || config->CNT_LSS_SLV > 1 || config->CNT_LSS_MST > 1
             || config->CNT_GTWA > 1
@@ -466,16 +453,6 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
             mem += sizeof(CO_TPDO_t) * CO_GET_CNT(TPDO);
             ON_MULTI_OD(co->CNT_TPDO = config->CNT_TPDO);
             ON_MULTI_OD(TX_CNT_TPDO = config->CNT_TPDO);
-        }
-#endif
-
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-        if (CO_GET_CNT(STORAGE) == 1) {
-            p = calloc(1, sizeof(CO_storage_t));
-            if (p == NULL) break;
-            else co->storage = (CO_storage_t *)p;
-            CO_storage_pre_init(co->storage);
-            mem += sizeof(CO_storage_t);
         }
 #endif
 
@@ -694,10 +671,6 @@ void CO_delete(CO_t *co) {
     free(co->GFC);
 #endif
 
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-    free(co->storage);
-#endif
-
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     free(co->LEDs);
 #endif
@@ -771,9 +744,6 @@ void CO_delete(CO_t *co) {
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
     static CO_TPDO_t COO_TPDO[OD_CNT_TPDO];
 #endif
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-    static CO_storage_t COO_storage;
-#endif
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     static CO_LEDs_t COO_LEDs;
 #endif
@@ -831,9 +801,6 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #endif
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
     co->TPDO = &COO_TPDO[0];
-#endif
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-    co->storage = &COO_storage;
 #endif
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     co->LEDs = &COO_LEDs;
@@ -977,17 +944,6 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     if (nodeId < 1 || nodeId > 127) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
-
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-    if (CO_GET_CNT(STORAGE) == 1) {
-        err = CO_storage_init(co->storage,
-                              OD_GET(H1010, OD_H1010_STORE_PARAMETERS),
-                              OD_GET(H1011, OD_H1011_RESTORE_DEFAULT),
-                              true,
-                              errInfo);
-        if (err) return err;
-    }
-#endif
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     if (CO_GET_CNT(LEDS) == 1) {

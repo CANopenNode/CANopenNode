@@ -38,7 +38,6 @@
 #include "301/CO_SYNC.h"
 #include "301/CO_PDO.h"
 #include "301/CO_TIME.h"
-#include "301/CO_storage.h"
 #include "303/CO_LEDs.h"
 #include "304/CO_GFC.h"
 #include "304/CO_SRDO.h"
@@ -234,10 +233,6 @@ typedef struct {
     uint16_t CNT_TPDO;
     OD_entry_t *ENTRY_H1800; /**< OD entry for @ref CO_TPDO_init() */
     OD_entry_t *ENTRY_H1A00; /**< OD entry for @ref CO_TPDO_init() */
-    /** Number of storage objects, 0 or 1. */
-    uint8_t CNT_STORAGE;
-    OD_entry_t *ENTRY_H1010; /**< OD entry for @ref CO_storage_init() */
-    OD_entry_t *ENTRY_H1011; /**< OD entry for @ref CO_storage_init() */
     /** Number of LEDs objects, 0 or 1. */
     uint8_t CNT_LEDS;
     /** Number of GFC objects, 0 or 1 (CANrx + CANtx). */
@@ -342,10 +337,6 @@ typedef struct {
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
     uint16_t TX_IDX_TPDO; /**< Start index in CANtx. */
  #endif
-#endif
-#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) || defined CO_DOXYGEN
-    /** Storage object, initialised by @ref CO_storage_init() */
-    CO_storage_t *storage;
 #endif
 #if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
     /** LEDs object, initialised by @ref CO_LEDs_init() */

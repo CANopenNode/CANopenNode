@@ -37,21 +37,22 @@
  *
  * For more information see file CO_storage.h, CO_storage_entry_t.
  */
-static ODR_t storeLinux(void *object, void *addr, OD_size_t len) {
+static ODR_t storeLinux(CO_storage_entry_t *entry) {
     ODR_t ret = ODR_OK;
-    char *filename = object;
     uint16_t crc_store;
 
     /* Create names for temporary and old file */
-    size_t fn_len = strlen(filename) + 5;
+    size_t fn_len = strlen(entry->filename) + 5;
     char *filename_tmp = malloc(fn_len);
     char *filename_old = malloc(fn_len);
     if (filename_tmp == NULL || filename_old == NULL) {
+        if (filename_tmp != NULL) free(filename_tmp);
+        if (filename_old != NULL) free(filename_old);
         ret = ODR_OUT_OF_MEM;
     }
     else {
-        strcpy(filename_tmp, filename);
-        strcpy(filename_old, filename);
+        strcpy(filename_tmp, entry->filename);
+        strcpy(filename_old, entry->filename);
         strcat(filename_tmp, ".tmp");
         strcat(filename_old, ".old");
     }
@@ -64,12 +65,12 @@ static ODR_t storeLinux(void *object, void *addr, OD_size_t len) {
         }
         else {
             CO_LOCK_OD();
-            size_t cnt = fwrite(addr, 1, len, fp);
-            crc_store = crc16_ccitt(addr, len, 0);
+            size_t cnt = fwrite(entry->addr, 1, entry->len, fp);
+            crc_store = crc16_ccitt(entry->addr, entry->len, 0);
             CO_UNLOCK_OD();
             cnt += fwrite(&crc_store, 1, sizeof(crc_store), fp);
             fclose(fp);
-            if (cnt != (len + sizeof(crc_store))) {
+            if (cnt != (entry->len + sizeof(crc_store))) {
                 ret = ODR_HW;
             }
         }
@@ -82,19 +83,19 @@ static ODR_t storeLinux(void *object, void *addr, OD_size_t len) {
         size_t cnt = 0;
         uint16_t crc_verify, crc_read;
 
-        buf = malloc(len + 4);
+        buf = malloc(entry->len + 4);
         if (buf != NULL) {
             fp = fopen(filename_tmp, "r");
             if (fp != NULL) {
-                cnt = fread(buf, 1, len + 4, fp);
-                crc_verify = crc16_ccitt(buf, len, 0);
+                cnt = fread(buf, 1, entry->len + 4, fp);
+                crc_verify = crc16_ccitt(buf, entry->len, 0);
                 fclose(fp);
-                memcpy(&crc_read, &buf[len], sizeof(crc_read));
+                memcpy(&crc_read, &buf[entry->len], sizeof(crc_read));
             }
             free(buf);
         }
         /* If size or CRC differs, report error */
-        if (buf == NULL || fp == NULL || cnt != (len + sizeof(crc_verify))
+        if (buf == NULL || fp == NULL || cnt != (entry->len+sizeof(crc_verify))
             || crc_store != crc_verify || crc_store != crc_read
         ) {
             ret = ODR_HW;
@@ -103,8 +104,8 @@ static ODR_t storeLinux(void *object, void *addr, OD_size_t len) {
 
     /* rename existing file to *.old and *.tmp to existing */
     if (ret == ODR_OK) {
-        if (rename(filename, filename_old) != 0
-            || rename(filename_tmp, filename) != 0
+        if (rename(entry->filename, filename_old) != 0
+            || rename(filename_tmp, entry->filename) != 0
         ) {
             ret = ODR_HW;
         }
@@ -122,27 +123,30 @@ static ODR_t storeLinux(void *object, void *addr, OD_size_t len) {
  *
  * For more information see file CO_storage.h, CO_storage_entry_t.
  */
-static ODR_t restoreLinux(void *object, void *addr, OD_size_t len) {
-    (void) addr; (void) len;
-
-    char *filename = object;
+static ODR_t restoreLinux(CO_storage_entry_t *entry) {
     ODR_t ret = ODR_OK;
 
+    /* close the file first, if auto storage */
+    if ((entry->attr & CO_storage_auto) != 0 && entry->fp != NULL) {
+        fclose(entry->fp);
+        entry->fp = NULL;
+    }
+
     /* Rename existing filename to *.old. */
-    char *filename_old = malloc(strlen(filename) + 5);
+    char *filename_old = malloc(strlen(entry->filename) + 5);
     if (filename_old == NULL) {
         ret = ODR_OUT_OF_MEM;
     }
     else {
-        strcpy(filename_old, filename);
+        strcpy(filename_old, entry->filename);
         strcat(filename_old, ".old");
-        rename(filename, filename_old);
+        rename(entry->filename, filename_old);
         free(filename_old);
     }
 
     /* create an empty file and write "-\n" to it. */
     if (ret == ODR_OK) {
-        FILE *fp = fopen(filename, "w");
+        FILE *fp = fopen(entry->filename, "w");
         if (fp == NULL) {
             ret = ODR_HW;
         }
@@ -156,166 +160,157 @@ static ODR_t restoreLinux(void *object, void *addr, OD_size_t len) {
 }
 
 
-CO_ReturnError_t CO_storageLinux_entry_init(CO_storage_t *storage,
-                                            CO_storage_entry_t *newEntry,
-                                            void *addr,
-                                            OD_size_t len,
-                                            char *filename,
-                                            uint8_t subIndexOD)
+CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
+                                      OD_entry_t *OD_1010_StoreParameters,
+                                      OD_entry_t *OD_1011_RestoreDefaultParam,
+                                      CO_storage_entry_t *entries,
+                                      uint8_t entriesCount,
+                                      uint32_t *storageInitError)
 {
+    CO_ReturnError_t ret;
+    *storageInitError = 0;
+
     /* verify arguments */
-    if (storage == NULL || newEntry == NULL || addr == NULL || len == 0
-        || filename == NULL || subIndexOD < 1
+    if (storage == NULL || entries == NULL || entriesCount == 0
+        || storageInitError == NULL
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    /* configure newEntry and add it to the storage */
-    newEntry->addr = addr;
-    newEntry->len = len;
-    newEntry->object = filename;
-    newEntry->subIndexOD = subIndexOD;
-    newEntry->store = storeLinux;
-    newEntry->restore = restoreLinux;
-
-    CO_ReturnError_t ret;
-    FILE *fp = NULL;
-    uint8_t *buf = NULL;
-
-    /* Add newEntry to storage object */
-    ret = CO_storage_entry_init(storage, newEntry);
-
-    /* Open file, check existence and create temporary buffer */
-    if (ret == CO_ERROR_NO) {
-        fp = fopen(filename, "r");
-        if (fp == NULL) {
-            ret = CO_ERROR_DATA_CORRUPT;
-        }
-        else {
-            buf = malloc(len + 4);
-            if (buf == NULL) {
-                ret = CO_ERROR_OUT_OF_MEMORY;
-            }
-        }
-    }
-
-    /* Read data into temporary buffer first. Then verify and copy to addr */
-    if (ret == CO_ERROR_NO) {
-        size_t cnt = fread(buf, 1, len + 4, fp);
-
-        uint16_t crc1, crc2;
-        crc1 = crc16_ccitt(buf, len, 0);
-        memcpy(&crc2, &buf[len], sizeof(crc2));
-
-        if (cnt == 2 && buf[0] == '-') {
-            /* File is empty, default values will be used, no error */
-        }
-        else if (cnt != (len + sizeof(crc2)) || crc1 != crc2) {
-            /* Data length does not match */
-            ret = CO_ERROR_DATA_CORRUPT;
-        }
-        else {
-            /* no errors, copy data into Object dictionary */
-            memcpy(addr, buf, len);
-        }
-    }
-
-    if (buf != NULL) free(buf);
-    if (fp != NULL) fclose(fp);
-
-    return ret;
-}
-
-
-CO_ReturnError_t CO_storageLinux_auto_init(CO_storageLinux_auto_t *storageAuto,
-                                           void *addr,
-                                           OD_size_t len,
-                                           char *filename)
-{
-    /* verify arguments */
-    if (storageAuto == NULL || addr == NULL || len == 0 || filename == NULL) {
-        return CO_ERROR_ILLEGAL_ARGUMENT;
-    }
-
-    /* configure variables */
-    storageAuto->addr = addr;
-    storageAuto->len = len;
-    storageAuto->crc = 0;
-    bool_t readOK = false;
-    char *writeFileAccess = "w";
-
-    /* Open the file, read data into temporary buffer, verify them and copy them
-     * into addr. If file does not exist or data is corrupt, just skip reading
-     * and keep the default values. */
-    FILE *fp = fopen(filename, "r");
-    if (fp != NULL) {
-        uint8_t *buf = malloc(len + 4);
-        if (buf != NULL) {
-            size_t cnt = fread(buf, 1, len + 4, fp);
-
-            if (cnt == 2 && buf[0] == '-') {
-                /* File is empty, default values will be used, no error */
-                readOK = true;
-            }
-            else {
-                uint16_t crc1, crc2;
-                crc1 = crc16_ccitt(buf, len, 0);
-                memcpy(&crc2, &buf[len], sizeof(crc2));
-
-                if (crc1 == crc2 && cnt == (len + sizeof(crc2))) {
-                    memcpy(addr, buf, len);
-                    storageAuto->crc = crc1;
-                    readOK = true;
-                    writeFileAccess = "r+";
-                }
-            }
-            free(buf);
-        }
-        fclose(fp);
-    }
-
-    storageAuto->fp = fopen(filename, writeFileAccess);
-    if (storageAuto->fp == NULL) return CO_ERROR_ILLEGAL_ARGUMENT;
-
-    return readOK ? CO_ERROR_NO : CO_ERROR_DATA_CORRUPT;
-}
-
-
-bool_t CO_storageLinux_auto_process(CO_storageLinux_auto_t *storageAuto,
-                                    bool_t closeFile)
-{
-    bool_t ret = false;
-
-    /* verify arguments */
-    if (storageAuto == NULL || storageAuto->fp == NULL) {
+    /* initialize storage and OD extensions */
+    ret = CO_storage_init(storage,
+                          OD_1010_StoreParameters,
+                          OD_1011_RestoreDefaultParam,
+                          storeLinux,
+                          restoreLinux,
+                          entries,
+                          entriesCount);
+    if (ret != CO_ERROR_NO) {
         return ret;
     }
 
-    /* If CRC of the current data differs, save the file */
-    uint16_t crc = crc16_ccitt(storageAuto->addr, storageAuto->len, 0);
-    if (crc == storageAuto->crc) {
-        ret = true;
+    /* initialize entries */
+    for (uint8_t i = 0; i < entriesCount; i++) {
+        CO_storage_entry_t *entry = &entries[i];
+        bool_t dataCorrupt = false;
+        char *writeFileAccess = "w";
+
+        /* verify arguments */
+        if (entry->addr == NULL || entry->len == 0 || entry->subIndexOD < 2
+            || strlen(entry->filename) == 0
+        ) {
+            *storageInitError = i;
+            return CO_ERROR_ILLEGAL_ARGUMENT;
+        }
+
+        /* Open file, check existence and create temporary buffer */
+        uint8_t *buf = NULL;
+        FILE * fp = fopen(entry->filename, "r");
+        if (fp == NULL) {
+            dataCorrupt = true;
+            ret = CO_ERROR_DATA_CORRUPT;
+        }
+        else {
+            buf = malloc(entry->len + 4);
+            if (buf == NULL) {
+                fclose(fp);
+                *storageInitError = i;
+                return CO_ERROR_OUT_OF_MEMORY;
+            }
+        }
+
+        /* Read data into temporary buffer first. Then verify and copy to addr*/
+        if (!dataCorrupt) {
+            size_t cnt = fread(buf, 1, entry->len + 4, fp);
+
+            /* If file is empty, just skip loading, default values will be used,
+             * no error. Otherwise verify length and crc and copy data. */
+            if (!(cnt == 2 && buf[0] == '-')) {
+                uint16_t crc1, crc2;
+                crc1 = crc16_ccitt(buf, entry->len, 0);
+                memcpy(&crc2, &buf[entry->len], sizeof(crc2));
+
+                if (crc1 == crc2 && cnt == (entry->len + sizeof(crc2))) {
+                    memcpy(entry->addr, buf, entry->len);
+                    entry->crc = crc1;
+                    writeFileAccess = "r+";
+                }
+                else {
+                    dataCorrupt = true;
+                    ret = CO_ERROR_DATA_CORRUPT;
+                }
+            }
+
+            free(buf);
+            fclose(fp);
+        }
+
+        /* additional info in case of error */
+        if (dataCorrupt) {
+            uint32_t errorBit = entry->subIndexOD;
+            if (errorBit > 31) errorBit = 31;
+            *storageInitError |= ((uint32_t) 1) << errorBit;
+        }
+
+        /* open file for auto storage, if set so */
+        if ((entry->attr & CO_storage_auto) != 0) {
+            entry->fp = fopen(entry->filename, writeFileAccess);
+            if (entry->fp == NULL) {
+                *storageInitError = i;
+                return CO_ERROR_ILLEGAL_ARGUMENT;
+            }
+        }
+    } /* for (entries) */
+
+    return ret;
+}
+
+
+uint32_t CO_storageLinux_auto_process(CO_storage_t *storage,
+                                      bool_t closeFiles)
+{
+    uint32_t storageError = 0;
+
+    /* verify arguments */
+    if (storage == NULL) {
+        return false;
     }
-    else {
-        size_t cnt;
-        rewind(storageAuto->fp);
-        CO_LOCK_OD();
-        cnt = fwrite(storageAuto->addr, 1, storageAuto->len, storageAuto->fp);
-        CO_UNLOCK_OD();
-        cnt += fwrite(&crc, 1, sizeof(crc), storageAuto->fp);
-        fflush(storageAuto->fp);
-        if (cnt == (storageAuto->len + sizeof(crc))) {
-            storageAuto->crc = crc;
-            ret = true;
+
+    /* loop through entries */
+    for (uint8_t i = 0; i < storage->entriesCount; i++) {
+        CO_storage_entry_t *entry = &storage->entries[i];
+
+        if ((entry->attr & CO_storage_auto) == 0 || entry->fp == NULL)
+            continue;
+
+        /* If CRC of the current data differs, save the file */
+        uint16_t crc = crc16_ccitt(entry->addr, entry->len, 0);
+        if (crc != entry->crc) {
+            size_t cnt;
+            rewind(entry->fp);
+            CO_LOCK_OD();
+            cnt = fwrite(entry->addr, 1, entry->len, entry->fp);
+            CO_UNLOCK_OD();
+            cnt += fwrite(&crc, 1, sizeof(crc), entry->fp);
+            fflush(entry->fp);
+            if (cnt == (entry->len + sizeof(crc))) {
+                entry->crc = crc;
+            }
+            else {
+                /* error with save */
+                uint32_t errorBit = entry->subIndexOD;
+                if (errorBit > 31) errorBit = 31;
+                storageError |= ((uint32_t) 1) << errorBit;
+            }
+        }
+
+        if (closeFiles) {
+            fclose(entry->fp);
+            entry->fp = NULL;
         }
     }
 
-    if (closeFile) {
-        fclose(storageAuto->fp);
-        storageAuto->fp = NULL;
-    }
-
-    return ret;
+    return storageError;
 }
 
 #endif /* (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE */

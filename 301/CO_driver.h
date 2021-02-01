@@ -346,6 +346,29 @@ typedef struct {
 
 
 /**
+ * Data storage object for one entry.
+ *
+ * Must be defined in the **CO_driver_target.h** file.
+ *
+ * For more information on Data storage see @ref CO_storage or **CO_storage.h**
+ * file. Structure members documented here are required. Target system shall add
+ * own additional, hardware specific variables.
+ */
+typedef struct {
+    /** Address of data to store */
+    void *addr;
+    /** Length of data to store */
+    size_t len;
+    /** Sub index in OD objects 1010 and 1011, from 2 to 127. Writing
+     * 0x65766173 to 1010,subIndexOD will store data to non-volatile memory.
+     * Writing 0x64616F6C to 1011,subIndexOD will restore default data. */
+    uint8_t subIndexOD;
+    /** Attribute from @ref CO_storage_attributes_t */
+    uint8_t attr;
+} CO_storage_entry_t;
+
+
+/**
  * @defgroup CO_critical_sections Critical sections
  * @{
  * CANopenNode is designed to run in different threads, as described in

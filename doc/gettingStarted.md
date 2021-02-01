@@ -118,6 +118,11 @@ Now store Object dictionary on node-ID 4, so it will preserve variables on next 
     4 w 0x1010 1 u32 0x65766173
     [0] OK
 
+0x65766173 are ascii characters for 's', 'a', 'v', 'e', so it is easier to simply write visible string instead of unsigned 32. This is equivalent to the above command:
+
+    4 w 0x1010 1 vs save
+    [0] OK
+
 More details about Object dictionary variables can be found in CiA301 standard or in example/DS301_profile.md file.
 
 

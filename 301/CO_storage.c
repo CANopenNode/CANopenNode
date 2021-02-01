@@ -43,7 +43,9 @@ static OD_size_t OD_write_1010(OD_stream_t *stream, uint8_t subIndex,
         return 0;
     }
 
-    if (subIndex == 0) {
+    CO_storage_t *storage = stream->object;
+
+    if (subIndex == 0 || storage->store == NULL) {
         *returnCode = ODR_READONLY;
         return 0;
     }
@@ -53,29 +55,24 @@ static OD_size_t OD_write_1010(OD_stream_t *stream, uint8_t subIndex,
         return 0;
     }
 
-    CO_storage_t *storage = stream->object;
-    CO_storage_entry_t *entry = storage->firstEntry;
-    bool_t found = false;
+    /* loop through entries and store relevant */
+    uint8_t found = 0;
     *returnCode = ODR_OK;
 
-    /* call pre-configured function matching subIndex or call all functions */
-    while (entry != NULL) {
-        if (entry->store != NULL
-            && (entry->subIndexOD == subIndex
-                || (storage->sub1_all && subIndex == 1))
-        ) {
-            ODR_t code = entry->store(entry->object, entry->addr, entry->len);
-            found = true;
+    for (uint8_t i = 0; i < storage->entriesCount; i++) {
+        CO_storage_entry_t *entry = &storage->entries[i];
 
-            if (code != ODR_OK) *returnCode = code;
-            if (!(storage->sub1_all && subIndex == 1)) {
-                break;
+        if (subIndex == 1 || entry->subIndexOD == subIndex) {
+            if (found == 0) found = 1;
+            if ((entry->attr & CO_storage_cmd) != 0) {
+                ODR_t code = storage->store(entry);
+                if (code != ODR_OK) *returnCode = code;
+                found = 2;
             }
         }
-        entry = entry->nextEntry;
     }
 
-    if (!found) *returnCode = ODR_SUB_NOT_EXIST;
+    if (found != 2) *returnCode = found == 0 ? ODR_SUB_NOT_EXIST : ODR_READONLY;
 
     return *returnCode == ODR_OK ? 4 : 0;
 }
@@ -98,7 +95,9 @@ static OD_size_t OD_write_1011(OD_stream_t *stream, uint8_t subIndex,
         return 0;
     }
 
-    if (subIndex == 0) {
+    CO_storage_t *storage = stream->object;
+
+    if (subIndex == 0 || storage->restore == NULL) {
         *returnCode = ODR_READONLY;
         return 0;
     }
@@ -108,29 +107,24 @@ static OD_size_t OD_write_1011(OD_stream_t *stream, uint8_t subIndex,
         return 0;
     }
 
-    CO_storage_t *storage = stream->object;
-    CO_storage_entry_t *entry = storage->firstEntry;
-    bool_t found = false;
+    /* loop through entries and store relevant */
+    uint8_t found = 0;
     *returnCode = ODR_OK;
 
-    /* call pre-configured function matching subIndex or call all functions */
-    while (entry != NULL) {
-        if (entry->restore != NULL
-            && (entry->subIndexOD == subIndex
-                || (storage->sub1_all && subIndex == 1))
-        ) {
-            ODR_t code = entry->restore(entry->object, entry->addr, entry->len);
-            found = true;
+    for (uint8_t i = 0; i < storage->entriesCount; i++) {
+        CO_storage_entry_t *entry = &storage->entries[i];
 
-            if (code != ODR_OK) *returnCode = code;
-            if (!(storage->sub1_all && subIndex == 1)) {
-                break;
+        if (subIndex == 1 || entry->subIndexOD == subIndex) {
+            if (found == 0) found = 1;
+            if ((entry->attr & CO_storage_restore) != 0) {
+                ODR_t code = storage->restore(entry);
+                if (code != ODR_OK) *returnCode = code;
+                found = 2;
             }
         }
-        entry = entry->nextEntry;
     }
 
-    if (!found) *returnCode = ODR_SUB_NOT_EXIST;
+    if (found != 2) *returnCode = found == 0 ? ODR_SUB_NOT_EXIST : ODR_READONLY;
 
     return *returnCode == ODR_OK ? 4 : 0;
 }
@@ -139,74 +133,37 @@ static OD_size_t OD_write_1011(OD_stream_t *stream, uint8_t subIndex,
 CO_ReturnError_t CO_storage_init(CO_storage_t *storage,
                                  OD_entry_t *OD_1010_StoreParameters,
                                  OD_entry_t *OD_1011_RestoreDefaultParameters,
-                                 bool_t sub1_all,
-                                 uint32_t *errInfo)
+                                 ODR_t (*store)(CO_storage_entry_t *entry),
+                                 ODR_t (*restore)(CO_storage_entry_t *entry),
+                                 CO_storage_entry_t *entries,
+                                 uint8_t entriesCount)
 {
-    ODR_t odRet;
-
     /* verify arguments */
-    if (storage == NULL || OD_1010_StoreParameters == NULL) {
+    if (storage == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    /* object was pre-initialised by CO_storage_pre_init() */
-
-    storage->sub1_all = sub1_all;
+    /* Configure object variables */
+    storage->store = store;
+    storage->restore = restore;
+    storage->entries = entries;
+    storage->entriesCount = entriesCount;
 
     /* configure extensions */
-    storage->OD_1010_extension.object = storage;
-    storage->OD_1010_extension.read = OD_readOriginal;
-    storage->OD_1010_extension.write = OD_write_1010;
-    odRet = OD_extension_init(OD_1010_StoreParameters,
-                              &storage->OD_1010_extension);
-    if (odRet != ODR_OK) {
-        if (errInfo != NULL)
-            *errInfo = OD_getIndex(OD_1010_StoreParameters);
-        return CO_ERROR_OD_PARAMETERS;
+    if (OD_1010_StoreParameters != NULL) {
+        storage->OD_1010_extension.object = storage;
+        storage->OD_1010_extension.read = OD_readOriginal;
+        storage->OD_1010_extension.write = OD_write_1010;
+        OD_extension_init(OD_1010_StoreParameters, &storage->OD_1010_extension);
     }
 
     if (OD_1011_RestoreDefaultParameters != NULL) {
         storage->OD_1011_extension.object = storage;
         storage->OD_1011_extension.read = OD_readOriginal;
         storage->OD_1011_extension.write = OD_write_1011;
-        odRet = OD_extension_init(OD_1011_RestoreDefaultParameters,
-                                  &storage->OD_1011_extension);
-        if (odRet != ODR_OK) {
-            if (errInfo != NULL)
-                *errInfo = OD_getIndex(OD_1011_RestoreDefaultParameters);
-            return CO_ERROR_OD_PARAMETERS;
-        }
+        OD_extension_init(OD_1011_RestoreDefaultParameters,
+                          &storage->OD_1011_extension);
     }
-
-    return CO_ERROR_NO;
-}
-
-
-CO_ReturnError_t CO_storage_entry_init(CO_storage_t *storage,
-                                       CO_storage_entry_t *newEntry) {
-    /* verify arguments */
-    if (storage == NULL || newEntry == NULL || newEntry->addr == NULL
-        || newEntry->len == 0 || newEntry->subIndexOD == 0
-    ) {
-        return CO_ERROR_ILLEGAL_ARGUMENT;
-    }
-
-    CO_storage_entry_t **entry = &storage->firstEntry;
-
-    /* Add newEntry on the end of linked list or replace existing entry */
-    for ( ; ; ) {
-        if (*entry == NULL) {
-            newEntry->nextEntry = NULL;
-            *entry = newEntry;
-            break;
-        }
-        if ((*entry)->subIndexOD == newEntry->subIndexOD) {
-            newEntry->nextEntry = (*entry)->nextEntry;
-            *entry = newEntry;
-            break;
-        }
-        *entry = (*entry)->nextEntry;
-    };
 
     return CO_ERROR_NO;
 }

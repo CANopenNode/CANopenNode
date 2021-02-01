@@ -36,6 +36,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <endian.h>
 #ifndef CO_SINGLE_THREAD
 #include <pthread.h>
@@ -354,6 +355,27 @@ typedef struct {
     uint32_t txIdentToIndex[CO_CAN_MSG_SFF_MAX_COB_ID];
 #endif
 } CO_CANmodule_t;
+
+
+/* Data storage: Maximum file name length including path */
+#ifndef CO_STORAGE_PATH_MAX
+#define CO_STORAGE_PATH_MAX 255
+#endif
+
+/* Data storage object for one entry */
+typedef struct {
+    void *addr;
+    size_t len;
+    uint8_t subIndexOD;
+    uint8_t attr;
+    /* Name of the file, where data block is stored */
+    char filename[CO_STORAGE_PATH_MAX];
+    /* CRC checksum of the data stored previously, for auto storage */
+    uint16_t crc;
+    /* Pointer to opened file, for auto storage */
+    FILE *fp;
+} CO_storage_entry_t;
+
 
 #ifdef CO_SINGLE_THREAD
 #define CO_LOCK_CAN_SEND()

@@ -45,48 +45,55 @@ extern "C" {
  * @ingroup CO_CANopen_301
  * @{
  *
- * CANopen data storage - connection to Object Dictionary
+ * CANopen provides OD objects 0x1010 and 0x1011 for control of storing and
+ * restoring data. Data source is usually a group of variables inside object
+ * dictionary, but it is not limited to OD.
+ *
+ * When object dictionary is generated (OD.h and OD.c files), OD variables are
+ * grouped into structures according to 'Storage group' parameter.
+ *
+ * Autonomous data storing must be implemented target specific, if in use.
+ *
+ * ### OD object 0x1010 - Store parameters:
+ * - Sub index 0: Highest sub-index supported
+ * - Sub index 1: Save all parameters, UNSIGNED32
+ * - Sub index 2: Save communication parameters, UNSIGNED32
+ * - Sub index 3: Save application parameters, UNSIGNED32
+ * - Sub index 4 - 127: Manufacturer specific, UNSIGNED32
+ *
+ * Sub-indexes 1 and above:
+ * - Reading provides information about its storage functionality:
+ *   - bit 0: If set, CANopen device saves parameters on command
+ *   - bit 1: If set, CANopen device saves parameters autonomously
+ * - Writing value 0x65766173 ('s','a','v','e' from LSB to MSB) stores
+ *   corresponding data.
+ *
+ * ### OD object 0x1011 - Restore default parameters
+ * - Sub index 0: Highest sub-index supported
+ * - Sub index 1: Restore all default parameters, UNSIGNED32
+ * - Sub index 2: Restore communication default parameters, UNSIGNED32
+ * - Sub index 3: Restore application default parameters, UNSIGNED32
+ * - Sub index 4 - 127: Manufacturer specific, UNSIGNED32
+ *
+ * Sub-indexes 1 and above:
+ * - Reading provides information about its restoring capability:
+ *   - bit 0: If set, CANopen device restores parameters
+ * - Writing value 0x64616F6C ('l','o','a','d' from LSB to MSB) restores
+ *   corresponding data.
  */
 
 
 /**
- * Data storage object for one entry.
- *
- * Object is defined by application and registered with
- * @ref CO_storage_entry_init() function.
+ * Attributes (bit masks) for Data storage object.
  */
-typedef struct {
-    /** Address of data to store */
-    void *addr;
-    /** Length of data to store */
-    OD_size_t len;
-    /** Object defined by application, passed to store and restore functions. */
-    void *object;
-    /** Sub index in OD objects 1010 and 1011, from 2 to 254. Writing
-     * 0x65766173 to 1010,subIndexOD will store data to non-volatile memory.
-     * Writing 0x64616F6C to 1011,subIndexOD will restore default data. */
-    uint8_t subIndexOD;
-    /**
-     * Pointer to externally defined function, which will store data from addr.
-     *
-     * @param object object from above.
-     * @param addr Address form above.
-     * @param len Length from above.
-     *
-     * @return Value from @ref ODR_t, "ODR_OK" in case of success, "ODR_HW" in
-     * case of error in hardware.
-     */
-    ODR_t (*store)(void *object, void *addr, OD_size_t len);
-    /**
-     * Pointer to externally defined function, which will restore data to addr.
-     *
-     * For description of arguments see above.
-     */
-    ODR_t (*restore)(void *object, void *addr, OD_size_t len);
-    /** Pointer to next entry, initialized inside @ref CO_storage_entry_init()
-     * function. */
-    void *nextEntry;
-} CO_storage_entry_t;
+typedef enum {
+    /** CANopen device saves parameters on OD 1010 command */
+    CO_storage_cmd = 0x01,
+    /** CANopen device saves parameters autonomously */
+    CO_storage_auto = 0x02,
+    /** CANopen device restores parameters on OD 1011 command  */
+    CO_storage_restore = 0x04
+} CO_storage_attributes_t;
 
 
 /**
@@ -95,74 +102,56 @@ typedef struct {
  * Object is used with CANopen OD objects at index 1010 and 1011.
  */
 typedef struct {
-    /** Extension for OD object */
-    OD_extension_t OD_1010_extension;
-    /** Extension for OD object */
-    OD_extension_t OD_1011_extension;
-    /** Null on the beginning, @ref CO_storage_entry_init() adds objects here
-     * and creates linked list. */
-    CO_storage_entry_t *firstEntry;
-    /** From @ref CO_storage_init(). */
-    bool_t sub1_all;
+    OD_extension_t OD_1010_extension; /**< Extension for OD object */
+    OD_extension_t OD_1011_extension; /**< Extension for OD object */
+    ODR_t (*store)(CO_storage_entry_t *entry); /**< From CO_storage_init() */
+    ODR_t (*restore)(CO_storage_entry_t *entry); /**< From CO_storage_init() */
+    CO_storage_entry_t *entries; /**< From CO_storage_init() */
+    uint8_t entriesCount; /**< From CO_storage_init() */
 } CO_storage_t;
 
 
 /**
- * Pre-initialize data storage object.
+ * Initialize data storage object
  *
- * This function must be called before first @ref CO_storage_entry_init()
- * function call. It is used inside @ref CO_new().
+ * This function should be called by application after the program startup,
+ * before @ref CO_CANopenInit(). This function initializes storage object and
+ * OD extensions on objects 1010 and 1011. Function does not load stored data
+ * on startup, because loading data is target specific.
  *
- * @param storage This object will be pre-initialized.
- */
-static inline void CO_storage_pre_init(CO_storage_t *storage) {
-    if (storage != NULL) storage->firstEntry = NULL;
-}
-
-
-/**
- * Initialize data storage object for usage with OD objects 1010 and 1011.
- *
- * Function is used inside @ref CO_CANopenInit(). It does not erase
- * pre-configured entries from CO_storage_entry_init() calls.
- *
- * @param storage This object will be initialized.
+ * @param storage This object will be initialized. It must be defined by
+ * application and must exist permanently.
  * @param OD_1010_StoreParameters OD entry for 0x1010 -"Store parameters".
+ * Entry is optional, may be NULL.
  * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 -"Restore default
  * parameters". Entry is optional, may be NULL.
- * @param sub1_all If true, then writing to sub-index 1 of 1010 and 1011 will
- * store/restore all data. This is default in CANopen.
- * @param [out] errInfo Additional information in case of error, may be NULL.
+ * @param store Pointer to externally defined function, which will store data
+ * specified by @ref CO_storage_entry_t. Function will be called when
+ * OD variable 0x1010 will be written. Argument to function is entry, where
+ * 'entry->subIndexOD' equals accessed subIndex. Function returns value from
+ * @ref ODR_t : "ODR_OK" in case of success, "ODR_HW" in case of hardware error.
+ * @param restore Same as 'store', but for restoring default data.
+ * @param entries Pointer to array of storage entries. Array must be defined and
+ * initialized by application and must exist permanently. Each array element
+ * contains:
+ * - Pointer and length of data, which will be stored or restored,
+ * - subIndexOD, which binds entry to specific subindex in 1010 and 1011 OD
+ *   objects. Multiple entries with the same subIndexOD are possible.
+ * - Attribute, which specifies, if data is stored on command or automatically
+ *   and also specifies if data is able to restore. @ref CO_storage_attributes_t
+ * - Additional target specific parameters. See @ref CO_storage_entry_t in
+ *   CO_driver_target.h file.
+ * @param entriesCount Count of storage entries
  *
- * @return CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OD_PARAMETERS.
+ * @return CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_storage_init(CO_storage_t *storage,
                                  OD_entry_t *OD_1010_StoreParameters,
                                  OD_entry_t *OD_1011_RestoreDefaultParameters,
-                                 bool_t sub1_all,
-                                 uint32_t *errInfo);
-
-
-/**
- * Initialize / add one entry into data storage object
- *
- * This function may be called by application one or several times after
- * @ref CO_storage_pre_init() and before @ref CO_CANopenInit(). If entry with
- * the same CO_storage_entry_t->subIndexOD as in newEntry already exists in
- * storage object, then that entry in storage object will be replaced with
- * newEntry. So it is not a problem to call this function multiple times with
- * the same subIndexOD in CANopen communication reset section.
- *
- * @param storage Data storage object.
- * @param newEntry New entry for data storage object. It must be initialized
- * externally. This object must exist permanently. To disable entry, set store
- * and restore function pointers to NULL.
- *
- * @return CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
- */
-CO_ReturnError_t CO_storage_entry_init(CO_storage_t *storage,
-                                       CO_storage_entry_t *newEntry);
-
+                                 ODR_t (*store)(CO_storage_entry_t *entry),
+                                 ODR_t (*restore)(CO_storage_entry_t *entry),
+                                 CO_storage_entry_t *entries,
+                                 uint8_t entriesCount);
 
 /** @} */ /* CO_storage */
 

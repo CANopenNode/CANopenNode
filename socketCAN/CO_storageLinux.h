@@ -45,84 +45,54 @@ extern "C" {
 
 
 /**
- * Initialize / add one entry into data storage object (Linux specific)
+ * Initialize data storage object (Linux specific)
  *
- * This function configures newEntry and calls @ref CO_storage_entry_init().
- * Then reads data from file, verifies and writes them to addr.
+ * This function should be called by application after the program startup,
+ * before @ref CO_CANopenInit(). This function initializes storage object,
+ * OD extensions on objects 1010 and 1011, reads data from file, verifies them
+ * and writes data to addresses specified inside entries. This function
+ * internally calls @ref CO_storage_init().
  *
- * @param storage Data storage object.
- * @param newEntry Data storage object for one entry. It will be configured and
- * must exist permanently.
- * @param addr Address of data to store
- * @param len Length of data to store
- * @param filename Name of the file, where data are stored.
- * @param subIndexOD Sub index in OD 1010 and 1011 ,see @ref CO_storage_entry_t
+ * @param storage This object will be initialized. It must be defined by
+ * application and must exist permanently.
+ * @param OD_1010_StoreParameters OD entry for 0x1010 -"Store parameters".
+ * Entry is optional, may be NULL.
+ * @param OD_1011_RestoreDefaultParam OD entry for 0x1011 -"Restore default
+ * parameters". Entry is optional, may be NULL.
+ * @param entries Pointer to array of storage entries, see @ref CO_storage_init.
+ * @param entriesCount Count of storage entries
+ * @param [out] storageInitError If function returns CO_ERROR_DATA_CORRUPT,
+ * then this variable contains a bit mask from subIndexOD values, where data
+ * was not properly initialized. If other error, then this variable contains
+ * index or erroneous entry.
  *
- * @return CO_ERROR_NO, CO_ERROR_DATA_CORRUPT if memory can not be initialized,
+ * @return CO_ERROR_NO, CO_ERROR_DATA_CORRUPT if data can not be initialized,
  * CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY.
  */
-CO_ReturnError_t CO_storageLinux_entry_init(CO_storage_t *storage,
-                                            CO_storage_entry_t *newEntry,
-                                            void *addr,
-                                            OD_size_t len,
-                                            char *filename,
-                                            uint8_t subIndexOD);
-
-
-/**
- * Object for automatic data storage
- */
-typedef struct {
-    /** Address of data to store */
-    void *addr;
-    /** Length of data to store */
-    OD_size_t len;
-    /** CRC checksum of the data stored previously. */
-    uint16_t crc;
-    /** Pointer to file opened by @ref CO_storageLinux_auto_init() */
-    FILE *fp;
-} CO_storageLinux_auto_t;
-
-
-/**
- * Initialize automatic storage with Linux
- *
- * Function in combination with @ref CO_storageLinux_auto_process() are
- * standalone functions. They are used for automatic data storage.
- *
- * This function configures storageAuto, then reads data from file. If data are
- * valid, then it writes them to addr. Function also open file pointer for
- * writing and keeps it open.
- *
- * @param storageAuto This object will be initialized.
- * @param addr Address of data to store
- * @param len Length of data to store
- * @param filename Name of the file, where data are stored.
- *
- * @return CO_ERROR_NO, CO_ERROR_DATA_CORRUPT if memory can not be initialized,
- * CO_ERROR_ILLEGAL_ARGUMENT, if file can not be opened for writing.
- */
-CO_ReturnError_t CO_storageLinux_auto_init(CO_storageLinux_auto_t *storageAuto,
-                                           void *addr,
-                                           OD_size_t len,
-                                           char *filename);
+CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
+                                      OD_entry_t *OD_1010_StoreParameters,
+                                      OD_entry_t *OD_1011_RestoreDefaultParam,
+                                      CO_storage_entry_t *entries,
+                                      uint8_t entriesCount,
+                                      uint32_t *storageInitError);
 
 
 /**
  * Automatically save data if differs from previous call.
  *
  * Should be called cyclically by program. Each interval it verifies, if crc
- * checksum of data differs previous checksum. If it does, data are saved into
- * file, opened by CO_storageLinux_auto_init().
+ * checksum of data differs from previous checksum. If it does, data are saved
+ * into pre-opened file.
  *
- * @param storageAuto This object
- * @param closeFile If true, then data will be stored regardless interval and
- * file will be closed. Use on end of program.
+ * @param storage This object
+ * @param closeFiles If true, then all files will be closed. Use on end of the
+ * program.
  *
- * @return true, if data are unchanged or saved successfully.
+ * @return 0 on success or bit mask from subIndexOD values, where data was not
+ * able to be saved.
  */
-bool_t CO_storageLinux_auto_process(CO_storageLinux_auto_t *storageAuto,
-                                    bool_t closeFile);
+uint32_t CO_storageLinux_auto_process(CO_storage_t *storage,
+                                      bool_t closeFiles);
 
 /** @} */ /* CO_storageLinux */
 

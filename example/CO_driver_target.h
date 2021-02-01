@@ -230,6 +230,16 @@ typedef struct {
 } CO_CANmodule_t;
 
 
+/* Data storage object for one entry */
+typedef struct {
+    void *addr;
+    size_t len;
+    uint8_t subIndexOD;
+    uint8_t attr;
+    /* Additional variables */
+} CO_storage_entry_t;
+
+
 /* (un)lock critical section in CO_CANsend() */
 #define CO_LOCK_CAN_SEND()
 #define CO_UNLOCK_CAN_SEND()

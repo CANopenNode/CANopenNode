@@ -95,6 +95,15 @@
 #define TIME_STAMP_INTERVAL_MS 10000
 #endif
 
+/* Definitions for application specific data storage objects */
+#ifndef CO_STORAGE_APPLICATION
+#define CO_STORAGE_APPLICATION
+#endif
+/* Interval for automatic data storage in microseconds */
+#ifndef CO_STORAGE_AUTO_INTERVAL
+#define CO_STORAGE_AUTO_INTERVAL 60000000
+#endif
+
 /* CANopen object */
 CO_t *CO = NULL;
 
@@ -104,55 +113,6 @@ typedef struct { uint16_t bitRate; uint8_t nodeId; } CO_pending_t;
 CO_pending_t CO_pending = { .bitRate = 0, .nodeId = CO_LSS_NODE_ID_ASSIGNMENT };
 /* Active node-id, copied from CO_pending.nodeId in the communication reset */
 static uint8_t CO_activeNodeId = CO_LSS_NODE_ID_ASSIGNMENT;
-
-/* Data storage for Object Dictionnary and LSS */
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-/* Maximum file name length including path for storage */
-#ifndef CO_STORAGE_PATH_MAX
-#define CO_STORAGE_PATH_MAX 255
-#endif
-
-/* Definitions for application specific storage objects */
-#ifndef CO_STORAGE_APPLICATION
-#define CO_STORAGE_APPLICATION
-#endif
-
-/* Interval for automatic storage in microseconds */
-#ifndef CO_STORAGE_AUTO_INTERVAL
-#define CO_STORAGE_AUTO_INTERVAL 60000000
-#endif
-
-/* Configure objects for storage */
-typedef struct {
-    /* Address, length and filename of data to store */
-    void *addr;
-    OD_size_t len;
-    char filename[CO_STORAGE_PATH_MAX];
-    /* Subindex in OD objects 1010 and 1011 or 0 for auto storage.
-     * 1 is reserved for storing all parameters */
-    uint8_t subIndexOD;
-    /* Object for storage or auto storage, usage depends on subIndexOD */
-    CO_storage_entry_t entry;
-    CO_storageLinux_auto_t entryAuto;
-} CO_storageLinux_entry_t;
-CO_storageLinux_entry_t storage[] = {
-    {
-        .addr = &CO_pending,
-        .len = sizeof(CO_pending),
-        .filename = {'l', 's', 's',
-                     '.', 'p', 'e', 'r', 's', 'i', 's', 't', '\0'},
-        .subIndexOD = 0
-    },
-    {
-        .addr = &OD_PERSIST_COMM,
-        .len = sizeof(OD_PERSIST_COMM),
-        .filename = {'o', 'd', '_', 'c', 'o', 'm', 'm',
-                     '.', 'p', 'e', 'r', 's', 'i', 's', 't', '\0'},
-        .subIndexOD = 2
-    },
-    CO_STORAGE_APPLICATION
-};
-#endif /* (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE */
 
 #if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
 static CO_time_t            CO_time;            /* Object for current time */
@@ -312,10 +272,6 @@ int main (int argc, char *argv[]) {
 #endif
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_ReturnError_t err;
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-    uint32_t storageInitError = 0;
-    uint32_t storageIntervalTimer = 0;
-#endif
     CO_CANptrSocketCan_t CANptr = {0};
     int opt;
     bool_t firstRun = true;
@@ -323,6 +279,33 @@ int main (int argc, char *argv[]) {
     char* CANdevice = NULL;         /* CAN device, configurable by arguments. */
     bool_t nodeIdFromArgs = false;  /* True, if program arguments are used for CANopen Node Id */
     bool_t rebootEnable = false;    /* Configurable by arguments */
+
+#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
+    CO_storage_t storage;
+    CO_storage_entry_t storageEntries[] = {
+        {
+            .addr = &OD_PERSIST_COMM,
+            .len = sizeof(OD_PERSIST_COMM),
+            .subIndexOD = 2,
+            .attr = CO_storage_cmd | CO_storage_restore,
+            .filename = {'o','d','_','c','o','m','m',
+                        '.','p','e','r','s','i','s','t','\0'}
+        },
+        {
+            .addr = &CO_pending,
+            .len = sizeof(CO_pending),
+            .subIndexOD = 4,
+            .attr = CO_storage_cmd | CO_storage_auto | CO_storage_restore,
+            .filename = {'l','s','s','.','p','e','r','s','i','s','t','\0'}
+        },
+        CO_STORAGE_APPLICATION
+    };
+    uint8_t storageEntriesCount = sizeof(storageEntries) / sizeof(storageEntries[0]);
+    uint32_t storageInitError = 0;
+    uint32_t storageErrorPrev = 0;
+    uint32_t storageIntervalTimer = 0;
+#endif
+
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
     CO_epoll_gtw_t epGtw;
     /* values from CO_commandInterface_t */
@@ -344,7 +327,7 @@ int main (int argc, char *argv[]) {
         printUsage(argv[0]);
         exit(EXIT_SUCCESS);
     }
-    while((opt = getopt(argc, argv, "i:p:rc:T:s:a:")) != -1) {
+    while((opt = getopt(argc, argv, "i:p:rc:T:s:")) != -1) {
         switch (opt) {
             case 'i':
                 nodeIdFromArgs = true;
@@ -390,11 +373,11 @@ int main (int argc, char *argv[]) {
 #endif
 #if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
             case 's': {
-                /* add prefix to each storage[i].filename */
-                for (int i = 0; i < sizeof(storage) / sizeof(storage[0]); i++) {
+                /* add prefix to each storageEntries[i].filename */
+                for (uint8_t i = 0; i < storageEntriesCount; i++) {
                     char* filePrefix = optarg;
                     size_t filePrefixLen = strlen(filePrefix);
-                    char* file = storage[i].filename;
+                    char* file = storageEntries[i].filename;
                     size_t fileLen = strlen(file);
                     if (fileLen + filePrefixLen < CO_STORAGE_PATH_MAX) {
                         memmove(&file[filePrefixLen], &file[0], fileLen + 1);
@@ -454,31 +437,20 @@ int main (int argc, char *argv[]) {
 
 #if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
     uint8_t pendingNodeIdOriginal = CO_pending.nodeId;
-    for (int i = 0; i < sizeof(storage) / sizeof(storage[0]); i++) {
-        CO_storageLinux_entry_t *st = &storage[i];
-        if (st->subIndexOD == 0) {
-            err = CO_storageLinux_auto_init(&st->entryAuto,
-                                            st->addr,
-                                            st->len,
-                                            st->filename);
-        } else {
-            err = CO_storageLinux_entry_init(CO->storage,
-                                             &st->entry,
-                                             st->addr,
-                                             st->len,
-                                             st->filename,
-                                             st->subIndexOD);
-        }
-        if (err == CO_ERROR_DATA_CORRUPT) {
-            uint32_t bit = 1;
-            if (i < 32) bit <<= i;
-            storageInitError |= bit;
-        }
-        else if (err != CO_ERROR_NO) {
-            log_printf(LOG_CRIT, DBG_OBJECT_DICTIONARY, st->filename);
-            exit(EXIT_FAILURE);
-        }
+    err = CO_storageLinux_init(&storage,
+                               OD_ENTRY_H1010_storeParameters,
+                               OD_ENTRY_H1011_restoreDefaultParameters,
+                               storageEntries,
+                               storageEntriesCount,
+                               &storageInitError);
+
+    if (err != CO_ERROR_NO && err != CO_ERROR_DATA_CORRUPT) {
+        char *filename = storageInitError < storageEntriesCount
+                       ? storageEntries[storageInitError].filename : "???";
+        log_printf(LOG_CRIT, DBG_OBJECT_DICTIONARY, filename);
+        exit(EXIT_FAILURE);
     }
+
     /* Overwrite stored node-id, if specified by program arguments */
     if (nodeIdFromArgs) {
         CO_pending.nodeId = pendingNodeIdOriginal;
@@ -723,18 +695,18 @@ int main (int argc, char *argv[]) {
                 storageIntervalTimer += epMain.timeDifference_us;
             }
             else {
-                storageIntervalTimer = 0;
-                for (int i = 0; i < sizeof(storage) / sizeof(storage[0]); i++) {
-                    CO_storageLinux_entry_t *st = &storage[i];
-                    if (st->subIndexOD == 0) {
-                        bool_t storageOK = CO_storageLinux_auto_process(
-                                                        &st->entryAuto, false);
-                        if(!storageOK && !CO->nodeIdUnconfigured) {
-                            CO_errorReport(CO->em, CO_EM_NON_VOLATILE_AUTO_SAVE,
-                                           CO_EMC_HARDWARE, i);
-                        }
+                uint32_t err = CO_storageLinux_auto_process(&storage, false);
+                if(err != storageErrorPrev && !CO->nodeIdUnconfigured) {
+                    if(err != 0) {
+                        CO_errorReport(CO->em, CO_EM_NON_VOLATILE_AUTO_SAVE,
+                                       CO_EMC_HARDWARE, err);
+                    }
+                    else {
+                        CO_errorReset(CO->em, CO_EM_NON_VOLATILE_AUTO_SAVE, 0);
                     }
                 }
+                storageErrorPrev = err;
+                storageIntervalTimer = 0;
             }
 #endif
         }
@@ -756,12 +728,7 @@ int main (int argc, char *argv[]) {
 #endif
 
 #if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-    for (int i = 0; i < sizeof(storage) / sizeof(storage[0]); i++) {
-        CO_storageLinux_entry_t *st = &storage[i];
-        if (st->subIndexOD == 0) {
-            CO_storageLinux_auto_process(&st->entryAuto, true);
-        }
-    }
+    CO_storageLinux_auto_process(&storage, true);
 #endif
 
     /* delete objects from memory */
