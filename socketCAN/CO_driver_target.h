@@ -306,7 +306,7 @@ typedef struct {
     uint8_t DLC;
     uint8_t padding[3];     /* ensure alignment */
     uint8_t data[8];
-    volatile bool_t bufferFull; /* not used */
+    volatile bool_t bufferFull;
     volatile bool_t syncFlag;   /* info about transmit message */
     int can_ifindex;            /* CAN Interface index to use */
 } CO_CANtx_t;
@@ -346,6 +346,7 @@ typedef struct {
     uint16_t txSize;
     uint16_t CANerrorStatus;
     volatile bool_t CANnormal;
+    volatile uint16_t CANtxCount;
     int epoll_fd;               /* File descriptor for epoll, which waits for
                                    CAN receive event */
 #if CO_DRIVER_MULTI_INTERFACE > 0 || defined CO_DOXYGEN

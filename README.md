@@ -17,6 +17,9 @@ Dictionary and are accessible from both: C code and from CANopen network.
 
 CANopenNode homepage is https://github.com/CANopenNode/CANopenNode
 
+This is renewed version of CANopenNode with new Object Dictionary implementation.
+For older versions see branches `v1.3-master` or `v2.0-master`.
+
 
 Characteristics
 ---------------

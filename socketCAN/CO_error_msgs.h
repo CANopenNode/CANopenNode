@@ -41,7 +41,7 @@ extern "C" {
 #define CAN_ERROR_FILTER_FAILED   "(%s) Setting CAN Interface \"%s\" error filter failed", __func__
 #define CAN_FILTER_FAILED         "(%s) Setting CAN Interface \"%s\" message filter failed", __func__
 #define CAN_NAMETOINDEX           "CAN Interface \"%s\" -> Index %d"
-#define CAN_SOCKET_BUF_SIZE       "CAN Interface \"%s\" Buffer set to %d messages (%d Bytes)"
+#define CAN_SOCKET_BUF_SIZE       "CAN Interface \"%s\" RX buffer set to %d messages (%d Bytes)"
 #define CAN_RX_SOCKET_QUEUE_OVERFLOW "CAN Interface \"%s\" has lost %d messages"
 #define CAN_BUSOFF                "CAN Interface \"%s\" changed to \"Bus Off\". Switching to Listen Only mode..."
 #define CAN_NOACK                 "CAN Interface \"%s\" no \"ACK\" received.  Switching to Listen Only mode..."
@@ -60,7 +60,7 @@ extern "C" {
 #define DBG_GENERAL               "(%s) Error: %s%d", __func__
 #define DBG_ERRNO                 "(%s) OS error \"%s\" in %s", __func__, strerror(errno)
 #define DBG_CO_DEBUG              "(%s) CO_DEBUG: %s", __func__
-#define DBG_CAN_TX_FAILED         "(%s) Transmitting CAN msg OID 0x%08x failed(%s)", __func__
+#define DBG_CAN_TX_FAILED         "(%s) Transmitting CAN msg OID 0x%03x failed(%s)", __func__
 #define DBG_CAN_RX_PARAM_FAILED   "(%s) Setting CAN rx buffer failed (%s)", __func__
 #define DBG_CAN_RX_FAILED         "(%s) Receiving CAN msg failed (%s)", __func__
 #define DBG_CAN_ERROR_GENERAL     "(%s) Socket error msg ID: 0x%08x, Data[0..7]: 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x (%s)", __func__

@@ -180,7 +180,7 @@ Another interesting tool is [CANopen for Python](https://github.com/christiansan
 Examples here worked in virtual CAN interface, for simplicity. Virtual CAN runs inside Linux kernel only, it does not have much practical usability. If one has real CAN network configuration, then above examples are suitable also for this network, if Linux machine is connected to it and CAN interface is properly configured. When connecting your devices to real CAN network, make sure, you have at least two devices communicating, connected with ground and pair of wires, terminated with two 120ohm resistors, correct baudrate, etc.
 
 Accessing real CANopen devices is the same as described above for virtual CAN interface. Some tested USB to CAN interfaces, which are native in Linux kernel are:
- - Simple serial [USBtin](http://www.fischl.de/usbtin/) - Start with: `sudo slcand -f -o -c -s8 /dev/ttyACM0 can0; sudo ip link set up can0`
+ - Simple serial [USBtin](http://www.fischl.de/usbtin/) - Start with (-s5=250kbps): `sudo slcand -f -o -c -s5 /dev/ttyACM0 can0; sudo ip link set up can0`
  - [EMS CPC-USB](https://www.ems-wuensche.com/?post_type=product&p=746) or [PCAN-USB FD](http://www.peak-system.com/PCAN-USB-FD.365.0.html?&L=1) - Start with: `sudo ip link set up can0 type can bitrate 250000`
  - You can get the idea of other supported CAN interfaces in [Linux kernel source](https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/net/can) (Kconfig files).
  - Raspberry PI or similar has CAN capes available.

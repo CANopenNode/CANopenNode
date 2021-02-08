@@ -847,7 +847,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         SDO_C->state = CO_SDO_ST_ABORT;
     }
 
-    /* Timeout timers *********************************************************/
+    /* Timeout timers and transmit bufferFull flag ****************************/
     if (ret == CO_SDO_RT_waitingResponse) {
         if (SDO_C->timeoutTimer < SDO_C->SDOtimeoutTime_us) {
             SDO_C->timeoutTimer += timeDifference_us;
@@ -1547,7 +1547,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         SDO_C->state = CO_SDO_ST_ABORT;
     }
 
-    /* Timeout timers *********************************************************/
+    /* Timeout timers and transmit bufferFull flag ****************************/
     if (ret == CO_SDO_RT_waitingResponse) {
         if (SDO_C->timeoutTimer < SDO_C->SDOtimeoutTime_us) {
             SDO_C->timeoutTimer += timeDifference_us;

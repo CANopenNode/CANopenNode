@@ -1142,7 +1142,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
         CO_FLAG_CLEAR(SDO->CANrxNew);
     } /* if (isNew) */
 
-    /* Timeout timers *********************************************************/
+    /* Timeout timers and transmit bufferFull flag ****************************/
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
     if (ret == CO_SDO_RT_waitingResponse) {
         if (SDO->timeoutTimer < SDO->SDOtimeoutTime_us) {

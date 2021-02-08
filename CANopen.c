@@ -1261,7 +1261,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                               uint32_t timeDifference_us,
                               uint32_t *timerNext_us)
 {
-    (void) enableGateway; (void) timerNext_us; /* may be unused */
+    (void) enableGateway; /* may be unused */
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_NMT_internalState_t NMTstate = CO_NMT_getInternalState(co->NMT);
 
