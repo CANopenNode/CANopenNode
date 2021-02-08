@@ -225,6 +225,8 @@ CO_ReturnError_t CO_CANmodule_init(
     CANmodule->txSize = txSize;
     CANmodule->CANerrorStatus = 0;
     CANmodule->CANnormal = false;
+    CANmodule->CANtxCount = 0;
+
 #if CO_DRIVER_MULTI_INTERFACE > 0
     for (i = 0; i < CO_CAN_MSG_SFF_MAX_COB_ID; i++) {
         CANmodule->rxIdentToIndex[i] = CO_INVALID_COB_ID;
@@ -572,6 +574,7 @@ CO_ReturnError_t CO_CANtxBuffer_setInterface(
 }
 
 #endif /* CO_DRIVER_MULTI_INTERFACE */
+#if CO_DRIVER_MULTI_INTERFACE > 0
 
 /* send CAN message ***********************************************************/
 static CO_ReturnError_t CO_CANCheckSendInterface(
@@ -702,6 +705,68 @@ CO_ReturnError_t CO_CANCheckSend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     return err;
 }
 
+#warning CO_CANsend() is outdated for CO_DRIVER_MULTI_INTERFACE > 0
+
+#endif /* CO_DRIVER_MULTI_INTERFACE > 0 */
+
+
+#if CO_DRIVER_MULTI_INTERFACE == 0
+
+/* Change handling of tx buffer full in CO_CANsend(). Use CO_CANtx_t->bufferFull
+ * flag. Re-transmit undelivered message inside CO_CANmodule_process(). */
+CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
+{
+    CO_ReturnError_t err = CO_ERROR_NO;
+
+    if (CANmodule==NULL || buffer==NULL || CANmodule->CANinterfaceCount==0) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    CO_CANinterface_t *interface = &CANmodule->CANinterfaces[0];
+    if (interface == NULL || interface->fd < 0) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    /* Verify overflow */
+    if(buffer->bufferFull){
+#if CO_DRIVER_ERROR_REPORTING > 0
+        interface->errorhandler.CANerrorStatus |= CO_CAN_ERRTX_OVERFLOW;
+#endif
+        log_printf(LOG_ERR, DBG_CAN_TX_FAILED, buffer->ident, interface->ifName);
+        err = CO_ERROR_TX_OVERFLOW;
+    }
+
+    errno = 0;
+    ssize_t n = send(interface->fd, buffer, CAN_MTU, MSG_DONTWAIT);
+    if (errno == 0 && n == CAN_MTU) {
+        /* success */
+        if (buffer->bufferFull) {
+            buffer->bufferFull = false;
+            CANmodule->CANtxCount--;
+        }
+    }
+    else if (errno == EINTR || errno == EAGAIN || errno == ENOBUFS) {
+        /* Send failed, message will be re-sent by CO_CANmodule_process() */
+        if (!buffer->bufferFull) {
+            buffer->bufferFull = true;
+            CANmodule->CANtxCount++;
+        }
+        err = CO_ERROR_TX_BUSY;
+    }
+    else {
+        /* Unknown error */
+        log_printf(LOG_DEBUG, DBG_ERRNO, "send()");
+#if CO_DRIVER_ERROR_REPORTING > 0
+        interface->errorhandler.CANerrorStatus |= CO_CAN_ERRTX_OVERFLOW;
+#endif
+        err = CO_ERROR_SYSCALL;
+    }
+
+    return err;
+}
+
+#endif /* CO_DRIVER_MULTI_INTERFACE == 0 */
+
 
 /******************************************************************************/
 void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
@@ -714,18 +779,41 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule)
 /******************************************************************************/
 void CO_CANmodule_process(CO_CANmodule_t *CANmodule)
 {
+    if (CANmodule == NULL || CANmodule->CANinterfaceCount == 0) return;
+
+#if CO_DRIVER_ERROR_REPORTING > 0
   /* socketCAN doesn't support microcontroller-like error counters. If an
    * error has occured, a special can message is created by the driver and
    * received by the application like a regular message.
    * Therefore, error counter evaluation is included in rx function.
    * Here we just copy evaluated CANerrorStatus from the first CAN interface. */
 
-#if CO_DRIVER_ERROR_REPORTING > 0
-    if (CANmodule->CANinterfaceCount > 0) {
-        CANmodule->CANerrorStatus =
-            CANmodule->CANinterfaces[0].errorhandler.CANerrorStatus;
-    }
+    CANmodule->CANerrorStatus =
+        CANmodule->CANinterfaces[0].errorhandler.CANerrorStatus;
 #endif
+
+#if CO_DRIVER_MULTI_INTERFACE == 0
+    /* recall CO_CANsend(), if message was unsent before */
+    if (CANmodule->CANtxCount > 0) {
+        bool_t found = false;
+
+        for (uint16_t i = 0; i < CANmodule->txSize; i++) {
+            CO_CANtx_t *buffer = &CANmodule->txArray[i];
+
+            if (buffer->bufferFull) {
+                buffer->bufferFull = false;
+                CANmodule->CANtxCount--;
+                CO_CANsend(CANmodule, buffer);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            CANmodule->CANtxCount = 0;
+        }
+    }
+#endif /* CO_DRIVER_MULTI_INTERFACE == 0 */
 }
 
 

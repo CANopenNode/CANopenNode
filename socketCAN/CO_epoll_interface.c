@@ -50,6 +50,11 @@
 #endif
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
 
+/* delay for recall CANsend(), if CAN TX buffer is full */
+#ifndef CANSEND_DELAY_US
+#define CANSEND_DELAY_US 100
+#endif
+
 
 /* EPOLL **********************************************************************/
 /* Helper function - get monotonic clock time in microseconds */
@@ -292,7 +297,14 @@ void CO_epoll_processMain(CO_epoll_t *ep,
     }
 
     /* process CANopen objects */
-    *reset = CO_process(co, ep->timeDifference_us, &ep->timerNext_us);
+    *reset = CO_process(co,
+                        ep->timeDifference_us,
+                        &ep->timerNext_us);
+
+    /* If there are unsent CAN messages, call CO_CANmodule_process() earlier */
+    if (co->CANmodule[0]->CANtxCount > 0 && ep->timerNext_us > CANSEND_DELAY_US) {
+        ep->timerNext_us = CANSEND_DELAY_US;
+    }
 }
 
 
