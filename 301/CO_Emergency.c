@@ -554,6 +554,7 @@ void CO_EM_process(CO_EM_t *em,
     (void)timerNext_us; /* may be unused */
 
     /* verify errors from driver */
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER)
     uint16_t CANerrSt = em->CANdevTx->CANerrorStatus;
     if (CANerrSt != em->CANerrorStatusOld) {
         uint16_t CANerrStChanged = CANerrSt ^ em->CANerrorStatusOld;
@@ -588,6 +589,7 @@ void CO_EM_process(CO_EM_t *em,
             CO_error(em, (CANerrSt & CO_CAN_ERRRX_OVERFLOW) != 0,
                      CO_EM_CAN_RXB_OVERFLOW, CO_EM_CAN_RXB_OVERFLOW, 0);
     }
+#endif
 
     /* calculate Error register */
     uint8_t errorRegister = 0U;
