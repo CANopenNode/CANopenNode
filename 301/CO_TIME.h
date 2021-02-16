@@ -181,7 +181,9 @@ static inline void CO_TIME_set(CO_TIME_t *TIME,
         TIME->residual_us = 0;
         TIME->ms = ms;
         TIME->days = days;
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER)
         TIME->producerTimer_ms = TIME->producerInterval_ms =producerInterval_ms;
+#endif
     }
 }
 
