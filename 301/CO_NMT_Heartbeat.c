@@ -328,6 +328,25 @@ CO_NMT_reset_cmd_t CO_NMT_process(
     return (CO_NMT_reset_cmd_t) NMT->resetCommand;
 }
 
+/******************************************************************************/
+void CO_NMT_setInternalState(CO_NMT_t *NMT,
+                                           CO_NMT_internalState_t state)
+{
+    if (NMT == NULL) 
+        return;
+
+    if (NMT->operatingState == state)
+        return;
+
+    NMT->operatingState = state;
+
+#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
+    if (NMT->pFunctNMT != NULL) {
+        NMT->pFunctNMT(NMT->operatingState);
+    }
+#endif
+}
+
 
 #if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
 /******************************************************************************/
