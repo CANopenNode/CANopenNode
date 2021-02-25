@@ -333,7 +333,9 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
     /* Configure object variables */
     SDO->OD = OD;
     SDO->nodeId = nodeId;
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED)
     SDO->SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 1000;
+#endif
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
     SDO->block_SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 700;
 #endif
@@ -1137,7 +1139,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->state = CO_SDO_ST_ABORT;
         }
         } /* switch (SDO->state) */
+#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
         SDO->timeoutTimer = 0;
+#endif
         timeDifference_us = 0;
         CO_FLAG_CLEAR(SDO->CANrxNew);
     } /* if (isNew) */
@@ -1206,7 +1210,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->CANtxBuff->data[3] = SDO->subIndex;
 
             /* reset timeout timer and send message */
+#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
             SDO->timeoutTimer = 0;
+#endif
             CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
             if (SDO->finished) {

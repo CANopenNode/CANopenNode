@@ -351,10 +351,10 @@ static void CO_EM_receive(void *object, void *msg) {
 
 /******************************************************************************/
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
+                            CO_CANmodule_t *CANdevTx,
                             const OD_entry_t *OD_1001_errReg,
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
                             OD_entry_t *OD_1014_cobIdEm,
-                            CO_CANmodule_t *CANdevTx,
                             uint16_t CANdevTxIdx,
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
                             OD_entry_t *OD_1015_InhTime,
@@ -395,6 +395,9 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
     /* clear the object */
     memset(em, 0, sizeof(CO_EM_t));
+
+    /* set object variables */
+    em->CANdevTx = CANdevTx;
 
     /* get and verify "Error register" from Object Dictionary */
     em->errorRegister = OD_getPtr(OD_1001_errReg, 0, sizeof(uint8_t), NULL);
@@ -451,7 +454,6 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
     /* configure parameters and emergency message CAN transmission */
     em->nodeId = nodeId;
-    em->CANdevTx = CANdevTx;
 
     em->CANtxBuff = CO_CANtxBufferInit(
             CANdevTx,           /* CAN device */

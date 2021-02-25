@@ -960,10 +960,10 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     /* Emergency */
     if (CO_GET_CNT(EM) == 1) {
         err = CO_EM_init(co->em,
+                         co->CANmodule,
                          OD_GET(H1001, OD_H1001_ERR_REG),
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
                          OD_GET(H1014, OD_H1014_COBID_EMERGENCY),
-                         co->CANmodule,
                          CO_GET_CO(TX_IDX_EM_PROD),
   #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
                          OD_GET(H1015, OD_H1015_INHIBIT_TIME_EMCY),

@@ -373,6 +373,8 @@ typedef struct {
     uint8_t *errorRegister;
     /** Old CAN error status bitfield */
     uint16_t CANerrorStatusOld;
+    /** From CO_EM_init() */
+    CO_CANmodule_t *CANdevTx;
 
 #if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) \
     || defined CO_DOXYGEN
@@ -403,8 +405,6 @@ typedef struct {
     bool_t producerEnabled;
     /** Copy of CANopen node ID, from CO_EM_init() */
     uint8_t nodeId;
-    /** From CO_EM_init() */
-    CO_CANmodule_t *CANdevTx;
     /** CAN transmit buffer */
     CO_CANtx_t *CANtxBuff;
     /** Extension for OD object */
@@ -459,11 +459,11 @@ typedef struct {
  * Function must be called in the communication reset section.
  *
  * @param em This object will be initialized.
+ * @param CANdevTx CAN device for Emergency transmission.
  * @param OD_1001_errReg OD entry for 0x1001 - "Error register", entry is
  * required, without IO extension.
  * @param OD_1014_cobIdEm OD entry for 0x1014 - "COB-ID EMCY", entry is
  * required, IO extension is required.
- * @param CANdevTx CAN device for Emergency transmission.
  * @param CANdevTxIdx Index of transmit buffer in the above CAN device.
  * @param OD_1015_InhTime OD entry for 0x1015 - "Inhibit time EMCY", entry is
  * optional (can be NULL), IO extension is optional for runtime configuration.
@@ -483,10 +483,10 @@ typedef struct {
  * @return @ref CO_ReturnError_t CO_ERROR_NO in case of success.
  */
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
+                            CO_CANmodule_t *CANdevTx,
                             const OD_entry_t *OD_1001_errReg,
 #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) || defined CO_DOXYGEN
                             OD_entry_t *OD_1014_cobIdEm,
-                            CO_CANmodule_t *CANdevTx,
                             uint16_t CANdevTxIdx,
  #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) || defined CO_DOXYGEN
                             OD_entry_t *OD_1015_InhTime,
