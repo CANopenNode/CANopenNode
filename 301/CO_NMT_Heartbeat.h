@@ -265,11 +265,8 @@ static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
  * @param NMT This object.
  * @param state New state.
  */
-static inline void CO_NMT_setInternalState(CO_NMT_t *NMT,
-                                           CO_NMT_internalState_t state)
-{
-    if (NMT != NULL) NMT->operatingState = state;
-}
+void CO_NMT_setInternalState(CO_NMT_t *NMT,
+                                           CO_NMT_internalState_t state);
 
 
 #if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
