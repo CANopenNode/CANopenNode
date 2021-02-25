@@ -320,18 +320,17 @@ static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
 
 
 /**
- * Set internal NMT state
+ * Send NMT command to self, without sending NMT message
  *
- * Functions sets state directly, without any checking. @ref CO_NMT_process()
- * may also switch between states automatically, see @ref CO_NMT_control_t.
+ * Internal NMT state will be verified and switched inside @ref CO_NMT_process()
  *
  * @param NMT This object.
- * @param state New state.
+ * @param command NMT command
  */
-static inline void CO_NMT_setInternalState(CO_NMT_t *NMT,
-                                           CO_NMT_internalState_t state)
+static inline void CO_NMT_sendInternalCommand(CO_NMT_t *NMT,
+                                              CO_NMT_command_t command)
 {
-    if (NMT != NULL) NMT->operatingState = state;
+    if (NMT != NULL) NMT->internalCommand = command;
 }
 
 
