@@ -63,8 +63,9 @@ static OD_size_t OD_read_1014(OD_stream_t *stream, uint8_t subIndex,
                               void *buf, OD_size_t count,
                               ODR_t *returnCode)
 {
-    (void)count; /* "count" is already verified in *_init() function */
-    if (stream == NULL || subIndex != 0 || buf == NULL || returnCode == NULL) {
+    if (stream == NULL || subIndex != 0 || buf == NULL
+        || count != sizeof(uint32_t) || returnCode == NULL
+    ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
     }
@@ -84,8 +85,9 @@ static OD_size_t OD_write_1014(OD_stream_t *stream, uint8_t subIndex,
                                const void *buf, OD_size_t count,
                                ODR_t *returnCode)
 {
-    /* "count" is already verified in *_init() function */
-    if (stream == NULL || subIndex != 0 || buf == NULL || returnCode == NULL) {
+    if (stream == NULL || subIndex != 0 || buf == NULL
+        || count != sizeof(uint32_t) || returnCode == NULL
+    ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
     }
@@ -136,8 +138,9 @@ static OD_size_t OD_read_1014_default(OD_stream_t *stream, uint8_t subIndex,
                                       void *buf, OD_size_t count,
                                       ODR_t *returnCode)
 {
-    (void)count; /* "count" is already verified in *_init() function */
-    if (stream == NULL || subIndex != 0 || buf == NULL || returnCode == NULL) {
+    if (stream == NULL || subIndex != 0 || buf == NULL
+        || count != sizeof(uint32_t) || returnCode == NULL
+    ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
     }
@@ -162,8 +165,9 @@ static OD_size_t OD_write_1015(OD_stream_t *stream, uint8_t subIndex,
                                const void *buf, OD_size_t count,
                                ODR_t *returnCode)
 {
-    /* "count" is already verified in *_init() function */
-    if (stream == NULL || subIndex != 0 || buf == NULL || returnCode == NULL) {
+    if (stream == NULL || subIndex != 0 || buf == NULL
+        || count != sizeof(uint16_t) || returnCode == NULL
+    ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
     }
@@ -371,6 +375,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 {
     (void) nodeId; /* may be unused */
     CO_ReturnError_t ret = CO_ERROR_NO;
+    ODR_t odRet;
 
     /* verify arguments */
     if (em == NULL || OD_1001_errReg == NULL
@@ -392,12 +397,8 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     memset(em, 0, sizeof(CO_EM_t));
 
     /* get and verify "Error register" from Object Dictionary */
-    OD_size_t len;
-    ODR_t odRet;
-
-    odRet = OD_getPtr(OD_1001_errReg, 0, (void **)&em->errorRegister, &len);
-
-    if (odRet != ODR_OK || len != sizeof(uint8_t)) {
+    em->errorRegister = OD_getPtr(OD_1001_errReg, 0, sizeof(uint8_t), NULL);
+    if (em->errorRegister == NULL) {
         if (errInfo != NULL) *errInfo = OD_getIndex(OD_1001_errReg);
         return CO_ERROR_OD_PARAMETERS;
     }

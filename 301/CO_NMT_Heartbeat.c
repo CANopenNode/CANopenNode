@@ -63,8 +63,9 @@ static OD_size_t OD_write_1017(OD_stream_t *stream, uint8_t subIndex,
                                const void *buf, OD_size_t count,
                                ODR_t *returnCode)
 {
-    /* "count" is already verified in *_init() function */
-    if (stream == NULL || subIndex != 0 || buf == NULL || returnCode == NULL) {
+    if (stream == NULL || subIndex != 0 || buf == NULL
+        || count != sizeof(uint16_t) || returnCode == NULL
+    ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
     }

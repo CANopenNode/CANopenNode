@@ -93,9 +93,9 @@ static OD_size_t OD_write_1016(OD_stream_t *stream, uint8_t subIndex,
 {
     CO_HBconsumer_t *HBcons = stream->object;
 
-    /* "count" is already verified in *_init() function */
-    if (stream == NULL || buf == NULL || returnCode == NULL
+    if (stream == NULL || buf == NULL
         || subIndex < 1 || subIndex > HBcons->numberOfMonitoredNodes
+        || count != sizeof(uint32_t) || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;

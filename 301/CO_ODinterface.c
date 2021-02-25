@@ -350,22 +350,25 @@ ODR_t OD_set_value(const OD_entry_t *entry, uint8_t subIndex, void *val,
     return ret;
 }
 
-ODR_t OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, void **val,
-                OD_size_t *len)
+void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
+                ODR_t *err)
 {
-    ODR_t ret;
+    ODR_t errCopy;
     OD_IO_t io;
     OD_stream_t *stream = &io.stream;
 
-    ret = OD_getSub(entry, subIndex, &io, true);
+    errCopy = OD_getSub(entry, subIndex, &io, true);
 
-    if (ret != ODR_OK) return ret;
-    if (val == NULL || stream->dataOrig == NULL || stream->dataLength == 0)
-        return ODR_DEV_INCOMPAT;
+    if (errCopy == ODR_OK) {
+        if (stream->dataOrig == NULL || stream->dataLength == 0) {
+            errCopy = ODR_DEV_INCOMPAT;
+        }
+        else if (len != stream->dataLength) {
+            errCopy = ODR_TYPE_MISMATCH;
+        }
+    }
 
-    *val = stream->dataOrig;
+    if (err != NULL) *err = errCopy;
 
-    if (len != NULL) *len = stream->dataLength;
-
-    return ret;
+    return errCopy == ODR_OK ? stream->dataOrig : NULL;
 }

@@ -125,7 +125,7 @@ typedef struct {
  * Function must be called in the communication reset section.
  *
  * @param TIME This object will be initialized.
- * @param OD_1012_cobIdTimeStamp OD entry for 0x1012 -"COB-ID time stamp",
+ * @param OD_1012_cobIdTimeStamp OD entry for 0x1012 - "COB-ID time stamp",
  * entry is required.
  * @param CANdevRx CAN device for TIME reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.

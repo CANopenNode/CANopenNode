@@ -624,14 +624,13 @@ ODR_t OD_set_value(const OD_entry_t *entry, uint8_t subIndex, void *val,
  *
  * @param entry OD entry returned by @ref OD_find().
  * @param subIndex Sub-index of the variable from the OD object.
- * @param [out] val Pointer to variable will be written here.
- * @param [out] len Variable length will be written here. (allow NULL)
+ * @param len Required length of the variable.
+ * @param [out] err Error reason is written here in case of error (allow NULL).
  *
- * @return Value from @ref ODR_t, "ODR_OK" in case of success. Error, if
- * variable does not exist in object dictionary or other reason.
+ * @return Pointer to variable in Object Dictionary or NULL in case of error.
  */
-ODR_t OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, void **val,
-                OD_size_t *len);
+void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
+                ODR_t *err);
 /** @} */ /* CO_ODgetSetters */
 
 
