@@ -351,10 +351,10 @@ static void CO_EM_receive(void *object, void *msg) {
 
 /******************************************************************************/
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
+                            CO_CANmodule_t *CANdevTx,
                             const OD_entry_t *OD_1001_errReg,
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
                             OD_entry_t *OD_1014_cobIdEm,
-                            CO_CANmodule_t *CANdevTx,
                             uint16_t CANdevTxIdx,
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
                             OD_entry_t *OD_1015_InhTime,
@@ -395,6 +395,9 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
     /* clear the object */
     memset(em, 0, sizeof(CO_EM_t));
+
+    /* set object variables */
+    em->CANdevTx = CANdevTx;
 
     /* get and verify "Error register" from Object Dictionary */
     em->errorRegister = OD_getPtr(OD_1001_errReg, 0, sizeof(uint8_t), NULL);
@@ -451,7 +454,6 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
     /* configure parameters and emergency message CAN transmission */
     em->nodeId = nodeId;
-    em->CANdevTx = CANdevTx;
 
     em->CANtxBuff = CO_CANtxBufferInit(
             CANdevTx,           /* CAN device */
@@ -555,7 +557,6 @@ void CO_EM_process(CO_EM_t *em,
     (void)timerNext_us; /* may be unused */
 
     /* verify errors from driver */
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER)
     uint16_t CANerrSt = em->CANdevTx->CANerrorStatus;
     if (CANerrSt != em->CANerrorStatusOld) {
         uint16_t CANerrStChanged = CANerrSt ^ em->CANerrorStatusOld;
@@ -590,7 +591,6 @@ void CO_EM_process(CO_EM_t *em,
             CO_error(em, (CANerrSt & CO_CAN_ERRRX_OVERFLOW) != 0,
                      CO_EM_CAN_RXB_OVERFLOW, CO_EM_CAN_RXB_OVERFLOW, 0);
     }
-#endif
 
     /* calculate Error register */
     uint8_t errorRegister = 0U;
