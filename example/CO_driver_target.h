@@ -103,14 +103,6 @@ extern "C" {
                         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
-#ifndef CO_CONFIG_SYNC
-#define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | \
-                        CO_CONFIG_SYNC_PRODUCER | \
-                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
-                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
-#endif
-
 #ifndef CO_CONFIG_PDO
 #define CO_CONFIG_PDO (CO_CONFIG_RPDO_ENABLE | \
                        CO_CONFIG_TPDO_ENABLE | \

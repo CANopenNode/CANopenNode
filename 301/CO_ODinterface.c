@@ -363,7 +363,7 @@ void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
         if (stream->dataOrig == NULL || stream->dataLength == 0) {
             errCopy = ODR_DEV_INCOMPAT;
         }
-        else if (len != stream->dataLength) {
+        else if (len != 0 && len != stream->dataLength) {
             errCopy = ODR_TYPE_MISMATCH;
         }
     }

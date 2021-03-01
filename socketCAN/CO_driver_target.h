@@ -55,7 +55,6 @@ extern "C" {
 #endif
 
 /* TODO some parts are disabled in non-finished pre-release */
-#define CO_CONFIG_SYNC (0)
 #define CO_CONFIG_PDO (0)
 #define CO_CONFIG_TRACE (0)
 
@@ -121,14 +120,6 @@ extern "C" {
 #define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
                         CO_CONFIG_TIME_PRODUCER | \
                         CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
-#endif
-
-#ifndef CO_CONFIG_SYNC
-#define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | \
-                        CO_CONFIG_SYNC_PRODUCER | \
-                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
                         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 

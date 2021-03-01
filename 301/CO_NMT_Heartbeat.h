@@ -131,7 +131,7 @@ typedef enum {
  * to CANopen error register.
  *
  * Internal NMT state is controlled also with external NMT command,
- * @ref CO_NMT_setInternalState() or @ref CO_NMT_sendCommand() functions.
+ * @ref CO_NMT_sendInternalCommand() or @ref CO_NMT_sendCommand() functions.
  */
 typedef enum {
     /** First 8 bits can be used to specify bitmask for the

@@ -624,7 +624,8 @@ ODR_t OD_set_value(const OD_entry_t *entry, uint8_t subIndex, void *val,
  *
  * @param entry OD entry returned by @ref OD_find().
  * @param subIndex Sub-index of the variable from the OD object.
- * @param len Required length of the variable.
+ * @param len Required length of the variable. If len is different than zero,
+ * then actual length of the variable must match len or error is returned.
  * @param [out] err Error reason is written here in case of error (allow NULL).
  *
  * @return Pointer to variable in Object Dictionary or NULL in case of error.

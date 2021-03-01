@@ -1074,15 +1074,17 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     if (CO_GET_CNT(SYNC) == 1) {
         err = CO_SYNC_init(co->SYNC,
                            em,
-                           co->SDO[0],
-                           &co->NMT->operatingState,
-                           OD_COB_ID_SYNCMessage,
-                           OD_communicationCyclePeriod,
-                           OD_synchronousCounterOverflowValue,
+                           OD_GET(H1005, OD_H1005_COBID_SYNC),
+                           OD_GET(H1006, OD_H1006_COMM_CYCL_PERIOD),
+                           OD_GET(H1007, OD_H1007_SYNC_WINDOW_LEN),
+                           OD_GET(H1019, OD_H1019_SYNC_CNT_OVERFLOW),
                            co->CANmodule,
                            CO_GET_CO(RX_IDX_SYNC),
+#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
                            co->CANmodule,
-                           CO_GET_CO(TX_IDX_SYNC));
+                           CO_GET_CO(TX_IDX_SYNC),
+#endif
+                           errInfo);
         if (err) return err;
     }
 #endif
@@ -1377,19 +1379,22 @@ bool_t CO_process_SYNC(CO_t *co,
     bool_t syncWas = false;
 
     if (!co->nodeIdUnconfigured && CO_GET_CNT(SYNC) == 1) {
-        const CO_SYNC_status_t sync_process =
-                CO_SYNC_process(co->SYNC,
-                                timeDifference_us,
-                                OD_synchronousWindowLength,
-                                timerNext_us);
+        CO_NMT_internalState_t NMTstate = CO_NMT_getInternalState(co->NMT);
+        bool_t NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
+                                        || NMTstate == CO_NMT_OPERATIONAL);
+
+        CO_SYNC_status_t sync_process = CO_SYNC_process(co->SYNC,
+                                                        NMTisPreOrOperational,
+                                                        timeDifference_us,
+                                                        timerNext_us);
 
         switch (sync_process) {
             case CO_SYNC_NONE:
                 break;
-            case CO_SYNC_RECEIVED:
+            case CO_SYNC_RX_TX:
                 syncWas = true;
                 break;
-            case CO_SYNC_OUTSIDE_WINDOW:
+            case CO_SYNC_PASSED_WINDOW:
                 CO_CANclearPendingSyncPDOs(co->CANmodule);
                 break;
         }

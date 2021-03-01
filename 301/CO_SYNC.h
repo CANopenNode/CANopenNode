@@ -27,6 +27,9 @@
 #define CO_SYNC_H
 
 #include "301/CO_driver.h"
+#include "301/CO_ODinterface.h"
+#include "301/CO_Emergency.h"
+
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_SYNC
@@ -76,57 +79,78 @@ extern "C" {
 /**
  * SYNC producer and consumer object.
  */
-typedef struct{
-    CO_EM_t            *em;             /**< From CO_SYNC_init() */
-    CO_NMT_internalState_t *operatingState; /**< From CO_SYNC_init() */
-    /** True, if device is SYNC producer. Calculated from _COB ID SYNC Message_
-    variable from Object dictionary (index 0x1005). */
-    bool_t              isProducer;
-    /** COB_ID of SYNC message. Calculated from _COB ID SYNC Message_
-    variable from Object dictionary (index 0x1005). */
-    uint16_t            COB_ID;
-    /** Sync period time in [microseconds]. Calculated from _Communication cycle period_
-    variable from Object dictionary (index 0x1006). */
-    uint32_t            periodTime;
-    /** Sync period timeout time in [microseconds].
-    (periodTimeoutTime = periodTime * 1,5) */
-    uint32_t            periodTimeoutTime;
+typedef struct {
+    /** From CO_SYNC_init() */
+    CO_EM_t *em;
+    /** Indicates, if new SYNC message received from CAN bus */
+    volatile void *CANrxNew;
+    /** Set to nonzero value, if SYNC with wrong data length is received */
+    uint8_t receiveError;
+    /** Variable toggles, if new SYNC message received from CAN bus */
+    bool_t CANrxToggle;
+    /** True in sync timeout error state */
+    bool_t timeoutError;
     /** Value from _Synchronous counter overflow value_ variable from Object
     dictionary (index 0x1019) */
-    uint8_t             counterOverflowValue;
-    /** True, if current time is inside synchronous window.
-    In this case synchronous PDO may be sent. */
-    bool_t              curentSyncTimeIsInsideWindow;
-    /** Indicates, if new SYNC message received from CAN bus */
-    volatile void      *CANrxNew;
-    /** Variable toggles, if new SYNC message received from CAN bus */
-    bool_t              CANrxToggle;
-    /** Counter of the SYNC message if counterOverflowValue is different than zero */
-    uint8_t             counter;
+    uint8_t counterOverflowValue;
+    /** Counter of the SYNC message if counterOverflowValue is different than
+     * zero */
+    uint8_t counter;
+    /** True, if current time is outside "synchronous window" (OD 1007) */
+    bool_t syncIsOutsideWindow;
     /** Timer for the SYNC message in [microseconds].
     Set to zero after received or transmitted SYNC message */
-    uint32_t            timer;
-    /** Set to nonzero value, if SYNC with wrong data length is received from CAN */
-    uint16_t            receiveError;
+    uint32_t timer;
+    /**Pointer to variable in OD, "Communication cycle period" in microseconds*/
+    uint32_t *OD_1006_period;
+    /** Pointer to variable in OD, "Synchronous window length" in microseconds*/
+    uint32_t *OD_1007_window;
+
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) || defined CO_DOXYGEN
+    /** True, if device is SYNC producer. Calculated from _COB ID SYNC Message_
+    variable from Object dictionary (index 0x1005). */
+    bool_t isProducer;
+    /** CAN transmit buffer inside CANdevTx */
+    CO_CANtx_t *CANtxBuff;
+#endif
+
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+    /** From CO_SYNC_init() */
+    CO_CANmodule_t *CANdevRx;
+    /** From CO_SYNC_init() */
+    uint16_t CANdevRxIdx;
+    /** Extension for OD object */
+    OD_extension_t OD_1005_extension;
+    /** CAN ID of the SYNC message. Calculated from _COB ID SYNC Message_
+    variable from Object dictionary (index 0x1005). */
+    uint16_t CAN_ID;
+ #if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) || defined CO_DOXYGEN
+    /** From CO_SYNC_init() */
+    CO_CANmodule_t *CANdevTx;
+    /** From CO_SYNC_init() */
+    uint16_t CANdevTxIdx;
+    /** Extension for OD object */
+    OD_extension_t OD_1019_extension;
+ #endif
+#endif
+
 #if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
     /** From CO_SYNC_initCallbackPre() or NULL */
-    void              (*pFunctSignalPre)(void *object);
+    void (*pFunctSignalPre)(void *object);
     /** From CO_SYNC_initCallbackPre() or NULL */
-    void               *functSignalObjectPre;
+    void *functSignalObjectPre;
 #endif
-    CO_CANmodule_t     *CANdevRx;       /**< From CO_SYNC_init() */
-    uint16_t            CANdevRxIdx;    /**< From CO_SYNC_init() */
-    CO_CANmodule_t     *CANdevTx;       /**< From CO_SYNC_init() */
-    CO_CANtx_t         *CANtxBuff;      /**< CAN transmit buffer inside CANdevTx */
-    uint16_t            CANdevTxIdx;    /**< From CO_SYNC_init() */
-}CO_SYNC_t;
+} CO_SYNC_t;
 
 
-/** Return value for #CO_SYNC_process */
+/** Return value for @ref CO_SYNC_process */
 typedef enum {
-    CO_SYNC_NONE            = 0, /**< SYNC not received */
-    CO_SYNC_RECEIVED        = 1, /**< SYNC received */
-    CO_SYNC_OUTSIDE_WINDOW  = 2  /**< SYNC received outside SYNC window */
+    /** No SYNC event in last cycle */
+    CO_SYNC_NONE = 0,
+    /** SYNC message was received or transmitted in last cycle */
+    CO_SYNC_RX_TX = 1,
+    /** Time has just passed SYNC window (OD_1007) in last cycle */
+    CO_SYNC_PASSED_WINDOW = 2
 } CO_SYNC_status_t;
 
 
@@ -137,30 +161,35 @@ typedef enum {
  *
  * @param SYNC This object will be initialized.
  * @param em Emergency object.
- * @param SDO SDO server object.
- * @param operatingState Pointer to variable indicating CANopen device NMT internal state.
- * @param COB_ID_SYNCMessage From Object dictionary (index 0x1005).
- * @param communicationCyclePeriod From Object dictionary (index 0x1006).
- * @param synchronousCounterOverflowValue From Object dictionary (index 0x1019).
+ * @param OD_1005_cobIdSync OD entry for 0x1005 - "COB-ID SYNC message",
+ * entry is required.
+ * @param OD_1006_commCyclePeriod OD entry for 0x1006 - "Communication cycle
+ * period", entry is required if device is sync producer.
+ * @param OD_1007_syncWindowLen OD entry for 0x1007 - "Synchronous window
+ * length", entry is optional, may be NULL.
+ * @param OD_1019_syncCounterOvf OD entry for 0x1019 - "Synchronous counter
+ * overflow value", entry is optional, may be NULL.
  * @param CANdevRx CAN device for SYNC reception.
  * @param CANdevRxIdx Index of receive buffer in the above CAN device.
  * @param CANdevTx CAN device for SYNC transmission.
  * @param CANdevTxIdx Index of transmit buffer in the above CAN device.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
  *
- * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
+ * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
-CO_ReturnError_t CO_SYNC_init(
-        CO_SYNC_t              *SYNC,
-        CO_EM_t                *em,
-        CO_SDO_t               *SDO,
-        CO_NMT_internalState_t *operatingState,
-        uint32_t                COB_ID_SYNCMessage,
-        uint32_t                communicationCyclePeriod,
-        uint8_t                 synchronousCounterOverflowValue,
-        CO_CANmodule_t         *CANdevRx,
-        uint16_t                CANdevRxIdx,
-        CO_CANmodule_t         *CANdevTx,
-        uint16_t                CANdevTxIdx);
+CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
+                              CO_EM_t *em,
+                              OD_entry_t *OD_1005_cobIdSync,
+                              OD_entry_t *OD_1006_commCyclePeriod,
+                              OD_entry_t *OD_1007_syncWindowLen,
+                              OD_entry_t *OD_1019_syncCounterOvf,
+                              CO_CANmodule_t *CANdevRx,
+                              uint16_t CANdevRxIdx,
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) || defined CO_DOXYGEN
+                              CO_CANmodule_t *CANdevTx,
+                              uint16_t CANdevTxIdx,
+#endif
+                              uint32_t *errInfo);
 
 
 #if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
@@ -172,16 +201,16 @@ CO_ReturnError_t CO_SYNC_init(
  * Callback is called after SYNC message is received from the CAN bus.
  *
  * @param SYNC This object.
- * @param object Pointer to object, which will be passed to pFunctSignalPre(). Can be NULL
+ * @param object Pointer to object, which will be passed to pFunctSignalPre().
  * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
  */
-void CO_SYNC_initCallbackPre(
-        CO_SYNC_t              *SYNC,
-        void                   *object,
-        void                  (*pFunctSignalPre)(void *object));
+void CO_SYNC_initCallbackPre(CO_SYNC_t *SYNC,
+                             void *object,
+                             void (*pFunctSignalPre)(void *object));
 #endif
 
 
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) || defined CO_DOXYGEN
 /**
  * Send SYNC message.
  *
@@ -189,12 +218,18 @@ void CO_SYNC_initCallbackPre(
  * call this if direct control of SYNC transmission is needed, otherwise use
  * CO_SYNC_process().
  *
- *
  * @param SYNC SYNC object.
  *
  * @return Same as CO_CANsend().
  */
-CO_ReturnError_t CO_SYNCsend(CO_SYNC_t *SYNC);
+static inline CO_ReturnError_t CO_SYNCsend(CO_SYNC_t *SYNC) {
+    if (++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
+    SYNC->timer = 0;
+    SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
+    SYNC->CANtxBuff->data[0] = SYNC->counter;
+    return CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
+}
+#endif
 
 
 /**
@@ -203,18 +238,18 @@ CO_ReturnError_t CO_SYNCsend(CO_SYNC_t *SYNC);
  * Function must be called cyclically.
  *
  * @param SYNC This object.
- * @param timeDifference_us Time difference from previous function call in [microseconds].
- * @param ObjDict_synchronousWindowLength _Synchronous window length_ variable from
- * Object dictionary (index 0x1007).
- * @param [out] timerNext_us info to OS - see CO_process_SYNC_PDO().
+ * @param NMTisPreOrOperational True if this node is NMT_PRE_OPERATIONAL or
+ * NMT_OPERATIONAL state.
+ * @param timeDifference_us Time difference from previous function call in
+ * [microseconds].
+ * @param [out] timerNext_us info to OS - see CO_process().
  *
- * @return #CO_SYNC_status_t: CO_SYNC_NONE, CO_SYNC_RECEIVED or CO_SYNC_OUTSIDE_WINDOW.
+ * @return @ref CO_SYNC_status_t
  */
-CO_SYNC_status_t CO_SYNC_process(
-        CO_SYNC_t              *SYNC,
-        uint32_t                timeDifference_us,
-        uint32_t                ObjDict_synchronousWindowLength,
-        uint32_t               *timerNext_us);
+CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
+                                 bool_t NMTisPreOrOperational,
+                                 uint32_t timeDifference_us,
+                                 uint32_t *timerNext_us);
 
 /** @} */ /* CO_SYNC */
 
