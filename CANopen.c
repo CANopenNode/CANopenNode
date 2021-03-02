@@ -916,6 +916,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 uint8_t nodeId,
                                 uint32_t *errInfo)
 {
+    (void)SDOclientTimeoutTime_ms; (void)SDOclientBlockTransfer;
     CO_ReturnError_t err;
 
     if (co == NULL

@@ -37,7 +37,8 @@
  *
  * For more information see file CO_storage.h, CO_storage_entry_t.
  */
-static ODR_t storeLinux(CO_storage_entry_t *entry) {
+static ODR_t storeLinux(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
+    (void) CANmodule;
     ODR_t ret = ODR_OK;
     uint16_t crc_store;
 
@@ -64,10 +65,10 @@ static ODR_t storeLinux(CO_storage_entry_t *entry) {
             ret = ODR_HW;
         }
         else {
-            CO_LOCK_OD();
+            CO_LOCK_OD(CANmodule);
             size_t cnt = fwrite(entry->addr, 1, entry->len, fp);
             crc_store = crc16_ccitt(entry->addr, entry->len, 0);
-            CO_UNLOCK_OD();
+            CO_UNLOCK_OD(CANmodule);
             cnt += fwrite(&crc_store, 1, sizeof(crc_store), fp);
             fclose(fp);
             if (cnt != (entry->len + sizeof(crc_store))) {
@@ -123,7 +124,8 @@ static ODR_t storeLinux(CO_storage_entry_t *entry) {
  *
  * For more information see file CO_storage.h, CO_storage_entry_t.
  */
-static ODR_t restoreLinux(CO_storage_entry_t *entry) {
+static ODR_t restoreLinux(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule){
+    (void) CANmodule;
     ODR_t ret = ODR_OK;
 
     /* close the file first, if auto storage */
@@ -161,6 +163,7 @@ static ODR_t restoreLinux(CO_storage_entry_t *entry) {
 
 
 CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
+                                      CO_CANmodule_t *CANmodule,
                                       OD_entry_t *OD_1010_StoreParameters,
                                       OD_entry_t *OD_1011_RestoreDefaultParam,
                                       CO_storage_entry_t *entries,
@@ -168,7 +171,6 @@ CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
                                       uint32_t *storageInitError)
 {
     CO_ReturnError_t ret;
-    *storageInitError = 0;
 
     /* verify arguments */
     if (storage == NULL || entries == NULL || entriesCount == 0
@@ -179,6 +181,7 @@ CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
 
     /* initialize storage and OD extensions */
     ret = CO_storage_init(storage,
+                          CANmodule,
                           OD_1010_StoreParameters,
                           OD_1011_RestoreDefaultParam,
                           storeLinux,
@@ -190,6 +193,7 @@ CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
     }
 
     /* initialize entries */
+    *storageInitError = 0;
     for (uint8_t i = 0; i < entriesCount; i++) {
         CO_storage_entry_t *entry = &entries[i];
         bool_t dataCorrupt = false;
@@ -288,9 +292,9 @@ uint32_t CO_storageLinux_auto_process(CO_storage_t *storage,
         if (crc != entry->crc) {
             size_t cnt;
             rewind(entry->fp);
-            CO_LOCK_OD();
+            CO_LOCK_OD(storage->CANmodule);
             cnt = fwrite(entry->addr, 1, entry->len, entry->fp);
-            CO_UNLOCK_OD();
+            CO_UNLOCK_OD(storage->CANmodule);
             cnt += fwrite(&crc, 1, sizeof(crc), entry->fp);
             fflush(entry->fp);
             if (cnt == (entry->len + sizeof(crc))) {

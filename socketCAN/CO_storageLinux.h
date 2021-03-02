@@ -55,6 +55,7 @@ extern "C" {
  *
  * @param storage This object will be initialized. It must be defined by
  * application and must exist permanently.
+ * @param CANmodule CAN device, used for @ref CO_LOCK_OD() macro.
  * @param OD_1010_StoreParameters OD entry for 0x1010 -"Store parameters".
  * Entry is optional, may be NULL.
  * @param OD_1011_RestoreDefaultParam OD entry for 0x1011 -"Restore default
@@ -70,6 +71,7 @@ extern "C" {
  * CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY.
  */
 CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
+                                      CO_CANmodule_t *CANmodule,
                                       OD_entry_t *OD_1010_StoreParameters,
                                       OD_entry_t *OD_1011_RestoreDefaultParam,
                                       CO_storage_entry_t *entries,

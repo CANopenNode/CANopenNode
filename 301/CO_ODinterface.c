@@ -70,9 +70,7 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
         }
     }
 
-    CO_LOCK_OD();
     memcpy(buf, dataOrig, dataLenToCopy);
-    CO_UNLOCK_OD();
     return dataLenToCopy;
 }
 
@@ -127,9 +125,7 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
         return 0;
     }
 
-    CO_LOCK_OD();
     memcpy(dataOrig, buf, dataLenToCopy);
-    CO_UNLOCK_OD();
     return dataLenToCopy;
 }
 

@@ -438,6 +438,7 @@ int main (int argc, char *argv[]) {
 #if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
     uint8_t pendingNodeIdOriginal = CO_pending.nodeId;
     err = CO_storageLinux_init(&storage,
+                               CO->CANmodule,
                                OD_ENTRY_H1010_storeParameters,
                                OD_ENTRY_H1011_restoreDefaultParameters,
                                storageEntries,
@@ -512,9 +513,9 @@ int main (int argc, char *argv[]) {
 
         /* Wait rt_thread. */
         if(!firstRun) {
-            CO_LOCK_OD();
+            CO_LOCK_OD(CO->CANmodule);
             CO->CANmodule->CANnormal = false;
-            CO_UNLOCK_OD();
+            CO_UNLOCK_OD(CO->CANmodule);
         }
 
         /* Enter CAN configuration. */
@@ -695,17 +696,17 @@ int main (int argc, char *argv[]) {
                 storageIntervalTimer += epMain.timeDifference_us;
             }
             else {
-                uint32_t err = CO_storageLinux_auto_process(&storage, false);
-                if(err != storageErrorPrev && !CO->nodeIdUnconfigured) {
-                    if(err != 0) {
+                uint32_t mask = CO_storageLinux_auto_process(&storage, false);
+                if(mask != storageErrorPrev && !CO->nodeIdUnconfigured) {
+                    if(mask != 0) {
                         CO_errorReport(CO->em, CO_EM_NON_VOLATILE_AUTO_SAVE,
-                                       CO_EMC_HARDWARE, err);
+                                       CO_EMC_HARDWARE, mask);
                     }
                     else {
                         CO_errorReset(CO->em, CO_EM_NON_VOLATILE_AUTO_SAVE, 0);
                     }
                 }
-                storageErrorPrev = err;
+                storageErrorPrev = mask;
                 storageIntervalTimer = 0;
             }
 #endif

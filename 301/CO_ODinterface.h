@@ -404,6 +404,10 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index);
  * Find sub-object with specified sub-index on OD entry returned by OD_find.
  * Function populates io structure with sub-object data.
  *
+ * @warning
+ * Read and write functions may be called from different threads, so critical
+ * sections in custom functions must be observed, see @ref CO_critical_sections.
+ *
  * @param entry OD entry returned by @ref OD_find().
  * @param subIndex Sub-index of the variable from the OD object.
  * @param [out] io Structure will be populated on success.
@@ -425,6 +429,21 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
  */
 static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
     return entry->index;
+}
+
+
+/**
+ * Check, if OD variable is mappable to PDO or SRDO.
+ *
+ * If OD variable is mappable, then it may be necessary to protect read/write
+ * access from mainline function. See @ref CO_critical_sections.
+ *
+ * @param stream Object Dictionary stream object.
+ *
+ * @return true, if OD variable is mappable.
+ */
+static inline bool_t OD_mappable(OD_stream_t *stream) {
+    return (stream->attribute & (ODA_TRPDO | ODA_TRSRDO)) != 0;
 }
 
 
@@ -476,8 +495,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
  *
  * @warning
  * Read and write functions may be called from different threads, so critical
- * sections in custom functions must be protected with @ref CO_LOCK_OD() and
- * @ref CO_UNLOCK_OD().
+ * sections in custom functions must be observed, see @ref CO_critical_sections.
  *
  * @param entry OD entry returned by @ref OD_find().
  * @param extension Extension object, which must be initialized externally.

@@ -104,8 +104,11 @@ typedef enum {
 typedef struct {
     OD_extension_t OD_1010_extension; /**< Extension for OD object */
     OD_extension_t OD_1011_extension; /**< Extension for OD object */
-    ODR_t (*store)(CO_storage_entry_t *entry); /**< From CO_storage_init() */
-    ODR_t (*restore)(CO_storage_entry_t *entry); /**< From CO_storage_init() */
+    CO_CANmodule_t *CANmodule; /**< From CO_storage_init() */
+    ODR_t (*store)(CO_storage_entry_t *entry,
+                   CO_CANmodule_t *CANmodule); /**< From CO_storage_init() */
+    ODR_t (*restore)(CO_storage_entry_t *entry,
+                     CO_CANmodule_t *CANmodule); /**< From CO_storage_init() */
     CO_storage_entry_t *entries; /**< From CO_storage_init() */
     uint8_t entriesCount; /**< From CO_storage_init() */
 } CO_storage_t;
@@ -121,6 +124,7 @@ typedef struct {
  *
  * @param storage This object will be initialized. It must be defined by
  * application and must exist permanently.
+ * @param CANmodule CAN device, used for @ref CO_LOCK_OD() macro.
  * @param OD_1010_StoreParameters OD entry for 0x1010 -"Store parameters".
  * Entry is optional, may be NULL.
  * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 -"Restore default
@@ -146,10 +150,13 @@ typedef struct {
  * @return CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_storage_init(CO_storage_t *storage,
+                                 CO_CANmodule_t *CANmodule,
                                  OD_entry_t *OD_1010_StoreParameters,
                                  OD_entry_t *OD_1011_RestoreDefaultParameters,
-                                 ODR_t (*store)(CO_storage_entry_t *entry),
-                                 ODR_t (*restore)(CO_storage_entry_t *entry),
+                                 ODR_t (*store)(CO_storage_entry_t *entry,
+                                                CO_CANmodule_t *CANmodule),
+                                 ODR_t (*restore)(CO_storage_entry_t *entry,
+                                                  CO_CANmodule_t *CANmodule),
                                  CO_storage_entry_t *entries,
                                  uint8_t entriesCount);
 

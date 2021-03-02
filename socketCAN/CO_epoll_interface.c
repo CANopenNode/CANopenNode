@@ -329,7 +329,7 @@ void CO_epoll_processRT(CO_epoll_t *ep,
     if (!realtime || ep->timerEvent) {
         uint32_t *pTimerNext_us = realtime ? NULL : &ep->timerNext_us;
 
-        CO_LOCK_OD();
+        CO_LOCK_OD(co->CANmodule);
         if (!co->nodeIdUnconfigured && co->CANmodule->CANnormal) {
             bool_t syncWas = false;
 
@@ -346,7 +346,7 @@ void CO_epoll_processRT(CO_epoll_t *ep,
 #endif
             (void) syncWas; (void) pTimerNext_us;
         }
-        CO_UNLOCK_OD();
+        CO_UNLOCK_OD(co->CANmodule);
     }
 }
 

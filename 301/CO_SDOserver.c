@@ -552,8 +552,13 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
 
     /* write data */
     ODR_t odRet;
+    bool_t lock = OD_mappable(&SDO->OD_IO.stream);
+
+    if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
     SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->subIndex,
                      SDO->buf, SDO->bufOffsetWr, &odRet);
+    if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
+
     SDO->bufOffsetWr = 0;
 
     /* verify write error value */
@@ -609,10 +614,14 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
         /* load data from OD variable into the buffer */
         ODR_t odRet;
         uint8_t *bufShifted = SDO->buf + countRemain;
+        bool_t lock = OD_mappable(&SDO->OD_IO.stream);
+
+        if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
         OD_size_t countRd = SDO->OD_IO.read(&SDO->OD_IO.stream, SDO->subIndex,
                                             bufShifted,
                                             countRdRequest,
                                             &odRet);
+        if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
 
         if (odRet != ODR_OK && odRet != ODR_PARTIAL) {
             *abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
@@ -843,8 +852,13 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
                 /* Copy data */
                 ODR_t odRet;
+                bool_t lock = OD_mappable(&SDO->OD_IO.stream);
+
+                if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
                 SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->subIndex,
                                  buf, dataSizeToWrite, &odRet);
+                if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
+
                 if (odRet != ODR_OK) {
                     abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
                     SDO->state = CO_SDO_ST_ABORT;
@@ -1283,9 +1297,13 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 #else /* Expedited transfer only */
             /* load data from OD variable */
             ODR_t odRet;
+            bool_t lock = OD_mappable(&SDO->OD_IO.stream);
+
+            if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
             OD_size_t count = SDO->OD_IO.read(&SDO->OD_IO.stream, SDO->subIndex,
                                               &SDO->CANtxBuff->data[4], 4,
                                               &odRet);
+            if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
 
             /* strings are allowed to be shorter */
             if (odRet == ODR_PARTIAL

@@ -233,16 +233,16 @@ typedef struct {
 
 
 /* (un)lock critical section in CO_CANsend() */
-#define CO_LOCK_CAN_SEND()
-#define CO_UNLOCK_CAN_SEND()
+#define CO_LOCK_CAN_SEND(CAN_MODULE)
+#define CO_UNLOCK_CAN_SEND(CAN_MODULE)
 
 /* (un)lock critical section in CO_errorReport() or CO_errorReset() */
-#define CO_LOCK_EMCY()
-#define CO_UNLOCK_EMCY()
+#define CO_LOCK_EMCY(CAN_MODULE)
+#define CO_UNLOCK_EMCY(CAN_MODULE)
 
 /* (un)lock critical section when accessing Object Dictionary */
-#define CO_LOCK_OD()
-#define CO_UNLOCK_OD()
+#define CO_LOCK_OD(CAN_MODULE)
+#define CO_UNLOCK_OD(CAN_MODULE)
 
 /* Synchronization between CAN receive and message processing threads. */
 #define CO_MemoryBarrier()

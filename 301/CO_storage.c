@@ -65,7 +65,7 @@ static OD_size_t OD_write_1010(OD_stream_t *stream, uint8_t subIndex,
         if (subIndex == 1 || entry->subIndexOD == subIndex) {
             if (found == 0) found = 1;
             if ((entry->attr & CO_storage_cmd) != 0) {
-                ODR_t code = storage->store(entry);
+                ODR_t code = storage->store(entry, storage->CANmodule);
                 if (code != ODR_OK) *returnCode = code;
                 found = 2;
             }
@@ -117,7 +117,7 @@ static OD_size_t OD_write_1011(OD_stream_t *stream, uint8_t subIndex,
         if (subIndex == 1 || entry->subIndexOD == subIndex) {
             if (found == 0) found = 1;
             if ((entry->attr & CO_storage_restore) != 0) {
-                ODR_t code = storage->restore(entry);
+                ODR_t code = storage->restore(entry, storage->CANmodule);
                 if (code != ODR_OK) *returnCode = code;
                 found = 2;
             }
@@ -131,10 +131,13 @@ static OD_size_t OD_write_1011(OD_stream_t *stream, uint8_t subIndex,
 
 
 CO_ReturnError_t CO_storage_init(CO_storage_t *storage,
+                                 CO_CANmodule_t *CANmodule,
                                  OD_entry_t *OD_1010_StoreParameters,
                                  OD_entry_t *OD_1011_RestoreDefaultParameters,
-                                 ODR_t (*store)(CO_storage_entry_t *entry),
-                                 ODR_t (*restore)(CO_storage_entry_t *entry),
+                                 ODR_t (*store)(CO_storage_entry_t *entry,
+                                                CO_CANmodule_t *CANmodule),
+                                 ODR_t (*restore)(CO_storage_entry_t *entry,
+                                                  CO_CANmodule_t *CANmodule),
                                  CO_storage_entry_t *entries,
                                  uint8_t entriesCount)
 {
@@ -144,6 +147,7 @@ CO_ReturnError_t CO_storage_init(CO_storage_t *storage,
     }
 
     /* Configure object variables */
+    storage->CANmodule = CANmodule;
     storage->store = store;
     storage->restore = restore;
     storage->entries = entries;

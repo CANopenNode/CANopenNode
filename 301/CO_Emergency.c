@@ -739,7 +739,7 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
 #endif
 
     /* safely write data, and increment pointers */
-    CO_LOCK_EMCY();
+    CO_LOCK_EMCY(em->CANdevTx);
     if (setError) *errorStatusBits |= bitmask;
     else          *errorStatusBits &= ~bitmask;
 
@@ -763,7 +763,7 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
     }
 #endif /* (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY) */
 
-    CO_UNLOCK_EMCY();
+    CO_UNLOCK_EMCY(em->CANdevTx);
 
 #if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER

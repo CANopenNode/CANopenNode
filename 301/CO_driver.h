@@ -380,19 +380,30 @@ typedef struct {
  * Otherwise mutexes or semaphores can be used.
  *
  * #### Reentrant functions
- * Functions CO_CANsend() from C_driver.h, CO_errorReport() from CO_Emergency.h
- * and CO_errorReset() from CO_Emergency.h may be called from different threads.
- * Critical sections must be protected. Either by disabling scheduler or
- * interrupts or by mutexes or semaphores.
+ * Functions CO_CANsend() from C_driver.h, and CO_error() from CO_Emergency.h
+ * may be called from different threads. Critical sections must be protected.
+ * Either by disabling scheduler or interrupts or by mutexes or semaphores.
+ * Lock/unlock macro is called with pointer to CAN module, which may be used
+ * inside.
  *
  * #### Object Dictionary variables
- * In general, there are two threads, which accesses OD variables: mainline and
- * timer. CANopenNode initialization and SDO server runs in mainline. PDOs runs
- * in faster timer thread. Processing of PDOs must not be interrupted by
- * mainline. Mainline thread must protect sections, which accesses the same OD
- * variables as timer thread. This care must also take the application. Note
- * that not all variables are allowed to be mapped to PDOs, so they may not need
- * to be protected. SDO server protects sections with access to OD variables.
+ * In general, there are two threads, which accesses OD variables: mainline
+ * (initialization, storage, SDO access) and timer (PDO access). CANopenNode
+ * uses locking mechanism, where SDO server (or other mainline code) prevents
+ * execution of the real-time thread at the moment it reads or writes OD
+ * variable. CO_LOCK_OD(CAN_MODULE) and CO_UNLOCK_OD(CAN_MODULE) macros
+ * are used to protect:
+ * - Whole real-time thread,
+ * - SDO server protects read/write access to OD variable, if specific OD
+ *   variable has ODA_TRPDO or ODA_TRSRDO from @ref OD_attributes_t set. If
+ *   those attributes are not set, OD variable is not locked by SDO server.
+ *   Locking of long OD variables, not accessible from real-time thread, may
+ *   block RT thread.
+ * - Any mainline code, which accesses PDO-mappable OD variable, must protect
+ *   read/write with locking macros. Use @ref OD_mappable() for check.
+ * - Other cases, where non-PDO-mappable OD variable is used inside real-time
+ *   thread by some other part of the user application must be considered with
+ *   special care.
  *
  * #### Synchronization functions for CAN receive
  * After CAN message is received, it is pre-processed in CANrx_callback(), which
@@ -411,17 +422,17 @@ typedef struct {
  */
 
 /** Lock critical section in CO_CANsend() */
-#define CO_LOCK_CAN_SEND()
+#define CO_LOCK_CAN_SEND(CAN_MODULE)
 /** Unlock critical section in CO_CANsend() */
-#define CO_UNLOCK_CAN_SEND()
+#define CO_UNLOCK_CAN_SEND(CAN_MODULE)
 /** Lock critical section in CO_errorReport() or CO_errorReset() */
-#define CO_LOCK_EMCY()
+#define CO_LOCK_EMCY(CAN_MODULE)
 /** Unlock critical section in CO_errorReport() or CO_errorReset() */
-#define CO_UNLOCK_EMCY()
+#define CO_UNLOCK_EMCY(CAN_MODULE)
 /** Lock critical section when accessing Object Dictionary */
-#define CO_LOCK_OD()
+#define CO_LOCK_OD(CAN_MODULE)
 /** Unock critical section when accessing Object Dictionary */
-#define CO_UNLOCK_OD()
+#define CO_UNLOCK_OD(CAN_MODULE)
 
 /** Check if new message has arrived */
 #define CO_FLAG_READ(rxNew) ((rxNew) != NULL)
