@@ -59,11 +59,10 @@
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_read_1014(OD_stream_t *stream, uint8_t subIndex,
-                              void *buf, OD_size_t count,
-                              ODR_t *returnCode)
+static OD_size_t OD_read_1014(OD_stream_t *stream, void *buf,
+                              OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
         || count != sizeof(uint32_t) || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -81,11 +80,10 @@ static OD_size_t OD_read_1014(OD_stream_t *stream, uint8_t subIndex,
     return sizeof(uint32_t);
 }
 
-static OD_size_t OD_write_1014(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1014(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
         || count != sizeof(uint32_t) || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -126,7 +124,7 @@ static OD_size_t OD_write_1014(OD_stream_t *stream, uint8_t subIndex,
     }
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, subIndex, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, returnCode);
 }
  #else
 /*
@@ -134,11 +132,10 @@ static OD_size_t OD_write_1014(OD_stream_t *stream, uint8_t subIndex,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_read_1014_default(OD_stream_t *stream, uint8_t subIndex,
-                                      void *buf, OD_size_t count,
-                                      ODR_t *returnCode)
+static OD_size_t OD_read_1014_default(OD_stream_t *stream, void *buf,
+                                      OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
         || count != sizeof(uint32_t) || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -161,11 +158,10 @@ static OD_size_t OD_read_1014_default(OD_stream_t *stream, uint8_t subIndex,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1015(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1015(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
         || count != sizeof(uint16_t) || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -180,7 +176,7 @@ static OD_size_t OD_write_1015(OD_stream_t *stream, uint8_t subIndex,
     em->inhibitEmTimer = 0;
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, subIndex, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, returnCode);
 }
  #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT */
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER */
@@ -191,9 +187,8 @@ static OD_size_t OD_write_1015(OD_stream_t *stream, uint8_t subIndex,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_read_1003(OD_stream_t *stream, uint8_t subIndex,
-                              void *buf, OD_size_t count,
-                              ODR_t *returnCode)
+static OD_size_t OD_read_1003(OD_stream_t *stream, void *buf,
+                              OD_size_t count, ODR_t *returnCode)
 {
     if (stream == NULL || buf == NULL || count < 4 || returnCode == NULL) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -203,14 +198,14 @@ static OD_size_t OD_read_1003(OD_stream_t *stream, uint8_t subIndex,
     CO_EM_t *em = (CO_EM_t *)stream->object;
     *returnCode = ODR_OK;
 
-    if (subIndex == 0) {
+    if (stream->subIndex == 0) {
         CO_setUint8(buf, em->fifoCount);
         return 1;
     }
-    else if (subIndex <= em->fifoCount) {
+    else if (stream->subIndex <= em->fifoCount) {
         /* newest error is reported on subIndex 1 and is stored just behind
          * fifoWrPtr. Get correct index in FIFO buffer. */
-        int16_t index = (int16_t)em->fifoWrPtr - subIndex;
+        int16_t index = (int16_t)em->fifoWrPtr - stream->subIndex;
         if (index < 0) {
             index += CO_CONFIG_EM_BUFFER_SIZE + 1;
         }
@@ -227,11 +222,10 @@ static OD_size_t OD_read_1003(OD_stream_t *stream, uint8_t subIndex,
     }
 }
 
-static OD_size_t OD_write_1003(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1003(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL || count != 1
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL || count != 1
         || returnCode == NULL)
     {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -259,11 +253,12 @@ static OD_size_t OD_write_1003(OD_stream_t *stream, uint8_t subIndex,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_read_statusBits(OD_stream_t *stream, uint8_t subIndex,
-                                    void *buf, OD_size_t count,
-                                    ODR_t *returnCode)
+static OD_size_t OD_read_statusBits(OD_stream_t *stream, void *buf,
+                                    OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL || returnCode == NULL) {
+    if (stream == NULL || stream->subIndex != 0
+        || buf == NULL || returnCode == NULL)
+    {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
     }
@@ -287,11 +282,12 @@ static OD_size_t OD_read_statusBits(OD_stream_t *stream, uint8_t subIndex,
     return countRead;
 }
 
-static OD_size_t OD_write_statusBits(OD_stream_t *stream, uint8_t subIndex,
-                                     const void *buf, OD_size_t count,
-                                     ODR_t *returnCode)
+static OD_size_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
+                                     OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL || returnCode == NULL) {
+    if (stream == NULL || stream->subIndex != 0
+        || buf == NULL || returnCode == NULL
+    ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
     }

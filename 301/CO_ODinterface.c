@@ -28,11 +28,9 @@
 
 
 /******************************************************************************/
-OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
-                          void *buf, OD_size_t count, ODR_t *returnCode)
+OD_size_t OD_readOriginal(OD_stream_t *stream, void *buf,
+                          OD_size_t count, ODR_t *returnCode)
 {
-    (void) subIndex;
-
     if (stream == NULL || buf == NULL || returnCode == NULL) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
@@ -75,11 +73,9 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
 }
 
 /******************************************************************************/
-OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
-                           const void *buf, OD_size_t count, ODR_t *returnCode)
+OD_size_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, ODR_t *returnCode)
 {
-    (void) subIndex;
-
     if (stream == NULL || buf == NULL || returnCode == NULL) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
         return 0;
@@ -130,22 +126,20 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
 }
 
 /* Read value from variable from Object Dictionary disabled, see OD_IO_t*/
-static OD_size_t OD_readDisabled(OD_stream_t *stream, uint8_t subIndex,
-                                 void *buf, OD_size_t count,
-                                 ODR_t *returnCode)
+static OD_size_t OD_readDisabled(OD_stream_t *stream, void *buf,
+                                 OD_size_t count, ODR_t *returnCode)
 {
-    (void) stream; (void) subIndex; (void) buf; (void) count;
+    (void) stream; (void) buf; (void) count;
 
     if (returnCode != NULL) *returnCode = ODR_UNSUPP_ACCESS;
     return 0;
 }
 
 /* Write value to variable from Object Dictionary disabled, see OD_IO_t */
-static OD_size_t OD_writeDisabled(OD_stream_t *stream, uint8_t subIndex,
-                                  const void *buf, OD_size_t count,
-                                  ODR_t *returnCode)
+static OD_size_t OD_writeDisabled(OD_stream_t *stream, const void *buf,
+                                  OD_size_t count, ODR_t *returnCode)
 {
-    (void) stream; (void) subIndex; (void) buf; (void) count;
+    (void) stream; (void) buf; (void) count;
 
     if (returnCode != NULL) *returnCode = ODR_UNSUPP_ACCESS;
     return 0;
@@ -269,6 +263,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
 
     /* Reset stream data offset */
     stream->dataOffset = 0;
+    stream->subIndex = subIndex;
 
     return ODR_OK;
 }
@@ -324,7 +319,7 @@ ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
     if (ret != ODR_OK) return ret;
     if (stream->dataLength != len) return ODR_TYPE_MISMATCH;
 
-    io.read(stream, subIndex, val, len, &ret);
+    io.read(stream, val, len, &ret);
 
     return ret;
 }
@@ -341,7 +336,7 @@ ODR_t OD_set_value(const OD_entry_t *entry, uint8_t subIndex, void *val,
     if (ret != ODR_OK) return ret;
     if (stream->dataLength != len) return ODR_TYPE_MISMATCH;
 
-    io.write(stream, subIndex, val, len, &ret);
+    io.write(stream, val, len, &ret);
 
     return ret;
 }

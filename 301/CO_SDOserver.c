@@ -232,9 +232,8 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1201_additional(OD_stream_t *stream, uint8_t subIndex,
-                                          const void *buf, OD_size_t count,
-                                          ODR_t *returnCode)
+static OD_size_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
+                                          OD_size_t count, ODR_t *returnCode)
 {
     /* "count" is already verified in *_init() function */
     if (stream == NULL || buf == NULL || returnCode == NULL) {
@@ -247,7 +246,7 @@ static OD_size_t OD_write_1201_additional(OD_stream_t *stream, uint8_t subIndex,
     uint32_t COB_ID;
     uint8_t nodeId;
 
-    switch (subIndex) {
+    switch (stream->subIndex) {
         case 0: /* Highest sub-index supported */
             *returnCode = ODR_READONLY;
             return 0;
@@ -308,7 +307,7 @@ static OD_size_t OD_write_1201_additional(OD_stream_t *stream, uint8_t subIndex,
     }
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, subIndex, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, returnCode);
 }
 #endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC */
 
@@ -555,8 +554,7 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
     bool_t lock = OD_mappable(&SDO->OD_IO.stream);
 
     if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
-    SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->subIndex,
-                     SDO->buf, SDO->bufOffsetWr, &odRet);
+    SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->buf, SDO->bufOffsetWr, &odRet);
     if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
 
     SDO->bufOffsetWr = 0;
@@ -617,10 +615,8 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
         bool_t lock = OD_mappable(&SDO->OD_IO.stream);
 
         if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
-        OD_size_t countRd = SDO->OD_IO.read(&SDO->OD_IO.stream, SDO->subIndex,
-                                            bufShifted,
-                                            countRdRequest,
-                                            &odRet);
+        OD_size_t countRd = SDO->OD_IO.read(&SDO->OD_IO.stream, bufShifted,
+                                            countRdRequest, &odRet);
         if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
 
         if (odRet != ODR_OK && odRet != ODR_PARTIAL) {
@@ -855,8 +851,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 bool_t lock = OD_mappable(&SDO->OD_IO.stream);
 
                 if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
-                SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->subIndex,
-                                 buf, dataSizeToWrite, &odRet);
+                SDO->OD_IO.write(&SDO->OD_IO.stream, buf,
+                                 dataSizeToWrite, &odRet);
                 if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
 
                 if (odRet != ODR_OK) {
@@ -1300,7 +1296,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             bool_t lock = OD_mappable(&SDO->OD_IO.stream);
 
             if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
-            OD_size_t count = SDO->OD_IO.read(&SDO->OD_IO.stream, SDO->subIndex,
+            OD_size_t count = SDO->OD_IO.read(&SDO->OD_IO.stream,
                                               &SDO->CANtxBuff->data[4], 4,
                                               &odRet);
             if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }

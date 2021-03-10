@@ -61,11 +61,10 @@ static void CO_TIME_receive(void *object, void *msg) {
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1012(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1012(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
         || count != sizeof(uint32_t) || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -81,7 +80,7 @@ static OD_size_t OD_write_1012(OD_stream_t *stream, uint8_t subIndex,
     TIME->isProducer = (cobIdTimeStamp & 0x40000000L) != 0;
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, subIndex, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, returnCode);
 }
 #endif
 

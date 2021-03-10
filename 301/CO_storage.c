@@ -31,12 +31,11 @@
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1010(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1010(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
     /* verify arguments */
-    if (stream == NULL || subIndex == 0 || buf == NULL || count != 4
+    if (stream == NULL || stream->subIndex == 0 || buf == NULL || count != 4
         || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -45,7 +44,7 @@ static OD_size_t OD_write_1010(OD_stream_t *stream, uint8_t subIndex,
 
     CO_storage_t *storage = stream->object;
 
-    if (subIndex == 0 || storage->store == NULL) {
+    if (stream->subIndex == 0 || storage->store == NULL) {
         *returnCode = ODR_READONLY;
         return 0;
     }
@@ -62,7 +61,7 @@ static OD_size_t OD_write_1010(OD_stream_t *stream, uint8_t subIndex,
     for (uint8_t i = 0; i < storage->entriesCount; i++) {
         CO_storage_entry_t *entry = &storage->entries[i];
 
-        if (subIndex == 1 || entry->subIndexOD == subIndex) {
+        if (stream->subIndex == 1 || entry->subIndexOD == stream->subIndex) {
             if (found == 0) found = 1;
             if ((entry->attr & CO_storage_cmd) != 0) {
                 ODR_t code = storage->store(entry, storage->CANmodule);
@@ -83,12 +82,11 @@ static OD_size_t OD_write_1010(OD_stream_t *stream, uint8_t subIndex,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1011(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1011(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
     /* verify arguments */
-    if (stream == NULL || subIndex == 0 || buf == NULL || count != 4
+    if (stream == NULL || stream->subIndex == 0 || buf == NULL || count != 4
         || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -97,7 +95,7 @@ static OD_size_t OD_write_1011(OD_stream_t *stream, uint8_t subIndex,
 
     CO_storage_t *storage = stream->object;
 
-    if (subIndex == 0 || storage->restore == NULL) {
+    if (stream->subIndex == 0 || storage->restore == NULL) {
         *returnCode = ODR_READONLY;
         return 0;
     }
@@ -114,7 +112,7 @@ static OD_size_t OD_write_1011(OD_stream_t *stream, uint8_t subIndex,
     for (uint8_t i = 0; i < storage->entriesCount; i++) {
         CO_storage_entry_t *entry = &storage->entries[i];
 
-        if (subIndex == 1 || entry->subIndexOD == subIndex) {
+        if (stream->subIndex == 1 || entry->subIndexOD == stream->subIndex) {
             if (found == 0) found = 1;
             if ((entry->attr & CO_storage_restore) != 0) {
                 ODR_t code = storage->restore(entry, storage->CANmodule);

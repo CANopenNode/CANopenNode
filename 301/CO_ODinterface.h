@@ -218,6 +218,8 @@ typedef struct {
     OD_size_t dataOffset;
     /** Attribute bit-field of the OD sub-object, see @ref OD_attributes_t */
     OD_attr_t attribute;
+    /** Sub index of the OD sub-object, informative */
+    uint8_t subIndex;
 } OD_stream_t;
 
 
@@ -251,15 +253,14 @@ typedef struct {
      * is still space in "buf".)
      *
      * @param stream Object Dictionary stream object.
-     * @param subIndex Object Dictionary subIndex of the accessed element.
      * @param buf Pointer to external buffer, where to data will be copied.
      * @param count Size of the external buffer in bytes.
      * @param [out] returnCode Return value from @ref ODR_t.
      *
      * @return Number of bytes successfully read.
      */
-    OD_size_t (*read)(OD_stream_t *stream, uint8_t subIndex,
-                      void *buf, OD_size_t count, ODR_t *returnCode);
+    OD_size_t (*read)(OD_stream_t *stream, void *buf,
+                      OD_size_t count, ODR_t *returnCode);
     /**
      * Function pointer for writing value into specified variable inside Object
      * Dictionary. If OD variable is larger than buf, then this function must
@@ -278,7 +279,6 @@ typedef struct {
      * variable expect more data, then "*returnCode" must return 'ODR_PARTIAL'.
      *
      * @param stream Object Dictionary stream object.
-     * @param subIndex Object Dictionary subIndex of the accessed element.
      * @param buf Pointer to external buffer, from where data will be copied.
      * @param count Size of the external buffer in bytes.
      * @param [out] returnCode Return value from ODR_t.
@@ -286,8 +286,8 @@ typedef struct {
      * @return Number of bytes successfully written, must be equal to count on
      * success or zero on error.
      */
-    OD_size_t (*write)(OD_stream_t *stream, uint8_t subIndex,
-                       const void *buf, OD_size_t count, ODR_t *returnCode);
+    OD_size_t (*write)(OD_stream_t *stream, const void *buf,
+                       OD_size_t count, ODR_t *returnCode);
 } OD_IO_t;
 
 
@@ -301,13 +301,13 @@ typedef struct {
     /** Application specified read function pointer. If NULL, then read will be
      * disabled. @ref OD_readOriginal can be used here to keep the original read
      * function. For function description see @ref OD_IO_t. */
-    OD_size_t (*read)(OD_stream_t *stream, uint8_t subIndex,
-                      void *buf, OD_size_t count, ODR_t *returnCode);
+    OD_size_t (*read)(OD_stream_t *stream, void *buf,
+                      OD_size_t count, ODR_t *returnCode);
     /** Application specified write function pointer. If NULL, then write will
      * be disabled. @ref OD_writeOriginal can be used here to keep the original
      * write function. For function description see @ref OD_IO_t. */
-    OD_size_t (*write)(OD_stream_t *stream, uint8_t subIndex,
-                       const void *buf, OD_size_t count, ODR_t *returnCode);
+    OD_size_t (*write)(OD_stream_t *stream, const void *buf,
+                       OD_size_t count, ODR_t *returnCode);
     /**
      * PDO flags bit-field. If available, then each sub-element is coupled
      * with own flagsPDO variable of size 8 to 512 bits (size is configurable
@@ -372,8 +372,8 @@ typedef struct {
  * io->read returned by @ref OD_getSub() equals to this function. See
  * also @ref OD_IO_t.
  */
-OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
-                          void *buf, OD_size_t count, ODR_t *returnCode);
+OD_size_t OD_readOriginal(OD_stream_t *stream, void *buf,
+                          OD_size_t count, ODR_t *returnCode);
 
 
 /**
@@ -385,8 +385,8 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, uint8_t subIndex,
  * io->write returned by @ref OD_getSub() equals to this function. See
  * also @ref OD_IO_t.
  */
-OD_size_t OD_writeOriginal(OD_stream_t *stream, uint8_t subIndex,
-                           const void *buf, OD_size_t count, ODR_t *returnCode);
+OD_size_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, ODR_t *returnCode);
 
 
 /**

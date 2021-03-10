@@ -173,9 +173,8 @@ static void CO_SDOclient_receive(void *object, void *msg) {
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1280(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1280(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
     /* "count" is already verified in *_init() function */
     if (stream == NULL || buf == NULL || returnCode == NULL) {
@@ -188,7 +187,7 @@ static OD_size_t OD_write_1280(OD_stream_t *stream, uint8_t subIndex,
     uint32_t COB_ID;
     uint8_t nodeId;
 
-    switch (subIndex) {
+    switch (stream->subIndex) {
         case 0: /* Highest sub-index supported */
             *returnCode = ODR_READONLY;
             return 0;
@@ -242,7 +241,7 @@ static OD_size_t OD_write_1280(OD_stream_t *stream, uint8_t subIndex,
     }
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, subIndex, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, returnCode);
 }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC */
 
@@ -626,8 +625,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
 
                 /* write data to Object Dictionary */
                 if (lock) { CO_LOCK_OD(SDO_C->CANdevTx); }
-                SDO_C->OD_IO.write(&SDO_C->OD_IO.stream, SDO_C->subIndex,
-                                   buf, count, &odRet);
+                SDO_C->OD_IO.write(&SDO_C->OD_IO.stream, buf, count, &odRet);
                 if (lock) { CO_UNLOCK_OD(SDO_C->CANdevTx); }
 
                 /* verify for errors in write */
@@ -1220,7 +1218,6 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             /* load data from OD variable into the buffer */
             if (lock) { CO_LOCK_OD(SDO_C->CANdevTx); }
             OD_size_t countRd = SDO_C->OD_IO.read(&SDO_C->OD_IO.stream,
-                                                  SDO_C->subIndex,
                                                   buf, countBuf, &odRet);
             if (lock) { CO_UNLOCK_OD(SDO_C->CANdevTx); }
 

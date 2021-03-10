@@ -80,11 +80,10 @@ static void CO_SYNC_receive(void *object, void *msg) {
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1005(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1005(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
         || count != sizeof(uint32_t) || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -156,7 +155,7 @@ static OD_size_t OD_write_1005(OD_stream_t *stream, uint8_t subIndex,
 #endif /* CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER */
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, subIndex, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, returnCode);
 }
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
@@ -165,11 +164,10 @@ static OD_size_t OD_write_1005(OD_stream_t *stream, uint8_t subIndex,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1019(OD_stream_t *stream, uint8_t subIndex,
-                               const void *buf, OD_size_t count,
-                               ODR_t *returnCode)
+static OD_size_t OD_write_1019(OD_stream_t *stream, const void *buf,
+                               OD_size_t count, ODR_t *returnCode)
 {
-    if (stream == NULL || subIndex != 0 || buf == NULL
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
         || count != sizeof(uint8_t) || returnCode == NULL
     ) {
         if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
@@ -208,7 +206,7 @@ static OD_size_t OD_write_1019(OD_stream_t *stream, uint8_t subIndex,
     SYNC->counterOverflowValue = syncCounterOvf;
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, subIndex, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, returnCode);
 }
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER */
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC */
