@@ -80,18 +80,16 @@ static void CO_SYNC_receive(void *object, void *msg) {
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1005(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || returnCode == NULL
+        || count != sizeof(uint32_t) || countWritten == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_SYNC_t *SYNC = stream->object;
-    *returnCode = ODR_OK;
     uint32_t cobIdSync = CO_getUint32(buf);
     uint16_t CAN_ID = (uint16_t)(cobIdSync & 0x7FF);
 
@@ -101,13 +99,11 @@ static OD_size_t OD_write_1005(OD_stream_t *stream, const void *buf,
     if ((cobIdSync & 0xBFFF8000) != 0
         || (SYNC->isProducer && isProducer && CAN_ID != SYNC->CAN_ID)
     ) {
-        *returnCode = ODR_INVALID_VALUE;
-        return 0;
+        return ODR_INVALID_VALUE;
     }
 #else
     if ((cobIdSync & 0xFFFF8000) != 0) {
-        *returnCode = ODR_INVALID_VALUE;
-        return 0;
+        return ODR_INVALID_VALUE;
     }
 #endif
 
@@ -123,8 +119,7 @@ static OD_size_t OD_write_1005(OD_stream_t *stream, const void *buf,
             CO_SYNC_receive);   /* this function will process received message*/
 
         if (CANret != CO_ERROR_NO) {
-            *returnCode = ODR_DEV_INCOMPAT;
-            return 0;
+            return ODR_DEV_INCOMPAT;
         }
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
@@ -138,8 +133,7 @@ static OD_size_t OD_write_1005(OD_stream_t *stream, const void *buf,
 
         if (SYNC->CANtxBuff == NULL) {
             SYNC->isProducer = false;
-            *returnCode = ODR_DEV_INCOMPAT;
-            return 0;
+            return ODR_DEV_INCOMPAT;
         }
 #endif
 
@@ -155,7 +149,7 @@ static OD_size_t OD_write_1005(OD_stream_t *stream, const void *buf,
 #endif /* CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER */
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
@@ -164,28 +158,24 @@ static OD_size_t OD_write_1005(OD_stream_t *stream, const void *buf,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1019(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1019(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint8_t) || returnCode == NULL
+        || count != sizeof(uint8_t) || countWritten == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_SYNC_t *SYNC = stream->object;
-    *returnCode = ODR_OK;
     uint8_t syncCounterOvf = CO_getUint8(buf);
 
     /* verify written value */
     if (syncCounterOvf == 1 || syncCounterOvf > 240) {
-        *returnCode = ODR_INVALID_VALUE;
-        return 0;
+        return ODR_INVALID_VALUE;
     }
     if (*SYNC->OD_1006_period != 0 && SYNC->isProducer) {
-        *returnCode = ODR_DATA_DEV_STATE;
-        return 0;
+        return ODR_DATA_DEV_STATE;
     }
 
     /* Configure CAN transmit buffer */
@@ -199,14 +189,13 @@ static OD_size_t OD_write_1019(OD_stream_t *stream, const void *buf,
 
     if (SYNC->CANtxBuff == NULL) {
         SYNC->isProducer = false;
-        *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     SYNC->counterOverflowValue = syncCounterOvf;
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER */
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC */

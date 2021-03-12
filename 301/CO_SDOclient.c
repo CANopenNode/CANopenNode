@@ -173,24 +173,21 @@ static void CO_SDOclient_receive(void *object, void *msg) {
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1280(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1280(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     /* "count" is already verified in *_init() function */
-    if (stream == NULL || buf == NULL || returnCode == NULL) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+    if (stream == NULL || buf == NULL || countWritten == NULL) {
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_SDOclient_t *SDO_C = (CO_SDOclient_t *)stream->object;
-    *returnCode = ODR_OK;
     uint32_t COB_ID;
     uint8_t nodeId;
 
     switch (stream->subIndex) {
         case 0: /* Highest sub-index supported */
-            *returnCode = ODR_READONLY;
-            return 0;
+            return ODR_READONLY;
 
         case 1: /* COB-ID client -> server */
             COB_ID = CO_getUint32(buf);
@@ -200,8 +197,7 @@ static OD_size_t OD_write_1280(OD_stream_t *stream, const void *buf,
                 || ((uint16_t)COB_ID != (uint16_t)SDO_C->COB_IDClientToServer
                     && SDO_C->valid && (COB_ID & 0x80000000) == 0)
             ) {
-                *returnCode = ODR_INVALID_VALUE;
-                return 0;
+                return ODR_INVALID_VALUE;
             }
             CO_SDOclient_setup(SDO_C,
                                COB_ID,
@@ -217,8 +213,7 @@ static OD_size_t OD_write_1280(OD_stream_t *stream, const void *buf,
                 || ((uint16_t)COB_ID != (uint16_t)SDO_C->COB_IDServerToClient
                     && SDO_C->valid && (COB_ID & 0x80000000) == 0)
             ) {
-                *returnCode = ODR_INVALID_VALUE;
-                return 0;
+                return ODR_INVALID_VALUE;
             }
             CO_SDOclient_setup(SDO_C,
                                SDO_C->COB_IDClientToServer,
@@ -229,19 +224,17 @@ static OD_size_t OD_write_1280(OD_stream_t *stream, const void *buf,
         case 3: /* Node-ID of the SDO server */
             nodeId = CO_getUint8(buf);
             if (nodeId > 127) {
-                *returnCode = ODR_INVALID_VALUE;
-                return 0;
+                return ODR_INVALID_VALUE;
             }
             SDO_C->nodeIDOfTheSDOServer = nodeId;
             break;
 
         default:
-            *returnCode = ODR_SUB_NOT_EXIST;
-            return 0;
+            return ODR_SUB_NOT_EXIST;
     }
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC */
 
@@ -620,12 +613,13 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 }
             }
             if (abortCode == CO_SDO_AB_NONE) {
-                ODR_t odRet;
+                OD_size_t countWritten = 0;
                 bool_t lock = OD_mappable(&SDO_C->OD_IO.stream);
 
                 /* write data to Object Dictionary */
                 if (lock) { CO_LOCK_OD(SDO_C->CANdevTx); }
-                SDO_C->OD_IO.write(&SDO_C->OD_IO.stream, buf, count, &odRet);
+                ODR_t odRet = SDO_C->OD_IO.write(&SDO_C->OD_IO.stream, buf,
+                                                 count, &countWritten);
                 if (lock) { CO_UNLOCK_OD(SDO_C->CANdevTx); }
 
                 /* verify for errors in write */
@@ -1211,14 +1205,14 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             OD_size_t countData = SDO_C->OD_IO.stream.dataLength;
             OD_size_t countBuf = (countData > 0 && countData <= countFifo)
                                  ? countData : countFifo;
+            OD_size_t countRd = 0;
             uint8_t buf[countBuf + 1];
-            ODR_t odRet;
             bool_t lock = OD_mappable(&SDO_C->OD_IO.stream);
 
             /* load data from OD variable into the buffer */
             if (lock) { CO_LOCK_OD(SDO_C->CANdevTx); }
-            OD_size_t countRd = SDO_C->OD_IO.read(&SDO_C->OD_IO.stream,
-                                                  buf, countBuf, &odRet);
+            ODR_t odRet = SDO_C->OD_IO.read(&SDO_C->OD_IO.stream,
+                                            buf, countBuf, &countRd);
             if (lock) { CO_UNLOCK_OD(SDO_C->CANdevTx); }
 
             if (odRet != ODR_OK && odRet != ODR_PARTIAL) {

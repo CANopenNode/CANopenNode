@@ -31,32 +31,29 @@
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1010(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1010(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     /* verify arguments */
     if (stream == NULL || stream->subIndex == 0 || buf == NULL || count != 4
-        || returnCode == NULL
+        || countWritten == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_storage_t *storage = stream->object;
 
     if (stream->subIndex == 0 || storage->store == NULL) {
-        *returnCode = ODR_READONLY;
-        return 0;
+        return ODR_READONLY;
     }
 
     if (CO_getUint32(buf) != 0x65766173) {
-        *returnCode = ODR_DATA_TRANSF;
-        return 0;
+        return ODR_DATA_TRANSF;
     }
 
     /* loop through entries and store relevant */
     uint8_t found = 0;
-    *returnCode = ODR_OK;
+    ODR_t returnCode = ODR_OK;
 
     for (uint8_t i = 0; i < storage->entriesCount; i++) {
         CO_storage_entry_t *entry = &storage->entries[i];
@@ -65,15 +62,17 @@ static OD_size_t OD_write_1010(OD_stream_t *stream, const void *buf,
             if (found == 0) found = 1;
             if ((entry->attr & CO_storage_cmd) != 0) {
                 ODR_t code = storage->store(entry, storage->CANmodule);
-                if (code != ODR_OK) *returnCode = code;
+                if (code != ODR_OK) returnCode = code;
                 found = 2;
             }
         }
     }
 
-    if (found != 2) *returnCode = found == 0 ? ODR_SUB_NOT_EXIST : ODR_READONLY;
+    if (found != 2)
+        returnCode = found == 0 ? ODR_SUB_NOT_EXIST : ODR_READONLY;
 
-    return *returnCode == ODR_OK ? 4 : 0;
+    if (returnCode == ODR_OK) *countWritten = sizeof(uint32_t);
+    return returnCode;
 }
 
 
@@ -82,32 +81,29 @@ static OD_size_t OD_write_1010(OD_stream_t *stream, const void *buf,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1011(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1011(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     /* verify arguments */
     if (stream == NULL || stream->subIndex == 0 || buf == NULL || count != 4
-        || returnCode == NULL
+        || countWritten == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_storage_t *storage = stream->object;
 
     if (stream->subIndex == 0 || storage->restore == NULL) {
-        *returnCode = ODR_READONLY;
-        return 0;
+        return ODR_READONLY;
     }
 
     if (CO_getUint32(buf) != 0x64616F6C) {
-        *returnCode = ODR_DATA_TRANSF;
-        return 0;
+        return ODR_DATA_TRANSF;
     }
 
     /* loop through entries and store relevant */
     uint8_t found = 0;
-    *returnCode = ODR_OK;
+    ODR_t returnCode = ODR_OK;
 
     for (uint8_t i = 0; i < storage->entriesCount; i++) {
         CO_storage_entry_t *entry = &storage->entries[i];
@@ -116,15 +112,17 @@ static OD_size_t OD_write_1011(OD_stream_t *stream, const void *buf,
             if (found == 0) found = 1;
             if ((entry->attr & CO_storage_restore) != 0) {
                 ODR_t code = storage->restore(entry, storage->CANmodule);
-                if (code != ODR_OK) *returnCode = code;
+                if (code != ODR_OK) returnCode = code;
                 found = 2;
             }
         }
     }
 
-    if (found != 2) *returnCode = found == 0 ? ODR_SUB_NOT_EXIST : ODR_READONLY;
+    if (found != 2)
+        returnCode = found == 0 ? ODR_SUB_NOT_EXIST : ODR_READONLY;
 
-    return *returnCode == ODR_OK ? 4 : 0;
+    if (returnCode == ODR_OK) *countWritten = sizeof(uint32_t);
+    return returnCode;
 }
 
 

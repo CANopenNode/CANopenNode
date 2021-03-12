@@ -59,39 +59,38 @@
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_read_1014(OD_stream_t *stream, void *buf,
-                              OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
+                          OD_size_t count, OD_size_t *countRead)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || returnCode == NULL
+        || count != sizeof(uint32_t) || countRead == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
-    *returnCode = ODR_OK;
 
     uint16_t canId = em->producerCanId == CO_CAN_ID_EMERGENCY ?
                      CO_CAN_ID_EMERGENCY + em->nodeId : em->producerCanId;
     uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000;
     COB_IDEmergency32 |= canId;
     CO_setUint32(buf, COB_IDEmergency32);
-    return sizeof(uint32_t);
+
+
+    *countRead = sizeof(uint32_t);
+    return ODR_OK;
 }
 
-static OD_size_t OD_write_1014(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || returnCode == NULL
+        || count != sizeof(uint32_t) || countWritten == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
-    *returnCode = ODR_OK;
 
     /* Verify written value. COB ID must not change, if emergency is enabled */
     uint32_t COB_IDEmergency32 = CO_getUint32(buf);
@@ -102,8 +101,7 @@ static OD_size_t OD_write_1014(OD_stream_t *stream, const void *buf,
     if ((COB_IDEmergency32 & 0x7FFFF800) != 0
         || (em->producerEnabled && newEnabled && newCanId != curCanId)
     ) {
-        *returnCode = ODR_INVALID_VALUE;
-        return 0;
+        return ODR_INVALID_VALUE;
     }
 
     /* store values. If default CAN-ID is used, then store only value of
@@ -124,7 +122,7 @@ static OD_size_t OD_write_1014(OD_stream_t *stream, const void *buf,
     }
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
  #else
 /*
@@ -132,23 +130,23 @@ static OD_size_t OD_write_1014(OD_stream_t *stream, const void *buf,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_read_1014_default(OD_stream_t *stream, void *buf,
-                                      OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
+                                  OD_size_t count, OD_size_t *countRead)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || returnCode == NULL
+        || count != sizeof(uint32_t) || countRead == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
-    *returnCode = ODR_OK;
 
     uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000;
     COB_IDEmergency32 |= CO_CAN_ID_EMERGENCY + em->nodeId;
     CO_setUint32(buf, COB_IDEmergency32);
-    return sizeof(uint32_t);
+
+    *countRead = sizeof(uint32_t);
+    return ODR_OK;
 }
  #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE */
 
@@ -158,25 +156,23 @@ static OD_size_t OD_read_1014_default(OD_stream_t *stream, void *buf,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1015(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1015(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint16_t) || returnCode == NULL
+        || count != sizeof(uint16_t) || countWritten == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
-    *returnCode = ODR_OK;
 
     /* update object */
     em->inhibitEmTime_us = (uint32_t)CO_getUint16(buf) * 100;
     em->inhibitEmTimer = 0;
 
     /* write value to the original location in the Object Dictionary */
-    return OD_writeOriginal(stream, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
  #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT */
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER */
@@ -187,20 +183,20 @@ static OD_size_t OD_write_1015(OD_stream_t *stream, const void *buf,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_read_1003(OD_stream_t *stream, void *buf,
-                              OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
+                          OD_size_t count, OD_size_t *countRead)
 {
-    if (stream == NULL || buf == NULL || count < 4 || returnCode == NULL) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+    if (stream == NULL || buf == NULL || count < 4 || countRead == NULL) {
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
-    *returnCode = ODR_OK;
 
     if (stream->subIndex == 0) {
         CO_setUint8(buf, em->fifoCount);
-        return 1;
+
+        *countRead = sizeof(uint8_t);
+        return ODR_OK;
     }
     else if (stream->subIndex <= em->fifoCount) {
         /* newest error is reported on subIndex 1 and is stored just behind
@@ -210,40 +206,38 @@ static OD_size_t OD_read_1003(OD_stream_t *stream, void *buf,
             index += CO_CONFIG_EM_BUFFER_SIZE + 1;
         }
         else if (index >= (CO_CONFIG_EM_BUFFER_SIZE + 1)) {
-            *returnCode = ODR_DEV_INCOMPAT;
-            return 0;
+            return ODR_DEV_INCOMPAT;
         }
         CO_setUint32(buf, em->fifo[index][0]);
-        return 4;
+
+        *countRead = sizeof(uint32_t);
+        return ODR_OK;
     }
     else {
-        *returnCode = ODR_NO_DATA;
-        return 0;
+        return ODR_NO_DATA;
     }
 }
 
-static OD_size_t OD_write_1003(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1003(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL || count != 1
-        || returnCode == NULL)
+        || countWritten == NULL)
     {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     if (CO_getUint8(buf) != 0) {
-        *returnCode = ODR_INVALID_VALUE;
-        return 0;
+        return ODR_INVALID_VALUE;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
-    *returnCode = ODR_OK;
 
     /* clear error history */
     em->fifoCount = 0;
 
-    return sizeof(uint8_t);
+    *countWritten = sizeof(uint8_t);
+    return ODR_OK;
 }
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY */
 
@@ -253,47 +247,45 @@ static OD_size_t OD_write_1003(OD_stream_t *stream, const void *buf,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_read_statusBits(OD_stream_t *stream, void *buf,
-                                    OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
+                                OD_size_t count, OD_size_t *countRead)
 {
     if (stream == NULL || stream->subIndex != 0
-        || buf == NULL || returnCode == NULL)
+        || buf == NULL || countRead == NULL)
     {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
-    *returnCode = ODR_OK;
 
     /* get MAX(errorStatusBitsSize, bufSize, ODsizeIndication) */
-    size_t countRead = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
-    if (countRead > count) {
-        countRead = count;
+    size_t countReadLocal = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
+    if (countReadLocal > count) {
+        countReadLocal = count;
     }
-    if (stream->dataLength != 0 && countRead > stream->dataLength) {
-        countRead = stream->dataLength;
+    if (stream->dataLength != 0 && countReadLocal > stream->dataLength) {
+        countReadLocal = stream->dataLength;
     }
     else {
-        stream->dataLength = countRead;
+        stream->dataLength = countReadLocal;
     }
 
-    memcpy (buf, &em->errorStatusBits[0], countRead);
-    return countRead;
+    memcpy (buf, &em->errorStatusBits[0], countReadLocal);
+
+    *countRead = countReadLocal;
+    return ODR_OK;
 }
 
-static OD_size_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
-                                     OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
+                                 OD_size_t count, OD_size_t *countWritten)
 {
     if (stream == NULL || stream->subIndex != 0
-        || buf == NULL || returnCode == NULL
+        || buf == NULL || countWritten == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
-    *returnCode = ODR_OK;
 
     /* get MAX(errorStatusBitsSize, bufSize, ODsizeIndication) */
     size_t countWrite = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
@@ -308,7 +300,9 @@ static OD_size_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
     }
 
     memcpy (&em->errorStatusBits[0], buf, countWrite);
-    return countWrite;
+
+    *countWritten = countWrite;
+    return ODR_OK;
 }
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS */
 

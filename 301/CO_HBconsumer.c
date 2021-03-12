@@ -87,18 +87,17 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static OD_size_t OD_write_1016(OD_stream_t *stream, const void *buf,
-                               OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
 {
     CO_HBconsumer_t *HBcons = stream->object;
 
     if (stream == NULL || buf == NULL
         || stream->subIndex < 1
         || stream->subIndex > HBcons->numberOfMonitoredNodes
-        || count != sizeof(uint32_t) || returnCode == NULL
+        || count != sizeof(uint32_t) || countWritten == NULL
     ) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+        return ODR_DEV_INCOMPAT;
     }
 
     uint32_t val = CO_getUint32(buf);
@@ -107,13 +106,11 @@ static OD_size_t OD_write_1016(OD_stream_t *stream, const void *buf,
     CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - 1,
                                                    nodeId, time);
     if (ret != CO_ERROR_NO) {
-        *returnCode = ODR_PAR_INCOMPAT;
-        return 0;
+        return ODR_PAR_INCOMPAT;
     }
 
     /* write value to the original location in the Object Dictionary */
-    *returnCode = ODR_OK;
-    return OD_writeOriginal(stream, buf, count, returnCode);
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
 #endif
 

@@ -28,30 +28,27 @@
 
 
 /******************************************************************************/
-OD_size_t OD_readOriginal(OD_stream_t *stream, void *buf,
-                          OD_size_t count, ODR_t *returnCode)
+ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
+                      OD_size_t count, OD_size_t *countRead)
 {
-    if (stream == NULL || buf == NULL || returnCode == NULL) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+    if (stream == NULL || buf == NULL || countRead == NULL) {
+        return ODR_DEV_INCOMPAT;
     }
 
     OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
     const uint8_t *dataOrig = stream->dataOrig;
 
     if (dataOrig == NULL) {
-        *returnCode = ODR_SUB_NOT_EXIST;
-        return 0;
+        return ODR_SUB_NOT_EXIST;
     }
 
-    *returnCode = ODR_OK;
+    ODR_t returnCode = ODR_OK;
 
     /* If previous read was partial or OD variable length is larger than
      * current buffer size, then data was (will be) read in several segments */
     if (stream->dataOffset > 0 || dataLenToCopy > count) {
         if (stream->dataOffset >= dataLenToCopy) {
-            *returnCode = ODR_DEV_INCOMPAT;
-            return 0;
+            return ODR_DEV_INCOMPAT;
         }
         /* Reduce for already copied data */
         dataLenToCopy -= stream->dataOffset;
@@ -61,7 +58,7 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, void *buf,
             /* Not enough space in destination buffer */
             dataLenToCopy = count;
             stream->dataOffset += dataLenToCopy;
-            *returnCode = ODR_PARTIAL;
+            returnCode = ODR_PARTIAL;
         }
         else {
             stream->dataOffset = 0; /* copy finished, reset offset */
@@ -69,35 +66,34 @@ OD_size_t OD_readOriginal(OD_stream_t *stream, void *buf,
     }
 
     memcpy(buf, dataOrig, dataLenToCopy);
-    return dataLenToCopy;
+
+    *countRead = dataLenToCopy;
+    return returnCode;
 }
 
 /******************************************************************************/
-OD_size_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
-                           OD_size_t count, ODR_t *returnCode)
+ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
+                       OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || buf == NULL || returnCode == NULL) {
-        if (returnCode != NULL) *returnCode = ODR_DEV_INCOMPAT;
-        return 0;
+    if (stream == NULL || buf == NULL || countWritten == NULL) {
+        return ODR_DEV_INCOMPAT;
     }
 
     OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
     uint8_t *dataOrig = stream->dataOrig;
 
     if (dataOrig == NULL) {
-        *returnCode = ODR_SUB_NOT_EXIST;
-        return 0;
+        return ODR_SUB_NOT_EXIST;
     }
 
-    *returnCode = ODR_OK;
+    ODR_t returnCode = ODR_OK;
 
     /* If previous write was partial or OD variable length is larger than
      * current buffer size, then data was (will be) written in several
      * segments */
     if (stream->dataOffset > 0 || dataLenToCopy > count) {
         if (stream->dataOffset >= dataLenToCopy) {
-            *returnCode = ODR_DEV_INCOMPAT;
-            return 0;
+            return ODR_DEV_INCOMPAT;
         }
         /* reduce for already copied data */
         dataLenToCopy -= stream->dataOffset;
@@ -108,7 +104,7 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
              * of data, so only current count of data will be copied */
             dataLenToCopy = count;
             stream->dataOffset += dataLenToCopy;
-            *returnCode = ODR_PARTIAL;
+            returnCode = ODR_PARTIAL;
         }
         else {
             stream->dataOffset = 0; /* copy finished, reset offset */
@@ -117,32 +113,29 @@ OD_size_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
 
     if (dataLenToCopy < count) {
         /* OD variable is smaller than current amount of data */
-        *returnCode = ODR_DATA_LONG;
-        return 0;
+        return ODR_DATA_LONG;
     }
 
     memcpy(dataOrig, buf, dataLenToCopy);
-    return dataLenToCopy;
+
+    *countWritten = dataLenToCopy;
+    return returnCode;
 }
 
 /* Read value from variable from Object Dictionary disabled, see OD_IO_t*/
-static OD_size_t OD_readDisabled(OD_stream_t *stream, void *buf,
-                                 OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_readDisabled(OD_stream_t *stream, void *buf,
+                             OD_size_t count, OD_size_t *countRead)
 {
-    (void) stream; (void) buf; (void) count;
-
-    if (returnCode != NULL) *returnCode = ODR_UNSUPP_ACCESS;
-    return 0;
+    (void) stream; (void) buf; (void) count; (void) countRead;
+    return ODR_UNSUPP_ACCESS;
 }
 
 /* Write value to variable from Object Dictionary disabled, see OD_IO_t */
-static OD_size_t OD_writeDisabled(OD_stream_t *stream, const void *buf,
-                                  OD_size_t count, ODR_t *returnCode)
+static ODR_t OD_writeDisabled(OD_stream_t *stream, const void *buf,
+                              OD_size_t count, OD_size_t *countWritten)
 {
-    (void) stream; (void) buf; (void) count;
-
-    if (returnCode != NULL) *returnCode = ODR_UNSUPP_ACCESS;
-    return 0;
+    (void) stream; (void) buf; (void) count; (void) countWritten;
+    return ODR_UNSUPP_ACCESS;
 }
 
 
@@ -310,35 +303,31 @@ ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
 {
     if (val == NULL) return ODR_DEV_INCOMPAT;
 
-    ODR_t ret;
     OD_IO_t io;
     OD_stream_t *stream = (OD_stream_t *)&io;
+    OD_size_t countRd = 0;
 
-    ret = OD_getSub(entry, subIndex, &io, odOrig);
+    ODR_t ret = OD_getSub(entry, subIndex, &io, odOrig);
 
     if (ret != ODR_OK) return ret;
     if (stream->dataLength != len) return ODR_TYPE_MISMATCH;
 
-    io.read(stream, val, len, &ret);
-
-    return ret;
+    return io.read(stream, val, len, &countRd);
 }
 
 ODR_t OD_set_value(const OD_entry_t *entry, uint8_t subIndex, void *val,
                    OD_size_t len, bool_t odOrig)
 {
-    ODR_t ret;
     OD_IO_t io;
     OD_stream_t *stream = &io.stream;
+    OD_size_t countWritten = 0;
 
-    ret = OD_getSub(entry, subIndex, &io, odOrig);
+    ODR_t ret = OD_getSub(entry, subIndex, &io, odOrig);
 
     if (ret != ODR_OK) return ret;
     if (stream->dataLength != len) return ODR_TYPE_MISMATCH;
 
-    io.write(stream, val, len, &ret);
-
-    return ret;
+    return io.write(stream, val, len, &countWritten);
 }
 
 void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
