@@ -541,70 +541,70 @@ ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
 static inline ODR_t OD_get_i8(const OD_entry_t *entry, uint8_t subIndex,
                               int8_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get int16_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_i16(const OD_entry_t *entry, uint8_t subIndex,
                                int16_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get int32_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_i32(const OD_entry_t *entry, uint8_t subIndex,
                                int32_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get int64_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_i64(const OD_entry_t *entry, uint8_t subIndex,
                                int64_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get uint8_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_u8(const OD_entry_t *entry, uint8_t subIndex,
                               uint8_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get uint16_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_u16(const OD_entry_t *entry, uint8_t subIndex,
                                uint16_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get uint32_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_u32(const OD_entry_t *entry, uint8_t subIndex,
                                uint32_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get uint64_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_u64(const OD_entry_t *entry, uint8_t subIndex,
                                uint64_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get float32_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_f32(const OD_entry_t *entry, uint8_t subIndex,
                                float32_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /** Get float64_t variable from Object Dictionary, see @ref OD_get_value */
 static inline ODR_t OD_get_f64(const OD_entry_t *entry, uint8_t subIndex,
                                float64_t *val, bool_t odOrig)
 {
-    return OD_get_value(entry, subIndex, val, sizeof(val), odOrig);
+    return OD_get_value(entry, subIndex, val, sizeof(*val), odOrig);
 }
 
 /**
