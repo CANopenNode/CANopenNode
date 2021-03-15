@@ -610,18 +610,20 @@ void CO_EM_process(CO_EM_t *em,
 
     /* post-process Emergency message in fifo buffer. */
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
-    /* inhibit time */
+    uint8_t fifoPpPtr = em->fifoPpPtr;
+
+ #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
     if (em->inhibitEmTimer < em->inhibitEmTime_us) {
         em->inhibitEmTimer += timeDifference_us;
     }
 
-    uint8_t fifoPpPtr = em->fifoPpPtr;
-    if (fifoPpPtr != em->fifoWrPtr
+    if (fifoPpPtr != em->fifoWrPtr && !em->CANtxBuff->bufferFull
         && em->inhibitEmTimer >= em->inhibitEmTime_us
-        && !em->CANtxBuff->bufferFull
     ) {
         em->inhibitEmTimer = 0;
-
+ #else
+    if (fifoPpPtr != em->fifoWrPtr && !em->CANtxBuff->bufferFull) {
+ #endif
         /* add error register to emergency message */
         em->fifo[fifoPpPtr][0] |= (uint32_t) errorRegister << 16;
 
@@ -660,7 +662,8 @@ void CO_EM_process(CO_EM_t *em,
             CO_errorReset(em, CO_EM_EMERGENCY_BUFFER_FULL, 0);
         }
     }
- #if (CO_CONFIG_EM) & CO_CONFIG_FLAG_TIMERNEXT
+ #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
+  #if (CO_CONFIG_EM) & CO_CONFIG_FLAG_TIMERNEXT
     else if (timerNext_us != NULL && em->inhibitEmTimer < em->inhibitEmTime_us){
         /* check again after inhibit time elapsed */
         uint32_t diff = em->inhibitEmTime_us - em->inhibitEmTimer;
@@ -668,6 +671,7 @@ void CO_EM_process(CO_EM_t *em,
             *timerNext_us = diff;
         }
     }
+  #endif
  #endif
 #elif (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
     uint8_t fifoPpPtr = em->fifoPpPtr;
