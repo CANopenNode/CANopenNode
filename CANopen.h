@@ -467,7 +467,7 @@ CO_ReturnError_t CO_LSSinit(CO_t *co,
 
 
 /**
- * Initialize CANopenNode.
+ * Initialize CANopenNode except PDO objects.
  *
  * Function must be called in the communication reset section.
  *
@@ -509,6 +509,30 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 bool_t SDOclientBlockTransfer,
                                 uint8_t nodeId,
                                 uint32_t *errInfo);
+
+
+/**
+ * Initialize CANopenNode PDO objects.
+ *
+ * Function must be called in the end of communication reset section after all
+ * CANopen and application initialization, otherwise some OD variables wont be
+ * mapped into PDO correctly.
+ *
+ * @param co CANopen object.
+ * @param em Emergency object, which is used inside PDO objects for error
+ * reporting.
+ * @param od CANopen Object dictionary
+ * @param nodeId CANopen Node ID (1 ... 127) or 0xFF(unconfigured). If
+ * unconfigured, then PDO will not be initialized nor processed.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
+ *
+ * @return CO_ERROR_NO in case of success.
+ */
+CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
+                                   CO_EM_t *em,
+                                   OD_t *od,
+                                   uint8_t nodeId,
+                                   uint32_t *errInfo);
 
 
 /**
@@ -571,8 +595,14 @@ bool_t CO_process_SYNC(CO_t *co,
  * @param co CANopen object.
  * @param syncWas True, if CANopen SYNC message was just received or
  * transmitted.
+ * @param timeDifference_us Time difference from previous function call in
+ * microseconds.
+ * @param [out] timerNext_us info to OS - see CO_process().
  */
-void CO_process_RPDO(CO_t *co, bool_t syncWas);
+void CO_process_RPDO(CO_t *co,
+                     bool_t syncWas,
+                     uint32_t timeDifference_us,
+                     uint32_t *timerNext_us);
 #endif
 
 

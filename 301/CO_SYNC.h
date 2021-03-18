@@ -35,7 +35,7 @@
 #ifndef CO_CONFIG_SYNC
 #define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | \
                         CO_CONFIG_SYNC_PRODUCER | \
-                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                        CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE | \
                         CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
                         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
@@ -88,8 +88,9 @@ typedef struct {
     uint8_t receiveError;
     /** Variable toggles, if new SYNC message received from CAN bus */
     bool_t CANrxToggle;
-    /** True in sync timeout error state */
-    bool_t timeoutError;
+    /** Sync timeout monitoring: 0 = not started; 1 = started; 2 = sync timeout
+     * error state */
+    uint8_t timeoutError;
     /** Value from _Synchronous counter overflow value_ variable from Object
     dictionary (index 0x1019) */
     uint8_t counterOverflowValue;

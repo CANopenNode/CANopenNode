@@ -338,7 +338,8 @@ void CO_epoll_processRT(CO_epoll_t *ep,
                                       pTimerNext_us);
 #endif
 #if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
-            CO_process_RPDO(co, syncWas);
+            CO_process_RPDO(co, syncWas, ep->timeDifference_us,
+                            pTimerNext_us);
 #endif
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
             CO_process_TPDO(co, syncWas, ep->timeDifference_us,

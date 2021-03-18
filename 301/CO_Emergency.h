@@ -295,8 +295,8 @@ typedef enum {
     CO_EM_TPDO_OUTSIDE_WINDOW       = 0x15U,
     /** 0x16, communication, critical, (unused) */
     CO_EM_16_unused                 = 0x16U,
-    /** 0x17, communication, critical, (unused) */
-    CO_EM_17_unused                 = 0x17U,
+    /** 0x17, communication, critical, RPDO message timeout */
+    CO_EM_RPDO_TIME_OUT             = 0x17U,
     /** 0x18, communication, critical, SYNC message timeout */
     CO_EM_SYNC_TIME_OUT             = 0x18U,
     /** 0x19, communication, critical, Unexpected SYNC data length */

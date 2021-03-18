@@ -67,9 +67,9 @@
 #ifndef NMT_CONTROL
 #define NMT_CONTROL \
             CO_NMT_STARTUP_TO_OPERATIONAL \
-         || CO_NMT_ERR_ON_ERR_REG \
-         || CO_ERR_REG_GENERIC_ERR \
-         || CO_ERR_REG_COMMUNICATION
+          | CO_NMT_ERR_ON_ERR_REG \
+          | CO_ERR_REG_GENERIC_ERR \
+          | CO_ERR_REG_COMMUNICATION
 #endif
 #ifndef FIRST_HB_TIME
 #define FIRST_HB_TIME 500
@@ -664,6 +664,24 @@ int main (int argc, char *argv[]) {
         /* Execute optional additional application code */
         app_communicationReset(!CO->nodeIdUnconfigured);
 #endif
+
+        errInfo = 0;
+        err = CO_CANopenInitPDO(CO,             /* CANopen object */
+                                CO->em,         /* emergency object */
+                                OD,             /* Object dictionary */
+                                CO_activeNodeId,
+                                &errInfo);
+        if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
+            if (err == CO_ERROR_OD_PARAMETERS) {
+                log_printf(LOG_CRIT, DBG_OD_ENTRY, errInfo);
+            }
+            else {
+                log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_CANopenInitPDO()", err);
+            }
+            programExit = EXIT_FAILURE;
+            CO_endProgram = 1;
+            continue;
+        }
 
 
         /* start CAN */

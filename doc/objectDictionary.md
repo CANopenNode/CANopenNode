@@ -30,7 +30,7 @@ Note that OD variables can be accessed from different threads. CANopenNode basic
 extern OD_t *ODxyz;
 
 void myFunc(OD_t *od) {
-    ODR_t ret;
+    ODR_t odRet;
     OD_entry_t *entry;
     OD_IO_t io1008;
     char buf[50];
@@ -39,15 +39,24 @@ void myFunc(OD_t *od) {
 
     /* Init IO for "Manufacturer device name" at index 0x1008, sub-index 0x00 */
     entry = OD_find(od, 0x1008);
-    ret = OD_getSub(entry, 0x00, &io1008, false);
+    odRet = OD_getSub(entry, 0x00, &io1008, false);
     /* Read with io1008, subindex = 0x00 */
-    if (ret == ODR_OK)
-        bytesRd = io1008.read(&io1008.stream, 0x00, &buf[0], sizeof(buf), &ret);
-    if (ret != ODR_OK) error++;
+    if (odRet == ODR_OK) {
+        /* Locking is necessary from mainline thread, but must not be used from
+         * timer interval (real-time) thread. Locking is not necessary in the
+         * CANoopen initialization section. Locking is also not necessary, if
+         * OD variable is not mappable to PDO and not accessed from RT thread.*/
+        CO_LOCK_OD(CANmodule);
+        odRet = io1008.read(&io1008.stream, &buf[0], sizeof(buf), &bytesRd);
+        CO_UNLOCK_OD(CANmodule);
+    }
+    if (odRet != ODR_OK) error++;
 
     /* Use helper and set "Producer heartbeat time" at index 0x1017, sub 0x00 */
-    ret = OD_set_u16(OD_find(od, 0x1017), 0x00, 500, false);
-    if (ret != ODR_OK) error++;
+    CO_LOCK_OD(CANmodule); /* may not be necessary, see comment above */
+    odRet = OD_set_u16(OD_find(od, 0x1017), 0x00, 500, false);
+    CO_UNLOCK_OD(CANmodule);
+    if (odRet != ODR_OK) error++;
 }
 ```
 There is no need to include ODxyt.h file, it is only necessary to know, we have ODxyz defined somewhere.

@@ -99,9 +99,16 @@ extern "C" {
  */
 #define CO_CONFIG_FLAG_OD_DYNAMIC 0x4000
 
-/** This flag may be set globally to @ref CO_CONFIG_FLAG_CALLBACK_PRE */
+/** This flag may be set globally for mainline objects to
+ * @ref CO_CONFIG_FLAG_CALLBACK_PRE */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE (0)
+#endif
+
+/** This flag may be set globally for Real-Time objects (SYNC, PDO) to
+ * @ref CO_CONFIG_FLAG_CALLBACK_PRE */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE (0)
 #endif
 
 /** This flag may be set globally to @ref CO_CONFIG_FLAG_TIMERNEXT */
@@ -450,7 +457,7 @@ extern "C" {
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of SYNC.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | CO_CONFIG_SYNC_PRODUCER | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+#define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | CO_CONFIG_SYNC_PRODUCER | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #define CO_CONFIG_SYNC_ENABLE 0x01
 #define CO_CONFIG_SYNC_PRODUCER 0x02
@@ -461,11 +468,16 @@ extern "C" {
  * Possible flags, can be ORed:
  * - CO_CONFIG_RPDO_ENABLE - Enable receive PDO objects.
  * - CO_CONFIG_TPDO_ENABLE - Enable transmit PDO objects.
+ * - CO_CONFIG_RPDO_TIMERS_ENABLE - Enable RPDO timers: RPDO timeout monitoring
+ *   with event timer.
+ * - CO_CONFIG_TPDO_TIMERS_ENABLE - Enable TPDO timers: TPDO inhibit and event
+ *   timers.
  * - CO_CONFIG_PDO_SYNC_ENABLE - Enable SYNC in PDO objects.
- * - CO_CONFIG_RPDO_CALLS_EXTENSION - Enable calling configured extension
- *   callbacks when received RPDO CAN message modifies OD entries.
- * - CO_CONFIG_TPDO_CALLS_EXTENSION - Enable calling configured extension
- *   callbacks before TPDO CAN message is sent.
+ * - CO_CONFIG_PDO_OD_IO_ACCESS - For OD variables mapped to PDO use read/write
+ *   function access with @ref OD_IO_t. This option enables much more
+ *   flexibility for application program, but consumes some additional memory
+ *   and processor resources. If this option is not enabled, then data from OD
+ *   variables are fetched directly from memory allocated by Object dictionary.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received RPDO CAN message.
  *   Callback is configured by CO_RPDO_initCallbackPre().
@@ -474,13 +486,14 @@ extern "C" {
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of PDO.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_PDO (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE | CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+#define CO_CONFIG_PDO (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE | CO_CONFIG_RPDO_TIMERS_ENABLE | CO_CONFIG_TPDO_TIMERS_ENABLE | CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_PDO_OD_IO_ACCESS | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #define CO_CONFIG_RPDO_ENABLE 0x01
 #define CO_CONFIG_TPDO_ENABLE 0x02
-#define CO_CONFIG_PDO_SYNC_ENABLE 0x04
-#define CO_CONFIG_RPDO_CALLS_EXTENSION 0x08
-#define CO_CONFIG_TPDO_CALLS_EXTENSION 0x10
+#define CO_CONFIG_RPDO_TIMERS_ENABLE 0x04
+#define CO_CONFIG_TPDO_TIMERS_ENABLE 0x08
+#define CO_CONFIG_PDO_SYNC_ENABLE 0x10
+#define CO_CONFIG_PDO_OD_IO_ACCESS 0x20
 /** @} */ /* CO_STACK_CONFIG_SYNC_PDO */
 
 

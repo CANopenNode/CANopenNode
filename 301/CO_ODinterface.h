@@ -44,7 +44,10 @@ extern "C" {
 typedef uint32_t OD_size_t;
 /** Type (and size) of Object Dictionary attribute */
 typedef uint8_t OD_attr_t;
-/** Size of of flagsPDO variable inside OD_extension_t, from 1 to 64 */
+#endif
+
+#ifndef OD_FLAGS_PDO_SIZE
+/** Size of of flagsPDO variable inside @ref OD_extension_t, from 0 to 32. */
 #define OD_FLAGS_PDO_SIZE 4
 #endif
 
@@ -252,6 +255,10 @@ typedef struct {
      * not large enough. ("*returnCode" must not return 'ODR_PARTIAL', if there
      * is still space in "buf".)
      *
+     * @warning When accessing OD variables by calling the read() function, it
+     * may be necessary to use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros.
+     * See @ref CO_critical_sections for more information.
+     *
      * @param stream Object Dictionary stream object.
      * @param buf Pointer to external buffer, where to data will be copied.
      * @param count Size of the external buffer in bytes.
@@ -278,6 +285,10 @@ typedef struct {
      *
      * "write" function must always copy all available data from buf. If OD
      * variable expect more data, then "*returnCode" must return 'ODR_PARTIAL'.
+     *
+     * @warning When accessing OD variables by calling the read() function, it
+     * may be necessary to use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros.
+     * See @ref CO_critical_sections for more information.
      *
      * @param stream Object Dictionary stream object.
      * @param buf Pointer to external buffer, from where data will be copied.
@@ -309,24 +320,19 @@ typedef struct {
      * write function. For function description see @ref OD_IO_t. */
     ODR_t (*write)(OD_stream_t *stream, const void *buf,
                    OD_size_t count, OD_size_t *countWritten);
-    /**
-     * PDO flags bit-field. If available, then each sub-element is coupled
-     * with own flagsPDO variable of size 8 to 512 bits (size is configurable
-     * by @ref OD_FLAGS_PDO_SIZE). Flag is useful, when variable is mapped to
-     * RPDO or TPDO.
+#if OD_FLAGS_PDO_SIZE > 0
+    /**PDO flags bit-field provides one bit for each OD variable, which exist
+     * inside OD object at specific sub index. If application clears that bit,
+     * and OD variable is mapped to an event driven TPDO, then TPDO will be
+     * sent.
      *
-     * If sub-element is mapped to RPDO, then bit0 is set to 1 each time, when
-     * any RPDO writes new data into variable. Application may clear bit0.
-     *
-     * If sub-element is mapped to TPDO, then TPDO will set one bit on the time,
-     * it is sent. First TPDO will set bit1, second TPDO will set bit2, etc.
-     *
-     * Another functionality is with asynchronous TPDOs, to which variable may
-     * be mapped. If corresponding bit is 0, TPDO will be sent. This means, that
-     * if application sets variable pointed by flagsPDO to zero, it will trigger
-     * sending all asynchronous TPDOs, to which variable is mapped.
-     */
+     * @ref OD_FLAGS_PDO_SIZE can have a value from 0 to 32 bytes, which
+     * corresponds to 0 to 256 available bits. If, for example,
+     * @ref OD_FLAGS_PDO_SIZE has value 4, then OD variables with sub index up
+     * to 31 will have the TPDO requesting functionality.
+     * See also @ref OD_requestTPDO and @ref OD_TPDOtransmitted. */
     uint8_t flagsPDO[OD_FLAGS_PDO_SIZE];
+#endif
 } OD_extension_t;
 
 
@@ -459,6 +465,78 @@ static inline bool_t OD_mappable(OD_stream_t *stream) {
  */
 static inline void OD_rwRestart(OD_stream_t *stream) {
     stream->dataOffset = 0;
+}
+
+
+/**
+ * Get TPDO request flags for OD entry.
+ *
+ * flagsPDO can be used for @ref OD_requestTPDO() or @ref OD_TPDOtransmitted().
+ *
+ * @param entry OD entry returned by @ref OD_find().
+ *
+ * @return pointer to flagsPDO
+ */
+static inline uint8_t *OD_getFlagsPDO(OD_entry_t *entry) {
+#if OD_FLAGS_PDO_SIZE > 0
+    if (entry != NULL && entry->extension != NULL) {
+        return &entry->extension->flagsPDO[0];
+    }
+#endif
+    return 0;
+}
+
+
+/**
+ * Request TPDO, to which OD variable is mapped
+ *
+ * Function clears the flagPDO bit, which corresponds to OD variable at specific
+ * OD index and subindex. For this functionality to work, @ref OD_extension_t
+ * must be enabled on OD variable. If OD variable is mapped to any TPDO with
+ * event driven transmission, then TPDO will be transmitted after this function
+ * call. If OD variable is mapped to more than one TPDO with event driven
+ * transmission, only the first matched TPDO will be transmitted.
+ *
+ * TPDO event driven transmission is enabled, if TPDO communication parameter,
+ * transmission type is set to 0, 254 or 255. For other transmission types
+ * (synchronous) flagPDO bit is ignored.
+ *
+ * @param flagsPDO TPDO request flags returned by @ref OD_getFlagsPDO.
+ * @param subIndex subIndex of the OD variable.
+ */
+static inline void OD_requestTPDO(uint8_t *flagsPDO, uint8_t subIndex) {
+#if OD_FLAGS_PDO_SIZE > 0
+    if (flagsPDO != NULL && subIndex < (OD_FLAGS_PDO_SIZE * 8)) {
+        /* clear subIndex-th bit */
+        uint8_t mask = ~(1 << (subIndex & 0x07));
+        flagsPDO[subIndex >> 3] &= mask;
+    }
+#endif
+}
+
+
+/**
+ * Check if requested TPDO was transmitted
+ *
+ * @param flagsPDO TPDO request flags returned by @ref OD_getFlagsPDO.
+ * @param subIndex subIndex of the OD variable.
+ *
+ * @return Return true if event driven TPDO with mapping to OD variable,
+ * indicated by flagsPDO and subIndex, was transmitted since last
+ * @ref OD_requestTPDO call. If there was no @ref OD_requestTPDO call yet and
+ * TPDO was transmitted by other event, function also returns true.
+ */
+static inline bool_t OD_TPDOtransmitted(uint8_t *flagsPDO, uint8_t subIndex) {
+#if OD_FLAGS_PDO_SIZE > 0
+    if (flagsPDO != NULL && subIndex < (OD_FLAGS_PDO_SIZE * 8)) {
+        /* return true, if subIndex-th bit is set */
+        uint8_t mask = 1 << (subIndex & 0x07);
+        if ((flagsPDO[subIndex >> 3] & mask) != 0) {
+            return true;
+        }
+    }
+#endif
+    return false;
 }
 
 

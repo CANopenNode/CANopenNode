@@ -54,10 +54,6 @@
 extern "C" {
 #endif
 
-/* TODO some parts are disabled in non-finished pre-release */
-#define CO_CONFIG_PDO (0)
-#define CO_CONFIG_TRACE (0)
-
 
 /* Stack configuration override default values.
  * For more information see file CO_config.h. */
@@ -123,16 +119,6 @@ extern "C" {
                         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
-#ifndef CO_CONFIG_PDO
-#define CO_CONFIG_PDO (CO_CONFIG_RPDO_ENABLE | \
-                       CO_CONFIG_TPDO_ENABLE | \
-                       CO_CONFIG_PDO_SYNC_ENABLE | \
-                       CO_CONFIG_RPDO_CALLS_EXTENSION | \
-                       CO_CONFIG_TPDO_CALLS_EXTENSION | \
-                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                       CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
-#endif
-
 #ifndef CO_CONFIG_LSS
 #define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE | \
                        CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND | \
@@ -164,10 +150,6 @@ extern "C" {
                         CO_CONFIG_FIFO_CRC16_CCITT | \
                         CO_CONFIG_FIFO_ASCII_COMMANDS | \
                         CO_CONFIG_FIFO_ASCII_DATATYPES)
-#endif
-
-#ifndef CO_CONFIG_TRACE
-#define CO_CONFIG_TRACE (CO_CONFIG_TRACE_ENABLE)
 #endif
 
 

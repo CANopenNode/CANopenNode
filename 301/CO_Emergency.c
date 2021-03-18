@@ -63,7 +63,7 @@ static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
                           OD_size_t count, OD_size_t *countRead)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || countRead == NULL
+        || count < sizeof(uint32_t) || countRead == NULL
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -134,7 +134,7 @@ static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
                                   OD_size_t count, OD_size_t *countRead)
 {
     if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || countRead == NULL
+        || count < sizeof(uint32_t) || countRead == NULL
     ) {
         return ODR_DEV_INCOMPAT;
     }

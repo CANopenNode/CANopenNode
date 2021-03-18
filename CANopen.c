@@ -1090,58 +1090,6 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     }
 #endif
 
-#if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
-    if (CO_GET_CNT(RPDO) > 0) {
-        OD_entry_t *RPDOcomm = OD_GET(H1400, OD_H1400_RXPDO_1_PARAM);
-        OD_entry_t *RPDOmap = OD_GET(H1600, OD_H1600_RXPDO_1_MAPPING);
-        for (int16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
-            err = CO_RPDO_init(co->RPDO[i],
-                               em,
-                               co->SDO[0],
- #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-                               co->SYNC,
- #endif
-                               &co->NMT->operatingState,
-                               nodeId,
-                               ((i < 4) ? (CO_CAN_ID_RPDO_1 + i * 0x100) : 0),
-                               0,
-                               RPDOcomm++,
-                               RPDOmap++,
-                               OD_H1400_RXPDO_1_PARAM + i,
-                               OD_H1600_RXPDO_1_MAPPING + i,
-                               co->CANmodule,
-                               CO_GET_CO(RX_IDX_RPDO) + i);
-            if (err) return err;
-        }
-    }
-#endif
-
-#if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
-    if (CO_GET_CNT(TPDO) > 0) {
-        OD_entry_t *TPDOcomm = OD_GET(H1800, OD_H1800_TXPDO_1_PARAM);
-        OD_entry_t *TPDOmap = OD_GET(H1A00, OD_H1A00_TXPDO_1_MAPPING);
-        for (int16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
-            err = CO_TPDO_init(co->TPDO[i],
-                               em,
-                               co->SDO[0],
- #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-                               co->SYNC,
- #endif
-                               &co->NMT->operatingState,
-                               nodeId,
-                               ((i < 4) ? (CO_CAN_ID_TPDO_1 + i * 0x100) : 0),
-                               0,
-                               TPDOcomm++,
-                               TPDOmap++,
-                               OD_H1800_TXPDO_1_PARAM + i,
-                               OD_H1A00_TXPDO_1_MAPPING + i,
-                               co->CANmodule,
-                               CO_GET_CO(TX_IDX_TPDO) + i);
-            if (err) return err;
-        }
-    }
-#endif
-
 #if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
     if (CO_GET_CNT(GFC) == 1) {
         err = CO_GFC_init(co->GFC,
@@ -1249,6 +1197,74 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 &OD_trace[i].triggerTime,
                                 OD_INDEX_TRACE_CONFIG + i,
                                 OD_INDEX_TRACE + i);
+            if (err) return err;
+        }
+    }
+#endif
+
+    return CO_ERROR_NO;
+}
+
+
+/******************************************************************************/
+CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
+                                   CO_EM_t *em,
+                                   OD_t *od,
+                                   uint8_t nodeId,
+                                   uint32_t *errInfo)
+{
+    if (co == NULL || nodeId < 1 || nodeId > 127 || co->nodeIdUnconfigured) {
+        return (co != NULL || co->nodeIdUnconfigured)
+               ? CO_ERROR_NODE_ID_UNCONFIGURED_LSS : CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+#if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
+    if (CO_GET_CNT(RPDO) > 0) {
+        OD_entry_t *RPDOcomm = OD_GET(H1400, OD_H1400_RXPDO_1_PARAM);
+        OD_entry_t *RPDOmap = OD_GET(H1600, OD_H1600_RXPDO_1_MAPPING);
+        for (int16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
+            CO_ReturnError_t err;
+            uint16_t preDefinedCanId = i < 4
+                                     ? (CO_CAN_ID_RPDO_1 + i * 0x100) + nodeId
+                                     : 0;
+            err = CO_RPDO_init(&co->RPDO[i],
+                               od,
+                               em,
+ #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
+                               co->SYNC,
+ #endif
+                               preDefinedCanId,
+                               RPDOcomm++,
+                               RPDOmap++,
+                               co->CANmodule,
+                               CO_GET_CO(RX_IDX_RPDO) + i,
+                               errInfo);
+            if (err) return err;
+        }
+    }
+#endif
+
+#if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
+    if (CO_GET_CNT(TPDO) > 0) {
+        OD_entry_t *TPDOcomm = OD_GET(H1800, OD_H1800_TXPDO_1_PARAM);
+        OD_entry_t *TPDOmap = OD_GET(H1A00, OD_H1A00_TXPDO_1_MAPPING);
+        for (int16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
+            CO_ReturnError_t err;
+            uint16_t preDefinedCanId = i < 4
+                                     ? (CO_CAN_ID_TPDO_1 + i * 0x100) + nodeId
+                                     : 0;
+            err = CO_TPDO_init(&co->TPDO[i],
+                               od,
+                               em,
+ #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
+                               co->SYNC,
+ #endif
+                               preDefinedCanId,
+                               TPDOcomm++,
+                               TPDOmap++,
+                               co->CANmodule,
+                               CO_GET_CO(TX_IDX_TPDO) + i,
+                               errInfo);
             if (err) return err;
         }
     }
@@ -1408,13 +1424,27 @@ bool_t CO_process_SYNC(CO_t *co,
 
 /******************************************************************************/
 #if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
-void CO_process_RPDO(CO_t *co, bool_t syncWas) {
+void CO_process_RPDO(CO_t *co,
+                     bool_t syncWas,
+                     uint32_t timeDifference_us,
+                     uint32_t *timerNext_us)
+{
+    (void) timeDifference_us; (void) timerNext_us;
     if (co->nodeIdUnconfigured) {
         return;
     }
 
+    bool_t NMTisOperational =
+        CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
+
     for (int16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
-        CO_RPDO_process(&co->RPDO[i], syncWas);
+        CO_RPDO_process(&co->RPDO[i],
+#if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE
+                        timeDifference_us,
+                        timerNext_us,
+#endif
+                        NMTisOperational,
+                        syncWas);
     }
 }
 #endif
@@ -1427,12 +1457,22 @@ void CO_process_TPDO(CO_t *co,
                      uint32_t timeDifference_us,
                      uint32_t *timerNext_us)
 {
+    (void) timeDifference_us; (void) timerNext_us;
     if (co->nodeIdUnconfigured) {
         return;
     }
 
+    bool_t NMTisOperational =
+        CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
+
     for (int16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
-        CO_TPDO_process(&co->TPDO[i], syncWas, timeDifference_us, timerNext_us);
+        CO_TPDO_process(&co->TPDO[i],
+#if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE
+                        timeDifference_us,
+                        timerNext_us,
+#endif
+                        NMTisOperational,
+                        syncWas);
     }
 }
 #endif

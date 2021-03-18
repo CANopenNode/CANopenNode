@@ -360,7 +360,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
 {
     (void)timerNext_us; /* may be unused */
 
-    CO_SYNC_status_t ret = CO_SYNC_NONE;
+    CO_SYNC_status_t syncStatus = CO_SYNC_NONE;
 
     if (NMTisPreOrOperational) {
         /* update sync timer, no overflow */
@@ -370,7 +370,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         /* was SYNC just received */
         if (CO_FLAG_READ(SYNC->CANrxNew)) {
             SYNC->timer = 0;
-            ret = CO_SYNC_RX_TX;
+            syncStatus = CO_SYNC_RX_TX;
             CO_FLAG_CLEAR(SYNC->CANrxNew);
         }
 
@@ -381,7 +381,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
             if (SYNC->isProducer) {
                 if (SYNC->timer >= OD_1006_period) {
-                    ret = CO_SYNC_RX_TX;
+                    syncStatus = CO_SYNC_RX_TX;
                     CO_SYNCsend(SYNC);
                 }
  #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
@@ -398,7 +398,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER */
 
             /* Verify timeout of SYNC */
-            {
+            if (SYNC->timeoutError == 1) {
                 /* periodTimeout is 1,5 * OD_1006_period, no overflow */
                 uint32_t periodTimeout = OD_1006_period + (OD_1006_period >> 1);
                 if (periodTimeout < OD_1006_period) periodTimeout = 0xFFFFFFFF;
@@ -406,7 +406,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
                 if (SYNC->timer > periodTimeout) {
                     CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT,
                                    CO_EMC_COMMUNICATION, SYNC->timer);
-                    SYNC->timeoutError = true;
+                    SYNC->timeoutError = 2;
                 }
 #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
                 else if (timerNext_us != NULL) {
@@ -420,12 +420,11 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         } /* if (OD_1006_period > 0) */
 
         /* Synchronous PDOs are allowed only inside time window */
-        uint32_t OD_1007_window = SYNC->OD_1007_window != NULL
-                                ? *SYNC->OD_1007_window : 0;
-
-        if (OD_1007_window > 0 && SYNC->timer > OD_1007_window) {
+        if (SYNC->OD_1007_window != NULL && *SYNC->OD_1007_window > 0
+            && SYNC->timer > *SYNC->OD_1007_window
+        ) {
             if (!SYNC->syncIsOutsideWindow) {
-                ret = CO_SYNC_PASSED_WINDOW;
+                syncStatus = CO_SYNC_PASSED_WINDOW;
             }
             SYNC->syncIsOutsideWindow = true;
         }
@@ -447,12 +446,14 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         SYNC->timer = 0;
     }
 
-    if (SYNC->timeoutError && SYNC->timer == 0) {
-        CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, 0);
-        SYNC->timeoutError = false;
+    if (syncStatus == CO_SYNC_RX_TX) {
+        if (SYNC->timeoutError == 2) {
+            CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, 0);
+        }
+        SYNC->timeoutError = 1;
     }
 
-    return ret;
+    return syncStatus;
 }
 
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE */

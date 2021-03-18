@@ -17,36 +17,42 @@ Dictionary and are accessible from both: C code and from CANopen network.
 
 CANopenNode homepage is https://github.com/CANopenNode/CANopenNode
 
-This is renewed version of CANopenNode with new Object Dictionary implementation.
-For older versions see branches `v1.3-master` or `v2.0-master`.
+This is version 4 of CANopenNode with new Object Dictionary implementation.
+For older versions `git checkout` branches `v1.3-master` or `v2.0-master`.
 
 
 Characteristics
 ---------------
 ### CANopen
  - [Object Dictionary](https://www.can-cia.org/can-knowledge/canopen/device-architecture/)
-   offers clear and flexible organisation of any variables.
+   offers clear and flexible organisation of any variables. Variables can be accessed
+   directly or via read/write functions.
  - [NMT](https://www.can-cia.org/can-knowledge/canopen/network-management/)
    slave to start, stop, reset device. Simple NMT master.
  - [Heartbeat](https://www.can-cia.org/can-knowledge/canopen/error-control-protocols/)
-   producer/consumer error control.
- - [PDO](https://www.can-cia.org/can-knowledge/canopen/pdo-protocol/) linking
-   and dynamic mapping for fast exchange of process variables from Object Dictionary.
- - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) expedited,
-   segmented and block transfer for service access to all Object Dictionary variables.
- - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) client.
+   producer/consumer error control for monitoring of CANopen devices.
+ - [PDO](https://www.can-cia.org/can-knowledge/canopen/pdo-protocol/) for
+   broadcasting process data with high priority and no protocol overhead.
+   Variables from Object Dictionary can be dynamically mapped to the TPDO, which
+   is then transmitted according to communication rules and received as RPDO
+   by another device.
+ - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) server
+   enables expedited, segmented and block transfer access to all Object
+   Dictionary variables inside CANopen device.
+ - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) client can
+   access any Object Dictionary variable on any CANopen device inside the network.
  - [Emergency](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/)
-   producer/consumer.
+   message producer/consumer.
  - [Sync](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/)
-   producer/consumer.
+   producer/consumer enables network synchronized transmission of the PDO objects, etc.
  - [Time-stamp](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/)
-   protocol producer/consumer.
- - [LSS](https://www.can-cia.org/can-knowledge/canopen/cia305/) master and
-   slave, LSS fastscan.
+   producer/consumer enables date and time synchronization in millisecond resolution.
+ - [LSS](https://www.can-cia.org/can-knowledge/canopen/cia305/) CANopen node-id
+   and bitrate setup, master and slave, LSS fastscan.
  - [CANopen gateway](https://www.can-cia.org/can-knowledge/canopen/cia309/),
    CiA309-3 Ascii command interface for NMT master, LSS master and SDO client.
  - CANopen Safety,
-   EN 50325-5 "PDO like" communication in safety-relevant networks
+   EN 50325-5, CiA304, "PDO like" communication in safety-relevant networks
 
 ### Other
  - [Suitable for 16-bit microcontrollers and above](#device-support)
@@ -61,8 +67,8 @@ Characteristics
 Documentation, support and contributions
 ----------------------------------------
 Documentation with [Getting started](doc/gettingStarted.md),
-[LSS usage](doc/LSSusage.md) and [Trace usage](doc/traceUsage.md) is in `doc`
-directory.
+[Objec Dictionary](doc/objectDictionary.md) and [LSS usage](doc/LSSusage.md)
+is in `doc` directory.
 Code is documented in header files. Running [doxygen](http://www.doxygen.nl/)
 in project base directory will produce complete html documentation.
 Just open CANopenNode/doc/html/index.html in the browser. Alternatively browse
@@ -99,43 +105,24 @@ Flowchart of a typical CANopenNode implementation
                                  |     |     |
              --------------------      |      --------------------
             |                          |                          |
- -----------------------    -----------------------    -----------------------
-| CAN receive thread    |  | Timer interval thread |  | Mainline thread       |
-|                       |  |                       |  |                       |
-| - Fast response.      |  | - Realtime thread with|  | - Processing of time  |
-| - Detect CAN ID.      |  |   constant interval,  |  |   consuming tasks     |
-| - Partially process   |  |   typically 1ms.      |  |   in CANopen objects: |
-|   messages and copy   |  | - Network synchronized|  |    - SDO server,      |
-|   data to target      |  | - Copy inputs (RPDOs, |  |    - Emergency,       |
-|   CANopen objects.    |  |   HW) to Object Dict. |  |    - Network state,   |
-|                       |  | - May call application|  |    - Heartbeat.       |
-|                       |  |   for some processing.|  |    - LSS slave        |
-|                       |  | - Copy variables from |  | - May cyclically call |
-|                       |  |   Object Dictionary to|  |   application code.   |
-|                       |  |   outputs (TPDOs, HW).|  |                       |
- -----------------------    -----------------------    -----------------------
-
-              -----------------------
-             | SDO client (optional) |
-             |                       |
-             | - Can be called by    |
-             |   external application|
-             | - Can read or write   |
-             |   any variable from   |
-             |   Object Dictionary   |
-             |   from any node in the|
-             |   CANopen network.    |
-              -----------------------
-
-              -----------------------
-             | LSS Master (optional) |
-             |                       |
-             | - Can be called by    |
-             |   external application|
-             | - Can do LSS requests |
-             | - Can request node    |
-             |   enumeration         |
-              -----------------------
+ ----------------------    ------------------------    -----------------------
+| CAN receive thread   |  | Timer interval thread  |  | Mainline thread       |
+|                      |  |                        |  |                       |
+| - Fast response.     |  | - Realtime thread with |  | - Processing of time  |
+| - Detect CAN ID.     |  |   constant interval,   |  |   consuming tasks     |
+| - Partially process  |  |   typically 1ms.       |  |   in CANopen objects: |
+|   messages and copy  |  | - Network synchronized |  |    - SDO server,      |
+|   data to target     |  | - Copy inputs (RPDOs,  |  |    - Emergency,       |
+|   CANopen objects.   |  |   HW) to Object Dict.  |  |    - Network state,   |
+|                      |  | - May call application |  |    - Heartbeat.       |
+|                      |  |   for some processing. |  |    - LSS slave        |
+|                      |  | - Copy variables from  |  | - Gateway (optional): |
+|                      |  |   Object Dictionary to |  |    - NMT master       |
+|                      |  |   outputs (TPDOs, HW). |  |    - SDO client       |
+|                      |  |                        |  |    - LSS master       |
+|                      |  |                        |  | - May cyclically call |
+|                      |  |                        |  |   application code.   |
+ ----------------------    ------------------------    -----------------------
 ~~~
 
 

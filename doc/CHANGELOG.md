@@ -5,12 +5,14 @@ Change Log
 -------------------------
 - [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/master...newOD)
 ### Changed
-- New Object dictionary interface. It has very similar principles as before. All parts of CANopenNode objects, which works with OD entries, are rewritten.
+- New Object dictionary interface. It has similar principles as before. Main access to OD variables is via fast read/write functions, but direct access to OD variables is also possible. OD entries are passed with pointers to CANopen objects. All parts of CANopenNode objects, which works with OD entries, are rewritten.
+- [libedssharp](https://github.com/robincornelius/libedssharp) have new OD exporter, new project file format (standard CANopen XDD v1.1), new documentation generator, and many other improvements.
 - New OD.h and OD.c files, replaces CO_OD files.
-- CANopen.c and CANopen.h files redesigned. Integration of "OD.h" is optional. Configuration of multiple object dictionaries is possible with one CANopen device. Interface is the same, with some changes to function arguments.
-- Rewritten SDO server. Object dictionary part is removed.
-- CO_Emergency is mostly rewritten. Now is much easier customization.
-- CO_NMT_Heartbeat is redesigned.
+- CANopen.c and CANopen.h files redesigned. `#include OD.h` is optional. Configuration of multiple object dictionaries is possible with one CANopen device. Interface is the same, with some changes to function arguments.
+- New CO_storage.h/c files enables easier integration to target system for storing OD variables.
+- Rewritten SDO server. Object dictionary part is moved to CO_ODinterface.h/c files.
+- Rewritten PDO. PDO mapped variables are accessed via fast read/write functions. New RPDO event timer (timeout).
+- CO_Emergency is mostly rewritten. Now is much easier customization. All other objects has been adjusted to newOD, inspected and some parts were redesigned.
 
 [Unreleased master]
 -------------------------
