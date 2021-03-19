@@ -1213,8 +1213,11 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                    uint8_t nodeId,
                                    uint32_t *errInfo)
 {
-    if (co == NULL || nodeId < 1 || nodeId > 127 || co->nodeIdUnconfigured) {
-        return (co != NULL || co->nodeIdUnconfigured)
+    if (co == NULL) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+    if (nodeId < 1 || nodeId > 127 || co->nodeIdUnconfigured) {
+        return (co->nodeIdUnconfigured)
                ? CO_ERROR_NODE_ID_UNCONFIGURED_LSS : CO_ERROR_ILLEGAL_ARGUMENT;
     }
 

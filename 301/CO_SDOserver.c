@@ -679,6 +679,10 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                                      uint32_t timeDifference_us,
                                      uint32_t *timerNext_us)
 {
+    if (SDO == NULL) {
+        return CO_SDO_RT_wrongArguments;
+    }
+
     (void)timerNext_us; /* may be unused */
 
     CO_SDO_return_t ret = CO_SDO_RT_waitingResponse;
@@ -686,10 +690,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
     bool_t isNew = CO_FLAG_READ(SDO->CANrxNew);
 
 
-    if (SDO == NULL) {
-        ret = CO_SDO_RT_wrongArguments;
-    }
-    else if (SDO->valid && SDO->state == CO_SDO_ST_IDLE && !isNew) {
+    if (SDO->valid && SDO->state == CO_SDO_ST_IDLE && !isNew) {
         /* Idle and nothing new */
         ret = CO_SDO_RT_ok_communicationEnd;
     }

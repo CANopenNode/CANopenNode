@@ -182,9 +182,8 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule)
 {
     CO_ReturnError_t ret;
 
-    CANmodule->CANnormal = false;
-
     if(CANmodule != NULL) {
+        CANmodule->CANnormal = false;
         ret = setRxFilters(CANmodule);
         if (ret == CO_ERROR_NO) {
             /* Put CAN module in normal mode */
