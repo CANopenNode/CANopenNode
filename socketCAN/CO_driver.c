@@ -104,14 +104,13 @@ static uint32_t CO_CANgetIndexFromIdent(
 /** Disable socketCAN rx ******************************************************/
 static CO_ReturnError_t disableRx(CO_CANmodule_t *CANmodule)
 {
-    int ret;
     uint32_t i;
     CO_ReturnError_t retval;
 
     /* insert a filter that doesn't match any messages */
     retval = CO_ERROR_NO;
     for (i = 0; i < CANmodule->CANinterfaceCount; i ++) {
-        ret = setsockopt(CANmodule->CANinterfaces[i].fd, SOL_CAN_RAW, CAN_RAW_FILTER,
+        int ret = setsockopt(CANmodule->CANinterfaces[i].fd, SOL_CAN_RAW, CAN_RAW_FILTER,
                          NULL, 0);
         if(ret < 0){
             log_printf(LOG_ERR, CAN_FILTER_FAILED,
@@ -128,7 +127,6 @@ static CO_ReturnError_t disableRx(CO_CANmodule_t *CANmodule)
 /** Set up or update socketCAN rx filters *************************************/
 static CO_ReturnError_t setRxFilters(CO_CANmodule_t *CANmodule)
 {
-    int ret;
     size_t i;
     int count;
     CO_ReturnError_t retval;
@@ -155,7 +153,7 @@ static CO_ReturnError_t setRxFilters(CO_CANmodule_t *CANmodule)
 
     retval = CO_ERROR_NO;
     for (i = 0; i < CANmodule->CANinterfaceCount; i ++) {
-      ret = setsockopt(CANmodule->CANinterfaces[i].fd, SOL_CAN_RAW, CAN_RAW_FILTER,
+      int ret = setsockopt(CANmodule->CANinterfaces[i].fd, SOL_CAN_RAW, CAN_RAW_FILTER,
                        rxFiltersCpy, sizeof(struct can_filter) * count);
       if(ret < 0){
           log_printf(LOG_ERR, CAN_FILTER_FAILED,

@@ -443,9 +443,8 @@ void CO_SDOserver_initCallbackPre(CO_SDOserver_t *SDO,
 static inline void reverseBytes(void *start, OD_size_t size) {
     uint8_t *lo = (uint8_t *)start;
     uint8_t *hi = (uint8_t *)start + size - 1;
-    uint8_t swap;
     while (lo < hi) {
-        swap = *lo;
+        uint8_t swap = *lo;
         *lo++ = *hi;
         *hi-- = swap;
     }
