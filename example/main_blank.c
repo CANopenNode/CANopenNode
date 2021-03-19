@@ -63,7 +63,7 @@ int main (void){
         return 0;
     }
     else {
-        log_printf("Allocated %d bytes for CANopen objects\n", heapMemoryUsed);
+        log_printf("Allocated %u bytes for CANopen objects\n", heapMemoryUsed);
     }
 
     /* initialize EEPROM */
