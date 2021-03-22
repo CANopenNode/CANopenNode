@@ -145,7 +145,6 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index) {
         return NULL;
     }
 
-    uint16_t cur;
     uint16_t min = 0;
     uint16_t max = od->size - 1;
 
@@ -154,7 +153,7 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index) {
      * max number of loop passes is log2(N) */
     while (min < max) {
         /* get entry between min and max */
-        cur = (min + max) >> 1;
+        uint16_t cur = (min + max) >> 1;
         OD_entry_t* entry = &od->list[cur];
 
         if (index == entry->index) {

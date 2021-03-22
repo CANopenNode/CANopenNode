@@ -50,7 +50,6 @@ int main (void){
     uint32_t heapMemoryUsed;
     void *CANmoduleAddress = NULL; /* CAN module address */
     uint8_t pendingNodeId = 10; /* read from dip switches or nonvolatile memory, configurable by LSS slave */
-    uint8_t activeNodeId = 10; /* Copied from CO_pendingNodeId in the communication reset section */
     uint16_t pendingBitRate = 125;  /* read from dip switches or nonvolatile memory, configurable by LSS slave */
 
     /* Configure microcontroller. */
@@ -63,7 +62,7 @@ int main (void){
         return 0;
     }
     else {
-        log_printf("Allocated %d bytes for CANopen objects\n", heapMemoryUsed);
+        log_printf("Allocated %u bytes for CANopen objects\n", heapMemoryUsed);
     }
 
     /* initialize EEPROM */
@@ -94,7 +93,7 @@ int main (void){
             log_printf("Error: LSS slave initialization failed: %d\n", err);
             return 0;
         }
-        activeNodeId = pendingNodeId;
+        uint8_t activeNodeId = pendingNodeId;
         err = CO_CANopenInit(activeNodeId);
         if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             log_printf("Error: CANopen initialization failed: %d\n", err);

@@ -42,8 +42,6 @@ static CO_CANinterfaceState_t CO_CANerrorSetListenOnly(
         CO_CANinterfaceErrorhandler_t     *CANerrorhandler,
         bool_t                             resetIf)
 {
-    char command[100];
-
     log_printf(LOG_DEBUG, DBG_CAN_SET_LISTEN_ONLY, CANerrorhandler->ifName);
 
     clock_gettime(CLOCK_MONOTONIC, &CANerrorhandler->timestamp);
@@ -51,6 +49,7 @@ static CO_CANinterfaceState_t CO_CANerrorSetListenOnly(
 
     if (resetIf) {
         int ret;
+        char command[100];
         snprintf(command, sizeof(command), "ip link set %s down && "
                                            "ip link set %s up "
                                            "&",
