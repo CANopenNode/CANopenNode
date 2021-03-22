@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <bits/getopt_core.h>
 #include <string.h>
 #include <sched.h>
 #include <signal.h>
