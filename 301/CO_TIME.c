@@ -201,8 +201,8 @@ bool_t CO_TIME_process(CO_TIME_t *TIME,
         ms = us / 1000;
         TIME->residual_us = us % 1000;
         TIME->ms += ms;
-        if (TIME->ms >= (1000*60*60*24)) {
-            TIME->ms -= (1000*60*60*24);
+        if (TIME->ms >= ((uint32_t)1000*60*60*24)) {
+            TIME->ms -= ((uint32_t)1000*60*60*24);
             TIME->days += 1;
         }
     }
