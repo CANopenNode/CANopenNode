@@ -1345,7 +1345,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 
     /* SDOserver */
     for (uint8_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
-        CO_SDOserver_process(co->SDOserver,
+        CO_SDOserver_process(&co->SDOserver[i],
                              NMTisPreOrOperational,
                              timeDifference_us,
                              timerNext_us);
