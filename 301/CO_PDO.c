@@ -833,7 +833,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
                 uint8_t *dataOD;
                 if (ODdataLength > mappedLength) {
                     memset(buf, 0, sizeof(buf));
-                    memcpy(buf, dataOD, mappedLength);
+                    memcpy(buf, dataRPDO, mappedLength);
                     dataOD = buf;
                 }
                 else {
