@@ -397,9 +397,10 @@ int main (int argc, char *argv[]) {
         CANptr.can_ifindex = if_nametoindex(CANdevice);
     }
 
+    /* Valid NodeId is 1..127 or 0xFF(unconfigured) in case of LSSslaveEnabled*/
     if((CO_pending.nodeId < 1 || CO_pending.nodeId > 127)
-       && CO_isLSSslaveEnabled(CO)
-       && CO_pending.nodeId != CO_LSS_NODE_ID_ASSIGNMENT
+       && (!CO_isLSSslaveEnabled(CO)
+           || CO_pending.nodeId != CO_LSS_NODE_ID_ASSIGNMENT)
     ) {
         log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_pending.nodeId);
         printUsage(argv[0]);
@@ -447,7 +448,7 @@ int main (int argc, char *argv[]) {
     if (err != CO_ERROR_NO && err != CO_ERROR_DATA_CORRUPT) {
         char *filename = storageInitError < storageEntriesCount
                        ? storageEntries[storageInitError].filename : "???";
-        log_printf(LOG_CRIT, DBG_OBJECT_DICTIONARY, filename);
+        log_printf(LOG_CRIT, DBG_STORAGE, filename);
         exit(EXIT_FAILURE);
     }
 

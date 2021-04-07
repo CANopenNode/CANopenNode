@@ -77,7 +77,7 @@ extern "C" {
 #define DBG_WRONG_NODE_ID         "(%s) Wrong node ID \"%d\"", __func__
 #define DBG_WRONG_PRIORITY        "(%s) Wrong RT priority \"%d\"", __func__
 #define DBG_NO_CAN_DEVICE         "(%s) Can't find CAN device \"%s\"", __func__
-#define DBG_OBJECT_DICTIONARY     "(%s) Error in Object Dictionary \"%s\"", __func__
+#define DBG_STORAGE               "(%s) Error with storage \"%s\"", __func__
 #define DBG_OD_ENTRY              "(%s) Error in Object Dictionary entry: 0x%X", __func__
 #define DBG_CAN_OPEN              "(%s) CANopen error in %s, err=%d", __func__
 #define DBG_CAN_OPEN_INFO         "CANopen device, Node ID = 0x%02X, %s"

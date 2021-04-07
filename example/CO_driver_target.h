@@ -3,7 +3,7 @@
  *
  * @file        CO_driver_target.h
  * @author      Janez Paternoster
- * @copyright   2020 Janez Paternoster
+ * @copyright   2021 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -42,122 +42,8 @@
 extern "C" {
 #endif
 
-/* Stack configuration override default values (all enabled in this example).
+/* Stack configuration override default values.
  * For more information see file CO_config.h. */
-#define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE CO_CONFIG_FLAG_CALLBACK_PRE
-#define CO_CONFIG_GLOBAL_FLAG_TIMERNEXT CO_CONFIG_FLAG_TIMERNEXT
-
-#ifndef CO_CONFIG_NMT
-#define CO_CONFIG_NMT (CO_CONFIG_NMT_CALLBACK_CHANGE | \
-                       CO_CONFIG_NMT_MASTER | \
-                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                       CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
-#endif
-
-#ifndef CO_CONFIG_HB_CONS
-#define CO_CONFIG_HB_CONS (CO_CONFIG_HB_CONS_ENABLE | \
-                           CO_CONFIG_HB_CONS_CALLBACK_MULTI | \
-                           CO_CONFIG_HB_CONS_QUERY_FUNCT | \
-                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
-                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
-#endif
-
-#ifndef CO_CONFIG_EM
-#define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER | \
-                      CO_CONFIG_EM_PROD_CONFIGURABLE | \
-                      CO_CONFIG_EM_PROD_INHIBIT | \
-                      CO_CONFIG_EM_HISTORY | \
-                      CO_CONFIG_EM_STATUS_BITS | \
-                      CO_CONFIG_EM_CONSUMER | \
-                      CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                      CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
-#endif
-
-#ifndef CO_CONFIG_SDO_SRV
-#define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED | \
-                           CO_CONFIG_SDO_SRV_BLOCK | \
-                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
-                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
-#endif
-
-#ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
-#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 900
-#endif
-
-#ifndef CO_CONFIG_SDO_CLI
-#define CO_CONFIG_SDO_CLI (CO_CONFIG_SDO_CLI_ENABLE | \
-                           CO_CONFIG_SDO_CLI_SEGMENTED | \
-                           CO_CONFIG_SDO_CLI_BLOCK | \
-                           CO_CONFIG_SDO_CLI_LOCAL | \
-                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
-                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
-#endif
-
-#ifndef CO_CONFIG_TIME
-#define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
-                        CO_CONFIG_TIME_PRODUCER | \
-                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
-#endif
-
-#ifndef CO_CONFIG_GFC
-#define CO_CONFIG_GFC (CO_CONFIG_GFC_ENABLE | \
-                       CO_CONFIG_GFC_CONSUMER | \
-                       CO_CONFIG_GFC_PRODUCER)
-#endif
-
-#ifndef CO_CONFIG_SRDO
-#define CO_CONFIG_SRDO (CO_CONFIG_SRDO_ENABLE | \
-                        CO_CONFIG_SRDO_CHECK_TX | \
-                        CO_CONFIG_RSRDO_CALLS_EXTENSION | \
-                        CO_CONFIG_TSRDO_CALLS_EXTENSION | \
-                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
-#endif
-
-#ifndef CO_CONFIG_SRDO_MINIMUM_DELAY
-#define CO_CONFIG_SRDO_MINIMUM_DELAY 0
-#endif
-
-#ifndef CO_CONFIG_LSS
-#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE | \
-                       CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND | \
-                       CO_CONFIG_LSS_MASTER | \
-                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
-#endif
-
-#ifndef CO_CONFIG_GTW
-#define CO_CONFIG_GTW (CO_CONFIG_GTW_ASCII | \
-                       CO_CONFIG_GTW_ASCII_SDO | \
-                       CO_CONFIG_GTW_ASCII_NMT | \
-                       CO_CONFIG_GTW_ASCII_LSS | \
-                       CO_CONFIG_GTW_ASCII_LOG | \
-                       CO_CONFIG_GTW_ASCII_ERROR_DESC | \
-                       CO_CONFIG_GTW_ASCII_PRINT_HELP | \
-                       CO_CONFIG_GTW_ASCII_PRINT_LEDS)
-#define CO_CONFIG_GTW_BLOCK_DL_LOOP 1
-#define CO_CONFIG_GTWA_COMM_BUF_SIZE 2000
-#define CO_CONFIG_GTWA_LOG_BUF_SIZE 2000
-#endif
-
-#ifndef CO_CONFIG_CRC16
-#define CO_CONFIG_CRC16 (CO_CONFIG_CRC16_ENABLE)
-#endif
-
-#ifndef CO_CONFIG_FIFO
-#define CO_CONFIG_FIFO (CO_CONFIG_FIFO_ENABLE | \
-                        CO_CONFIG_FIFO_ALT_READ | \
-                        CO_CONFIG_FIFO_CRC16_CCITT | \
-                        CO_CONFIG_FIFO_ASCII_COMMANDS | \
-                        CO_CONFIG_FIFO_ASCII_DATATYPES)
-#endif
-
-#ifndef CO_CONFIG_TRACE
-#define CO_CONFIG_TRACE (CO_CONFIG_TRACE_ENABLE)
-#endif
 
 
 /* Basic definitions. If big endian, CO_SWAP_xx macros must swap bytes. */
@@ -218,7 +104,8 @@ typedef struct {
     size_t len;
     uint8_t subIndexOD;
     uint8_t attr;
-    /* Additional variables */
+    /* Additional variables (target specific) */
+    void *addrNV;
 } CO_storage_entry_t;
 
 

@@ -347,7 +347,7 @@ typedef struct {
 typedef struct {
     /** Object Dictionary index */
     uint16_t index;
-    /** Maximum sub-index in the OD object */
+    /** Number of all sub-entries, including sub-entry at sub-index 0 */
     uint8_t subEntriesCount;
     /** Type of the odObject, indicated by @ref OD_objectTypes_t enumerator. */
     uint8_t odObjectType;
