@@ -140,8 +140,8 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
 
     /* get actual number of monitored nodes */
     HBcons->numberOfMonitoredNodes =
-        OD_1016_HBcons->subEntriesCount < CO_CONFIG_HB_CONS_SIZE ?
-        OD_1016_HBcons->subEntriesCount : CO_CONFIG_HB_CONS_SIZE;
+        OD_1016_HBcons->subEntriesCount-1 < CO_CONFIG_HB_CONS_SIZE ?
+        OD_1016_HBcons->subEntriesCount-1 : CO_CONFIG_HB_CONS_SIZE;
 
     for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
         uint32_t val;
