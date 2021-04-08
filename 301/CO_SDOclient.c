@@ -553,7 +553,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         /* write data, in several passes if necessary */
         if (SDO_C->OD_IO.write != NULL) {
             size_t count = CO_fifo_getOccupied(&SDO_C->bufFifo);
-            uint8_t buf[count + 2];
+            uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 2];
 
             CO_fifo_read(&SDO_C->bufFifo, buf, count, NULL);
             SDO_C->sizeTran += count;
@@ -1206,7 +1206,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             OD_size_t countBuf = (countData > 0 && countData <= countFifo)
                                  ? countData : countFifo;
             OD_size_t countRd = 0;
-            uint8_t buf[countBuf + 1];
+            uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1];
             bool_t lock = OD_mappable(&SDO_C->OD_IO.stream);
 
             /* load data from OD variable into the buffer */
