@@ -136,9 +136,9 @@ static inline bool_t CO_fifo_purge(CO_fifo_t *fifo) {
  * @return number of available bytes
  */
 static inline size_t CO_fifo_getSpace(CO_fifo_t *fifo) {
-    int sizeLeft = (int)fifo->readPtr - fifo->writePtr - 1;
+    int sizeLeft = (int)fifo->readPtr - (int)fifo->writePtr - 1;
     if (sizeLeft < 0) {
-        sizeLeft += fifo->bufSize;
+        sizeLeft += (int)fifo->bufSize;
     }
 
     return (size_t) sizeLeft;
@@ -153,9 +153,9 @@ static inline size_t CO_fifo_getSpace(CO_fifo_t *fifo) {
  * @return number of occupied bytes
  */
 static inline size_t CO_fifo_getOccupied(CO_fifo_t *fifo) {
-    int sizeOccupied = (int)fifo->writePtr - fifo->readPtr;
+    int sizeOccupied = (int)fifo->writePtr - (int)fifo->readPtr;
     if (sizeOccupied < 0) {
-        sizeOccupied += fifo->bufSize;
+        sizeOccupied += (int)fifo->bufSize;
     }
 
     return (size_t) sizeOccupied;
@@ -295,9 +295,9 @@ void CO_fifo_altFinish(CO_fifo_t *fifo, uint16_t *crc);
  * @return number of occupied bytes.
  */
 static inline size_t CO_fifo_altGetOccupied(CO_fifo_t *fifo) {
-    int sizeOccupied = (int)fifo->writePtr - fifo->altReadPtr;
+    int sizeOccupied = (int)fifo->writePtr - (int)fifo->altReadPtr;
     if (sizeOccupied < 0) {
-        sizeOccupied += fifo->bufSize;
+        sizeOccupied += (int)fifo->bufSize;
     }
 
     return (size_t) sizeOccupied;

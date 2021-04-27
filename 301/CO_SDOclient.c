@@ -411,8 +411,8 @@ CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
 
 
     if (ret != CO_ERROR_NO || SDO_C->CANtxBuff == NULL) {
-        return CO_SDO_RT_wrongArguments;
         SDO_C->valid = false;
+        return CO_SDO_RT_wrongArguments;
     }
 
     return CO_SDO_RT_ok_communicationEnd;
@@ -599,11 +599,11 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                         buf[count++] = 0;
                         SDO_C->sizeTran++;
                     }
-                    SDO_C->OD_IO.stream.dataLength = SDO_C->sizeTran;
+                    SDO_C->OD_IO.stream.dataLength = (OD_size_t)SDO_C->sizeTran;
                 }
                 /* Indicate OD data size, if necessary. Used for EOF check. */
                 else if (sizeInOd == 0) {
-                    SDO_C->OD_IO.stream.dataLength = SDO_C->sizeTran;
+                    SDO_C->OD_IO.stream.dataLength = (OD_size_t)SDO_C->sizeTran;
                 }
                 /* Verify if size of data downloaded matches data size in OD. */
                 else if (SDO_C->sizeTran != sizeInOd) {
@@ -619,7 +619,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 /* write data to Object Dictionary */
                 if (lock) { CO_LOCK_OD(SDO_C->CANdevTx); }
                 ODR_t odRet = SDO_C->OD_IO.write(&SDO_C->OD_IO.stream, buf,
-                                                 count, &countWritten);
+                                                 (OD_size_t)count, &countWritten);
                 if (lock) { CO_UNLOCK_OD(SDO_C->CANdevTx); }
 
                 /* verify for errors in write */
@@ -910,7 +910,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
                 /* segmented transfer, indicate data size */
                 if (SDO_C->sizeInd > 0) {
-                    uint32_t size = CO_SWAP_32(SDO_C->sizeInd);
+                    uint32_t size = CO_SWAP_32((uint32_t)SDO_C->sizeInd);
                     SDO_C->CANtxBuff->data[0] |= 0x01;
                     memcpy(&SDO_C->CANtxBuff->data[4], &size, sizeof(size));
                 }
@@ -946,7 +946,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             }
 
             /* SDO command specifier */
-            SDO_C->CANtxBuff->data[0] = SDO_C->toggle | ((7 - count) << 1);
+            SDO_C->CANtxBuff->data[0] = (uint8_t)(SDO_C->toggle | ((7 - count) << 1));
 
             /* is end of transfer? Verify also sizeTran */
             if (CO_fifo_getOccupied(&SDO_C->bufFifo) == 0 && !bufferPartial) {
@@ -976,7 +976,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
 
             /* indicate data size */
             if (SDO_C->sizeInd > 0) {
-                uint32_t size = CO_SWAP_32(SDO_C->sizeInd);
+                uint32_t size = CO_SWAP_32((uint32_t)SDO_C->sizeInd);
                 SDO_C->CANtxBuff->data[0] |= 0x02;
                 memcpy(&SDO_C->CANtxBuff->data[4], &size, sizeof(size));
             }
@@ -998,7 +998,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             /* get up to 7 data bytes */
             count = CO_fifo_altRead(&SDO_C->bufFifo,
                                     &SDO_C->CANtxBuff->data[1], 7);
-            SDO_C->block_noData = 7 - count;
+            SDO_C->block_noData = (uint8_t)(7 - count);
 
             /* verify if sizeTran is too large */
             SDO_C->sizeTran += count;
@@ -1204,7 +1204,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
              * use maximum SDO client buffer size. Prepare temp buffer. */
             OD_size_t countData = SDO_C->OD_IO.stream.dataLength;
             OD_size_t countBuf = (countData > 0 && countData <= countFifo)
-                                 ? countData : countFifo;
+                                 ? countData : (OD_size_t)countFifo;
             OD_size_t countRd = 0;
             uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1];
             bool_t lock = OD_mappable(&SDO_C->OD_IO.stream);
@@ -1225,14 +1225,14 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     && (SDO_C->OD_IO.stream.attribute & ODA_STR) != 0
                 ) {
                     buf[countRd] = 0; /* (buf is one byte larger) */
-                    OD_size_t countStr = strlen((char *)buf);
+                    OD_size_t countStr = (OD_size_t)strlen((char *)buf);
                     if (countStr == 0) countStr = 1; /* no zero length */
                     if (countStr < countRd) {
                         /* string terminator found, finish read, shorten data */
                         countRd = countStr;
                         odRet = ODR_OK;
                         SDO_C->OD_IO.stream.dataLength =
-                            SDO_C->sizeTran + countRd;
+                            (OD_size_t)SDO_C->sizeTran + countRd;
                     }
                 }
 

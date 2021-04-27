@@ -485,7 +485,7 @@ static void responseWithError(CO_GTWA_t *gtwa,
 
     for (i = 0; i < len; i++) {
         const errorDescs_t *ed = &errorDescs[i];
-        if(ed->code == respErrorCode) {
+        if((CO_GTWA_respErrorCode_t)ed->code == respErrorCode) {
             desc = ed->desc;
         }
     }
@@ -507,7 +507,7 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
 
     for (i = 0; i < len; i++) {
         const errorDescs_t *ed = &errorDescsSDO[i];
-        if(ed->code == abortCode) {
+        if((CO_SDO_abortCode_t)ed->code == abortCode) {
             desc = ed->desc;
         }
     }
@@ -605,7 +605,7 @@ static inline void convertToLower(char *token, size_t maxCount) {
         if (*c == 0) {
             break;
         } else {
-            *c = tolower((int)*c);
+            *c = (char)tolower((int)*c);
         }
         c++;
     }
@@ -1404,7 +1404,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             if (closed == 0) {
                 /* more arguments follow */
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                gtwa->lssNID = getU32(tok, 1, 127, &err);
+                gtwa->lssNID = (uint8_t)getU32(tok, 1, 127, &err);
                 if (err) break;
 
                 closed = -1;

@@ -259,7 +259,7 @@ static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
     /* get MAX(errorStatusBitsSize, bufSize, ODsizeIndication) */
-    size_t countReadLocal = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
+    OD_size_t countReadLocal = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
     if (countReadLocal > count) {
         countReadLocal = count;
     }
@@ -288,7 +288,7 @@ static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
     /* get MAX(errorStatusBitsSize, bufSize, ODsizeIndication) */
-    size_t countWrite = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
+    OD_size_t countWrite = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
     if (countWrite > count) {
         countWrite = count;
     }
