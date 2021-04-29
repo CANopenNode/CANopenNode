@@ -199,10 +199,10 @@ CO_ReturnError_t CO_LSSslave_init(
         uint8_t                *pendingNodeID,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdx,
-        uint32_t                CANidLssMaster,
+        uint16_t                CANidLssMaster,
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdx,
-        uint32_t                CANidLssSlave)
+        uint16_t                CANidLssSlave)
 {
     CO_ReturnError_t ret = CO_ERROR_NO;
 

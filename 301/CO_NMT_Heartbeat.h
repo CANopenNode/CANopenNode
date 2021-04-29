@@ -315,7 +315,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
  * @return @ref CO_NMT_internalState_t
  */
 static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
-    return (NMT == NULL) ? CO_NMT_INITIALIZING : NMT->operatingState;
+    return (NMT == NULL) ? CO_NMT_INITIALIZING : (CO_NMT_internalState_t)NMT->operatingState;
 }
 
 
@@ -330,7 +330,7 @@ static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
 static inline void CO_NMT_sendInternalCommand(CO_NMT_t *NMT,
                                               CO_NMT_command_t command)
 {
-    if (NMT != NULL) NMT->internalCommand = command;
+    if (NMT != NULL) NMT->internalCommand = (uint8_t)command;
 }
 
 
