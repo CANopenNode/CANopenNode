@@ -106,12 +106,21 @@
 /* CANopen object */
 CO_t *CO = NULL;
 
-/* Configurable CAN bit-rate and CANopen node-id, store-able to non-volatile
- * memory. Can be set by argument and changed by LSS slave. */
-typedef struct { uint16_t bitRate; uint8_t nodeId; } CO_pending_t;
-CO_pending_t CO_pending = { .bitRate = 0, .nodeId = CO_LSS_NODE_ID_ASSIGNMENT };
-/* Active node-id, copied from CO_pending.nodeId in the communication reset */
+/* Active node-id, copied from pendingNodeId in the communication reset */
 static uint8_t CO_activeNodeId = CO_LSS_NODE_ID_ASSIGNMENT;
+
+/* Data block for mainline data, which can be stored to non-volatile memory */
+typedef struct {
+    /* Pending CAN bit rate, can be set by argument or LSS slave. */
+    uint16_t pendingBitRate;
+    /* Pending CANopen NodeId, can be set by argument or LSS slave. */
+    uint8_t pendingNodeId;
+} mainlineStorage_t;
+
+mainlineStorage_t mlStorage = {
+    .pendingBitRate = 0,
+    .pendingNodeId = CO_LSS_NODE_ID_ASSIGNMENT
+};
 
 #if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
 static CO_time_t            CO_time;            /* Object for current time */
@@ -212,9 +221,9 @@ static void HeartbeatNmtChangedCallback(uint8_t nodeId, uint8_t idx,
 
 /* callback for storing node id and bitrate */
 static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
-    (void)object;
-    CO_pending.nodeId = id;
-    CO_pending.bitRate = bitRate;
+    mainlineStorage_t *mainlineStorage = object;
+    mainlineStorage->pendingNodeId = id;
+    mainlineStorage->pendingBitRate = bitRate;
     return true;
 }
 
@@ -276,7 +285,7 @@ int main (int argc, char *argv[]) {
     bool_t firstRun = true;
 
     char* CANdevice = NULL;         /* CAN device, configurable by arguments. */
-    bool_t nodeIdFromArgs = false;  /* True, if program arguments are used for CANopen Node Id */
+    int16_t nodeIdFromArgs = -1;    /* May be set by arguments */
     bool_t rebootEnable = false;    /* Configurable by arguments */
 
 #if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
@@ -291,11 +300,12 @@ int main (int argc, char *argv[]) {
                         '.','p','e','r','s','i','s','t','\0'}
         },
         {
-            .addr = &CO_pending,
-            .len = sizeof(CO_pending),
+            .addr = &mlStorage,
+            .len = sizeof(mlStorage),
             .subIndexOD = 4,
             .attr = CO_storage_cmd | CO_storage_auto | CO_storage_restore,
-            .filename = {'l','s','s','.','p','e','r','s','i','s','t','\0'}
+            .filename = {'m','a','i','n','l','i','n','e',
+                         '.','p','e','r','s','i','s','t','\0'}
         },
         CO_STORAGE_APPLICATION
     };
@@ -328,10 +338,12 @@ int main (int argc, char *argv[]) {
     }
     while((opt = getopt(argc, argv, "i:p:rc:T:s:")) != -1) {
         switch (opt) {
-            case 'i':
-                nodeIdFromArgs = true;
-                CO_pending.nodeId = (uint8_t)strtol(optarg, NULL, 0);
+            case 'i': {
+                long int nodeIdLong = strtol(optarg, NULL, 0);
+                nodeIdFromArgs = (nodeIdLong < 0 || nodeIdLong > 0xFF)
+                               ? 0 : (uint8_t)strtol(optarg, NULL, 0);
                 break;
+            }
 #ifndef CO_SINGLE_THREAD
             case 'p': rtPriority = strtol(optarg, NULL, 0);
                 break;
@@ -398,11 +410,11 @@ int main (int argc, char *argv[]) {
     }
 
     /* Valid NodeId is 1..127 or 0xFF(unconfigured) in case of LSSslaveEnabled*/
-    if((CO_pending.nodeId < 1 || CO_pending.nodeId > 127)
+    if ((nodeIdFromArgs == 0 || nodeIdFromArgs > 127)
        && (!CO_isLSSslaveEnabled(CO)
-           || CO_pending.nodeId != CO_LSS_NODE_ID_ASSIGNMENT)
+           || nodeIdFromArgs != CO_LSS_NODE_ID_ASSIGNMENT)
     ) {
-        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, CO_pending.nodeId);
+        log_printf(LOG_CRIT, DBG_WRONG_NODE_ID, nodeIdFromArgs);
         printUsage(argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -422,7 +434,7 @@ int main (int argc, char *argv[]) {
     }
 
 
-    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, CO_pending.nodeId, "starting");
+    log_printf(LOG_INFO, DBG_CAN_OPEN_INFO, mlStorage.pendingNodeId,"starting");
 
 
     /* Allocate memory for CANopen objects */
@@ -436,7 +448,6 @@ int main (int argc, char *argv[]) {
 
 
 #if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
-    uint8_t pendingNodeIdOriginal = CO_pending.nodeId;
     err = CO_storageLinux_init(&storage,
                                CO->CANmodule,
                                OD_ENTRY_H1010_storeParameters,
@@ -451,12 +462,12 @@ int main (int argc, char *argv[]) {
         log_printf(LOG_CRIT, DBG_STORAGE, filename);
         exit(EXIT_FAILURE);
     }
+#endif
 
     /* Overwrite stored node-id, if specified by program arguments */
-    if (nodeIdFromArgs) {
-        CO_pending.nodeId = pendingNodeIdOriginal;
+    if (nodeIdFromArgs > 0) {
+        mlStorage.pendingNodeId = (uint8_t)nodeIdFromArgs;
     }
-#endif
 
     /* Catch signals SIGINT and SIGTERM */
     if(signal(SIGINT, sigHandler) == SIG_ERR) {
@@ -508,8 +519,8 @@ int main (int argc, char *argv[]) {
 
 
     while(reset != CO_RESET_APP && reset != CO_RESET_QUIT && CO_endProgram == 0) {
-        uint32_t errInfo;
 /* CANopen communication reset - initialize CANopen objects *******************/
+        uint32_t errInfo;
 
         /* Wait rt_thread. */
         if(!firstRun) {
@@ -539,7 +550,7 @@ int main (int argc, char *argv[]) {
             .serialNumber = OD_PERSIST_COMM.x1018_identity.serialNumber
         }};
         err = CO_LSSinit(CO, &lssAddress,
-                         &CO_pending.nodeId, &CO_pending.bitRate);
+                         &mlStorage.pendingNodeId, &mlStorage.pendingBitRate);
         if(err != CO_ERROR_NO) {
             log_printf(LOG_CRIT, DBG_CAN_OPEN, "CO_LSSinit()", err);
             programExit = EXIT_FAILURE;
@@ -547,7 +558,7 @@ int main (int argc, char *argv[]) {
             continue;
         }
 
-        CO_activeNodeId = CO_pending.nodeId;
+        CO_activeNodeId = mlStorage.pendingNodeId;
         errInfo = 0;
 
         err = CO_CANopenInit(CO,                /* CANopen object */
@@ -579,7 +590,7 @@ int main (int argc, char *argv[]) {
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
         CO_epoll_initCANopenGtw(&epGtw, CO);
 #endif
-        CO_LSSslave_initCfgStoreCallback(CO->LSSslave, NULL,
+        CO_LSSslave_initCfgStoreCallback(CO->LSSslave, &mlStorage,
                                          LSScfgStoreCallback);
         if(!CO->nodeIdUnconfigured) {
             if(errInfo != 0) {
@@ -647,14 +658,14 @@ int main (int argc, char *argv[]) {
                 }
                 else {
                     log_printf(LOG_CRIT, DBG_CAN_OPEN, "app_programStart()", err);
-                    if(errInfo != 0 && !CO->nodeIdUnconfigured) {
-                        CO_errorReport(CO->em, CO_EM_INCONSISTENT_OBJECT_DICT,
-                                       CO_EMC_DATA_SET, errInfo);
-                    }
                 }
                 programExit = EXIT_FAILURE;
                 CO_endProgram = 1;
                 continue;
+            }
+            if(errInfo != 0 && !CO->nodeIdUnconfigured) {
+                CO_errorReport(CO->em, CO_EM_INCONSISTENT_OBJECT_DICT,
+                               CO_EMC_DATA_SET, errInfo);
             }
 #endif
         } /* if(firstRun) */
@@ -798,7 +809,7 @@ static void* rt_thread(void* arg) {
 
 #ifdef CO_USE_APPLICATION
         /* Execute optional additional application code */
-        app_program1ms(!CO->nodeIdUnconfigured, epRT.timeDifference_us);
+        app_programRt(!CO->nodeIdUnconfigured, epRT.timeDifference_us);
 #endif
 
     }

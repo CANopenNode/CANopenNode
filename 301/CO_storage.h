@@ -111,6 +111,8 @@ typedef struct {
                      CO_CANmodule_t *CANmodule); /**< From CO_storage_init() */
     CO_storage_entry_t *entries; /**< From CO_storage_init() */
     uint8_t entriesCount; /**< From CO_storage_init() */
+    bool_t enabled; /**< true, if storage is enabled. Setting of this variable
+    is implementation specific. */
 } CO_storage_t;
 
 

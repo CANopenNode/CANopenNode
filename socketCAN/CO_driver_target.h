@@ -352,12 +352,12 @@ typedef struct {
 
 
 #ifdef CO_SINGLE_THREAD
-#define CO_LOCK_CAN_SEND(CAN_MODULE)
-#define CO_UNLOCK_CAN_SEND(CAN_MODULE)
-#define CO_LOCK_EMCY(CAN_MODULE)
-#define CO_UNLOCK_EMCY(CAN_MODULE)
-#define CO_LOCK_OD(CAN_MODULE)
-#define CO_UNLOCK_OD(CAN_MODULE)
+#define CO_LOCK_CAN_SEND(CAN_MODULE) {(void) CAN_MODULE;}
+#define CO_UNLOCK_CAN_SEND(CAN_MODULE) {(void) CAN_MODULE;}
+#define CO_LOCK_EMCY(CAN_MODULE) {(void) CAN_MODULE;}
+#define CO_UNLOCK_EMCY(CAN_MODULE) {(void) CAN_MODULE;}
+#define CO_LOCK_OD(CAN_MODULE) {(void) CAN_MODULE;}
+#define CO_UNLOCK_OD(CAN_MODULE) {(void) CAN_MODULE;}
 #define CO_MemoryBarrier()
 #else
 

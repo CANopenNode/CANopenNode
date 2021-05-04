@@ -1,5 +1,5 @@
 /*
- * CANopen Object Dictionary storage object for Linux SocketCAN.
+ * CANopen data storage object for Linux
  *
  * @file        CO_storageLinux.c
  * @author      Janez Paternoster
@@ -38,7 +38,6 @@
  * For more information see file CO_storage.h, CO_storage_entry_t.
  */
 static ODR_t storeLinux(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
-    (void) CANmodule;
     ODR_t ret = ODR_OK;
     uint16_t crc_store;
 
@@ -179,6 +178,8 @@ CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
+    storage->enabled = false;
+
     /* initialize storage and OD extensions */
     ret = CO_storage_init(storage,
                           CANmodule,
@@ -266,6 +267,7 @@ CO_ReturnError_t CO_storageLinux_init(CO_storage_t *storage,
         }
     } /* for (entries) */
 
+    storage->enabled = true;
     return ret;
 }
 

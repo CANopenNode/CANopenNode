@@ -43,7 +43,7 @@ static ODR_t OD_write_1010(OD_stream_t *stream, const void *buf,
 
     CO_storage_t *storage = stream->object;
 
-    if (stream->subIndex == 0 || storage->store == NULL) {
+    if (stream->subIndex == 0 || storage->store == NULL || !storage->enabled) {
         return ODR_READONLY;
     }
 
@@ -93,7 +93,7 @@ static ODR_t OD_write_1011(OD_stream_t *stream, const void *buf,
 
     CO_storage_t *storage = stream->object;
 
-    if (stream->subIndex == 0 || storage->restore == NULL) {
+    if (stream->subIndex == 0 || storage->restore == NULL || !storage->enabled){
         return ODR_READONLY;
     }
 
