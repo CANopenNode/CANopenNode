@@ -492,7 +492,7 @@ CO_ReturnError_t CO_LSSinit(CO_t *co,
  * If it is unconfigured, then some CANopen objects will not be initialized nor
  * processed.
  * @param [out] errInfo Additional information in case of error, may be NULL.
- * errInfo can  also be set in noncritical errors, where function returns
+ * errInfo can also be set in noncritical errors, where function returns
  * CO_ERROR_NO. For example, if OD parameter contains wrong value.
  *
  * @return CO_ERROR_NO in case of success.

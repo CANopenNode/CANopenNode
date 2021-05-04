@@ -113,8 +113,10 @@ CO_ReturnError_t CO_CANmodule_init(
 
 
 /******************************************************************************/
-void CO_CANmodule_disable(CO_CANmodule_t *CANmodule){
-    /* turn off the module */
+void CO_CANmodule_disable(CO_CANmodule_t *CANmodule) {
+    if (CANmodule != NULL) {
+        /* turn off the module */
+    }
 }
 
 

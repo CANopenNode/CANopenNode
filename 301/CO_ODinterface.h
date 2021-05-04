@@ -435,7 +435,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
  * @return OD index
  */
 static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
-    return entry->index;
+    return (entry != NULL) ? entry->index : 0;
 }
 
 
@@ -450,7 +450,8 @@ static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
  * @return true, if OD variable is mappable.
  */
 static inline bool_t OD_mappable(OD_stream_t *stream) {
-    return (stream->attribute & (ODA_TRPDO | ODA_TRSRDO)) != 0;
+    return (stream != NULL)
+         ? (stream->attribute & (ODA_TRPDO | ODA_TRSRDO)) != 0 : false;
 }
 
 
@@ -464,7 +465,7 @@ static inline bool_t OD_mappable(OD_stream_t *stream) {
  * @param stream Object Dictionary stream object.
  */
 static inline void OD_rwRestart(OD_stream_t *stream) {
-    stream->dataOffset = 0;
+    if (stream != NULL) stream->dataOffset = 0;
 }
 
 
