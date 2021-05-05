@@ -26,9 +26,9 @@ SOURCES = \
 	$(CANOPEN_SRC)/301/CO_TIME.c \
 	$(CANOPEN_SRC)/301/CO_SYNC.c \
 	$(CANOPEN_SRC)/301/CO_PDO.c \
-	$(CANOPEN_SRC)/301/CO_storage.c \
 	$(CANOPEN_SRC)/303/CO_LEDs.c \
 	$(CANOPEN_SRC)/305/CO_LSSslave.c \
+	$(CANOPEN_SRC)/storage/CO_storage.c \
 	$(CANOPEN_SRC)/CANopen.c \
 	$(APPL_SRC)/OD.c \
 	$(DRV_SRC)/main_blank.c

@@ -1,5 +1,5 @@
-CANopen documentation
-=====================
+CANopen device documentation
+============================
 **New Product**
 
 

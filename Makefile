@@ -31,13 +31,13 @@ SOURCES = \
 	$(CANOPEN_SRC)/301/CO_PDO.c \
 	$(CANOPEN_SRC)/301/crc16-ccitt.c \
 	$(CANOPEN_SRC)/301/CO_fifo.c \
-	$(CANOPEN_SRC)/301/CO_storage.c \
 	$(CANOPEN_SRC)/303/CO_LEDs.c \
 	$(CANOPEN_SRC)/304/CO_GFC.c \
 	$(CANOPEN_SRC)/304/CO_SRDO.c \
 	$(CANOPEN_SRC)/305/CO_LSSslave.c \
 	$(CANOPEN_SRC)/305/CO_LSSmaster.c \
 	$(CANOPEN_SRC)/309/CO_gateway_ascii.c \
+	$(CANOPEN_SRC)/storage/CO_storage.c \
 	$(CANOPEN_SRC)/extra/CO_trace.c \
 	$(CANOPEN_SRC)/CANopen.c \
 	$(APPL_SRC)/OD.c \

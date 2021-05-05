@@ -41,8 +41,8 @@ extern "C" {
 #endif
 
 /**
- * @defgroup CO_storage Data storage
- * @ingroup CO_CANopen_301
+ * @defgroup CO_storage Data storage base
+ * @ingroup CO_CANopen_storage
  * @{
  *
  * CANopen provides OD objects 0x1010 and 0x1011 for control of storing and
@@ -138,15 +138,9 @@ typedef struct {
  * @ref ODR_t : "ODR_OK" in case of success, "ODR_HW" in case of hardware error.
  * @param restore Same as 'store', but for restoring default data.
  * @param entries Pointer to array of storage entries. Array must be defined and
- * initialized by application and must exist permanently. Each array element
- * contains:
- * - Pointer and length of data, which will be stored or restored,
- * - subIndexOD, which binds entry to specific subindex in 1010 and 1011 OD
- *   objects. Multiple entries with the same subIndexOD are possible.
- * - Attribute, which specifies, if data is stored on command or automatically
- *   and also specifies if data is able to restore. @ref CO_storage_attributes_t
- * - Additional target specific parameters. See @ref CO_storage_entry_t in
- *   CO_driver_target.h file.
+ * initialized by application and must exist permanently.
+ * Structure @ref CO_storage_entry_t is target specific and must be defined by
+ * CO_driver_target.h. See CO_driver.h for required parameters.
  * @param entriesCount Count of storage entries
  *
  * @return CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.

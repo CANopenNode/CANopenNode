@@ -822,6 +822,7 @@ INPUT                  = README.md \
                          304 \
                          305 \
                          309 \
+                         storage \
                          extra \
                          socketCAN
 

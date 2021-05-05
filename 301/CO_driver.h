@@ -354,20 +354,39 @@ typedef struct {
  * Must be defined in the **CO_driver_target.h** file.
  *
  * For more information on Data storage see @ref CO_storage or **CO_storage.h**
- * file. Structure members documented here are required. Target system shall add
- * own additional, hardware specific variables.
+ * file. Structure members documented here are always required or required with
+ * @ref CO_storage_eeprom. Target system may add own additional, hardware
+ * specific variables.
  */
 typedef struct {
-    /** Address of data to store */
+    /** Address of data to store, always required. */
     void *addr;
-    /** Length of data to store */
+    /** Length of data to store, always required. */
     size_t len;
     /** Sub index in OD objects 1010 and 1011, from 2 to 127. Writing
      * 0x65766173 to 1010,subIndexOD will store data to non-volatile memory.
-     * Writing 0x64616F6C to 1011,subIndexOD will restore default data. */
+     * Writing 0x64616F6C to 1011,subIndexOD will restore default data, always
+     * required. */
     uint8_t subIndexOD;
-    /** Attribute from @ref CO_storage_attributes_t */
+    /** Attribute from @ref CO_storage_attributes_t, always required. */
     uint8_t attr;
+    /** Pointer to storage module, target system specific usage, required with
+     * @ref CO_storage_eeprom. */
+    void *storageModule;
+    /** CRC checksum of the data stored in eeprom, set on store, required with
+     * @ref CO_storage_eeprom. */
+    uint16_t crc;
+    /** Address of entry signature inside eeprom, set by init, required with
+     * @ref CO_storage_eeprom. */
+    size_t eepromAddrSignature;
+    /** Address of data inside eeprom, set by init, required with
+     * @ref CO_storage_eeprom. */
+    size_t eepromAddr;
+    /** Offset of next byte being updated by automatic storage, required with
+     * @ref CO_storage_eeprom. */
+    size_t offset;
+    /** Additional target specific parameters, optional. */
+    void *additionalParameters;
 } CO_storage_entry_t;
 
 

@@ -26,7 +26,7 @@
 #ifndef CO_STORAGE_LINUX_H
 #define CO_STORAGE_LINUX_H
 
-#include "301/CO_storage.h"
+#include "storage/CO_storage.h"
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) || defined CO_DOXYGEN
 

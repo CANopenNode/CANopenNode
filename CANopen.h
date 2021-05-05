@@ -148,6 +148,14 @@ extern "C" {
  */
 
 /**
+ * @defgroup CO_CANopen_storage CANopen_storage
+ * @{
+ *
+ * CANopen Object Dictionary and other data storage.
+ * @}
+ */
+
+/**
  * @defgroup CO_CANopen_extra CANopen_extra
  * @{
  *

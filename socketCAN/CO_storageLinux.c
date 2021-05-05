@@ -104,9 +104,8 @@ static ODR_t storeLinux(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
 
     /* rename existing file to *.old and *.tmp to existing */
     if (ret == ODR_OK) {
-        if (rename(entry->filename, filename_old) != 0
-            || rename(filename_tmp, entry->filename) != 0
-        ) {
+        rename(entry->filename, filename_old);
+        if (rename(filename_tmp, entry->filename) != 0) {
             ret = ODR_HW;
         }
     }

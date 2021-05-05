@@ -25,7 +25,7 @@
 #ifndef CO_STORAGE_BLANK_H
 #define CO_STORAGE_BLANK_H
 
-#include "301/CO_storage.h"
+#include "storage/CO_storage.h"
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) || defined CO_DOXYGEN
 
@@ -33,8 +33,15 @@
 extern "C" {
 #endif
 
-/* See socketCAN/storageLinux.h and 301/CO_storage.h for information and
- * full example */
+/* This is very basic example of implementing (object dictionary) data storage.
+ * Data storage is target specific. CO_storageBlank.h and .c files only shows
+ * the basic principle, but does nothing. For complete example of storage see:
+ * - CANopenPIC/PIC32 uses eeprom with CANopenNode/storage/CO_storage.h/.c,
+ *   CANopenNode/storage/CO_storageEeprom.h/.c, CANopenNode/storage/CO_eeprom.h
+ *   and CANopenPIC/PIC32/CO_eepromPIC32.c files.
+ * - CANopenLinux uses file system with CANopenNode/storage/CO_storage.h/.c and
+ *   CANopenLinux/CO_storageLinux.h files.
+ */
 
 CO_ReturnError_t CO_storageBlank_init(CO_storage_t *storage,
                                       CO_CANmodule_t *CANmodule,
