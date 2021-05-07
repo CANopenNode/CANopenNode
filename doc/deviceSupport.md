@@ -22,25 +22,25 @@ There are many advantages of sharing the base code such as this. For the driver 
 Linux
 -----
 * CANopenNode integration with Linux socketCAN with master command interface. SocketCAN is part of the Linux kernel.
-* https://github.com/CANopenNode/CANopenNode (this project).
-* CANopenNode version: (will be v2.0)
+* https://github.com/CANopenNode/CANopenLinux.
+* CANopenNode version: (v4.0)
 * Status: stable
 * Features: OD storage, error counters, master (SDO client, LSS master, NMT master)
 * Systems: Linux PC, Raspberry PI, etc.
 * Development tools: Linux
-* Information updated 2020-02-14
+* Information updated 2021-05-21
 
 
 PIC32, dsPIC30, dsPIC33
 -----------------------
 * CANopenNode integration with 16 and 32 bit PIC microcontrollers from Microchip.
 * https://github.com/CANopenNode/CANopenPIC
-* CANopenNode version: (near v2.0)
+* CANopenNode version: (v4.0)
 * Status: stable
-* Features: OD storage, SDO client demo for PIC32, error counters
+* Features: OD storage for PIC32, SDO client demo for PIC32, error counters
 * Development tools: MPLAB X
-* Demo hardware: Explorer 16 from Microchip
-* Information updated 2020-02-14
+* Demo hardware: Explorer 16 from Microchip, [Max32 board](https://reference.digilentinc.com/reference/microprocessor/max32/start)
+* Information updated 2021-05-07
 
 
 Zephyr RTOS

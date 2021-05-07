@@ -153,6 +153,10 @@ File structure
    - **CO_LSSslave.h/.c** - CANopen Layer Setting Service - slave protocol.
  - **309/** - CANopen access from other networks.
    - **CO_gateway_ascii.h/.c** - Ascii mapping: NMT master, LSS master, SDO client.
+ - **storage/**
+   - **CO_OD_storage.h/.c** - CANopen data storage base object.
+   - **CO_storageEeprom.h/.c** - CANopen data storage object for storing data into block device (eeprom).
+   - **CO_eeprom.h** - Eeprom interface for use with CO_storageEeprom, functions are target system specific.
  - **extra/**
    - **CO_trace.h/.c** - CANopen trace object for recording variables over time.
  - **example/** - Directory with basic example, should compile on any system.
@@ -167,14 +171,6 @@ File structure
      markdown documentation file, automatically generated from DS301_profile.xpd.
    - **OD.h/.c** - CANopen Object dictionary source files, automatically
      generated from DS301_profile.xpd.
- - **socketCAN/** - Directory for Linux socketCAN interface.
-   - **CO_driver_target.h** - Linux socketCAN specific definitions for CANopenNode.
-   - **CO_driver.c** - Interface between Linux socketCAN and CANopenNode.
-   - **CO_error.h/.c** - Linux socketCAN Error handling object.
-   - **CO_error_msgs.h** - Error definition strings and logging function.
-   - **CO_epoll_interface.h/.c** - Helper functions for Linux epoll interface to CANopenNode.
-   - **CO_OD_storage.h/.c** - Object Dictionary storage object for Linux SocketCAN.
-   - **CO_main_basic.c** - Mainline for socketCAN (basic usage).
  - **doc/** - Directory with documentation
    - **CHANGELOG.md** - Change Log file.
    - **deviceSupport.md** - Information about supported devices.
@@ -185,7 +181,6 @@ File structure
  - **codingStyle** - Example of the coding style.
  - **.clang-format** - Definition file for the coding style.
  - **Doxyfile** - Configuration file for the documentation generator *doxygen*.
- - **Makefile** - Makefile for Linux socketCAN.
  - **canopend** - Executable for Linux, build with `make`.
  - **LICENSE** - License.
  - **README.md** - This file.
@@ -231,8 +226,7 @@ CANopenNode can run on many different devices. Each device (or microcontroller)
 must have own interface to CANopenNode. CANopenNode can run with or without
 operating system.
 
-It is not practical to have all device interfaces in a single project. For that
-reason CANopenNode project only includes interface to Linux socketCAN.
+It is not practical to have all device interfaces in a single project.
 Interfaces to other microcontrollers are in separate projects. See
 [deviceSupport.md](doc/deviceSupport.md) for list of known device interfaces.
 

@@ -4,6 +4,8 @@ Change Log
 [newOD]
 -------------------------
 - [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/master...newOD)
+### Removed
+- Driver for Linux (socketCAN directory) moved to own repository https://github.com/CANopenNode/CANopenLinux.
 ### Changed
 - New Object dictionary interface. It has similar principles as before. Main access to OD variables is via fast read/write functions, but direct access to OD variables is also possible. OD entries are passed with pointers to CANopen objects. All parts of CANopenNode objects, which works with OD entries, are rewritten.
 - [libedssharp](https://github.com/robincornelius/libedssharp) have new OD exporter, new project file format (standard CANopen XDD v1.1), new documentation generator, and many other improvements.
