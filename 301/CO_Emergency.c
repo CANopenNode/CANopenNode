@@ -608,6 +608,10 @@ void CO_EM_process(CO_EM_t *em,
         errorRegister |= CO_ERR_REG_MANUFACTURER;
     *em->errorRegister = errorRegister;
 
+    if (!NMTisPreOrOperational) {
+        return;
+    }
+
     /* post-process Emergency message in fifo buffer. */
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
     uint8_t fifoPpPtr = em->fifoPpPtr;
@@ -628,12 +632,9 @@ void CO_EM_process(CO_EM_t *em,
         em->fifo[fifoPpPtr][0] |= (uint32_t) errorRegister << 16;
 
         /* send emergency message */
-        if (NMTisPreOrOperational) {
-            memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr][0],
-                   sizeof(em->CANtxBuff->data));
-
-            CO_CANsend(em->CANdevTx, em->CANtxBuff);
-        }
+        memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr][0],
+               sizeof(em->CANtxBuff->data));
+        CO_CANsend(em->CANdevTx, em->CANtxBuff);
 
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
         /* report also own emergency messages */

@@ -1286,6 +1286,8 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     (void) enableGateway; /* may be unused */
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_NMT_internalState_t NMTstate = CO_NMT_getInternalState(co->NMT);
+    bool_t NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
+                                    || NMTstate == CO_NMT_OPERATIONAL);
 
     /* CAN module */
     CO_CANmodule_process(co->CANmodule);
@@ -1336,6 +1338,14 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
         return reset;
     }
 
+    /* Emergency */
+    if (CO_GET_CNT(EM) == 1) {
+        CO_EM_process(co->em,
+                      NMTisPreOrOperational,
+                      timeDifference_us,
+                      timerNext_us);
+    }
+
     /* NMT_Heartbeat */
     if (CO_GET_CNT(NMT) == 1) {
         reset = CO_NMT_process(co->NMT,
@@ -1343,8 +1353,8 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                                timeDifference_us,
                                timerNext_us);
     }
-    bool_t NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
-                                    || NMTstate == CO_NMT_OPERATIONAL);
+    NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
+                             || NMTstate == CO_NMT_OPERATIONAL);
 
     /* SDOserver */
     for (uint8_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
@@ -1362,14 +1372,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                               timerNext_us);
     }
 #endif
-
-    /* Emergency */
-    if (CO_GET_CNT(EM) == 1) {
-        CO_EM_process(co->em,
-                      NMTisPreOrOperational,
-                      timeDifference_us,
-                      timerNext_us);
-    }
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     if (CO_GET_CNT(TIME) == 1) {
