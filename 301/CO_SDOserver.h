@@ -46,10 +46,10 @@ extern "C" {
 
 /**
  * @defgroup CO_SDOserver SDO server
+ * CANopen Service Data Object - server protocol.
+ *
  * @ingroup CO_CANopen_301
  * @{
- *
- * CANopen Service Data Object - server protocol.
  *
  * Service data objects (SDOs) allow the access to any entry of the CANopen
  * Object dictionary. By SDO a peer-to-peer communication channel between two

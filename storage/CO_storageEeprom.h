@@ -36,6 +36,8 @@ extern "C" {
 
 /**
  * @defgroup CO_storage_eeprom Data storage in eeprom
+ * Eeprom specific data storage functions.
+ *
  * @ingroup CO_CANopen_storage
  * @{
  *

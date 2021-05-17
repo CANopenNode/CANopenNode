@@ -50,11 +50,10 @@ extern "C" {
 
 /**
  * @defgroup CO_HBconsumer Heartbeat consumer
- * @ingroup CO_CANopen_301
- * @{
- *
  * CANopen Heartbeat consumer protocol.
  *
+ * @ingroup CO_CANopen_301
+ * @{
  * Heartbeat consumer monitors Heartbeat messages from remote nodes. If any
  * monitored node don't send his Heartbeat in specified time, Heartbeat consumer
  * sends emergency message. If all monitored nodes are operational, then

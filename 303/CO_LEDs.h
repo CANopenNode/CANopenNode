@@ -43,6 +43,8 @@ extern "C" {
 
 /**
  * @defgroup CO_LEDs LED indicators
+ * Specified in standard CiA 303-3.
+ *
  * @ingroup CO_CANopen_303
  * @{
  *

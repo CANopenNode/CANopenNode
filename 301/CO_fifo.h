@@ -41,6 +41,8 @@ extern "C" {
 
 /**
  * @defgroup CO_CANopen_301_fifo FIFO circular buffer
+ * FIFO circular buffer for continuous data flow.
+ *
  * @ingroup CO_CANopen_301
  * @{
  *

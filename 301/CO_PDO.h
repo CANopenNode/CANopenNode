@@ -51,11 +51,10 @@ extern "C" {
 
 /**
  * @defgroup CO_PDO PDO
- * @ingroup CO_CANopen_301
- * @{
- *
  * CANopen Process Data Object protocol.
  *
+ * @ingroup CO_CANopen_301
+ * @{
  * Process data objects are used for real-time data transfer with no protocol
  * overhead.
  *

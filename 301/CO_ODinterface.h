@@ -34,6 +34,8 @@ extern "C" {
 
 /**
  * @defgroup CO_ODinterface OD interface
+ * CANopen Object Dictionary interface.
+ *
  * @ingroup CO_CANopen_301
  * @{
  * See @ref doc/objectDictionary.md

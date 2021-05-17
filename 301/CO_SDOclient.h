@@ -52,11 +52,10 @@ extern "C" {
 
 /**
  * @defgroup CO_SDOclient SDO client
+ * CANopen Service Data Object - client protocol.
+ *
  * @ingroup CO_CANopen_301
  * @{
- *
- * CANopen Service Data Object - client protocol (master functionality).
- *
  * @see @ref CO_SDOserver
  */
 

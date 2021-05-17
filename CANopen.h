@@ -55,8 +55,7 @@ extern "C" {
  * @defgroup CO_CANopen CANopen
  * @{
  *
- * CANopenNode is free and open source implementation of CANopen communication
- * protocol.
+ * CANopenNode is free and open source CANopen communication protocol stack.
  *
  * CANopen is the internationally standardized (EN 50325-4) (CiA DS-301)
  * CAN-based higher-layer protocol for embedded control system. For more

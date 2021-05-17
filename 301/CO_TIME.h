@@ -46,11 +46,10 @@ extern "C" {
 
 /**
  * @defgroup CO_TIME TIME
- * @ingroup CO_CANopen_301
- * @{
- *
  * CANopen Time-stamp protocol.
  *
+ * @ingroup CO_CANopen_301
+ * @{
  * For CAN identifier see  @ref CO_Default_CAN_ID_t
  *
  * TIME message is used for time synchronization of the nodes on the network.

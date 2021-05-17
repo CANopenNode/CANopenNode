@@ -42,11 +42,10 @@ extern "C" {
 
 /**
  * @defgroup CO_NMT_Heartbeat NMT and Heartbeat
- * @ingroup CO_CANopen_301
- * @{
- *
  * CANopen Network management and Heartbeat producer protocol.
  *
+ * @ingroup CO_CANopen_301
+ * @{
  * CANopen device can be in one of the @ref CO_NMT_internalState_t
  *  - Initializing. It is active before CANopen is initialized.
  *  - Pre-operational. All CANopen objects are active, except PDOs.

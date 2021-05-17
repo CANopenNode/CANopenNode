@@ -15,15 +15,11 @@ CANopen device documentation
 
 This file was automatically generated with [libedssharp](https://github.com/robincornelius/libedssharp) Object Dictionary Editor v0.8-114-gc3a898f
 
-* [Device Information](#device-information)
-* [PDO Mapping](#pdo-mapping)
-* [Communication Specific Parameters](#communication-specific-parameters)
-* [Manufacturer Specific Parameters](#manufacturer-specific-parameters)
-* [Device Profile Specific Parameters](#device-profile-specific-parameters)
+[TOC]
 
 
-Device Information {#device-information}
-----------------------------------------
+Device Information
+------------------
 |              |                                |
 | ------------ | ------------------------------ |
 | Vendor Name  |                                |
@@ -48,11 +44,11 @@ Device Information {#device-information}
 * [ ] auto
 
 
-PDO Mapping {#pdo-mapping}
---------------------------
+PDO Mapping
+-----------
 
-Communication Specific Parameters {#communication-specific-parameters}
-----------------------------------------------------------------------
+Communication Specific Parameters
+---------------------------------
 
 ### 0x1000 - Device type
 | Object Type | Count Label    | Storage Group  |

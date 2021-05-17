@@ -60,11 +60,10 @@ extern "C" {
 
 /**
  * @defgroup CO_driver Driver
- * @ingroup CO_CANopen_301
- * @{
- *
  * Interface between CAN hardware and CANopenNode.
  *
+ * @ingroup CO_CANopen_301
+ * @{
  * CANopenNode is designed for speed and portability. It runs efficiently on
  * devices from simple 16-bit microcontrollers to PC computers. It can run in
  * multiple threads. Reception of CAN messages is pre-processed with very fast
@@ -393,6 +392,9 @@ typedef struct {
 /**
  * @defgroup CO_critical_sections Critical sections
  * @{
+ *
+ * Protection of critical sections in multi-threaded operation.
+ *
  * CANopenNode is designed to run in different threads, as described in
  * [README.md](index.html). Threads are implemented differently in different
  * systems. In microcontrollers threads are interrupts with different

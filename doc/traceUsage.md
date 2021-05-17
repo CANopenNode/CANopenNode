@@ -1,6 +1,8 @@
 Trace usage
 ===========
 
+**TRACE DOES NOT WORK IN THE LAST VERSION**
+
 CANopenNode includes optional trace functionality (non-standard). It monitors
 choosen variables from Object Dictionary. On change of state of variable it
 makes a record with timestamp into circular buffer. String with points can later

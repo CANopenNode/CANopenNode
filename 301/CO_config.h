@@ -33,9 +33,9 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG Stack configuration
- * @ingroup CO_driver
+ * Stack configuration and enabling macros.
  *
- * Stack configuration macros specify, which parts of the stack will be enabled.
+ * @ingroup CO_driver
  *
  * Default values for stack configuration macros are set in corresponding
  * header files. The same default values are also provided in this file, but
@@ -57,6 +57,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_COMMON Common definitions
+ * Constants for common definitions.
  * @{
  */
 /**
@@ -125,6 +126,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_NMT_HB NMT master/slave and HB producer/consumer
+ * Specified in standard CiA 301
  * @{
  */
 /**
@@ -198,6 +200,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_EMERGENCY Emergency producer/consumer
+ * Specified in standard CiA 301
  * @{
  */
 /**
@@ -335,6 +338,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_SDO SDO server/client
+ * Specified in standard CiA 301
  * @{
  */
 /**
@@ -417,6 +421,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_TIME Time producer/consumer
+ * Specified in standard CiA 301
  * @{
  */
 /**
@@ -441,6 +446,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_SYNC_PDO SYNC and PDO producer/consumer
+ * Specified in standard CiA 301
  * @{
  */
 /**
@@ -499,7 +505,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_STORAGE Data storage
- * Data storage with CANopen OD objects 1010 and 1011
+ * Data storage with CANopen OD objects 1010 and 1011, CiA 301
  * @{
  */
 /**
@@ -691,7 +697,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_CRC16 CRC 16 calculation
- * Helper object
+ * Helper object for CRC-16 checksum
  * @{
  */
 /**
@@ -711,7 +717,7 @@ extern "C" {
 
 /**
  * @defgroup CO_STACK_CONFIG_FIFO FIFO buffer
- * Helper object
+ * Helper object for FIFO buffer
  * @{
  */
 /**

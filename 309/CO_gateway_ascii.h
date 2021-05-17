@@ -47,11 +47,10 @@ extern "C" {
 
 /**
  * @defgroup CO_CANopen_309_3 Gateway ASCII mapping
- * @ingroup CO_CANopen_309
- * @{
- *
  * CANopen access from other networks - ASCII mapping (CiA 309-3 DSP v3.0.0)
  *
+ * @ingroup CO_CANopen_309
+ * @{
  * This module enables ascii command interface (CAN gateway), which can be used
  * for master interaction with CANopen network. Some sort of string input/output
  * stream can be used, for example serial port + terminal on microcontroller or
@@ -70,6 +69,8 @@ extern "C" {
 
 /**
  * @defgroup CO_CANopen_309_3_Syntax Command syntax
+ * ASCII command syntax.
+ *
  * @{
  *
  * @code{.unparsed}

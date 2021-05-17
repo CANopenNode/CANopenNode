@@ -37,11 +37,10 @@ extern "C" {
 
 /**
  * @defgroup CO_LSSmaster LSS Master
- * @ingroup CO_CANopen_305
- * @{
- *
  * CANopen Layer Setting Service - master protocol.
  *
+ * @ingroup CO_CANopen_305
+ * @{
  * The client/master can use the following services
  * - node selection via LSS address
  * - node selection via LSS fastscan
@@ -59,8 +58,7 @@ extern "C" {
  *
  * ###Usage
  *
- * Usage of the CANopen LSS master is demonstrated in CANopenSocket application,
- * see CO_LSS_master.c / CO_LSS_master.h files.
+ * Usage of the CANopen LSS master is demonstrated in file 309/CO_gateway_ascii.c
  *
  * It essentially is always as following:
  * - select node(s)

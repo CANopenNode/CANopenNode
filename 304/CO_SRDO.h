@@ -47,11 +47,10 @@ extern "C" {
 
 /**
  * @defgroup CO_SRDO SRDO
- * @ingroup CO_CANopen_304
- * @{
- *
  * CANopen Safety Related Data Object protocol.
  *
+ * @ingroup CO_CANopen_304
+ * @{
  * The functionality is very similar to that of the PDOs.
  * The main differences is every message is send and received twice.
  * The second message must be bitwise inverted. The delay between the two messages and between each message pair is monitored.

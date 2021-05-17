@@ -60,11 +60,10 @@ extern "C" {
 
 /**
  * @defgroup CO_Emergency Emergency
- * @ingroup CO_CANopen_301
- * @{
- *
  * CANopen Emergency protocol.
  *
+ * @ingroup CO_CANopen_301
+ * @{
  * Error control and Emergency is used for control internal error state
  * and for sending a CANopen Emergency message.
  *

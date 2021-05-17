@@ -42,11 +42,10 @@ extern "C" {
 
 /**
  * @defgroup CO_trace Trace
- * @ingroup CO_CANopen_extra
- * @{
- *
  * CANopen trace object for recording variables over time.
  *
+ * @ingroup CO_CANopen_extra
+ * @{
  * In embedded systems there is often a need to monitor some variables over time.
  * Results are then displayed on graph, similar as in oscilloscope.
  *

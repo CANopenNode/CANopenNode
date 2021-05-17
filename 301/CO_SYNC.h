@@ -48,11 +48,10 @@ extern "C" {
 
 /**
  * @defgroup CO_SYNC SYNC
- * @ingroup CO_CANopen_301
- * @{
- *
  * CANopen Synchronisation protocol.
  *
+ * @ingroup CO_CANopen_301
+ * @{
  * For CAN identifier see #CO_Default_CAN_ID_t
  *
  * SYNC message is used for synchronization of the nodes on network. One node

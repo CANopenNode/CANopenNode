@@ -1,5 +1,5 @@
 /*
- * CANopen data storage object
+ * CANopen data storage base object
  *
  * @file        CO_storage.c
  * @author      Janez Paternoster

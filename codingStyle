@@ -51,9 +51,6 @@ extern "C" {
  *
  * Doxygen specifics: If description of the structure member is one sentence
  * only, don't use period after the sentence.
- *
- * ###Misra C
- * Code shall follow MISRA-C:2012 standard.
  */
 
 
@@ -75,15 +72,15 @@ typedef struct {
  * This is global function. Local functions (and variables) used inside one file
  * are declared as static and not documented by Doxygen.
  *
- * @param obj Pointer to object. Function operates on this object (not on global
- * variables).
+ * @param thisObj Pointer to object. Function operates on this object (not on
+ * global variables).
  * @param argument_2 Description of the argument.
  * @param argument_2 Description of the argument.
  * @param argument_4 Description of the argument.
  *
  * @return Some value.
  */
-int32_t foo1(object1_t *obj,
+int32_t foo1(object1_t *thisObj,
              int32_t argument_2,
              uint16_t argument_3,
              float32_t argument_4)

@@ -1,5 +1,5 @@
 /**
- * CANopen data storage object
+ * CANopen data storage base object
  *
  * @file        CO_storage.h
  * @ingroup     CO_storage
@@ -42,6 +42,8 @@ extern "C" {
 
 /**
  * @defgroup CO_storage Data storage base
+ * Base module for Data storage.
+ *
  * @ingroup CO_CANopen_storage
  * @{
  *

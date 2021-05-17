@@ -41,11 +41,10 @@ extern "C" {
 
 /**
  * @defgroup CO_GFC GFC
- * @ingroup CO_CANopen_304
- * @{
- *
  * Global fail-safe command protocol.
  *
+ * @ingroup CO_CANopen_304
+ * @{
  * Very simple consumer/producer protocol.
  * A net can have multiple GFC producer and multiple GFC consumer.
  * On a safety-relevant the producer can send a GFC message (ID 0, DLC 0).

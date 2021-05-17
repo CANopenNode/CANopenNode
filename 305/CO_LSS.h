@@ -43,11 +43,10 @@ extern "C" {
 
 /**
  * @defgroup CO_LSS LSS
- * @ingroup CO_CANopen_305
- * @{
- *
  * CANopen Layer Setting Services protocol (common).
  *
+ * @ingroup CO_CANopen_305
+ * @{
  * LSS protocol is according to CiA DSP 305 V3.0.0.
  *
  * LSS services and protocols are used to inquire or to change the settings
