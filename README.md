@@ -32,7 +32,7 @@ Characteristics
 
 ### Other
  - [Suitable for 16-bit microcontrollers and above](#device-support)
- - [Multithreaded, real-time](#flowchart-of-a-typical-canopennode-implementation)
+ - [Multithreaded, real-time](#canopenNode-flowchart)
  - [Object Dictionary editor](#object-dictionary-editor)
  - Non-volatile storage for Object Dictionary or other variables. Automatic or controlled by standard CANopen commands, configurable.
  - [Power saving possible](#power-saving)
@@ -70,8 +70,8 @@ Contributions are welcome. Best way to contribute your code is to fork a project
 rules should be followed: Linux style with indentation of 4 spaces. There is also a `codingStyle` file with example and a configuration file for `clang-format` tool.
 
 
-CANopenNode configuration
--------------------------
+CANopenNode flowchart
+---------------------
 Flowchart of a typical CANopenNode implementation:
 ~~~
                             -----------------------
