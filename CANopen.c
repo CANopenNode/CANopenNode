@@ -309,15 +309,15 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
     do {
 #ifdef CO_MULTIPLE_OD
         /* verify arguments */
-        if (config == NULL || config->CNT_NMT > 1 || config->CNT_HB_CONS > 1
-            || config->CNT_EM > 1 || config->CNT_SDO_SRV > 128
-            || config->CNT_SDO_CLI > 128 || config->CNT_SYNC > 1
-            || config->CNT_RPDO > 512 || config->CNT_TPDO > 512
-            || config->CNT_TIME > 1 || config->CNT_LEDS > 1
-            || config->CNT_GFC > 1 || config->CNT_SRDO > 64
-            || config->CNT_LSS_SLV > 1 || config->CNT_LSS_MST > 1
-            || config->CNT_GTWA > 1
-        ) {
+        if (config == NULL || config->CNT_NMT > 1
+                || config->CNT_EM > 1 || config->CNT_SDO_SRV > 128
+                || config->CNT_SDO_CLI > 128 || config->CNT_SYNC > 1
+                || config->CNT_RPDO > 512 || config->CNT_TPDO > 512
+                || config->CNT_TIME > 1 || config->CNT_LEDS > 1
+                || config->CNT_GFC > 1 || config->CNT_SRDO > 64
+                || config->CNT_LSS_SLV > 1 || config->CNT_LSS_MST > 1
+                || config->CNT_GTWA > 1
+            ) {
             break;
         }
 #else
@@ -352,12 +352,12 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
         ON_MULTI_OD(uint8_t RX_CNT_HB_CONS = 0);
-        if (CO_GET_CNT(HB_CONS) == 1) {
-            p = calloc(1, sizeof(CO_HBconsumer_t));
+        if (CO_GET_CNT(HB_CONS) > 0) {
+            p = calloc(CO_GET_CNT(HB_CONS), sizeof(CO_HBconsumer_t));
             if (p == NULL) break;
             else co->HBcons = (CO_HBconsumer_t *)p;
-            mem += sizeof(CO_HBconsumer_t);
             ON_MULTI_OD(RX_CNT_HB_CONS = CO_CONFIG_HB_CONS_SIZE);
+            mem += sizeof(CO_HBconsumer_t)*CO_GET_CNT(HB_CONS);
         }
 #endif
 
@@ -1009,7 +1009,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     }
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
-    if (CO_GET_CNT(HB_CONS) == 1) {
+    if (CO_GET_CNT(HB_CONS) > 0) {
         err = CO_HBconsumer_init(co->HBcons,
                                  em,
                                  OD_GET(H1016, OD_H1016_CONSUMER_HB_TIME),
@@ -1365,7 +1365,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     }
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
-    if (CO_GET_CNT(HB_CONS) == 1) {
+    if (CO_GET_CNT(HB_CONS) > 0) {
         CO_HBconsumer_process(co->HBcons,
                               NMTisPreOrOperational,
                               timeDifference_us,
