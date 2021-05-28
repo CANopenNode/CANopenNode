@@ -71,7 +71,6 @@ static ODR_t OD_read_dummy(OD_stream_t *stream, void *buf,
     return ODR_OK;
 }
 
-
 /*
  * Find mapped variable in Object Dictionary and configure entry in RPDO or TPDO
  *
@@ -736,6 +735,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
 
 
     /* Configure OD extensions */
+#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS)
 #if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC
     PDO->isRPDO = true;
     PDO->OD = OD;
@@ -751,7 +751,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     OD_extension_init(OD_14xx_RPDOCommPar, &PDO->OD_communicationParam_ext);
     OD_extension_init(OD_16xx_RPDOMapPar, &PDO->OD_mappingParam_extension);
 #endif
-
+#endif
     return CO_ERROR_NO;
 }
 
@@ -1190,6 +1190,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
 
 
     /* Configure OD extensions */
+#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS)
 #if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC
     PDO->isRPDO = false;
     PDO->OD = OD;
@@ -1205,7 +1206,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     OD_extension_init(OD_18xx_TPDOCommPar, &PDO->OD_communicationParam_ext);
     OD_extension_init(OD_1Axx_TPDOMapPar, &PDO->OD_mappingParam_extension);
 #endif
-
+#endif
     return CO_ERROR_NO;
 }
 
