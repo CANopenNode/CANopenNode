@@ -117,16 +117,22 @@ static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
 
 /******************************************************************************/
 CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
-                                    CO_EM_t *em,
+									CO_EM_t *em,
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_DYNAMIC
+									CO_HBconsNode_t *monitoredNodes,
+#endif
                                     OD_entry_t *OD_1016_HBcons,
                                     CO_CANmodule_t *CANdevRx,
                                     uint16_t CANdevRxIdxStart,
                                     uint32_t *errInfo)
 {
     ODR_t odRet;
-
     /* verify arguments */
-    if (HBcons == NULL || em == NULL || OD_1016_HBcons == NULL
+    if (
+#if (((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_DYNAMIC)==0)
+    		HBcons == NULL ||
+#endif
+    		em == NULL || OD_1016_HBcons == NULL
         || CANdevRx == NULL
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -139,10 +145,16 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
 
     /* get actual number of monitored nodes */
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_DYNAMIC
+    HBcons->numberOfMonitoredNodes = OD_1016_HBcons->subEntriesCount-1;
+    if (monitoredNodes==NULL)
+    	HBcons->monitoredNodes=calloc(HBcons->numberOfMonitoredNodes,sizeof(CO_HBconsNode_t));
+#else
     HBcons->numberOfMonitoredNodes =
         OD_1016_HBcons->subEntriesCount-1 < CO_CONFIG_HB_CONS_SIZE ?
         OD_1016_HBcons->subEntriesCount-1 : CO_CONFIG_HB_CONS_SIZE;
 
+#endif
     for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
         uint32_t val;
         odRet = OD_get_u32(OD_1016_HBcons, i + 1, &val, true);

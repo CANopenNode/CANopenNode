@@ -163,6 +163,7 @@ extern "C" {
  *   CO_HBconsumer_initCallbackHeartbeatStarted(),
  *   CO_HBconsumer_initCallbackTimeout() and
  *   CO_HBconsumer_initCallbackRemoteReset() functions.
+ * - CO_CONFIG_HB_CONS_DYNAMIC - Uses dynamic memory for monitoredNodes.
  * - CO_CONFIG_HB_CONS_QUERY_FUNCT - Enable functions for query HB state or
  *   NMT state of the specific monitored node.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
@@ -183,6 +184,7 @@ extern "C" {
 #define CO_CONFIG_HB_CONS_CALLBACK_CHANGE 0x02
 #define CO_CONFIG_HB_CONS_CALLBACK_MULTI 0x04
 #define CO_CONFIG_HB_CONS_QUERY_FUNCT 0x08
+#define CO_CONFIG_HB_CONS_DYNAMIC 0x10
 
 /**
  * Number of heartbeat consumer objects, where each object corresponds to one

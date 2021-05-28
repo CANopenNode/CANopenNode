@@ -356,8 +356,12 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
             p = calloc(CO_GET_CNT(HB_CONS), sizeof(CO_HBconsumer_t));
             if (p == NULL) break;
             else co->HBcons = (CO_HBconsumer_t *)p;
-            ON_MULTI_OD(RX_CNT_HB_CONS = CO_CONFIG_HB_CONS_SIZE);
             mem += sizeof(CO_HBconsumer_t)*CO_GET_CNT(HB_CONS);
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_DYNAMIC
+            ON_MULTI_OD(RX_CNT_HB_CONS = CO_GET_CNT(HB_CONS));
+#else
+            ON_MULTI_OD(RX_CNT_HB_CONS = CO_GET_CNT(HB_CONS)>CO_CONFIG_HB_CONS_SIZE?CO_CONFIG_HB_CONS_SIZE:CO_GET_CNT(HB_CONS));
+#endif
         }
 #endif
 
@@ -1011,7 +1015,10 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     if (CO_GET_CNT(HB_CONS) > 0) {
         err = CO_HBconsumer_init(co->HBcons,
-                                 em,
+        						 em,
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_DYNAMIC
+                                 NULL,
+#endif
                                  OD_GET(H1016, OD_H1016_CONSUMER_HB_TIME),
                                  co->CANmodule,
                                  CO_GET_CO(RX_IDX_HB_CONS),

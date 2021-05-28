@@ -143,7 +143,11 @@ typedef struct {
     /** From CO_HBconsumer_init() */
     CO_EM_t *em;
     /** Array of monitored nodes, maximum size CO_CONFIG_HB_CONS_SIZE */
-    CO_HBconsNode_t monitoredNodes[CO_CONFIG_HB_CONS_SIZE];
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_DYNAMIC
+    CO_HBconsNode_t* monitoredNodes;
+#else
+	CO_HBconsNode_t monitoredNodes[CO_CONFIG_HB_CONS_SIZE];
+#endif
     /** Actual number of monitored nodes,
      * MIN(CO_CONFIG_HB_CONS_SIZE or number-of-array-elements-in-OD-0x1016) */
     uint8_t numberOfMonitoredNodes;
@@ -181,6 +185,7 @@ typedef struct {
  * Function must be called in the communication reset section.
  *
  * @param HBcons This object will be initialized.
+ * @param monitoredNodes points an array of CO_HBconsNode_t must be as long as the number of monitorednodes(0x1016 sub 0). If NULL
  * @param em Emergency object.
  * @param OD_1016_HBcons OD entry for 0x1016 - "Consumer heartbeat time", entry
  * is required, IO extension will be applied.
@@ -192,7 +197,10 @@ typedef struct {
  * @return @ref CO_ReturnError_t CO_ERROR_NO in case of success.
  */
 CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
-                                    CO_EM_t *em,
+									CO_EM_t *em,
+#if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_DYNAMIC
+									CO_HBconsNode_t *monitoredNodes,
+#endif
                                     OD_entry_t *OD_1016_HBcons,
                                     CO_CANmodule_t *CANdevRx,
                                     uint16_t CANdevRxIdxStart,
