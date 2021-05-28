@@ -550,7 +550,9 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #endif
         co->RX_IDX_EM_CONS = idxRx; idxRx += RX_CNT_EM_CONS;
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
-        co->RX_IDX_TIME = idxRx; idxRx += RX_CNT_TIME;
+        if (CO_GET_CNT(TIME) == 1) {
+        	co->RX_IDX_TIME = idxRx; idxRx += RX_CNT_TIME;
+        }
 #endif
 #if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
         co->RX_IDX_GFC = idxRx; idxRx += RX_CNT_GFC;
