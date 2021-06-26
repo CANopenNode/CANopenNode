@@ -33,10 +33,6 @@
 #error CO_CONFIG_HB_CONS_CALLBACK_CHANGE and CO_CONFIG_HB_CONS_CALLBACK_MULTI cannot be set simultaneously!
 #endif
 
-#if CO_CONFIG_HB_CONS_SIZE < 1 || CO_CONFIG_HB_CONS_SIZE > 127
-#error CO_CONFIG_HB_CONS_SIZE is not correct
-#endif
-
 /*
  * Read received message from CAN module.
  *
@@ -118,6 +114,8 @@ static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
 /******************************************************************************/
 CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
                                     CO_EM_t *em,
+                                    CO_HBconsNode_t *monitoredNodes,
+                                    uint8_t monitoredNodesCount,
                                     OD_entry_t *OD_1016_HBcons,
                                     CO_CANmodule_t *CANdevRx,
                                     uint16_t CANdevRxIdxStart,
@@ -126,8 +124,8 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
     ODR_t odRet;
 
     /* verify arguments */
-    if (HBcons == NULL || em == NULL || OD_1016_HBcons == NULL
-        || CANdevRx == NULL
+    if (HBcons == NULL || em == NULL || monitoredNodes == NULL
+        || OD_1016_HBcons == NULL || CANdevRx == NULL
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -135,13 +133,14 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
     /* Configure object variables */
     memset(HBcons, 0, sizeof(CO_HBconsumer_t));
     HBcons->em = em;
+    HBcons->monitoredNodes = monitoredNodes;
     HBcons->CANdevRx = CANdevRx;
     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
 
     /* get actual number of monitored nodes */
     HBcons->numberOfMonitoredNodes =
-        OD_1016_HBcons->subEntriesCount-1 < CO_CONFIG_HB_CONS_SIZE ?
-        OD_1016_HBcons->subEntriesCount-1 : CO_CONFIG_HB_CONS_SIZE;
+        OD_1016_HBcons->subEntriesCount-1 < monitoredNodesCount ?
+        OD_1016_HBcons->subEntriesCount-1 : monitoredNodesCount;
 
     for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
         uint32_t val;

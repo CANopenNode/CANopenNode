@@ -38,9 +38,6 @@
                            CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
                            CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
-#ifndef CO_CONFIG_HB_CONS_SIZE
-#define CO_CONFIG_HB_CONS_SIZE 8
-#endif
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) || defined CO_DOXYGEN
 
@@ -142,10 +139,10 @@ typedef struct {
 typedef struct {
     /** From CO_HBconsumer_init() */
     CO_EM_t *em;
-    /** Array of monitored nodes, maximum size CO_CONFIG_HB_CONS_SIZE */
-    CO_HBconsNode_t monitoredNodes[CO_CONFIG_HB_CONS_SIZE];
-    /** Actual number of monitored nodes,
-     * MIN(CO_CONFIG_HB_CONS_SIZE or number-of-array-elements-in-OD-0x1016) */
+    /** Array of monitored nodes, from CO_HBconsumer_init() */
+    CO_HBconsNode_t *monitoredNodes;
+    /** Actual number of monitored nodes, size-of-the-above-array or
+     * number-of-array-elements-in-OD-0x1016, whichever is smaller. */
     uint8_t numberOfMonitoredNodes;
     /** True, if all monitored nodes are active or no node is monitored. Can be
      * read by the application */
@@ -182,17 +179,22 @@ typedef struct {
  *
  * @param HBcons This object will be initialized.
  * @param em Emergency object.
+ * @param monitoredNodes Array of monitored nodes, must be defined externally.
+ * @param monitoredNodesCount Size of the above array, usually equal to number
+ * of array elements in OD 0x1016, valid values are 1 to 127
  * @param OD_1016_HBcons OD entry for 0x1016 - "Consumer heartbeat time", entry
  * is required, IO extension will be applied.
  * @param CANdevRx CAN device for Heartbeat reception.
  * @param CANdevRxIdxStart Starting index of receive buffer in the above CAN
- * device. Number of used indexes is equal to CO_CONFIG_HB_CONS_SIZE.
+ * device. Number of used indexes is equal to monitoredNodesCount.
  * @param [out] errInfo Additional information in case of error, may be NULL.
  *
  * @return @ref CO_ReturnError_t CO_ERROR_NO in case of success.
  */
 CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
                                     CO_EM_t *em,
+                                    CO_HBconsNode_t *monitoredNodes,
+                                    uint8_t monitoredNodesCount,
                                     OD_entry_t *OD_1016_HBcons,
                                     CO_CANmodule_t *CANdevRx,
                                     uint16_t CANdevRxIdxStart,

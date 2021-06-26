@@ -64,7 +64,10 @@
  #error OD_CNT_HB_CONS from OD.h not correct!
 #endif
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) && OD_CNT_HB_CONS == 1
- #define CO_RX_CNT_HB_CONS CO_CONFIG_HB_CONS_SIZE
+ #if OD_CNT_ARR_1016 < 1 || OD_CNT_ARR_1016 > 127
+  #error OD_CNT_ARR_1016 is not defined in Object Dictionary or value is wrong!
+ #endif
+ #define CO_RX_CNT_HB_CONS OD_CNT_ARR_1016
 #else
  #define CO_RX_CNT_HB_CONS 0
 #endif
@@ -353,11 +356,16 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
         ON_MULTI_OD(uint8_t RX_CNT_HB_CONS = 0);
         if (CO_GET_CNT(HB_CONS) == 1) {
+            uint8_t countOfMonitoredNodes = CO_GET_CNT(ARR_1016);
             p = calloc(1, sizeof(CO_HBconsumer_t));
             if (p == NULL) break;
             else co->HBcons = (CO_HBconsumer_t *)p;
             mem += sizeof(CO_HBconsumer_t);
-            ON_MULTI_OD(RX_CNT_HB_CONS = CO_CONFIG_HB_CONS_SIZE);
+            p = calloc(countOfMonitoredNodes, sizeof(CO_HBconsNode_t));
+            if (p == NULL) break;
+            else co->HBconsMonitoredNodes = (CO_HBconsNode_t *)p;
+            mem += countOfMonitoredNodes * sizeof(CO_HBconsNode_t);
+            ON_MULTI_OD(RX_CNT_HB_CONS = countOfMonitoredNodes);
         }
 #endif
 
@@ -700,6 +708,7 @@ void CO_delete(CO_t *co) {
     free(co->em);
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
+    free(co->HBconsMonitoredNodes);
     free(co->HBcons);
 #endif
 
@@ -724,6 +733,7 @@ void CO_delete(CO_t *co) {
     static CO_NMT_t COO_NMT;
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     static CO_HBconsumer_t COO_HBcons;
+    static CO_HBconsNode_t COO_HBconsMonitoredNodes[OD_CNT_ARR_1016];
 #endif
     static CO_EM_t COO_EM;
     static CO_SDOserver_t COO_SDOserver[OD_CNT_SDO_SRV];
@@ -782,6 +792,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
     co->NMT = &COO_NMT;
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     co->HBcons = &COO_HBcons;
+    co->HBconsMonitoredNodes = &COO_HBconsMonitoredNodes[0];
 #endif
     co->em = &COO_EM;
     co->SDOserver = &COO_SDOserver[0];
@@ -1010,6 +1021,8 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     if (CO_GET_CNT(HB_CONS) == 1) {
         err = CO_HBconsumer_init(co->HBcons,
                                  em,
+                                 co->HBconsMonitoredNodes,
+                                 CO_GET_CNT(ARR_1016),
                                  OD_GET(H1016, OD_H1016_CONSUMER_HB_TIME),
                                  co->CANmodule,
                                  CO_GET_CO(RX_IDX_HB_CONS),

@@ -201,10 +201,11 @@ typedef struct {
      * There must be one NMT object in the device. */
     uint8_t CNT_NMT;
     OD_entry_t *ENTRY_H1017; /**< OD entry for @ref CO_NMT_init() */
-    /** Number of Heartbeat consumer objects, 0 or 1: object uses from 1 to 127
-     * internal consumers (CANrx), as specified by @ref CO_CONFIG_HB_CONS_SIZE.
-     */
+    /** Number of Heartbeat consumer objects, 0 or 1 */
     uint8_t CNT_HB_CONS;
+    /** Number of internal consumers (CANrx), used inside Heartbeat consumer
+     * object, 1 to 127. */
+    uint8_t CNT_ARR_1016;
     OD_entry_t *ENTRY_H1016; /**< OD entry for @ref CO_HBconsumer_init()*/
     /** Number of Emergency objects, 0 or 1: optional producer (CANtx) +
      * optional consumer (CANrx), configurable by @ref CO_CONFIG_EM.
@@ -291,6 +292,7 @@ typedef struct {
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) || defined CO_DOXYGEN
     /** Heartbeat consumer object, initialised by @ref CO_HBconsumer_init() */
     CO_HBconsumer_t *HBcons;
+    CO_HBconsNode_t *HBconsMonitoredNodes;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
     uint16_t RX_IDX_HB_CONS; /**< Start index in CANrx. */
  #endif

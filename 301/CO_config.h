@@ -183,18 +183,6 @@ extern "C" {
 #define CO_CONFIG_HB_CONS_CALLBACK_CHANGE 0x02
 #define CO_CONFIG_HB_CONS_CALLBACK_MULTI 0x04
 #define CO_CONFIG_HB_CONS_QUERY_FUNCT 0x08
-
-/**
- * Number of heartbeat consumer objects, where each object corresponds to one
- * sub-index in OD object 0x1016, "Consumer heartbeat time". Each heartbeat
- * consumer uses own CANrx object. Actual number of heartbeat consumer objects
- * may be lower, if OD variable 1016 has lower number of sub entries.
- *
- * If heartbeat consumer is enabled, then valid values are 1 to 127.
- */
-#ifdef CO_DOXYGEN
-#define CO_CONFIG_HB_CONS_SIZE 8
-#endif
 /** @} */ /* CO_STACK_CONFIG_NMT_HB */
 
 
