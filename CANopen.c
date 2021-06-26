@@ -439,7 +439,6 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
             if (p == NULL) break;
             else co->RPDO = (CO_RPDO_t *)p;
             mem += sizeof(CO_RPDO_t) * CO_GET_CNT(RPDO);
-            ON_MULTI_OD(co->CNT_RPDO = config->CNT_RPDO);
             ON_MULTI_OD(RX_CNT_RPDO = config->CNT_RPDO);
         }
 #endif
@@ -451,7 +450,6 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
             if (p == NULL) break;
             else co->TPDO = (CO_TPDO_t *)p;
             mem += sizeof(CO_TPDO_t) * CO_GET_CNT(TPDO);
-            ON_MULTI_OD(co->CNT_TPDO = config->CNT_TPDO);
             ON_MULTI_OD(TX_CNT_TPDO = config->CNT_TPDO);
         }
 #endif

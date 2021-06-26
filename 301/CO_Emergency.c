@@ -186,7 +186,9 @@ static ODR_t OD_write_1015(OD_stream_t *stream, const void *buf,
 static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
                           OD_size_t count, OD_size_t *countRead)
 {
-    if (stream == NULL || buf == NULL || count < 4 || countRead == NULL) {
+    if (stream == NULL || buf == NULL || countRead == NULL
+        || (count < 4 && stream->subIndex > 0) || count < 1
+    ) {
         return ODR_DEV_INCOMPAT;
     }
 

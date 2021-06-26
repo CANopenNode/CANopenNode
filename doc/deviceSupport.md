@@ -16,8 +16,8 @@ There are many advantages of sharing the base code such as this. For the driver 
 3. Add specific driver and other files.
 4. Write a good README.md file, where you describe your project, specify demo board, tools used, etc.
 5. Optionally prepare a demoDevice in [CANopenDemo](https://github.com/CANopenNode/CANopenDemo) repository and run the tests.
-6. Share your work: add description of new device into this file (deviceSupport.md) and make a pull request to CANopenNode. Alternatively create an issue for new device on https://github.com/CANopenNode/CANopenNode/issues. 
-7. Offer your work for inclusiun under the CANopenNode project and become its developer. It will increase code quality and functionality.
+6. Share your work: add description of new device into this file (deviceSupport.md) and make a pull request to CANopenNode. Alternatively create an issue for new device on https://github.com/CANopenNode/CANopenNode/issues.
+7. Offer your work for inclusion under the CANopenNode project and become its developer. It will increase code quality and functionality.
 
 
 Linux

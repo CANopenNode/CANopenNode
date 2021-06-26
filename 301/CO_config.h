@@ -2,7 +2,7 @@
  * Configuration macros for CANopenNode.
  *
  * @file        CO_config.h
- * @ingroup     CO_driver
+ * @ingroup     CO_STACK_CONFIG
  * @author      Janez Paternoster
  * @copyright   2020 Janez Paternoster
  *
