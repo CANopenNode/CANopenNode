@@ -233,20 +233,6 @@ extern "C" {
 #endif
 
 /**
- * Size of the internal buffer, where emergencies are stored after error
- * indication with @ref CO_error() function. Each emergency has to be post-
- * processed by the @ref CO_EM_process() function. In case of overflow, error is
- * indicated but emergency message is not sent.
- *
- * The same buffer is also used for OD object 0x1003, "Pre-defined error field".
- *
- * Each buffer element consumes 8 bytes. Valid values are 1 to 254.
- */
-#ifdef CO_DOXYGEN
-#define CO_CONFIG_EM_BUFFER_SIZE 16
-#endif
-
-/**
  * Condition for calculating CANopen Error register, "generic" error bit.
  *
  * Condition must observe suitable @ref CO_EM_errorStatusBits_t and use

@@ -78,6 +78,9 @@
 #ifndef OD_ENTRY_H1003
  #define OD_ENTRY_H1003 NULL
 #endif
+#ifndef OD_CNT_ARR_1003
+ #define OD_CNT_ARR_1003 8
+#endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
  #if OD_CNT_EM_PROD == 1
   #define CO_TX_CNT_EM_PROD OD_CNT_EM_PROD
@@ -382,6 +385,18 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
  #endif
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
             ON_MULTI_OD(TX_CNT_EM_PROD = 1);
+ #endif
+ #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+            uint8_t fifoSize = CO_GET_CNT(ARR_1003) + 1;
+            if (fifoSize >= 2) {
+                p = calloc(fifoSize, sizeof(CO_EM_fifo_t));
+                if (p == NULL) break;
+                else co->em_fifo = (CO_EM_fifo_t *)p;
+                mem += fifoSize * sizeof(CO_EM_fifo_t);
+            }
+            else {
+                co->em_fifo = NULL;
+            }
  #endif
         }
 
@@ -706,6 +721,9 @@ void CO_delete(CO_t *co) {
 
     /* Emergency */
     free(co->em);
+#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+    free(co->em_fifo);
+#endif
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     free(co->HBconsMonitoredNodes);
@@ -736,6 +754,9 @@ void CO_delete(CO_t *co) {
     static CO_HBconsNode_t COO_HBconsMonitoredNodes[OD_CNT_ARR_1016];
 #endif
     static CO_EM_t COO_EM;
+#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+    static CO_EM_fifo_t COO_EM_FIFO[CO_GET_CNT(ARR_1003) + 1];
+#endif
     static CO_SDOserver_t COO_SDOserver[OD_CNT_SDO_SRV];
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
     static CO_SDOclient_t COO_SDOclient[OD_CNT_SDO_CLI];
@@ -795,6 +816,9 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
     co->HBconsMonitoredNodes = &COO_HBconsMonitoredNodes[0];
 #endif
     co->em = &COO_EM;
+#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+    co->em_fifo = &COO_EM_FIFO[0];
+#endif
     co->SDOserver = &COO_SDOserver[0];
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
     co->SDOclient = &COO_SDOclient[0];
@@ -972,6 +996,10 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
         err = CO_EM_init(co->em,
                          co->CANmodule,
                          OD_GET(H1001, OD_H1001_ERR_REG),
+ #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+                         co->em_fifo,
+                         (CO_GET_CNT(ARR_1003) + 1),
+ #endif
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
                          OD_GET(H1014, OD_H1014_COBID_EMERGENCY),
                          CO_GET_CO(TX_IDX_EM_PROD),

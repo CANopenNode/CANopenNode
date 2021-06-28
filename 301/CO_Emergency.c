@@ -34,11 +34,7 @@
  #error CO_CONFIG_EM_ERR_STATUS_BITS_COUNT is not correct
 #endif
 
-#if CO_CONFIG_EM_BUFFER_SIZE < 1 || CO_CONFIG_EM_BUFFER_SIZE > 254
- #error CO_CONFIG_EM_BUFFER_SIZE is not correct
-#endif
-
-/* fifo buffer example for CO_CONFIG_EM_BUFFER_SIZE = 6 (em->fifo size = 6+1) *
+/* fifo buffer example for fifoSize = 7 (actual capacity = 6)                 *
  *                                                                            *
  *   0      *            *             *            *                         *
  *   1    pp==wp     fifoPpPtr     fifoWrPtr        *                         *
@@ -194,6 +190,9 @@ static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
+    if (em->fifoSize < 2) {
+        return ODR_DEV_INCOMPAT;
+    }
     if (stream->subIndex == 0) {
         CO_setUint8(buf, em->fifoCount);
 
@@ -205,12 +204,12 @@ static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
          * fifoWrPtr. Get correct index in FIFO buffer. */
         int16_t index = (int16_t)em->fifoWrPtr - stream->subIndex;
         if (index < 0) {
-            index += CO_CONFIG_EM_BUFFER_SIZE + 1;
+            index += em->fifoSize;
         }
-        else if (index >= (CO_CONFIG_EM_BUFFER_SIZE + 1)) {
+        else if (index >= (em->fifoSize)) {
             return ODR_DEV_INCOMPAT;
         }
-        CO_setUint32(buf, em->fifo[index][0]);
+        CO_setUint32(buf, em->fifo[index].msg);
 
         *countRead = sizeof(uint32_t);
         return ODR_OK;
@@ -345,12 +344,16 @@ static void CO_EM_receive(void *object, void *msg) {
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             CO_CANmodule_t *CANdevTx,
                             const OD_entry_t *OD_1001_errReg,
+#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+                            CO_EM_fifo_t *fifo,
+                            uint8_t fifoSize,
+#endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
                             OD_entry_t *OD_1014_cobIdEm,
                             uint16_t CANdevTxIdx,
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
+ #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
                             OD_entry_t *OD_1015_InhTime,
-#endif
+ #endif
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
                             OD_entry_t *OD_1003_preDefErr,
@@ -371,6 +374,9 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
     /* verify arguments */
     if (em == NULL || OD_1001_errReg == NULL
+#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+        || (fifo == NULL && fifoSize >= 2)
+#endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
         || OD_1014_cobIdEm == NULL || CANdevTx == NULL
         || nodeId < 1 || nodeId > 127
@@ -399,6 +405,10 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     }
     *em->errorRegister = 0;
 
+#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+    em->fifo = fifo;
+    em->fifoSize = fifoSize;
+#endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
     /* get initial and verify "COB-ID EMCY" from Object Dictionary */
     uint32_t COB_IDEmergency32;
@@ -616,77 +626,83 @@ void CO_EM_process(CO_EM_t *em,
 
     /* post-process Emergency message in fifo buffer. */
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
-    uint8_t fifoPpPtr = em->fifoPpPtr;
+    if (em->fifoSize >= 2) {
+        uint8_t fifoPpPtr = em->fifoPpPtr;
 
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
-    if (em->inhibitEmTimer < em->inhibitEmTime_us) {
-        em->inhibitEmTimer += timeDifference_us;
-    }
+        if (em->inhibitEmTimer < em->inhibitEmTime_us) {
+            em->inhibitEmTimer += timeDifference_us;
+        }
 
-    if (fifoPpPtr != em->fifoWrPtr && !em->CANtxBuff->bufferFull
-        && em->inhibitEmTimer >= em->inhibitEmTime_us
-    ) {
-        em->inhibitEmTimer = 0;
+        if (fifoPpPtr != em->fifoWrPtr && !em->CANtxBuff->bufferFull
+            && em->inhibitEmTimer >= em->inhibitEmTime_us
+        ) {
+            em->inhibitEmTimer = 0;
  #else
-    if (fifoPpPtr != em->fifoWrPtr && !em->CANtxBuff->bufferFull) {
+        if (fifoPpPtr != em->fifoWrPtr && !em->CANtxBuff->bufferFull) {
  #endif
-        /* add error register to emergency message */
-        em->fifo[fifoPpPtr][0] |= (uint32_t) errorRegister << 16;
+            /* add error register to emergency message */
+            em->fifo[fifoPpPtr].msg |= (uint32_t) errorRegister << 16;
 
-        /* send emergency message */
-        memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr][0],
-               sizeof(em->CANtxBuff->data));
-        CO_CANsend(em->CANdevTx, em->CANtxBuff);
+            /* send emergency message */
+            memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr].msg,
+                sizeof(em->CANtxBuff->data));
+            CO_CANsend(em->CANdevTx, em->CANtxBuff);
 
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
-        /* report also own emergency messages */
-        if (em->pFunctSignalRx != NULL) {
-            uint32_t errMsg = em->fifo[fifoPpPtr][0];
-            em->pFunctSignalRx(0,
-                               CO_SWAP_16((uint16_t) errMsg),
-                               errorRegister,
-                               (uint8_t) (errMsg >> 24),
-                               CO_SWAP_32(em->fifo[fifoPpPtr][1]));
-        }
+            /* report also own emergency messages */
+            if (em->pFunctSignalRx != NULL) {
+                uint32_t errMsg = em->fifo[fifoPpPtr].msg;
+                em->pFunctSignalRx(0,
+                                   CO_SWAP_16((uint16_t) errMsg),
+                                   errorRegister,
+                                   (uint8_t) (errMsg >> 24),
+                                   CO_SWAP_32(em->fifo[fifoPpPtr].info));
+            }
  #endif
 
-        /* increment pointer */
-        em->fifoPpPtr = (++fifoPpPtr < (CO_CONFIG_EM_BUFFER_SIZE + 1)) ?
-                        fifoPpPtr : 0;
+            /* increment pointer */
+            em->fifoPpPtr = (++fifoPpPtr < em->fifoSize) ? fifoPpPtr : 0;
 
-        /* verify message buffer overflow. Clear error condition if all messages
-         * from fifo buffer are processed */
-        if (em->fifoOverflow == 1) {
-            em->fifoOverflow = 2;
-            CO_errorReport(em, CO_EM_EMERGENCY_BUFFER_FULL, CO_EMC_GENERIC, 0);
+            /* verify message buffer overflow. Clear error condition if all
+             * messages from fifo buffer are processed */
+            if (em->fifoOverflow == 1) {
+                em->fifoOverflow = 2;
+                CO_errorReport(em, CO_EM_EMERGENCY_BUFFER_FULL,
+                               CO_EMC_GENERIC, 0);
+            }
+            else if (em->fifoOverflow == 2 && em->fifoPpPtr == em->fifoWrPtr) {
+                em->fifoOverflow = 0;
+                CO_errorReset(em, CO_EM_EMERGENCY_BUFFER_FULL, 0);
+            }
         }
-        else if (em->fifoOverflow == 2 && em->fifoPpPtr == em->fifoWrPtr) {
-            em->fifoOverflow = 0;
-            CO_errorReset(em, CO_EM_EMERGENCY_BUFFER_FULL, 0);
-        }
-    }
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
   #if (CO_CONFIG_EM) & CO_CONFIG_FLAG_TIMERNEXT
-    else if (timerNext_us != NULL && em->inhibitEmTimer < em->inhibitEmTime_us){
-        /* check again after inhibit time elapsed */
-        uint32_t diff = em->inhibitEmTime_us - em->inhibitEmTimer;
-        if (*timerNext_us > diff) {
-            *timerNext_us = diff;
+        else if (timerNext_us != NULL
+                 && em->inhibitEmTimer < em->inhibitEmTime_us)
+        {
+            /* check again after inhibit time elapsed */
+            uint32_t diff = em->inhibitEmTime_us - em->inhibitEmTimer;
+            if (*timerNext_us > diff) {
+                *timerNext_us = diff;
+            }
         }
-    }
   #endif
  #endif
-#elif (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
-    uint8_t fifoPpPtr = em->fifoPpPtr;
-    while (fifoPpPtr != em->fifoWrPtr) {
-        /* add error register to emergency message and increment pointers */
-        em->fifo[fifoPpPtr][0] |= (uint32_t) errorRegister << 16;
-
-        if (++fifoPpPtr >= (CO_CONFIG_EM_BUFFER_SIZE + 1)) {
-            fifoPpPtr = 0;
-        }
     }
-    em->fifoPpPtr = fifoPpPtr;
+#elif (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
+    if (em->fifoSize >= 2) {
+        uint8_t fifoPpPtr = em->fifoPpPtr;
+        while (fifoPpPtr != em->fifoWrPtr) {
+            /* add error register to emergency message and increment pointers */
+            em->fifo[fifoPpPtr].msg |= (uint32_t) errorRegister << 16;
+
+            if (++fifoPpPtr >= em->fifoSize) {
+                fifoPpPtr = 0;
+            }
+        }
+        em->fifoPpPtr = fifoPpPtr;
+    }
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER, #elif CO_CONFIG_EM_HISTORY */
 
     return;
@@ -741,22 +757,24 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
     else          *errorStatusBits &= ~bitmask;
 
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
-    uint8_t fifoWrPtr = em->fifoWrPtr;
-    uint8_t fifoWrPtrNext = fifoWrPtr + 1;
-    if (fifoWrPtrNext >= (CO_CONFIG_EM_BUFFER_SIZE + 1)) {
-        fifoWrPtrNext = 0;
-    }
+    if (em->fifoSize >= 2) {
+        uint8_t fifoWrPtr = em->fifoWrPtr;
+        uint8_t fifoWrPtrNext = fifoWrPtr + 1;
+        if (fifoWrPtrNext >= em->fifoSize) {
+            fifoWrPtrNext = 0;
+        }
 
-    if (fifoWrPtrNext == em->fifoPpPtr) {
-        em->fifoOverflow = 1;
-    }
-    else {
-        em->fifo[fifoWrPtr][0] = errMsg;
+        if (fifoWrPtrNext == em->fifoPpPtr) {
+            em->fifoOverflow = 1;
+        }
+        else {
+            em->fifo[fifoWrPtr].msg = errMsg;
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
-        em->fifo[fifoWrPtr][1] = infoCodeSwapped;
+            em->fifo[fifoWrPtr].info = infoCodeSwapped;
  #endif
-        em->fifoWrPtr = fifoWrPtrNext;
-        if (em->fifoCount < CO_CONFIG_EM_BUFFER_SIZE) em->fifoCount++;
+            em->fifoWrPtr = fifoWrPtrNext;
+            if (em->fifoCount < (em->fifoSize - 1)) em->fifoCount++;
+        }
     }
 #endif /* (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY) */
 

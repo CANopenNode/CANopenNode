@@ -39,9 +39,6 @@
 #ifndef CO_CONFIG_EM_ERR_STATUS_BITS_COUNT
 #define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10*8)
 #endif
-#ifndef CO_CONFIG_EM_BUFFER_SIZE
-#define CO_CONFIG_EM_BUFFER_SIZE 16
-#endif
 #ifndef CO_CONFIG_ERR_CONDITION_GENERIC
 #define CO_CONFIG_ERR_CONDITION_GENERIC (em->errorStatusBits[5] != 0)
 #endif
@@ -362,6 +359,21 @@ typedef enum {
 } CO_EM_errorStatusBits_t;
 
 
+
+#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) \
+    || defined CO_DOXYGEN
+/**
+ * Fifo buffer for emergency producer and error history
+ */
+typedef struct {
+    uint32_t msg;
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) || defined CO_DOXYGEN
+    uint32_t info;
+#endif
+} CO_EM_fifo_t;
+#endif
+
+
 /**
  * Emergency object.
  */
@@ -379,13 +391,13 @@ typedef struct {
     || defined CO_DOXYGEN
     /** Internal circular FIFO buffer for storing pre-processed emergency
      * messages. Messages are added by @ref CO_error() function. All messages
-     * are later post-processed by @ref CO_EM_process() function. Fifo is also
-     * used for error history - OD object 0x1003, "Pre-defined error field". */
- #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) || defined CO_DOXYGEN
-    uint32_t fifo[CO_CONFIG_EM_BUFFER_SIZE + 1][2];
- #else
-    uint32_t fifo[CO_CONFIG_EM_BUFFER_SIZE + 1][1];
- #endif
+     * are later post-processed by @ref CO_EM_process() function. In case of
+     * overflow, error is indicated but emergency message is not sent. Fifo is
+     * also used for error history, OD object 0x1003, "Pre-defined error field".
+     * Buffer is defined by @ref CO_EM_init(). */
+    CO_EM_fifo_t *fifo;
+    /** Size of the above buffer, specified by @ref CO_EM_init(). */
+    uint8_t fifoSize;
     /** Pointer for the fifo buffer, where next emergency message will be
      * written by @ref CO_error() function. */
     uint8_t fifoWrPtr;
@@ -458,6 +470,11 @@ typedef struct {
  * Function must be called in the communication reset section.
  *
  * @param em This object will be initialized.
+ * @param fifo Fifo buffer for emergency producer and error history. It must be
+ * defined externally. Its size must be capacity+1. See also @ref CO_EM_t, fifo.
+ * @param fifoSize Size of the above fifo buffer. It is usually equal to the
+ * length of the OD array 0x1003 + 1. If fifoSize is smaller than 2, then
+ * emergency producer and error history will not work and 'fifo' may be NULL.
  * @param CANdevTx CAN device for Emergency transmission.
  * @param OD_1001_errReg OD entry for 0x1001 - "Error register", entry is
  * required, without IO extension.
@@ -484,6 +501,11 @@ typedef struct {
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             CO_CANmodule_t *CANdevTx,
                             const OD_entry_t *OD_1001_errReg,
+#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) \
+    || defined CO_DOXYGEN
+                            CO_EM_fifo_t *fifo,
+                            uint8_t fifoSize,
+#endif
 #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) || defined CO_DOXYGEN
                             OD_entry_t *OD_1014_cobIdEm,
                             uint16_t CANdevTxIdx,
