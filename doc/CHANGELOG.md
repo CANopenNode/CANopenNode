@@ -3,19 +3,19 @@ Change Log
 
 v4.0 - current
 --------------
-- [Source Code](https://github.com/CANopenNode/CANopenNode/tree/newOD)
-- [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/v2.0-master...newOD)
+- [Source Code](https://github.com/CANopenNode/CANopenNode/tree/master)
+- [Full ChangeLog](https://github.com/CANopenNode/CANopenNode/compare/v2.0-master...master)
 ### Removed
 - Driver for Linux (socketCAN directory) moved to own repository https://github.com/CANopenNode/CANopenLinux.
 ### Changed
 - New Object dictionary interface. It has similar principles as before. Main access to OD variables is via fast read/write functions, but direct access to OD variables is also possible. OD entries are passed with pointers to CANopen objects. All parts of CANopenNode objects, which works with OD entries, are rewritten.
-- [libedssharp](https://github.com/robincornelius/libedssharp) have new OD exporter, new project file format (standard CANopen XDD v1.1), new documentation generator, and many other improvements.
+- [CANopenEditor](https://github.com/CANopenNode/CANopenEditor) (formerly [libedssharp](https://github.com/robincornelius/libedssharp)) has new OD exporter, new project file format (standard CANopen XDD v1.1), new documentation generator, and many other improvements.
 - New OD.h and OD.c files, replaces CO_OD files.
 - CANopen.c and CANopen.h files redesigned. `#include OD.h` is optional. Configuration of multiple object dictionaries is possible with one CANopen device. Interface is the same, with some changes to function arguments.
 - New CO_storage.h/c files enables easier integration to target system for storing OD variables.
 - Rewritten SDO server. Object dictionary part is moved to CO_ODinterface.h/c files.
 - Rewritten PDO. PDO mapped variables are accessed via fast read/write functions. New RPDO event timer (timeout).
-- CO_Emergency is mostly rewritten. Now is much easier customization. All other objects has been adjusted to newOD, inspected and some parts were redesigned.
+- CO_Emergency is mostly rewritten. Now is much easier customisation. All other objects has been adjusted to newOD, inspected and some parts were redesigned.
 
 
 v2.0 - 2020-02-25
