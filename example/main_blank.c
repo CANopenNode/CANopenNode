@@ -83,7 +83,16 @@ int main (void){
 
 
     /* Allocate memory */
-    CO = CO_new(NULL, &heapMemoryUsed);
+    CO_config_t *config_ptr = NULL;
+#ifdef CO_MULTIPLE_OD
+    /* example usage of CO_MULTIPLE_OD (but still single OD here) */
+    CO_config_t co_config = {0};
+    OD_INIT_CONFIG(co_config); /* helper macro from OD.h */
+    co_config.CNT_LEDS = 1;
+    co_config.CNT_LSS_SLV = 1;
+    config_ptr = &co_config;
+#endif /* CO_MULTIPLE_OD */
+    CO = CO_new(config_ptr, &heapMemoryUsed);
     if (CO == NULL) {
         log_printf("Error: Can't allocate memory\n");
         return 0;
