@@ -31,6 +31,17 @@
 
 #include <string.h>
 
+/* 'bit' must be unsigned or additional range check must be added: bit>=CO_LSS_FASTSCAN_BIT0 */
+#define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) (bit<=CO_LSS_FASTSCAN_BIT31 || bit==CO_LSS_FASTSCAN_CONFIRM)
+/* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_FASTSCAN_VENDOR_ID */
+#define CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(index) (index<=CO_LSS_FASTSCAN_SERIAL)
+/* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_BIT_TIMING_1000 */
+#define CO_LSS_BIT_TIMING_VALID(index) (index != 5 && index <= CO_LSS_BIT_TIMING_AUTO)
+
+#if CO_LSS_FASTSCAN_BIT0!=0 || CO_LSS_FASTSCAN_VENDOR_ID!=0 || CO_LSS_BIT_TIMING_1000!=0
+#error Inconsistency in LSS macros
+#endif
+
 /*
  * Read received message from CAN module.
  *

@@ -141,9 +141,6 @@ typedef enum {
     CO_LSS_FASTSCAN_CONFIRM = 0x80U  /**< All LSS slaves waiting for scan respond and previous scan is reset */
 } CO_LSS_fastscan_bitcheck;
 
-/* comparision is always true: bit>=CO_LSS_FASTSCAN_BIT0 */
-#define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) (bit<=CO_LSS_FASTSCAN_BIT31 || bit==CO_LSS_FASTSCAN_CONFIRM)
-
 /**
  * Fastscan LSSsub, LSSnext
  */
@@ -153,9 +150,6 @@ typedef enum {
     CO_LSS_FASTSCAN_REV       = 2, /**< Revision number */
     CO_LSS_FASTSCAN_SERIAL    = 3  /**< Serial number */
 } CO_LSS_fastscan_lss_sub_next;
-
-/* comparision is always true: index>=CO_LSS_FASTSCAN_VENDOR_ID */
-#define CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(index) (index<=CO_LSS_FASTSCAN_SERIAL)
 
 /**
  * The LSS address is a 128 bit number, uniquely identifying each node. It
@@ -217,15 +211,6 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
      10,
      0
 };
-
-/**
- * Macro to check if index contains valid bit timing
- */
-#if CO_LSS_BIT_TIMING_1000 != 0
-#error missing comprision index >= CO_LSS_BIT_TIMING_1000
-#endif
-/* comparision is always true: index >= CO_LSS_BIT_TIMING_1000 */
-#define CO_LSS_BIT_TIMING_VALID(index) (index != 5 && index <= CO_LSS_BIT_TIMING_AUTO)
 
 /**
  * Invalid node ID triggers node ID assignment
