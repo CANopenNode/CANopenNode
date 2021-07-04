@@ -170,6 +170,7 @@ static const char CO_GTWA_helpString[] =
 "[<net>] set node <value>                 # Set default node.\n" \
 "[<net>] set sdo_timeout <value>          # Configure SDO client time-out in ms.\n" \
 "[<net>] set sdo_block <0|1>              # Enable/disable SDO block transfer.\n" \
+"[<net>] set sdo_wr_size <value>          # Set default sdo write size.\n" \
 "\n" \
 "help [datatype|lss]                      # Print this or datatype or lss help.\n" \
 "led                                      # Print status LEDs of this device.\n" \
@@ -485,7 +486,7 @@ static void responseWithError(CO_GTWA_t *gtwa,
 
     for (i = 0; i < len; i++) {
         const errorDescs_t *ed = &errorDescs[i];
-        if(ed->code == respErrorCode) {
+        if((CO_GTWA_respErrorCode_t)ed->code == respErrorCode) {
             desc = ed->desc;
         }
     }
@@ -507,7 +508,7 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
 
     for (i = 0; i < len; i++) {
         const errorDescs_t *ed = &errorDescsSDO[i];
-        if(ed->code == abortCode) {
+        if((CO_SDO_abortCode_t)ed->code == abortCode) {
             desc = ed->desc;
         }
     }
@@ -605,7 +606,7 @@ static inline void convertToLower(char *token, size_t maxCount) {
         if (*c == 0) {
             break;
         } else {
-            *c = tolower((int)*c);
+            *c = (char)tolower((int)*c);
         }
         c++;
     }
@@ -842,6 +843,24 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 gtwa->SDOblockTransferEnable = value==1 ? true : false;
                 responseWithOK(gtwa);
             }
+            /* 'set sdo_wr_size <value_byte>' */
+            else if (strcmp(tok, "sdo_wr_size") == 0) {
+                bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
+                uint32_t value;
+
+                if (closed != 0 || NodeErr) {
+                    err = true;
+                    break;
+                }
+                /* value */
+                closed = 1;
+                CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok),
+                                  &closed, &err);
+                value = getU32(tok, 0, 0xffffffff, &err);
+                if (err) break;
+                gtwa->sdo_wr_size = value;
+                responseWithOK(gtwa);
+            }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
             else {
                 respErrorCode = CO_GTWA_respErrorReqNotSupported;
@@ -965,13 +984,14 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 err = true;
                 break;
             }
-
+            
             /* initiate download */
             SDO_ret =
             CO_SDOclientDownloadInitiate(gtwa->SDO_C, idx, subidx,
-                                         gtwa->SDOdataType->length,
+                                         gtwa->SDOdataType->length ? gtwa->SDOdataType->length : gtwa->sdo_wr_size,
                                          gtwa->SDOtimeoutTime,
                                          gtwa->SDOblockTransferEnable);
+            gtwa->sdo_wr_size = 0;
             if (SDO_ret != CO_SDO_RT_ok_communicationEnd) {
                 respErrorCode = CO_GTWA_respErrorInternalState;
                 err = true;
@@ -995,7 +1015,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 err = true;
                 break;
             }
-
+            
             /* if data size was not known before and is known now, update SDO */
             if (gtwa->SDOdataType->length == 0 && !gtwa->SDOdataCopyStatus) {
                 CO_SDOclientDownloadInitiateSize(gtwa->SDO_C, size);
@@ -1404,7 +1424,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             if (closed == 0) {
                 /* more arguments follow */
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                gtwa->lssNID = getU32(tok, 1, 127, &err);
+                gtwa->lssNID = (uint8_t)getU32(tok, 1, 127, &err);
                 if (err) break;
 
                 closed = -1;

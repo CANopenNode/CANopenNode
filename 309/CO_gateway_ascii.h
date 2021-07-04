@@ -47,11 +47,10 @@ extern "C" {
 
 /**
  * @defgroup CO_CANopen_309_3 Gateway ASCII mapping
- * @ingroup CO_CANopen_309
- * @{
- *
  * CANopen access from other networks - ASCII mapping (CiA 309-3 DSP v3.0.0)
  *
+ * @ingroup CO_CANopen_309
+ * @{
  * This module enables ascii command interface (CAN gateway), which can be used
  * for master interaction with CANopen network. Some sort of string input/output
  * stream can be used, for example serial port + terminal on microcontroller or
@@ -70,6 +69,8 @@ extern "C" {
 
 /**
  * @defgroup CO_CANopen_309_3_Syntax Command syntax
+ * ASCII command syntax.
+ *
  * @{
  *
  * @code{.unparsed}
@@ -355,6 +356,8 @@ typedef struct {
     bool_t SDOdataCopyStatus;
     /** Data type of variable in current SDO communication */
     const CO_GTWA_dataType_t *SDOdataType;
+    /** in case of big data, stored the complete size in byte  */
+    uint32_t sdo_wr_size;
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
     /** NMT object from CO_GTWA_init() */
