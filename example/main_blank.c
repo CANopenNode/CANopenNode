@@ -173,6 +173,17 @@ int main (void){
             return 0;
         }
 
+        err = CO_CANopenInitPDO(CO, CO->em, OD, activeNodeId, &errInfo);
+        if(err != CO_ERROR_NO) {
+            if (err == CO_ERROR_OD_PARAMETERS) {
+                log_printf("Error: Object Dictionary entry 0x%X\n", errInfo);
+            }
+            else {
+                log_printf("Error: PDO initialization failed: %d\n", err);
+            }
+            return 0;
+        }
+
         /* Configure Timer interrupt function for execution every 1 millisecond */
 
 

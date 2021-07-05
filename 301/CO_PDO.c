@@ -186,6 +186,9 @@ static CO_ReturnError_t PDO_initMapping(CO_PDO_common_t *PDO,
         uint32_t map = 0;
 
         odRet = OD_get_u32(OD_PDOMapPar, i + 1, &map, true);
+        if (odRet == ODR_SUB_NOT_EXIST) {
+            continue;
+        }
         if (odRet != ODR_OK) {
             if (errInfo != NULL) {
                 *errInfo = (((uint32_t)OD_getIndex(OD_PDOMapPar))<<8) | i;
