@@ -811,7 +811,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
         bool_t rpdoReceived = false;
         while (CO_FLAG_READ(RPDO->CANrxNew[bufNo])) {
             rpdoReceived = true;
-            uint8_t *dataRPDO = &RPDO->CANrxData[0][bufNo];
+            uint8_t *dataRPDO = RPDO->CANrxData[bufNo];
 
             /* Clear the flag. If between the copy operation CANrxNew is set
              * by receive thread, then copy the latest data again. */
