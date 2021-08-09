@@ -540,7 +540,7 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
          * enabling the PDO */
         if ((COB_ID & 0x3FFFF800) != 0
             || (valid && PDO->valid && CAN_ID != PDO->configuredCanId)
-            || (valid && CAN_ID == 0)
+            || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
             || (valid && PDO->mappedObjectsCount == 0)
         ) {
             return ODR_INVALID_VALUE;
@@ -965,7 +965,7 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
          * enabling the PDO */
         if ((COB_ID & 0x3FFFF800) != 0
             || (valid && PDO->valid && CAN_ID != PDO->configuredCanId)
-            || (valid && CAN_ID == 0)
+            || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
             || (valid && PDO->mappedObjectsCount == 0)
         ) {
             return ODR_INVALID_VALUE;

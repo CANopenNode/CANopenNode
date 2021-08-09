@@ -96,13 +96,13 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
     /* verify written value */
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
     bool_t isProducer = (cobIdSync & 0x40000000) != 0;
-    if ((cobIdSync & 0xBFFF8000) != 0
+    if ((cobIdSync & 0xBFFFF800) != 0 || CO_IS_RESTRICTED_CAN_ID(CAN_ID)
         || (SYNC->isProducer && isProducer && CAN_ID != SYNC->CAN_ID)
     ) {
         return ODR_INVALID_VALUE;
     }
 #else
-    if ((cobIdSync & 0xFFFF8000) != 0) {
+    if ((cobIdSync & 0xFFFFF800) != 0 || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
 #endif

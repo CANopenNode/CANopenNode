@@ -501,6 +501,22 @@ typedef enum {
 
 
 /**
+ * Restricted CAN-IDs
+ *
+ * Macro for verifying 'Restricted CAN-IDs', as specified by standard CiA301.
+ * They shall not be used for SYNC, TIME, EMCY, PDO and SDO.
+ */
+#ifndef CO_IS_RESTRICTED_CAN_ID
+#define CO_IS_RESTRICTED_CAN_ID(CAN_ID) ((CAN_ID) <= 0x7F \
+        || ((CAN_ID) >= 0x101 && (CAN_ID) <= 0x180) \
+        || ((CAN_ID) >= 0x581 && (CAN_ID) <= 0x5FF) \
+        || ((CAN_ID) >= 0x601 && (CAN_ID) <= 0x67F) \
+        || ((CAN_ID) >= 0x6E0 && (CAN_ID) <= 0x6FF) \
+        || (CAN_ID) >= 0x701)
+#endif
+
+
+/**
  * CAN error status bitmasks.
  *
  * CAN warning level is reached, if CAN transmit or receive error counter is

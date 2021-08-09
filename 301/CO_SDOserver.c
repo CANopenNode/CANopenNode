@@ -241,20 +241,21 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
     }
 
     CO_SDOserver_t *SDO = (CO_SDOserver_t *)stream->object;
-    uint32_t COB_ID;
-    uint8_t nodeId;
 
     switch (stream->subIndex) {
         case 0: /* Highest sub-index supported */
             return ODR_READONLY;
 
-        case 1: /* COB-ID client -> server */
-            COB_ID = CO_getUint32(buf);
+        case 1: { /* COB-ID client -> server */
+            uint32_t COB_ID = CO_getUint32(buf);
+            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FF);
+            uint16_t CAN_ID_cur = (uint16_t)(SDO->COB_IDClientToServer & 0x7FF);
+            bool_t valid = (COB_ID & 0x80000000) == 0;
 
             /* SDO client must not be valid when changing COB_ID */
             if ((COB_ID & 0x3FFFF800) != 0
-                || ((uint16_t)COB_ID != (uint16_t)SDO->COB_IDClientToServer
-                    && SDO->valid && (COB_ID & 0x80000000))
+                || (valid && SDO->valid && CAN_ID != CAN_ID_cur)
+                || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
             ) {
                 return ODR_INVALID_VALUE;
             }
@@ -265,14 +266,18 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
                                       COB_ID,
                                       SDO->COB_IDServerToClient);
             break;
+        }
 
-        case 2: /* COB-ID server -> client */
-            COB_ID = CO_getUint32(buf);
+        case 2: { /* COB-ID server -> client */
+            uint32_t COB_ID = CO_getUint32(buf);
+            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FF);
+            uint16_t CAN_ID_cur = (uint16_t)(SDO->COB_IDServerToClient & 0x7FF);
+            bool_t valid = (COB_ID & 0x80000000) == 0;
 
             /* SDO client must not be valid when changing COB_ID */
             if ((COB_ID & 0x3FFFF800) != 0
-                || ((uint16_t)COB_ID != (uint16_t)SDO->COB_IDServerToClient
-                    && SDO->valid && (COB_ID & 0x80000000))
+                || (valid && SDO->valid && CAN_ID != CAN_ID_cur)
+                || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
             ) {
                 return ODR_INVALID_VALUE;
             }
@@ -283,16 +288,18 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
                                       SDO->COB_IDClientToServer,
                                       COB_ID);
             break;
+        }
 
-        case 3: /* Node-ID of the SDO server */
+        case 3: { /* Node-ID of the SDO server */
             if (count != 1) {
                 return ODR_TYPE_MISMATCH;
             }
-            nodeId = CO_getUint8(buf);
+            uint8_t nodeId = CO_getUint8(buf);
             if (nodeId < 1 || nodeId > 127) {
                 return ODR_INVALID_VALUE;
             }
             break;
+        }
 
         default:
             return ODR_SUB_NOT_EXIST;

@@ -94,7 +94,7 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
     uint16_t curCanId = em->producerCanId == CO_CAN_ID_EMERGENCY ?
                         CO_CAN_ID_EMERGENCY + em->nodeId : em->producerCanId;
     bool_t newEnabled = (COB_IDEmergency32 & 0x80000000) == 0 && newCanId != 0;
-    if ((COB_IDEmergency32 & 0x7FFFF800) != 0
+    if ((COB_IDEmergency32 & 0x7FFFF800)!=0 || CO_IS_RESTRICTED_CAN_ID(newCanId)
         || (em->producerEnabled && newEnabled && newCanId != curCanId)
     ) {
         return ODR_INVALID_VALUE;

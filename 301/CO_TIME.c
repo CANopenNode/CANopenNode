@@ -72,8 +72,14 @@ static ODR_t OD_write_1012(OD_stream_t *stream, const void *buf,
 
     CO_TIME_t *TIME = stream->object;
 
-    /* update object */
+    /* verify written value */
     uint32_t cobIdTimeStamp = CO_getUint32(buf);
+    uint16_t CAN_ID = cobIdTimeStamp & 0x7FF;
+    if ((cobIdTimeStamp & 0x3FFFF800) != 0 || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
+        return ODR_INVALID_VALUE;
+    }
+
+    /* update object */
     TIME->isConsumer = (cobIdTimeStamp & 0x80000000L) != 0;
     TIME->isProducer = (cobIdTimeStamp & 0x40000000L) != 0;
 
