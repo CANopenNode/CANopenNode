@@ -29,6 +29,7 @@ Characteristics
  - [LSS](https://www.can-cia.org/can-knowledge/canopen/cia305/) CANopen node-id and bitrate setup, master and slave, LSS fastscan.
  - [CANopen gateway](https://www.can-cia.org/can-knowledge/canopen/cia309/), CiA309-3 Ascii command interface for NMT master, LSS master and SDO client.
  - CANopen Safety, EN 50325-5, CiA304, "PDO like" communication in safety-relevant networks
+ - [CANopen Conformance Test Tool](https://www.can-cia.org/services/test-center/conformance-test-tool/) passed.
 
 ### Other
  - [Suitable for 16-bit microcontrollers and above](#device-support)
