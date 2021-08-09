@@ -243,7 +243,7 @@ static ODR_t OD_write_PDO_mapping(OD_stream_t *stream, const void *buf,
 
     /* PDO must be disabled before mapping configuration */
     if (PDO->valid || (PDO->mappedObjectsCount != 0 && stream->subIndex > 0)) {
-        return ODR_INVALID_VALUE;
+        return ODR_UNSUPP_ACCESS;
     }
 
     if (stream->subIndex == 0) {
@@ -251,7 +251,7 @@ static ODR_t OD_write_PDO_mapping(OD_stream_t *stream, const void *buf,
         size_t pdoDataLength = 0;
 
         if (mappedObjectsCount > CO_PDO_MAX_MAPPED_ENTRIES) {
-            return ODR_INVALID_VALUE;
+            return ODR_MAP_LEN;
         }
 
         /* validate enabled mapping parameters */

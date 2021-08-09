@@ -174,7 +174,7 @@ static ODR_t OD_write_1019(OD_stream_t *stream, const void *buf,
     if (syncCounterOvf == 1 || syncCounterOvf > 240) {
         return ODR_INVALID_VALUE;
     }
-    if (*SYNC->OD_1006_period != 0 && SYNC->isProducer) {
+    if (*SYNC->OD_1006_period != 0) {
         return ODR_DATA_DEV_STATE;
     }
 
