@@ -1068,7 +1068,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 /* get blksize and verify it */
                 SDO->block_blksize = SDO->CANrxData[4];
                 if (SDO->block_blksize < 1 || SDO->block_blksize > 127) {
-                    SDO->block_blksize = 127;
+                    abortCode = CO_SDO_AB_BLOCK_SIZE;
+                    SDO->state = CO_SDO_ST_ABORT;
+                    break;
                 }
 
                 /* verify, if there is enough data */
@@ -1099,7 +1101,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             if (SDO->CANrxData[0] == 0xA2) {
                 SDO->block_blksize = SDO->CANrxData[2];
                 if (SDO->block_blksize < 1 || SDO->block_blksize > 127) {
-                    SDO->block_blksize = 127;
+                    abortCode = CO_SDO_AB_BLOCK_SIZE;
+                    SDO->state = CO_SDO_ST_ABORT;
+                    break;
                 }
 
                 /* check number of segments */
