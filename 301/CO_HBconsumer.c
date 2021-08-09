@@ -225,16 +225,14 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
             monitoredNode->HBstate = CO_HBconsumer_UNCONFIGURED;
         }
 
-        /* configure Heartbeat consumer CAN reception */
-        if (monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) {
-            ret = CO_CANrxBufferInit(HBcons->CANdevRx,
-                                     HBcons->CANdevRxIdxStart + idx,
-                                     COB_ID,
-                                     0x7FF,
-                                     0,
-                                     (void*)&HBcons->monitoredNodes[idx],
-                                     CO_HBcons_receive);
-        }
+        /* configure Heartbeat consumer (or disable) CAN reception */
+        ret = CO_CANrxBufferInit(HBcons->CANdevRx,
+                                 HBcons->CANdevRxIdxStart + idx,
+                                 COB_ID,
+                                 0x7FF,
+                                 0,
+                                 (void*)&HBcons->monitoredNodes[idx],
+                                 CO_HBcons_receive);
     }
     return ret;
 }
