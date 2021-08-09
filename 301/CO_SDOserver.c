@@ -348,9 +348,9 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
         SDO->valid = true;
     }
-    else { 
+    else {
         uint16_t OD_SDOsrvParIdx = OD_getIndex(OD_1200_SDOsrvPar);
-        
+
         if (OD_SDOsrvParIdx == OD_H1200_SDO_SERVER_1_PARAM) {
             /* configure default SDO channel and SDO server parameters for it */
             if (nodeId < 1 || nodeId > 127) return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -1072,9 +1072,10 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 }
 
                 /* verify, if there is enough data */
-                if (!SDO->finished && SDO->bufOffsetWr < SDO->block_blksize*7U) {
+                if (!SDO->finished && SDO->bufOffsetWr < SDO->block_blksize*7U){
                     abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                     SDO->state = CO_SDO_ST_ABORT;
+                    break;
                 }
                 SDO->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP;
             }
@@ -1262,14 +1263,13 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             /* data were already loaded from OD variable */
             if (SDO->sizeInd > 0 && SDO->sizeInd <= 4) {
                 /* expedited transfer */
-                SDO->CANtxBuff->data[0] = (uint8_t)(0x43 | ((4 - SDO->sizeInd) << 2));
-                memcpy(&SDO->CANtxBuff->data[4], &SDO->buf,
-                       sizeof(SDO->sizeInd));
+                SDO->CANtxBuff->data[0] = (uint8_t)(0x43|((4-SDO->sizeInd)<<2));
+                memcpy(&SDO->CANtxBuff->data[4], &SDO->buf, SDO->sizeInd);
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
             }
             else {
-                /* data will be transfered with segmented transfer */
+                /* data will be transferred with segmented transfer */
                 if (SDO->sizeInd > 0) {
                     /* indicate data size, if known */
                     uint32_t sizeInd = SDO->sizeInd;
