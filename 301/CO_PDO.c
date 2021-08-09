@@ -1411,7 +1411,8 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
                         TPDO->syncCounter = 254;
                     }
                     else {
-                        TPDO->syncCounter = TPDO->transmissionType;
+                        /* Send first TPDO somewhere in the middle */
+                        TPDO->syncCounter = TPDO->transmissionType / 2 + 1;
                     }
                 }
                 /* If the syncStartValue is in use, start first TPDO after SYNC
