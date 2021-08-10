@@ -1266,9 +1266,17 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
         OD_entry_t *RPDOmap = OD_GET(H1600, OD_H1600_RXPDO_1_MAPPING);
         for (int16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
             CO_ReturnError_t err;
-            uint16_t preDefinedCanId = i < 4
-                                     ? (CO_CAN_ID_RPDO_1 + i * 0x100) + nodeId
-                                     : 0;
+            uint16_t preDefinedCanId = 0;
+            if (i < CO_RPDO_DEFAULT_CANID_COUNT) {
+#if CO_RPDO_DEFAULT_CANID_COUNT <= 4
+                preDefinedCanId = (CO_CAN_ID_RPDO_1 + i * 0x100) + nodeId;
+#else
+                uint16_t pdoOffset = i % 4;
+                uint16_t nodeIdOffset = i / 4;
+                preDefinedCanId = (CO_CAN_ID_RPDO_1 + pdoOffset * 0x100)
+                                + nodeId + nodeIdOffset;
+#endif
+            }
             err = CO_RPDO_init(&co->RPDO[i],
                                od,
                                em,
@@ -1292,9 +1300,17 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
         OD_entry_t *TPDOmap = OD_GET(H1A00, OD_H1A00_TXPDO_1_MAPPING);
         for (int16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
             CO_ReturnError_t err;
-            uint16_t preDefinedCanId = i < 4
-                                     ? (CO_CAN_ID_TPDO_1 + i * 0x100) + nodeId
-                                     : 0;
+            uint16_t preDefinedCanId = 0;
+            if (i < CO_TPDO_DEFAULT_CANID_COUNT) {
+#if CO_TPDO_DEFAULT_CANID_COUNT <= 4
+                preDefinedCanId = (CO_CAN_ID_TPDO_1 + i * 0x100) + nodeId;
+#else
+                uint16_t pdoOffset = i % 4;
+                uint16_t nodeIdOffset = i / 4;
+                preDefinedCanId = (CO_CAN_ID_TPDO_1 + pdoOffset * 0x100)
+                                + nodeId + nodeIdOffset;
+#endif
+            }
             err = CO_TPDO_init(&co->TPDO[i],
                                od,
                                em,

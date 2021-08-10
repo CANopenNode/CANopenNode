@@ -144,6 +144,26 @@ extern "C" {
 #define CO_PDO_MAX_MAPPED_ENTRIES 8
 #endif
 
+/** Number of CANopen RPDO objects, which uses default CAN indentifiers.
+ * By default first four RPDOs have pre-defined CAN identifiers, which depends
+ * on node-id. This constant may be set to 0 to disable functionality or set
+ * to any other value. For example, if there are several logical devices inside
+ * single CANopen device, then more than four RPDOs may have pre-defined CAN
+ * identifiers. In that case RPDO5 has CAN_ID=0x200+NodeId+1, RPDO6 has
+ * CAN_ID=0x300+NodeId+1, RPDO9 has CAN_ID=0x200+NodeId+2 and so on. */
+#ifndef CO_RPDO_DEFAULT_CANID_COUNT
+#define CO_RPDO_DEFAULT_CANID_COUNT 4
+#endif
+
+/** Number of CANopen TPDO objects, which uses default CAN indentifiers.
+ * If value is more than four, then pre-defined pre-defined CAN identifiers are:
+ * TPDO5 has CAN_ID=0x180+NodeId+1, TPDO6 has CAN_ID=0x280+NodeId+1,
+ * TPDO9 has CAN_ID=0x180+NodeId+2 and so on.
+ * For description see @ref CO_RPDO_DEFAULT_CANID_COUNT. */
+#ifndef CO_TPDO_DEFAULT_CANID_COUNT
+#define CO_TPDO_DEFAULT_CANID_COUNT 4
+#endif
+
 #ifndef CO_PDO_OWN_TYPES
 /** Variable of type CO_PDO_size_t contains data length in bytes of PDO */
 typedef uint8_t CO_PDO_size_t;
