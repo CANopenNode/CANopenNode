@@ -36,7 +36,7 @@
 static void CO_NMT_receive(void *object, void *msg) {
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     uint8_t *data = CO_CANrxMsg_readData(msg);
-    uint8_t command = data[0];
+    CO_NMT_command_t command = (CO_NMT_command_t)data[0];
     uint8_t nodeId = data[1];
 
     CO_NMT_t *NMT = (CO_NMT_t*)object;
@@ -258,7 +258,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
 
     /* process internal NMT commands, received from CO_NMT_receive() or
      * CO_NMT_sendCommand() */
-    if (NMT->internalCommand != 0) {
+    if (NMT->internalCommand != CO_NMT_NO_COMMAND) {
         switch (NMT->internalCommand) {
             case CO_NMT_ENTER_OPERATIONAL:
                 NMTstateCpy = CO_NMT_OPERATIONAL;
@@ -278,7 +278,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
             default:
                 break;
         }
-        NMT->internalCommand = 0;
+        NMT->internalCommand = CO_NMT_NO_COMMAND;
     }
 
     /* verify NMT transitions based on error register */

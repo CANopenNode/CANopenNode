@@ -92,6 +92,8 @@ typedef enum {
  * Commands from NMT master.
  */
 typedef enum {
+    /** 0, No command */
+    CO_NMT_NO_COMMAND = 0,
     /** 1, Start device */
     CO_NMT_ENTER_OPERATIONAL = 1,
     /** 2, Stop device */
@@ -161,12 +163,12 @@ typedef enum {
  */
 typedef struct {
     /** Current NMT operating state. */
-    uint8_t operatingState;
+    CO_NMT_internalState_t operatingState;
     /** Previous NMT operating state. */
-    uint8_t operatingStatePrev;
+    CO_NMT_internalState_t operatingStatePrev;
     /** NMT internal command from CO_NMT_receive() or CO_NMT_sendCommand(),
-     * processed in CO_NMT_process(). 0 if no command or CO_NMT_command_t */
-    uint8_t internalCommand;
+     * processed in CO_NMT_process(). */
+    CO_NMT_command_t internalCommand;
     /** From CO_NMT_init() */
     uint8_t nodeId;
     /** From CO_NMT_init() */
@@ -314,7 +316,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
  * @return @ref CO_NMT_internalState_t
  */
 static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
-    return (NMT == NULL) ? CO_NMT_INITIALIZING : (CO_NMT_internalState_t)NMT->operatingState;
+    return (NMT == NULL) ? CO_NMT_INITIALIZING : NMT->operatingState;
 }
 
 
@@ -329,7 +331,7 @@ static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
 static inline void CO_NMT_sendInternalCommand(CO_NMT_t *NMT,
                                               CO_NMT_command_t command)
 {
-    if (NMT != NULL) NMT->internalCommand = (uint8_t)command;
+    if (NMT != NULL) NMT->internalCommand = command;
 }
 
 
