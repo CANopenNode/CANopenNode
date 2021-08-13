@@ -224,7 +224,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
                                   uint32_t *timerNext_us)
 {
     (void)timerNext_us; /* may be unused */
-    CO_NMT_internalState_t NMTstateCpy = NMT->operatingState;
+    CO_NMT_internalState_t NMTstateCpy = (CO_NMT_internalState_t)NMT->operatingState;
     CO_NMT_reset_cmd_t resetCommand = CO_RESET_NOT;
     bool_t NNTinit = NMTstateCpy == CO_NMT_INITIALIZING;
 
