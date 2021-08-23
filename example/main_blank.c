@@ -251,7 +251,7 @@ int main (void){
 void tmrTask_thread(void){
 
     for(;;) {
-        CO_LOCK_OD(co->CANmodule);
+        CO_LOCK_OD(CO->CANmodule);
         if (!CO->nodeIdUnconfigured && CO->CANmodule->CANnormal) {
             bool_t syncWas = false;
             /* get time difference since last function call */
@@ -269,7 +269,7 @@ void tmrTask_thread(void){
 
             /* Further I/O or nonblocking application code may go here. */
         }
-        CO_UNLOCK_OD(co->CANmodule);
+        CO_UNLOCK_OD(CO->CANmodule);
     }
 }
 
