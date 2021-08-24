@@ -1325,8 +1325,9 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
 {
     CO_PDO_common_t *PDO = &TPDO->PDO_common;
 #if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE)
-    (void) syncWas; (void) timerNext_us;
+    (void) timerNext_us;
 #endif
+    (void) syncWas;
 
     if (PDO->valid && NMTisOperational) {
 
