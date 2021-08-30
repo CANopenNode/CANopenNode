@@ -291,6 +291,29 @@
 #ifndef CO_USE_GLOBALS
 #include <stdlib.h>
 
+/* Default allocation strategy ************************************************/
+#if !defined(CO_alloc) || !defined(CO_free)
+#if defined(CO_alloc)
+#warning CO_alloc is defined but CO_free is not. using default values instead
+#undef CO_alloc
+#endif
+#if defined(CO_free)
+#warning CO_free is defined but CO_alloc is not. using default values instead
+#undef CO_free
+#endif
+
+/*
+ * Allocate memory for number of elements, each of specific size
+ * Allocated memory must be reset to all zeros
+ */
+#define CO_alloc(num, size)             calloc((num), (size))
+#define CO_free(ptr)                    free((ptr))
+
+#endif
+
+/* Define macros for allocation */
+#define CO_alloc_break_on_fail(var, num, size)   if (((var) = CO_alloc((num), (size))) != NULL) { mem += (size) * (num); } else { break; }
+
 #ifdef CO_MULTIPLE_OD
 #define ON_MULTI_OD(sentence) sentence
 #else
@@ -331,10 +354,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #endif
 
         /* CANopen object */
-        void *p = calloc(1, sizeof(CO_t));
-        if (p == NULL) break;
-        else co = (CO_t *)p;
-        mem += sizeof(CO_t);
+        CO_alloc_break_on_fail(co, 1, sizeof(*co));
 
 #ifdef CO_MULTIPLE_OD
         co->config = config;
@@ -345,10 +365,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t TX_CNT_NMT_MST = 0);
         ON_MULTI_OD(uint8_t TX_CNT_HB_PROD = 0);
         if (CO_GET_CNT(NMT) == 1) {
-            p = calloc(1, sizeof(CO_NMT_t));
-            if (p == NULL) break;
-            else co->NMT = (CO_NMT_t *)p;
-            mem += sizeof(CO_NMT_t);
+            CO_alloc_break_on_fail(co->NMT, CO_GET_CNT(NMT), sizeof(*co->NMT));
             ON_MULTI_OD(RX_CNT_NMT_SLV = 1);
  #if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
             ON_MULTI_OD(TX_CNT_NMT_MST = 1);
@@ -360,14 +377,8 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_HB_CONS = 0);
         if (CO_GET_CNT(HB_CONS) == 1) {
             uint8_t countOfMonitoredNodes = CO_GET_CNT(ARR_1016);
-            p = calloc(1, sizeof(CO_HBconsumer_t));
-            if (p == NULL) break;
-            else co->HBcons = (CO_HBconsumer_t *)p;
-            mem += sizeof(CO_HBconsumer_t);
-            p = calloc(countOfMonitoredNodes, sizeof(CO_HBconsNode_t));
-            if (p == NULL) break;
-            else co->HBconsMonitoredNodes = (CO_HBconsNode_t *)p;
-            mem += countOfMonitoredNodes * sizeof(CO_HBconsNode_t);
+            CO_alloc_break_on_fail(co->HBcons, CO_GET_CNT(HB_CONS), sizeof(*co->HBcons));
+            CO_alloc_break_on_fail(co->HBconsMonitoredNodes, countOfMonitoredNodes, sizeof(*co->HBconsMonitoredNodes));
             ON_MULTI_OD(RX_CNT_HB_CONS = countOfMonitoredNodes);
         }
 #endif
@@ -376,10 +387,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_EM_CONS = 0);
         ON_MULTI_OD(uint8_t TX_CNT_EM_PROD = 0);
         if (CO_GET_CNT(EM) == 1) {
-            p = calloc(1, sizeof(CO_EM_t));
-            if (p == NULL) break;
-            else co->em = (CO_EM_t *)p;
-            mem += sizeof(CO_EM_t);
+            CO_alloc_break_on_fail(co->em, CO_GET_CNT(EM), sizeof(*co->em));
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
             ON_MULTI_OD(RX_CNT_EM_CONS = 1);
  #endif
@@ -389,13 +397,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
  #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
             uint8_t fifoSize = CO_GET_CNT(ARR_1003) + 1;
             if (fifoSize >= 2) {
-                p = calloc(fifoSize, sizeof(CO_EM_fifo_t));
-                if (p == NULL) break;
-                else co->em_fifo = (CO_EM_fifo_t *)p;
-                mem += fifoSize * sizeof(CO_EM_fifo_t);
-            }
-            else {
-                co->em_fifo = NULL;
+                CO_alloc_break_on_fail(co->em_fifo, fifoSize, sizeof(*co->em_fifo));
             }
  #endif
         }
@@ -404,10 +406,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_SDO_SRV = 0);
         ON_MULTI_OD(uint8_t TX_CNT_SDO_SRV = 0);
         if (CO_GET_CNT(SDO_SRV) > 0) {
-            p = calloc(CO_GET_CNT(SDO_SRV), sizeof(CO_SDOserver_t));
-            if (p == NULL) break;
-            else co->SDOserver = (CO_SDOserver_t *)p;
-            mem += sizeof(CO_SDOserver_t) * CO_GET_CNT(SDO_SRV);
+            CO_alloc_break_on_fail(co->SDOserver, CO_GET_CNT(SDO_SRV), sizeof(*co->SDOserver));
             ON_MULTI_OD(RX_CNT_SDO_SRV = config->CNT_SDO_SRV);
             ON_MULTI_OD(TX_CNT_SDO_SRV = config->CNT_SDO_SRV);
         }
@@ -416,10 +415,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_SDO_CLI = 0);
         ON_MULTI_OD(uint8_t TX_CNT_SDO_CLI = 0);
         if (CO_GET_CNT(SDO_CLI) > 0) {
-            p = calloc(CO_GET_CNT(SDO_CLI), sizeof(CO_SDOclient_t));
-            if (p == NULL) break;
-            else co->SDOclient = (CO_SDOclient_t *)p;
-            mem += sizeof(CO_SDOclient_t) * CO_GET_CNT(SDO_CLI);
+            CO_alloc_break_on_fail(co->SDOclient, CO_GET_CNT(SDO_CLI), sizeof(*co->SDOclient));
             ON_MULTI_OD(RX_CNT_SDO_CLI = config->CNT_SDO_CLI);
             ON_MULTI_OD(TX_CNT_SDO_CLI = config->CNT_SDO_CLI);
         }
@@ -429,10 +425,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_TIME = 0);
         ON_MULTI_OD(uint8_t TX_CNT_TIME = 0);
         if (CO_GET_CNT(TIME) == 1) {
-            p = calloc(1, sizeof(CO_TIME_t));
-            if (p == NULL) break;
-            else co->TIME = (CO_TIME_t *)p;
-            mem += sizeof(CO_TIME_t);
+            CO_alloc_break_on_fail(co->TIME, CO_GET_CNT(TIME), sizeof(*co->TIME));
             ON_MULTI_OD(RX_CNT_TIME = 1);
  #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
             ON_MULTI_OD(TX_CNT_TIME = 1);
@@ -444,10 +437,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_SYNC = 0);
         ON_MULTI_OD(uint8_t TX_CNT_SYNC = 0);
         if (CO_GET_CNT(SYNC) == 1) {
-            p = calloc(1, sizeof(CO_SYNC_t));
-            if (p == NULL) break;
-            else co->SYNC = (CO_SYNC_t *)p;
-            mem += sizeof(CO_SYNC_t);
+            CO_alloc_break_on_fail(co->SYNC, CO_GET_CNT(SYNC), sizeof(*co->SYNC));
             ON_MULTI_OD(RX_CNT_SYNC = 1);
  #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
             ON_MULTI_OD(TX_CNT_SYNC = 1);
@@ -458,10 +448,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
         ON_MULTI_OD(uint16_t RX_CNT_RPDO = 0);
         if (CO_GET_CNT(RPDO) > 0) {
-            p = calloc(CO_GET_CNT(RPDO), sizeof(CO_RPDO_t));
-            if (p == NULL) break;
-            else co->RPDO = (CO_RPDO_t *)p;
-            mem += sizeof(CO_RPDO_t) * CO_GET_CNT(RPDO);
+            CO_alloc_break_on_fail(co->RPDO, CO_GET_CNT(RPDO), sizeof(*co->RPDO));
             ON_MULTI_OD(RX_CNT_RPDO = config->CNT_RPDO);
         }
 #endif
@@ -469,20 +456,14 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
         ON_MULTI_OD(uint16_t TX_CNT_TPDO = 0);
         if (CO_GET_CNT(TPDO) > 0) {
-            p = calloc(CO_GET_CNT(TPDO), sizeof(CO_TPDO_t));
-            if (p == NULL) break;
-            else co->TPDO = (CO_TPDO_t *)p;
-            mem += sizeof(CO_TPDO_t) * CO_GET_CNT(TPDO);
+            CO_alloc_break_on_fail(co->TPDO, CO_GET_CNT(TPDO), sizeof(*co->TPDO));
             ON_MULTI_OD(TX_CNT_TPDO = config->CNT_TPDO);
         }
 #endif
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
         if (CO_GET_CNT(LEDS) == 1) {
-            p = calloc(1, sizeof(CO_LEDs_t));
-            if (p == NULL) break;
-            else co->LEDs = (CO_LEDs_t *)p;
-            mem += sizeof(CO_LEDs_t);
+            CO_alloc_break_on_fail(co->LEDs, CO_GET_CNT(LEDS), sizeof(*co->LEDs));
         }
 #endif
 
@@ -490,10 +471,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_GFC = 0);
         ON_MULTI_OD(uint8_t TX_CNT_GFC = 0);
         if (CO_GET_CNT(GFC) == 1) {
-            p = calloc(1, sizeof(CO_GFC_t));
-            if (p == NULL) break;
-            else co->GFC = (CO_GFC_t *)p;
-            mem += sizeof(CO_GFC_t);
+            CO_alloc_break_on_fail(co->GFC, CO_GET_CNT(GFC), sizeof(*co->GFC));
             ON_MULTI_OD(RX_CNT_GFC = 1);
             ON_MULTI_OD(TX_CNT_GFC = 1);
         }
@@ -503,14 +481,8 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_SRDO = 0);
         ON_MULTI_OD(uint8_t TX_CNT_SRDO = 0);
         if (CO_GET_CNT(SRDO) > 0) {
-            p = calloc(1, sizeof(CO_SRDOGuard_t));
-            if (p == NULL) break;
-            else co->SRDOGuard = (CO_SRDOGuard_t *)p;
-            mem += sizeof(CO_SRDOGuard_t);
-            p = calloc(CO_GET_CNT(SRDO), sizeof(CO_SRDO_t));
-            if (p == NULL) break;
-            else co->SRDO = (CO_SRDO_t *)p;
-            mem += sizeof(CO_SRDO_t) * CO_GET_CNT(SRDO);
+            CO_alloc_break_on_fail(co->SRDOGuard, 1, sizeof(*co->SRDOGuard));
+            CO_alloc_break_on_fail(co->SRDO, CO_GET_CNT(SRDO), sizeof(*co->SRDO));
             ON_MULTI_OD(RX_CNT_SRDO = config->CNT_SRDO * 2);
             ON_MULTI_OD(TX_CNT_SRDO = config->CNT_SRDO * 2);
         }
@@ -520,10 +492,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_LSS_SLV = 0);
         ON_MULTI_OD(uint8_t TX_CNT_LSS_SLV = 0);
         if (CO_GET_CNT(LSS_SLV) == 1) {
-            p = calloc(1, sizeof(CO_LSSslave_t));
-            if (p == NULL) break;
-            else co->LSSslave = (CO_LSSslave_t *)p;
-            mem += sizeof(CO_LSSslave_t);
+            CO_alloc_break_on_fail(co->LSSslave, CO_GET_CNT(LSS_SLV), sizeof(*co->LSSslave));
             ON_MULTI_OD(RX_CNT_LSS_SLV = 1);
             ON_MULTI_OD(TX_CNT_LSS_SLV = 1);
         }
@@ -533,10 +502,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_LSS_MST = 0);
         ON_MULTI_OD(uint8_t TX_CNT_LSS_MST = 0);
         if (CO_GET_CNT(LSS_MST) == 1) {
-            p = calloc(1, sizeof(CO_LSSmaster_t));
-            if (p == NULL) break;
-            else co->LSSmaster = (CO_LSSmaster_t *)p;
-            mem += sizeof(CO_LSSmaster_t);
+            CO_alloc_break_on_fail(co->LSSmaster, CO_GET_CNT(LSS_MST), sizeof(*co->LSSmaster));
             ON_MULTI_OD(RX_CNT_LSS_MST = 1);
             ON_MULTI_OD(TX_CNT_LSS_MST = 1);
         }
@@ -544,19 +510,13 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
         if (CO_GET_CNT(GTWA) == 1) {
-            p = calloc(1, sizeof(CO_GTWA_t));
-            if (p == NULL) break;
-            else co->gtwa = (CO_GTWA_t *)p;
-            mem += sizeof(CO_GTWA_t);
+            CO_alloc_break_on_fail(co->gtwa, CO_GET_CNT(GTWA), sizeof(*co->gtwa));
         }
 #endif
 
 #if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
         if (CO_GET_CNT(TRACE) > 0) {
-            p = calloc(CO_GET_CNT(TRACE), sizeof(CO_trace_t));
-            if (p == NULL) break;
-            else co->trace = (CO_trace_t *)p;
-            mem += sizeof(CO_trace_t) * CO_GET_CNT(TRACE);
+            CO_alloc_break_on_fail(co->trace, CO_GET_CNT(TRACE), sizeof(*co->trace));
         }
 #endif
 
@@ -630,28 +590,25 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #endif /* #ifdef CO_MULTIPLE_OD */
 
         /* CANmodule */
-        p = calloc(1, sizeof(CO_CANmodule_t));
-        if (p == NULL) break;
-        else co->CANmodule = (CO_CANmodule_t *)p;
-        mem += sizeof(CO_CANmodule_t);
-        p = calloc(CO_GET_CO(CNT_ALL_RX_MSGS), sizeof(CO_CANrx_t));
-        if (p == NULL) break;
-        else co->CANrx = (CO_CANrx_t *)p;
-        mem += sizeof(CO_CANrx_t) * CO_GET_CO(CNT_ALL_RX_MSGS);
-        p = calloc(CO_GET_CO(CNT_ALL_TX_MSGS), sizeof(CO_CANtx_t));
-        if (p == NULL) break;
-        else co->CANtx = (CO_CANtx_t *)p;
-        mem += sizeof(CO_CANtx_t) * CO_GET_CO(CNT_ALL_TX_MSGS);
+        CO_alloc_break_on_fail(co->CANmodule, 1, sizeof(*co->CANmodule));
+
+        /* CAN RX blocks */
+        CO_alloc_break_on_fail(co->CANrx, CO_GET_CO(CNT_ALL_RX_MSGS), sizeof(*co->CANrx));
+
+        /* CAN TX blocks */
+        CO_alloc_break_on_fail(co->CANtx, CO_GET_CO(CNT_ALL_TX_MSGS), sizeof(*co->CANtx));
 
         /* finish successfully, set other parameters */
         co->nodeIdUnconfigured = true;
         coFinal = co;
-    } while(false);
+    } while (false);
 
-    if (coFinal == NULL) CO_delete(co);
-
-    if (heapMemoryUsed != NULL) *heapMemoryUsed = mem;
-
+    if (coFinal == NULL) {
+        CO_delete(co);
+    }
+    if (heapMemoryUsed != NULL) {
+        *heapMemoryUsed = mem;
+    }
     return coFinal;
 }
 
@@ -663,53 +620,53 @@ void CO_delete(CO_t *co) {
     CO_CANmodule_disable(co->CANmodule);
 
     /* CANmodule */
-    free(co->CANtx);
-    free(co->CANrx);
-    free(co->CANmodule);
+    CO_free(co->CANtx);
+    CO_free(co->CANrx);
+    CO_free(co->CANmodule);
 
 #if (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE
-    free(co->trace);
+    CO_free(co->trace);
 #endif
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
-    free(co->gtwa);
+    CO_free(co->gtwa);
 #endif
 
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
-    free(co->LSSmaster);
+    CO_free(co->LSSmaster);
 #endif
 
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-    free(co->LSSslave);
+    CO_free(co->LSSslave);
 #endif
 
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
-    free(co->SRDO);
-    free(co->SRDOGuard);
+    CO_free(co->SRDO);
+    CO_free(co->SRDOGuard);
 #endif
 
 #if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
-    free(co->GFC);
+    CO_free(co->GFC);
 #endif
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
-    free(co->LEDs);
+    CO_free(co->LEDs);
 #endif
 
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
-    free(co->TPDO);
+    CO_free(co->TPDO);
 #endif
 
 #if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
-    free(co->RPDO);
+    CO_free(co->RPDO);
 #endif
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
-    free(co->SYNC);
+    CO_free(co->SYNC);
 #endif
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
-    free(co->TIME);
+    CO_free(co->TIME);
 #endif
 
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
@@ -717,24 +674,24 @@ void CO_delete(CO_t *co) {
 #endif
 
     /* SDOserver */
-    free(co->SDOserver);
+    CO_free(co->SDOserver);
 
     /* Emergency */
-    free(co->em);
+    CO_free(co->em);
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
-    free(co->em_fifo);
+    CO_free(co->em_fifo);
 #endif
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
-    free(co->HBconsMonitoredNodes);
-    free(co->HBcons);
+    CO_free(co->HBconsMonitoredNodes);
+    CO_free(co->HBcons);
 #endif
 
     /* NMT_Heartbeat */
-    free(co->NMT);
+    CO_free(co->NMT);
 
     /* CANopen object */
-    free(co);
+    CO_free(co);
 }
 #endif /* #ifndef CO_USE_GLOBALS */
 
