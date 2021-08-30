@@ -65,8 +65,7 @@ Report issues on https://github.com/CANopenNode/CANopenNode/issues
 
 Older discussion group is on Sourceforge: http://sourceforge.net/p/canopennode/discussion/387151/
 
-Contributions are welcome. Best way to contribute your code is to fork a project, modify it and then send a pull request. Some basic formatting
-rules should be followed: Linux style with indentation of 4 spaces. There is also a `codingStyle` file with example and a configuration file for `clang-format` tool.
+Contributions are welcome. Best way to contribute your code is to fork a project, modify it and then send a pull request. Please follow the [Recommended C style and coding rules](https://github.com/MaJerle/c-code-style), like indentation of 4 spaces, etc. There is also a `codingStyle` file with example.
 
 
 CANopenNode flowchart
