@@ -195,7 +195,7 @@ static ODR_t OD_write_1280(OD_stream_t *stream, const void *buf,
 
             /* SDO client must not be valid when changing COB_ID */
             if ((COB_ID & 0x3FFFF800) != 0
-                || (valid && SDO->valid && CAN_ID != CAN_ID_cur)
+                || (valid && SDO_C->valid && CAN_ID != CAN_ID_cur)
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
             ) {
                 return ODR_INVALID_VALUE;
@@ -215,7 +215,7 @@ static ODR_t OD_write_1280(OD_stream_t *stream, const void *buf,
 
             /* SDO client must not be valid when changing COB_ID */
             if ((COB_ID & 0x3FFFF800) != 0
-                || (valid && SDO->valid && CAN_ID != CAN_ID_cur)
+                || (valid && SDO_C->valid && CAN_ID != CAN_ID_cur)
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
             ) {
                 return ODR_INVALID_VALUE;
