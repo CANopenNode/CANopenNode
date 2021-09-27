@@ -41,8 +41,8 @@
  #if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE)
   #error CO_CONFIG_CRC16_ENABLE must be enabled.
  #endif
- #if CO_CONFIG_SDO_SRV_BUFFER_SIZE < 900
-  #error CO_CONFIG_SDO_SRV_BUFFER_SIZE must be greater or equal than 900.
+ #if CO_CONFIG_SDO_SRV_BUFFER_SIZE >= 900
+  #error CO_CONFIG_SDO_SRV_BUFFER_SIZE must be smaller than 900.
  #endif
 #endif
 
