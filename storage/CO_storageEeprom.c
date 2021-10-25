@@ -145,16 +145,10 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
         return ret;
     }
 
-    /* Read entry signatures from the eeprom */
-    uint32_t signatures[entriesCount];
     size_t signaturesAddress = CO_eeprom_getAddr(storageModule,
                                                  false,
-                                                 sizeof(signatures),
+                                                 sizeof(uint32_t) * entriesCount,
                                                  &eepromOvf);
-    CO_eeprom_readBlock(storageModule,
-                        (uint8_t *)signatures,
-                        signaturesAddress,
-                        sizeof(signatures));
 
     /* initialize entries */
     *storageInitError = 0;
@@ -185,7 +179,11 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
         /* 32bit signature (which was stored in eeprom) is combined from
          * 16bit signature of the entry and 16bit CRC checksum of the data
          * block. 16bit signature of the entry is entry->len. */
-        uint32_t signature = signatures[i];
+        uint32_t signature;
+        CO_eeprom_readBlock(storageModule,
+                            (uint8_t *)&signature,
+                            entry->eepromAddrSignature,
+                            sizeof(uint32_t));
         uint16_t signatureInEeprom = (uint16_t)signature;
         entry->crc = (uint16_t)(signature >> 16);
         uint16_t signatureOfEntry = (uint16_t)entry->len;
