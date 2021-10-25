@@ -1353,7 +1353,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             /* verify, if this is the last segment */
             if (count < 7 || (SDO->finished && count == 7)) {
                 /* indicate last segment and nnn */
-                SDO->CANtxBuff->data[0] |= ((7 - count) << 1) | 0x01;
+                SDO->CANtxBuff->data[0] 
+                        = SDO->CANtxBuff->data[0] | (((7 - count) << 1) | 0x01);
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
             }

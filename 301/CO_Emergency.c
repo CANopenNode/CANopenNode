@@ -753,8 +753,11 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
 
     /* safely write data, and increment pointers */
     CO_LOCK_EMCY(em->CANdevTx);
-    if (setError) *errorStatusBits |= bitmask;
-    else          *errorStatusBits &= ~bitmask;
+    if (setError) {
+        *errorStatusBits = *errorStatusBits | bitmask;
+    } else {
+        *errorStatusBits = *errorStatusBits & ~bitmask;;
+    }
 
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
     if (em->fifoSize >= 2) {
@@ -773,7 +776,9 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
             em->fifo[fifoWrPtr].info = infoCodeSwapped;
  #endif
             em->fifoWrPtr = fifoWrPtrNext;
-            if (em->fifoCount < (em->fifoSize - 1)) em->fifoCount++;
+            if (em->fifoCount < (em->fifoSize - 1)) {
+                em->fifoCount = em->fifoCount + 1;
+            }
         }
     }
 #endif /* (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY) */

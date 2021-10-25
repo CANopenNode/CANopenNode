@@ -34,6 +34,11 @@
  * For more information see file CO_storage.h, CO_storage_entry_t.
  */
 static ODR_t storeEeprom(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
+    // For xc8 bug, see below.
+    if (entry == NULL) {
+        return 0;
+    }
+
     bool_t writeOk;
 
     /* save data to the eeprom */
@@ -80,6 +85,11 @@ static ODR_t storeEeprom(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
 static ODR_t restoreEeprom(CO_storage_entry_t *entry,
                            CO_CANmodule_t *CANmodule)
 {
+    // For xc8 bug, see below.
+    if (entry == NULL) {
+        return 0;
+    }
+
     (void) CANmodule;
     bool_t writeOk;
 
@@ -116,6 +126,11 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
 {
     CO_ReturnError_t ret;
     bool_t eepromOvf = false;
+
+    // Magic to make xc8 work, if these functions aren't called xc8 is convinced
+    // they don't exist.
+    storeEeprom(NULL, NULL);
+    restoreEeprom(NULL, NULL);
 
     /* verify arguments */
     if (storage == NULL || entries == NULL || entriesCount == 0

@@ -415,7 +415,8 @@ void CO_HBconsumer_process(
 
             /* Verify timeout */
             if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
-                monitoredNode->timeoutTimer += timeDifference_us_copy;
+                monitoredNode->timeoutTimer
+                    = monitoredNode->timeoutTimer + timeDifference_us_copy;
 
                 if (monitoredNode->timeoutTimer >= monitoredNode->time_us) {
                     /* timeout expired */
