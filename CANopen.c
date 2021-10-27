@@ -1403,6 +1403,53 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     return reset;
 }
 
+/******************************************************************************/
+void CO_process_initCallbackPre(CO_t *co,
+                                void *object,
+                                void (*pFunctSignal)(void *object)) {
+#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE)             \
+    && ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE)
+    if (CO_GET_CNT(LSS_SLV) == 1) {
+        CO_LSSslave_initCallbackPre(co->LSSslave, object, pFunctSignal);
+    }
+#endif
+
+#if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
+    /* Emergency */
+    if (CO_GET_CNT(EM) == 1) {
+        CO_EM_initCallbackPre(co->em, object, pFunctSignal);
+    }
+#endif
+
+#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
+    /* NMT_Heartbeat */
+    if (CO_GET_CNT(NMT) == 1) {
+        CO_NMT_initCallbackPre(co->NMT, object, pFunctSignal);
+    }
+#endif
+
+#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE
+    /* SDOserver */
+    for (uint8_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
+        CO_SDOserver_initCallbackPre(&co->SDOserver[i], object, pFunctSignal);
+    }
+#endif
+
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE)        \
+    && ((CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE)
+    if (CO_GET_CNT(HB_CONS) == 1) {
+        CO_HBconsumer_initCallbackPre(co->HBcons, object, pFunctSignal);
+    }
+#endif
+
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE)          \
+    && ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE)
+    if (CO_GET_CNT(TIME) == 1) {
+        CO_TIME_initCallbackPre(co->TIME, object, pFunctSignal);
+    }
+#endif
+}
+
 
 /******************************************************************************/
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE

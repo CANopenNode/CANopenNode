@@ -584,6 +584,22 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                               uint32_t *timerNext_us);
 
 
+/**
+ * Initialize callback functions for objects processed by CO_process().
+ *
+ * Function initializes optional callback functions, which should immediately
+ * start processing of CO_process() function in lainline thread.
+ *
+ * @param co CANopen object.
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can
+ * be NULL
+ * @param pFunctSignal Pointer to the callback function. Not called if NULL.
+ */
+void CO_process_initCallbackPre(CO_t *co,
+                                void *object,
+                                void (*pFunctSignal)(void *object));
+
+
 #if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) || defined CO_DOXYGEN
 /**
  * Process CANopen SYNC objects.
