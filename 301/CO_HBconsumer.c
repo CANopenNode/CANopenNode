@@ -414,7 +414,9 @@ void CO_HBconsumer_process(
             }
 
             /* Verify timeout */
-            if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
+            if((monitoredNode->HBstate != CO_HBconsumer_UNCONFIGURED) &&
+               (monitoredNode->HBstate != CO_HBconsumer_TIMEOUT)) {
+
                 monitoredNode->timeoutTimer += timeDifference_us_copy;
 
                 if (monitoredNode->timeoutTimer >= monitoredNode->time_us) {
