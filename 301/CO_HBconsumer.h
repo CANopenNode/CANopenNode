@@ -298,6 +298,16 @@ void CO_HBconsumer_initCallbackRemoteReset(
         uint8_t                 idx,
         void                   *object,
         void                  (*pFunctSignal)(uint8_t nodeId, uint8_t idx, void *object));
+
+/**
+ * Reset heartbeat status so a heartbeat that has timed out can time out again.
+ *
+ * Typically called after a device has been reset if you'd like the stack to
+ * provide you with a timeout even if the device does not begin sending heartbeats.
+ */
+void CO_HBconsumer_resetHeartbeatStatus(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx);
 #endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI */
 
 /**

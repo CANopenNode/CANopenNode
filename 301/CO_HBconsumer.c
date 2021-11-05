@@ -421,6 +421,11 @@ void CO_HBconsumer_process(
 
                 if (monitoredNode->timeoutTimer >= monitoredNode->time_us) {
                     /* timeout expired */
+                    CO_errorReport(HBcons->em, CO_EM_HEARTBEAT_CONSUMER,
+                                   CO_EMC_HEARTBEAT, i);
+                    monitoredNode->NMTstate = CO_NMT_UNKNOWN;
+                    monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
+
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI
                     if (monitoredNode->pFunctSignalTimeout!=NULL) {
                         monitoredNode->pFunctSignalTimeout(
@@ -428,10 +433,6 @@ void CO_HBconsumer_process(
                             monitoredNode->functSignalObjectTimeout);
                     }
 #endif
-                    CO_errorReport(HBcons->em, CO_EM_HEARTBEAT_CONSUMER,
-                                   CO_EMC_HEARTBEAT, i);
-                    monitoredNode->NMTstate = CO_NMT_UNKNOWN;
-                    monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
                 }
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_TIMERNEXT
@@ -503,6 +504,14 @@ void CO_HBconsumer_process(
     HBcons->NMTisPreOrOperationalPrev = NMTisPreOrOperational;
 }
 
+void CO_HBconsumer_resetHeartbeatStatus(
+        CO_HBconsumer_t        *HBcons,
+        uint8_t                 idx)
+{
+    CO_HBconsNode_t *monitoredNode = &HBcons->monitoredNodes[idx];
+    monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
+    monitoredNode->timeoutTimer = 0; // zero the time since the heartbeat was just reset
+}
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_QUERY_FUNCT
 /******************************************************************************/
