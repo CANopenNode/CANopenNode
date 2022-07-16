@@ -1178,8 +1178,8 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     uint16_t eventTime = 0;
     odRet = OD_get_u16(OD_18xx_TPDOCommPar, 3, &inhibitTime, true);
     odRet = OD_get_u16(OD_18xx_TPDOCommPar, 5, &eventTime, true);
-    TPDO->inhibitTime_us = inhibitTime * 100;
-    TPDO->eventTime_us = eventTime * 1000;
+    TPDO->inhibitTime_us = (uint32_t)inhibitTime * 100;
+    TPDO->eventTime_us = (uint32_t)eventTime * 1000;
 #endif
 
 
