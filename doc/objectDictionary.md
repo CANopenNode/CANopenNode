@@ -87,7 +87,7 @@ void myFuncGlob(void) {
 
 Object Dictionary Example {#object-dictionary-example}
 ------------------------------------------------------
-Actual Object dictionary for one CANopen device is defined by pair of OD_xyz.h and ODxyz.h files.
+Actual Object dictionary for one CANopen device is defined by pair of OD_xyz.h and ODxyz.c files.
 
 Suffix "xyz" is unique name of the object dictionary. If single default object dictionary is used, suffix is omitted. Such way configuration with multiple object dictionaries is possible.
 
