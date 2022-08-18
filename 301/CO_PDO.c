@@ -279,7 +279,8 @@ static ODR_t OD_write_PDO_mapping(OD_stream_t *stream, const void *buf,
         PDO->mappedObjectsCount = mappedObjectsCount;
     }
     else {
-        ODR_t odRet = PDOconfigMap(PDO, CO_getUint32(buf), stream->subIndex-1,
+        uint32_t val = CO_getUint32(buf);
+        ODR_t odRet = PDOconfigMap(PDO, val, stream->subIndex-1,
                                    PDO->isRPDO, PDO->OD);
         if (odRet != ODR_OK) {
             return odRet;

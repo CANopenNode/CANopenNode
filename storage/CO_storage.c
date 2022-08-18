@@ -47,7 +47,8 @@ static ODR_t OD_write_1010(OD_stream_t *stream, const void *buf,
         return ODR_READONLY;
     }
 
-    if (CO_getUint32(buf) != 0x65766173) {
+    uint32_t val = CO_getUint32(buf);
+    if (val != 0x65766173) {
         return ODR_DATA_TRANSF;
     }
 
@@ -97,7 +98,8 @@ static ODR_t OD_write_1011(OD_stream_t *stream, const void *buf,
         return ODR_READONLY;
     }
 
-    if (CO_getUint32(buf) != 0x64616F6C) {
+    uint32_t val = CO_getUint32(buf);
+    if (val != 0x64616F6C) {
         return ODR_DATA_TRANSF;
     }
 
