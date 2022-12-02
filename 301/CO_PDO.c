@@ -897,7 +897,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
                                 CO_EMC_RPDO_TIMEOUT, RPDO->timeoutTimer);
                 }
             }
- #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
+ #if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_TIMERNEXT
             if (timerNext_us != NULL
                 && RPDO->timeoutTimer < RPDO->timeoutTime_us
             ) {
