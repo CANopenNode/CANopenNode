@@ -14,9 +14,9 @@
         Project File: DS301_profile.xpd
         File Version: 1
 
-        Created:      23. 11. 2020 13:00:00
+        Created:      2020-11-23 6:00:00 AM
         Created By:   
-        Modified:     9. 08. 2021 18:39:55
+        Modified:     2022-12-19 4:02:14 PM
         Modified By:  
 
     Device Info:
@@ -190,11 +190,6 @@ typedef struct {
         uint32_t applicationObject_1;
         uint32_t applicationObject_2;
         uint32_t applicationObject_3;
-        uint32_t applicationObject_4;
-        uint32_t applicationObject_5;
-        uint32_t applicationObject_6;
-        uint32_t applicationObject_7;
-        uint32_t applicationObject_8;
     } x1A00_TPDOMappingParameter;
     struct {
         uint8_t numberOfMappedApplicationObjectsInPDO;
@@ -202,10 +197,6 @@ typedef struct {
         uint32_t applicationObject_2;
         uint32_t applicationObject_3;
         uint32_t applicationObject_4;
-        uint32_t applicationObject_5;
-        uint32_t applicationObject_6;
-        uint32_t applicationObject_7;
-        uint32_t applicationObject_8;
     } x1A01_TPDOMappingParameter;
     struct {
         uint8_t numberOfMappedApplicationObjectsInPDO;
@@ -214,9 +205,6 @@ typedef struct {
         uint32_t applicationObject_3;
         uint32_t applicationObject_4;
         uint32_t applicationObject_5;
-        uint32_t applicationObject_6;
-        uint32_t applicationObject_7;
-        uint32_t applicationObject_8;
     } x1A02_TPDOMappingParameter;
     struct {
         uint8_t numberOfMappedApplicationObjectsInPDO;
@@ -224,10 +212,6 @@ typedef struct {
         uint32_t applicationObject_2;
         uint32_t applicationObject_3;
         uint32_t applicationObject_4;
-        uint32_t applicationObject_5;
-        uint32_t applicationObject_6;
-        uint32_t applicationObject_7;
-        uint32_t applicationObject_8;
     } x1A03_TPDOMappingParameter;
 } OD_PERSIST_COMM_t;
 
@@ -242,6 +226,25 @@ typedef struct {
         uint32_t COB_IDClientToServerRx;
         uint32_t COB_IDServerToClientTx;
     } x1200_SDOServerParameter;
+    struct {
+        uint8_t highestSub_indexSupported;
+        int16_t actualThrottle;
+        int32_t motorVelocity;
+        int16_t actualMotorCurrent;
+        int16_t targetId;
+        int16_t targetIq;
+        int16_t id;
+        int16_t iq;
+        int16_t motorTemperature;
+        int16_t actualAC_MotorCurrent;
+        int16_t actualAC_MotorVoltage;
+        uint16_t capacitorVoltage;
+        int16_t temperature;
+        int16_t batteryCurrent;
+        int16_t targetTorque;
+        int16_t actualTorque;
+        uint8_t deadmanSwitch;
+    } x2120_motorControllerTelemetry;
 } OD_RAM_t;
 
 #ifndef OD_ATTR_PERSIST_COMM
@@ -296,6 +299,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1A01 &OD->list[30]
 #define OD_ENTRY_H1A02 &OD->list[31]
 #define OD_ENTRY_H1A03 &OD->list[32]
+#define OD_ENTRY_H2120 &OD->list[33]
 
 
 /*******************************************************************************
@@ -334,6 +338,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1A01_TPDOMappingParameter &OD->list[30]
 #define OD_ENTRY_H1A02_TPDOMappingParameter &OD->list[31]
 #define OD_ENTRY_H1A03_TPDOMappingParameter &OD->list[32]
+#define OD_ENTRY_H2120_motorControllerTelemetry &OD->list[33]
 
 
 /*******************************************************************************

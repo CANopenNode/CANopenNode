@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="DS301_profile.xpd" fileCreator="" fileCreationDate="2020-11-23" fileCreationTime="13:00:00.0000000+02:00" fileModifiedBy="" fileModificationDate="2021-08-09" fileModificationTime="18:39:55.9605360+02:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="DS301_profile.xpd" fileCreator="" fileCreationDate="2020-11-23" fileCreationTime="06:00:00.0000000-05:00" fileModifiedBy="" fileModificationDate="2022-12-19" fileModificationTime="16:02:08.0848040-05:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName></q1:vendorName>
         <q1:vendorID></q1:vendorID>
@@ -492,21 +492,6 @@
             <q1:varDeclaration name="Application object 3" uniqueID="UID_RECSUB_1A0003">
               <UDINT />
             </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 4" uniqueID="UID_RECSUB_1A0004">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 5" uniqueID="UID_RECSUB_1A0005">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 6" uniqueID="UID_RECSUB_1A0006">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 7" uniqueID="UID_RECSUB_1A0007">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_1A0008">
-              <UDINT />
-            </q1:varDeclaration>
           </q1:struct>
           <q1:struct name="TPDO mapping parameter" uniqueID="UID_REC_1A01">
             <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_1A0100">
@@ -522,18 +507,6 @@
               <UDINT />
             </q1:varDeclaration>
             <q1:varDeclaration name="Application object 4" uniqueID="UID_RECSUB_1A0104">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 5" uniqueID="UID_RECSUB_1A0105">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 6" uniqueID="UID_RECSUB_1A0106">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 7" uniqueID="UID_RECSUB_1A0107">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_1A0108">
               <UDINT />
             </q1:varDeclaration>
           </q1:struct>
@@ -556,15 +529,6 @@
             <q1:varDeclaration name="Application object 5" uniqueID="UID_RECSUB_1A0205">
               <UDINT />
             </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 6" uniqueID="UID_RECSUB_1A0206">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 7" uniqueID="UID_RECSUB_1A0207">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_1A0208">
-              <UDINT />
-            </q1:varDeclaration>
           </q1:struct>
           <q1:struct name="TPDO mapping parameter" uniqueID="UID_REC_1A03">
             <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_1A0300">
@@ -580,18 +544,6 @@
               <UDINT />
             </q1:varDeclaration>
             <q1:varDeclaration name="Application object 4" uniqueID="UID_RECSUB_1A0304">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 5" uniqueID="UID_RECSUB_1A0305">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 6" uniqueID="UID_RECSUB_1A0306">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 7" uniqueID="UID_RECSUB_1A0307">
-              <UDINT />
-            </q1:varDeclaration>
-            <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_1A0308">
               <UDINT />
             </q1:varDeclaration>
           </q1:struct>
@@ -622,6 +574,59 @@
             </q1:varDeclaration>
             <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_1A0408">
               <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="Motor Controller Telemetry" uniqueID="UID_REC_2120">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_212000">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Actual Throttle" uniqueID="UID_RECSUB_212001">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Motor Velocity" uniqueID="UID_RECSUB_212002">
+              <DINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Actual Motor Current" uniqueID="UID_RECSUB_212003">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Target Id" uniqueID="UID_RECSUB_212004">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Target Iq" uniqueID="UID_RECSUB_212005">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Id" uniqueID="UID_RECSUB_212006">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Iq" uniqueID="UID_RECSUB_212007">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Motor Temperature" uniqueID="UID_RECSUB_212008">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Actual AC Motor Current" uniqueID="UID_RECSUB_212009">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Actual AC Motor Voltage" uniqueID="UID_RECSUB_21200A">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Capacitor Voltage" uniqueID="UID_RECSUB_21200B">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Temperature" uniqueID="UID_RECSUB_21200C">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Battery Current" uniqueID="UID_RECSUB_21200D">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Target Torque" uniqueID="UID_RECSUB_21200E">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Actual Torque" uniqueID="UID_RECSUB_21200F">
+              <INT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Deadman Switch" uniqueID="UID_RECSUB_212010">
+              <USINT />
             </q1:varDeclaration>
           </q1:struct>
         </q1:dataTypeList>
@@ -734,14 +739,14 @@
 * bit 11-29: set to 0
 * bit 0-10: 11-bit CAN-ID</description>
             <UDINT />
-            <q1:defaultValue value="0x00000080" />
+            <q1:defaultValue value="0x08" />
             <q1:property name="CO_countLabel" value="SYNC" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1006" access="readWrite">
             <description lang="en">Period of SYNC transmission in µs (0 = transmission disabled).</description>
             <UDINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="100" />
             <q1:property name="CO_countLabel" value="SYNC_PROD" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
@@ -1747,12 +1752,12 @@
           <q1:parameter uniqueID="UID_SUB_180001" access="readWrite">
             <label lang="en">COB-ID used by TPDO</label>
             <UDINT />
-            <q1:defaultValue value="0xC0000180+$NODEID" />
+            <q1:defaultValue value="0x181" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180002" access="readWrite">
             <label lang="en">Transmission type</label>
             <USINT />
-            <q1:defaultValue value="254" />
+            <q1:defaultValue value="0" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180003" access="readWrite">
             <label lang="en">Inhibit time</label>
@@ -1762,7 +1767,7 @@
           <q1:parameter uniqueID="UID_SUB_180005" access="readWrite">
             <label lang="en">Event timer</label>
             <UINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="20" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180006" access="readWrite">
             <label lang="en">SYNC start value</label>
@@ -1798,12 +1803,12 @@
           <q1:parameter uniqueID="UID_SUB_180101" access="readWrite">
             <label lang="en">COB-ID used by TPDO</label>
             <UDINT />
-            <q1:defaultValue value="0xC0000280+$NODEID" />
+            <q1:defaultValue value="0x281" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180102" access="readWrite">
             <label lang="en">Transmission type</label>
             <USINT />
-            <q1:defaultValue value="254" />
+            <q1:defaultValue value="0" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180103" access="readWrite">
             <label lang="en">Inhibit time</label>
@@ -1813,7 +1818,7 @@
           <q1:parameter uniqueID="UID_SUB_180105" access="readWrite">
             <label lang="en">Event timer</label>
             <UINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="100" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180106" access="readWrite">
             <label lang="en">SYNC start value</label>
@@ -1849,12 +1854,12 @@
           <q1:parameter uniqueID="UID_SUB_180201" access="readWrite">
             <label lang="en">COB-ID used by TPDO</label>
             <UDINT />
-            <q1:defaultValue value="0xC0000380+$NODEID" />
+            <q1:defaultValue value="0x381" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180202" access="readWrite">
             <label lang="en">Transmission type</label>
             <USINT />
-            <q1:defaultValue value="254" />
+            <q1:defaultValue value="0" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180203" access="readWrite">
             <label lang="en">Inhibit time</label>
@@ -1864,7 +1869,7 @@
           <q1:parameter uniqueID="UID_SUB_180205" access="readWrite">
             <label lang="en">Event timer</label>
             <UINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="1000" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180206" access="readWrite">
             <label lang="en">SYNC start value</label>
@@ -1900,12 +1905,12 @@
           <q1:parameter uniqueID="UID_SUB_180301" access="readWrite">
             <label lang="en">COB-ID used by TPDO</label>
             <UDINT />
-            <q1:defaultValue value="0xC0000480+$NODEID" />
+            <q1:defaultValue value="0x481" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180302" access="readWrite">
             <label lang="en">Transmission type</label>
             <USINT />
-            <q1:defaultValue value="254" />
+            <q1:defaultValue value="0" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180303" access="readWrite">
             <label lang="en">Inhibit time</label>
@@ -1915,7 +1920,7 @@
           <q1:parameter uniqueID="UID_SUB_180305" access="readWrite">
             <label lang="en">Event timer</label>
             <UINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="100" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180306" access="readWrite">
             <label lang="en">SYNC start value</label>
@@ -1989,47 +1994,22 @@
           <q1:parameter uniqueID="UID_SUB_1A0000" access="readWrite">
             <label lang="en">Number of mapped application objects in PDO</label>
             <USINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="0x03" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0001" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200108" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0002" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200308" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0003" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0004" access="readWrite">
-            <label lang="en">Application object 4</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0005" access="readWrite">
-            <label lang="en">Application object 5</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0006" access="readWrite">
-            <label lang="en">Application object 6</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0007" access="readWrite">
-            <label lang="en">Application object 7</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0008" access="readWrite">
-            <label lang="en">Application object 8</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200210" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1A01">
             <description lang="en">* Number of mapped application objects in PDO:
@@ -2051,42 +2031,22 @@
           <q1:parameter uniqueID="UID_SUB_1A0101" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200408" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0102" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200508" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0103" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200608" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0104" access="readWrite">
             <label lang="en">Application object 4</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0105" access="readWrite">
-            <label lang="en">Application object 5</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0106" access="readWrite">
-            <label lang="en">Application object 6</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0107" access="readWrite">
-            <label lang="en">Application object 7</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0108" access="readWrite">
-            <label lang="en">Application object 8</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200708" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1A02">
             <description lang="en">* Number of mapped application objects in PDO:
@@ -2108,42 +2068,27 @@
           <q1:parameter uniqueID="UID_SUB_1A0201" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200808" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0202" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200908" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0203" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200a08" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0204" access="readWrite">
             <label lang="en">Application object 4</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200c04" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0205" access="readWrite">
             <label lang="en">Application object 5</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0206" access="readWrite">
-            <label lang="en">Application object 6</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0207" access="readWrite">
-            <label lang="en">Application object 7</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0208" access="readWrite">
-            <label lang="en">Application object 8</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21201004" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1A03">
             <description lang="en">* Number of mapped application objects in PDO:
@@ -2165,42 +2110,22 @@
           <q1:parameter uniqueID="UID_SUB_1A0301" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200b08" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0302" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200d08" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0303" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200e08" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0304" access="readWrite">
             <label lang="en">Application object 4</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0305" access="readWrite">
-            <label lang="en">Application object 5</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0306" access="readWrite">
-            <label lang="en">Application object 6</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0307" access="readWrite">
-            <label lang="en">Application object 7</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_1A0308" access="readWrite">
-            <label lang="en">Application object 8</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21200f08" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1A04">
             <description lang="en">* Number of mapped application objects in PDO:
@@ -2260,6 +2185,95 @@
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2120">
+            <label lang="en">Motor Controller Telemetry</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_2120" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212000">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x10" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212001" access="readWriteOutput">
+            <label lang="en">Actual Throttle</label>
+            <INT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212002" access="readWriteOutput">
+            <label lang="en">Motor Velocity</label>
+            <DINT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212003" access="readWriteOutput">
+            <label lang="en">Actual Motor Current</label>
+            <INT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212004" access="readWriteOutput">
+            <label lang="en">Target Id</label>
+            <INT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212005" access="readWriteOutput">
+            <label lang="en">Target Iq</label>
+            <INT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212006" access="readWriteOutput">
+            <label lang="en">Id</label>
+            <INT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212007" access="readWriteOutput">
+            <label lang="en">Iq</label>
+            <INT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212008" access="readWriteOutput">
+            <label lang="en">Motor Temperature</label>
+            <INT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212009" access="readWriteOutput">
+            <label lang="en">Actual AC Motor Current</label>
+            <INT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_21200A" access="readWriteOutput">
+            <label lang="en">Actual AC Motor Voltage</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_21200B" access="readWriteOutput">
+            <label lang="en">Capacitor Voltage</label>
+            <UINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_21200C" access="readWriteOutput">
+            <label lang="en">Temperature</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_21200D" access="readWriteOutput">
+            <label lang="en">Battery Current</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_21200E" access="readWriteOutput">
+            <label lang="en">Target Torque</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_21200F" access="readWriteOutput">
+            <label lang="en">Actual Torque</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_212010" access="readWriteOutput">
+            <label lang="en">Deadman Switch</label>
+            <USINT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -2277,11 +2291,11 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="DS301_profile.xpd" fileCreator="" fileCreationDate="2020-11-23" fileCreationTime="13:00:00.0000000+02:00" fileModificationDate="2021-08-09" fileModificationTime="18:39:55.9605360+02:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="DS301_profile.xpd" fileCreator="" fileCreationDate="2020-11-23" fileCreationTime="06:00:00.0000000-05:00" fileModificationDate="2022-12-19" fileModificationTime="16:02:08.0848040-05:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
-          <CANopenObject index="1001" name="Error register" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_1001" />
+          <CANopenObject index="1001" name="Error register" objectType="7" PDOmapping="optional" uniqueIDRef="UID_OBJ_1001" />
           <CANopenObject index="1002" name="Manufacturer status register" objectType="7" PDOmapping="optional" uniqueIDRef="UID_OBJ_1002" />
           <CANopenObject index="1003" name="Pre-defined error field" objectType="8" uniqueIDRef="UID_OBJ_1003" subNumber="17">
             <CANopenSubObject subIndex="00" name="Number of errors" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_100300" />
@@ -2534,49 +2548,33 @@
             <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180405" />
             <CANopenSubObject subIndex="06" name="SYNC start value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180406" />
           </CANopenObject>
-          <CANopenObject index="1A00" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A00" subNumber="9">
+          <CANopenObject index="1A00" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A00" subNumber="4">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0000" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0001" />
             <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0002" />
             <CANopenSubObject subIndex="03" name="Application object 3" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0003" />
-            <CANopenSubObject subIndex="04" name="Application object 4" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0004" />
-            <CANopenSubObject subIndex="05" name="Application object 5" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0005" />
-            <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0006" />
-            <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0007" />
-            <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0008" />
           </CANopenObject>
-          <CANopenObject index="1A01" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A01" subNumber="9">
+          <CANopenObject index="1A01" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A01" subNumber="5">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0100" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0101" />
             <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0102" />
             <CANopenSubObject subIndex="03" name="Application object 3" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0103" />
             <CANopenSubObject subIndex="04" name="Application object 4" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0104" />
-            <CANopenSubObject subIndex="05" name="Application object 5" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0105" />
-            <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0106" />
-            <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0107" />
-            <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0108" />
           </CANopenObject>
-          <CANopenObject index="1A02" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A02" subNumber="9">
+          <CANopenObject index="1A02" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A02" subNumber="6">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0200" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0201" />
             <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0202" />
             <CANopenSubObject subIndex="03" name="Application object 3" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0203" />
             <CANopenSubObject subIndex="04" name="Application object 4" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0204" />
             <CANopenSubObject subIndex="05" name="Application object 5" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0205" />
-            <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0206" />
-            <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0207" />
-            <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0208" />
           </CANopenObject>
-          <CANopenObject index="1A03" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A03" subNumber="9">
+          <CANopenObject index="1A03" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A03" subNumber="5">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0300" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0301" />
             <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0302" />
             <CANopenSubObject subIndex="03" name="Application object 3" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0303" />
             <CANopenSubObject subIndex="04" name="Application object 4" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0304" />
-            <CANopenSubObject subIndex="05" name="Application object 5" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0305" />
-            <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0306" />
-            <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0307" />
-            <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0308" />
           </CANopenObject>
           <CANopenObject index="1A04" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A04" subNumber="9">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0400" />
@@ -2588,6 +2586,25 @@
             <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0406" />
             <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0407" />
             <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0408" />
+          </CANopenObject>
+          <CANopenObject index="2120" name="Motor Controller Telemetry" objectType="9" uniqueIDRef="UID_OBJ_2120" subNumber="17">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_212000" />
+            <CANopenSubObject subIndex="01" name="Actual Throttle" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212001" />
+            <CANopenSubObject subIndex="02" name="Motor Velocity" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212002" />
+            <CANopenSubObject subIndex="03" name="Actual Motor Current" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212003" />
+            <CANopenSubObject subIndex="04" name="Target Id" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212004" />
+            <CANopenSubObject subIndex="05" name="Target Iq" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212005" />
+            <CANopenSubObject subIndex="06" name="Id" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212006" />
+            <CANopenSubObject subIndex="07" name="Iq" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212007" />
+            <CANopenSubObject subIndex="08" name="Motor Temperature" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212008" />
+            <CANopenSubObject subIndex="09" name="Actual AC Motor Current" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212009" />
+            <CANopenSubObject subIndex="0A" name="Actual AC Motor Voltage" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_21200A" />
+            <CANopenSubObject subIndex="0B" name="Capacitor Voltage" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_21200B" />
+            <CANopenSubObject subIndex="0C" name="Temperature" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_21200C" />
+            <CANopenSubObject subIndex="0D" name="Battery Current" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_21200D" />
+            <CANopenSubObject subIndex="0E" name="Target Torque" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_21200E" />
+            <CANopenSubObject subIndex="0F" name="Actual Torque" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_21200F" />
+            <CANopenSubObject subIndex="10" name="Deadman Switch" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_212010" />
           </CANopenObject>
         </q2:CANopenObjectList>
         <dummyUsage>
@@ -2615,8 +2632,8 @@
         </PhysicalLayer>
       </TransportLayers>
       <NetworkManagement>
-        <CANopenGeneralFeatures granularity="8" nrOfRxPDO="4" nrOfTxPDO="4" layerSettingServiceSlave="true" />
-        <CANopenMasterFeatures />
+        <CANopenGeneralFeatures granularity="8" nrOfRxPDO="4" nrOfTxPDO="4" />
+        <CANopenMasterFeatures layerSettingServiceMaster="true" />
       </NetworkManagement>
     </ProfileBody>
   </ISO15745Profile>
