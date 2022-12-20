@@ -122,11 +122,10 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .SYNCStartValue = 0x00
     },
     .x1A00_TPDOMappingParameter = {
-        .numberOfMappedApplicationObjectsInPDO = 0x04,
+        .numberOfMappedApplicationObjectsInPDO = 0x03,
         .applicationObject_1 = 0x21200110,
-        .applicationObject_2 = 0x21200A10,
-        .applicationObject_3 = 0x21200B10,
-        .applicationObject_4 = 0x21200C10
+        .applicationObject_2 = 0x21200310,
+        .applicationObject_3 = 0x21200220
     }
 };
 
@@ -144,8 +143,8 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     .x2120_motorControllerTelemetry = {
         .highestSub_indexSupported = 0x10,
         .actualThrottle = 1,
-        .motorVelocity = 1,
-        .actualMotorCurrent = 1,
+        .motorVelocity = 0,
+        .actualMotorCurrent = 0,
         .targetId = 1,
         .targetIq = 1,
         .id = 1,
@@ -194,7 +193,7 @@ typedef struct {
     OD_obj_record_t o_1602_RPDOMappingParameter[9];
     OD_obj_record_t o_1603_RPDOMappingParameter[9];
     OD_obj_record_t o_1800_TPDOCommunicationParameter[6];
-    OD_obj_record_t o_1A00_TPDOMappingParameter[5];
+    OD_obj_record_t o_1A00_TPDOMappingParameter[4];
     OD_obj_record_t o_2120_motorControllerTelemetry[17];
 } ODObjs_t;
 
@@ -749,12 +748,6 @@ static CO_PROGMEM ODObjs_t ODObjs = {
             .subIndex = 3,
             .attribute = ODA_SDO_RW | ODA_MB,
             .dataLength = 4
-        },
-        {
-            .dataOrig = &OD_PERSIST_COMM.x1A00_TPDOMappingParameter.applicationObject_4,
-            .subIndex = 4,
-            .attribute = ODA_SDO_RW | ODA_MB,
-            .dataLength = 4
         }
     },
     .o_2120_motorControllerTelemetry = {
@@ -894,7 +887,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x1602, 0x09, ODT_REC, &ODObjs.o_1602_RPDOMappingParameter, NULL},
     {0x1603, 0x09, ODT_REC, &ODObjs.o_1603_RPDOMappingParameter, NULL},
     {0x1800, 0x06, ODT_REC, &ODObjs.o_1800_TPDOCommunicationParameter, NULL},
-    {0x1A00, 0x05, ODT_REC, &ODObjs.o_1A00_TPDOMappingParameter, NULL},
+    {0x1A00, 0x04, ODT_REC, &ODObjs.o_1A00_TPDOMappingParameter, NULL},
     {0x2120, 0x11, ODT_REC, &ODObjs.o_2120_motorControllerTelemetry, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };

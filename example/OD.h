@@ -16,7 +16,7 @@
 
         Created:      2020-11-23 6:00:00 AM
         Created By:   
-        Modified:     2022-12-20 4:28:16 PM
+        Modified:     2022-12-20 4:50:04 PM
         Modified By:  
 
     Device Info:
@@ -166,7 +166,6 @@ typedef struct {
         uint32_t applicationObject_1;
         uint32_t applicationObject_2;
         uint32_t applicationObject_3;
-        uint32_t applicationObject_4;
     } x1A00_TPDOMappingParameter;
 } OD_PERSIST_COMM_t;
 
