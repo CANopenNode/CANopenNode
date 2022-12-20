@@ -16,7 +16,7 @@
 
         Created:      2020-11-23 6:00:00 AM
         Created By:   
-        Modified:     2022-12-19 4:02:14 PM
+        Modified:     2022-12-20 11:57:33 AM
         Modified By:  
 
     Device Info:
@@ -45,7 +45,7 @@
 #define OD_CNT_SDO_SRV 1
 #define OD_CNT_SDO_CLI 1
 #define OD_CNT_RPDO 4
-#define OD_CNT_TPDO 4
+#define OD_CNT_TPDO 1
 
 
 /*******************************************************************************
@@ -162,57 +162,9 @@ typedef struct {
         uint8_t SYNCStartValue;
     } x1800_TPDOCommunicationParameter;
     struct {
-        uint8_t highestSub_indexSupported;
-        uint32_t COB_IDUsedByTPDO;
-        uint8_t transmissionType;
-        uint16_t inhibitTime;
-        uint16_t eventTimer;
-        uint8_t SYNCStartValue;
-    } x1801_TPDOCommunicationParameter;
-    struct {
-        uint8_t highestSub_indexSupported;
-        uint32_t COB_IDUsedByTPDO;
-        uint8_t transmissionType;
-        uint16_t inhibitTime;
-        uint16_t eventTimer;
-        uint8_t SYNCStartValue;
-    } x1802_TPDOCommunicationParameter;
-    struct {
-        uint8_t highestSub_indexSupported;
-        uint32_t COB_IDUsedByTPDO;
-        uint8_t transmissionType;
-        uint16_t inhibitTime;
-        uint16_t eventTimer;
-        uint8_t SYNCStartValue;
-    } x1803_TPDOCommunicationParameter;
-    struct {
         uint8_t numberOfMappedApplicationObjectsInPDO;
         uint32_t applicationObject_1;
-        uint32_t applicationObject_2;
-        uint32_t applicationObject_3;
     } x1A00_TPDOMappingParameter;
-    struct {
-        uint8_t numberOfMappedApplicationObjectsInPDO;
-        uint32_t applicationObject_1;
-        uint32_t applicationObject_2;
-        uint32_t applicationObject_3;
-        uint32_t applicationObject_4;
-    } x1A01_TPDOMappingParameter;
-    struct {
-        uint8_t numberOfMappedApplicationObjectsInPDO;
-        uint32_t applicationObject_1;
-        uint32_t applicationObject_2;
-        uint32_t applicationObject_3;
-        uint32_t applicationObject_4;
-        uint32_t applicationObject_5;
-    } x1A02_TPDOMappingParameter;
-    struct {
-        uint8_t numberOfMappedApplicationObjectsInPDO;
-        uint32_t applicationObject_1;
-        uint32_t applicationObject_2;
-        uint32_t applicationObject_3;
-        uint32_t applicationObject_4;
-    } x1A03_TPDOMappingParameter;
 } OD_PERSIST_COMM_t;
 
 typedef struct {
@@ -292,14 +244,8 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1602 &OD->list[23]
 #define OD_ENTRY_H1603 &OD->list[24]
 #define OD_ENTRY_H1800 &OD->list[25]
-#define OD_ENTRY_H1801 &OD->list[26]
-#define OD_ENTRY_H1802 &OD->list[27]
-#define OD_ENTRY_H1803 &OD->list[28]
-#define OD_ENTRY_H1A00 &OD->list[29]
-#define OD_ENTRY_H1A01 &OD->list[30]
-#define OD_ENTRY_H1A02 &OD->list[31]
-#define OD_ENTRY_H1A03 &OD->list[32]
-#define OD_ENTRY_H2120 &OD->list[33]
+#define OD_ENTRY_H1A00 &OD->list[26]
+#define OD_ENTRY_H2120 &OD->list[27]
 
 
 /*******************************************************************************
@@ -331,14 +277,8 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1602_RPDOMappingParameter &OD->list[23]
 #define OD_ENTRY_H1603_RPDOMappingParameter &OD->list[24]
 #define OD_ENTRY_H1800_TPDOCommunicationParameter &OD->list[25]
-#define OD_ENTRY_H1801_TPDOCommunicationParameter &OD->list[26]
-#define OD_ENTRY_H1802_TPDOCommunicationParameter &OD->list[27]
-#define OD_ENTRY_H1803_TPDOCommunicationParameter &OD->list[28]
-#define OD_ENTRY_H1A00_TPDOMappingParameter &OD->list[29]
-#define OD_ENTRY_H1A01_TPDOMappingParameter &OD->list[30]
-#define OD_ENTRY_H1A02_TPDOMappingParameter &OD->list[31]
-#define OD_ENTRY_H1A03_TPDOMappingParameter &OD->list[32]
-#define OD_ENTRY_H2120_motorControllerTelemetry &OD->list[33]
+#define OD_ENTRY_H1A00_TPDOMappingParameter &OD->list[26]
+#define OD_ENTRY_H2120_motorControllerTelemetry &OD->list[27]
 
 
 /*******************************************************************************
