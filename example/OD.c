@@ -117,7 +117,7 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .highestSub_indexSupported = 0x06,
         .COB_IDUsedByTPDO = 0x00000181,
         .transmissionType = 0x02,
-        .inhibitTime = 0x0000,
+        .inhibitTime = 0x00C8,
         .eventTimer = 0x0000,
         .SYNCStartValue = 0x00
     },
