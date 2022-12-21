@@ -344,7 +344,7 @@ extern "C" {
  * 8 or 899 (127*7) for block transfer.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 64
+#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 32
 #endif
 
 /**
@@ -388,7 +388,7 @@ extern "C" {
  * Default value for block transfer is 1000, otherwise 32.
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 64
+#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
 #endif
 /** @} */ /* CO_STACK_CONFIG_SDO */
 
