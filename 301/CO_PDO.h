@@ -246,7 +246,7 @@ typedef struct {
  * Number of buffers for received CAN message for RPDO
  */
 #if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
-#define CO_RPDO_CAN_BUFFERS_COUNT 8
+#define CO_RPDO_CAN_BUFFERS_COUNT 2
 #else
 #define CO_RPDO_CAN_BUFFERS_COUNT 1
 #endif

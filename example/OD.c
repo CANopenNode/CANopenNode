@@ -22,7 +22,7 @@
 *******************************************************************************/
 OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
     .x1000_deviceType = 0x00000000,
-    .x1005_COB_ID_SYNCMessage = 0x40000000,
+    .x1005_COB_ID_SYNCMessage = 0x40000080,
     .x1006_communicationCyclePeriod = 0x00002710,
     .x1007_synchronousWindowLength = 0x00000000,
     .x1012_COB_IDTimeStampObject = 0x00000100,
