@@ -121,6 +121,8 @@ typedef struct {
     uint16_t CANdevRxIdx;
     /** Extension for OD object */
     OD_extension_t OD_1005_extension;
+    /** Extension for OD object */
+    OD_extension_t OD_1006_extension;
     /** CAN ID of the SYNC message. Calculated from _COB ID SYNC Message_
     variable from Object dictionary (index 0x1005). */
     uint16_t CAN_ID;
