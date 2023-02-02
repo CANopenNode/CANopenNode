@@ -44,6 +44,18 @@ PIC32, dsPIC30, dsPIC33
 * Information updated 2021-05-07
 
 
+MAX32662, MAX32690
+------------------
+* CANopenNode integration with Analog Devices MAX32662 and MAX32690 microcontrollers.
+* https://github.com/Analog-Devices-MSDK/CANopenADI
+* CANopenNode version: (v4.0)
+* Status: seems to be stable
+* Features: LED indicators, error counters
+* Development tools: Maxim Micros SDK
+* Demo hardware: MAX32662-EVKIT and MAX32690-EVKIT
+* Information updated 2023-02-02 
+
+
 Zephyr RTOS
 -----------
 * CANopenNode integration with Zephyr RTOS
