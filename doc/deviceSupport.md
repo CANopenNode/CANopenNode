@@ -3,7 +3,7 @@ Device Support
 
 CANopenNode can run on many different devices. There are possible many different implementations on many different hardware, with many different development tools, by many different developers. It is not possible for single project maintainer to keep all the hardware interfaces updated. For that reason all hardware specific files are not part of the CANopenNode project.
 
-It is necessary to implement interface to specific hardware. Interface to Linux socketCAN is part of this projects. Interfaces to other controllers are separate projects. There are interfaces to: Zephyr RTOS, PIC, Mbed-os RTOS + STM32, NXP, etc.
+It is necessary to implement interface to specific hardware. Interface to Linux socketCAN is part of this projects. Interfaces to other controllers are separate projects. There are interfaces to: Zephyr RTOS, PIC, Analog Devices Inc. (ADI), Mbed-os RTOS + STM32, NXP, etc.
 
 
 Note for device driver contributors
@@ -44,7 +44,7 @@ PIC32, dsPIC30, dsPIC33
 * Information updated 2021-05-07
 
 
-MAX32662, MAX32690
+[Analog Devices Inc](https://www.analog.com): MAX32662, MAX32690
 ------------------
 * CANopenNode integration with Analog Devices MAX32662 and MAX32690 microcontrollers.
 * https://github.com/Analog-Devices-MSDK/CANopenADI
@@ -53,7 +53,7 @@ MAX32662, MAX32690
 * Features: LED indicators, error counters
 * Development tools: Maxim Micros SDK
 * Demo hardware: MAX32662-EVKIT and MAX32690-EVKIT
-* Information updated 2023-02-02 
+* Information updated 2023-02-13 
 
 
 Zephyr RTOS
