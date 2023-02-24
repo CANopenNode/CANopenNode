@@ -661,7 +661,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
                 reverseBytes(bufShifted, countRd);
             }
             else {
-                abortCode = CO_SDO_AB_PRAM_INCOMPAT;
+                *abortCode = CO_SDO_AB_PRAM_INCOMPAT;
                 SDO->state = CO_SDO_ST_ABORT;
                 return false;
             }

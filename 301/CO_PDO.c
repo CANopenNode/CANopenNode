@@ -1266,8 +1266,8 @@ static CO_ReturnError_t CO_TPDOsend(CO_TPDO_t *TPDO) {
         /* swap multibyte data if big-endian */
  #ifdef CO_BIG_ENDIAN
         if ((stream->attribute & ODA_MB) != 0) {
-            uint8_t *lo = dataOD;
-            uint8_t *hi = dataOD + ODdataLength - 1;
+            uint8_t *lo = dataTPDOCopy;
+            uint8_t *hi = dataTPDOCopy + ODdataLength - 1;
             while (lo < hi) {
                 uint8_t swap = *lo;
                 *lo++ = *hi;
