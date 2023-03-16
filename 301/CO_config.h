@@ -101,15 +101,16 @@ extern "C" {
 #define CO_CONFIG_FLAG_OD_DYNAMIC 0x4000
 
 /**
- * Always lock the Object Dictionary using the CO_LOCK_OD / CO_UNLOCK_OD macros
+ * Always lock the Object Dictionary when doing a SDO read/write
  *
  * By default the Object Dictionary is only locked if a Object Dictionary variable
- * is mappable to a PDO or SRDO. If your application uses a RTOS with multiple tasks
- * using the Object Dictionary, you want to lock the Object Dictionary on every read/write.
+ * is mappable to a PDO or SRDO. If your application uses a RTOS with multiple
+ * tasks accessing the Object Dictionary, you want to lock the Object Dictionary on
+ * every SDO read/write.
  *
  * This flag is common to multiple configuration macros.
  */
-#define CO_CONFIG_FLAG_ALWAYS_LOCK_OD 0x8000
+#define CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD 0x8000
 
 /** This flag may be set globally for mainline objects to
  * @ref CO_CONFIG_FLAG_CALLBACK_PRE */
@@ -133,9 +134,9 @@ extern "C" {
 #define CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC CO_CONFIG_FLAG_OD_DYNAMIC
 #endif
 
-/** This flag may be set globally to @ref CO_CONFIG_FLAG_ALWAYS_LOCK_OD */
+/** This flag may be set globally to @ref CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_GLOBAL_FLAG_ALWAYS_LOCK_OD (0)
+#define CO_CONFIG_GLOBAL_FLAG_SDO_ALWAYS_LOCK_OD (0)
 #endif
 /** @} */ /* CO_STACK_CONFIG_COMMON */
 
@@ -345,7 +346,7 @@ extern "C" {
  *   inside CO_SDOserver_process().
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of additional SDO
  *   servers (Writing to object 0x1201+ re-configures the additional server).
- * - #CO_CONFIG_FLAG_ALWAYS_LOCK_OD - Always lock object dictionary (regardless if OD var is PDO/SRDO mappable)
+ * - #CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD - Always lock object dictionary (regardless if OD var is PDO/SRDO mappable)
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_GLOBAL_FLAG_ALWAYS_LOCK_OD)
@@ -384,7 +385,7 @@ extern "C" {
  *   CO_SDOclientUploadInitiate(), CO_SDOclientUpload().
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of SDO clients
  *   (Writing to object 0x1280+ re-configures the client).
- * - #CO_CONFIG_FLAG_ALWAYS_LOCK_OD - Always lock object dictionary (regardless if OD var is PDO/SRDO mappable)
+ * - #CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD - Always lock object dictionary (regardless if OD var is PDO/SRDO mappable)
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_SDO_CLI (0)

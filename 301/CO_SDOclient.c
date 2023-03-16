@@ -621,7 +621,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             }
             if (abortCode == CO_SDO_AB_NONE) {
                 OD_size_t countWritten = 0;
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_ALWAYS_LOCK_OD
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD
                 const bool_t lock = true;
 #else
                 bool_t lock = OD_mappable(&SDO_C->OD_IO.stream);
@@ -1218,7 +1218,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                                  ? countData : (OD_size_t)countFifo;
             OD_size_t countRd = 0;
             uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1];
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_ALWAYS_LOCK_OD
+#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD
             const bool_t lock = true;
 #else
             bool_t lock = OD_mappable(&SDO_C->OD_IO.stream);
