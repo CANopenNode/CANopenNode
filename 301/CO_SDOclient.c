@@ -621,17 +621,12 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             }
             if (abortCode == CO_SDO_AB_NONE) {
                 OD_size_t countWritten = 0;
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD
-                const bool_t lock = true;
-#else
-                bool_t lock = OD_mappable(&SDO_C->OD_IO.stream);
-#endif
 
                 /* write data to Object Dictionary */
-                if (lock) { CO_LOCK_OD(SDO_C->CANdevTx); }
+                CO_LOCK_OD(SDO_C->CANdevTx);
                 ODR_t odRet = SDO_C->OD_IO.write(&SDO_C->OD_IO.stream, buf,
                                                  (OD_size_t)count, &countWritten);
-                if (lock) { CO_UNLOCK_OD(SDO_C->CANdevTx); }
+                CO_UNLOCK_OD(SDO_C->CANdevTx);
 
                 /* verify for errors in write */
                 if (odRet != ODR_OK && odRet != ODR_PARTIAL) {
@@ -1218,17 +1213,12 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                                  ? countData : (OD_size_t)countFifo;
             OD_size_t countRd = 0;
             uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1];
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD
-            const bool_t lock = true;
-#else
-            bool_t lock = OD_mappable(&SDO_C->OD_IO.stream);
-#endif
 
             /* load data from OD variable into the buffer */
-            if (lock) { CO_LOCK_OD(SDO_C->CANdevTx); }
+            CO_LOCK_OD(SDO_C->CANdevTx);
             ODR_t odRet = SDO_C->OD_IO.read(&SDO_C->OD_IO.stream,
                                             buf, countBuf, &countRd);
-            if (lock) { CO_UNLOCK_OD(SDO_C->CANdevTx); }
+            CO_UNLOCK_OD(SDO_C->CANdevTx);
 
             if (odRet != ODR_OK && odRet != ODR_PARTIAL) {
                 abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);

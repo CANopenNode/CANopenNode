@@ -551,16 +551,11 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
 
     /* write data */
     OD_size_t countWritten = 0;
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD
-    const bool_t lock = true;
-#else
-    bool_t lock = OD_mappable(&SDO->OD_IO.stream);
-#endif
-    if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
 
+    CO_LOCK_OD(SDO->CANdevTx);
     ODR_t odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->buf,
                                    SDO->bufOffsetWr, &countWritten);
-    if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
+    CO_UNLOCK_OD(SDO->CANdevTx);
 
     SDO->bufOffsetWr = 0;
 
@@ -617,16 +612,11 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
         /* load data from OD variable into the buffer */
         OD_size_t countRd = 0;
         uint8_t *bufShifted = SDO->buf + countRemain;
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD
-        const bool_t lock = true;
-#else
-        bool_t lock = OD_mappable(&SDO->OD_IO.stream);
-#endif
 
-        if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
+        CO_LOCK_OD(SDO->CANdevTx);
         ODR_t odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, bufShifted,
                                       countRdRequest, &countRd);
-        if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
+        CO_UNLOCK_OD(SDO->CANdevTx);
 
         if (odRet != ODR_OK && odRet != ODR_PARTIAL) {
             *abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
@@ -858,16 +848,11 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
                 /* Copy data */
                 OD_size_t countWritten = 0;
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD
-                const bool_t lock = true;
-#else
-                bool_t lock = OD_mappable(&SDO->OD_IO.stream);
-#endif
 
-                if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
+                CO_LOCK_OD(SDO->CANdevTx);
                 ODR_t odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, buf,
                                                dataSizeToWrite, &countWritten);
-                if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
+                CO_UNLOCK_OD(SDO->CANdevTx);
 
                 if (odRet != ODR_OK) {
                     abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
@@ -1311,16 +1296,11 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 #else /* Expedited transfer only */
             /* load data from OD variable */
             OD_size_t count = 0;
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_SDO_ALWAYS_LOCK_OD
-            const bool_t lock = true;
-#else
-            bool_t lock = OD_mappable(&SDO->OD_IO.stream);
-#endif
 
-            if (lock) { CO_LOCK_OD(SDO->CANdevTx); }
+            CO_LOCK_OD(SDO->CANdevTx);
             ODR_t odRet = SDO->OD_IO.read(&SDO->OD_IO.stream,
                                           &SDO->CANtxBuff->data[4], 4, &count);
-            if (lock) { CO_UNLOCK_OD(SDO->CANdevTx); }
+            CO_UNLOCK_OD(SDO->CANdevTx);
 
             /* strings are allowed to be shorter */
             if (odRet == ODR_PARTIAL
