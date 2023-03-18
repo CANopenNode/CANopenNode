@@ -787,18 +787,15 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 if (SDO_C->CANrxData[0] == 0xA2) {
                     /* check number of segments */
                     if (SDO_C->CANrxData[1] < SDO_C->block_seqno) {
-                        size_t size_before, size_after;
                         /* NOT all segments transferred successfully.
                          * Re-transmit data after erroneous segment. */
-                        size_before = CO_fifo_altGetOccupied(&SDO_C->bufFifo);
-                        /* Change alt read pointer after the last successfully
-                         * transmitted data byte (put it back). */
+                        size_t cntFailed = SDO_C->block_seqno
+                                            - SDO_C->CANrxData[1];
+                        cntFailed = cntFailed * 7 - SDO_C->block_noData;
+                        SDO_C->sizeTran -= cntFailed;
                         CO_fifo_altBegin(&SDO_C->bufFifo,
                                          (size_t)SDO_C->CANrxData[1] * 7);
-                        size_after = CO_fifo_altGetOccupied(&SDO_C->bufFifo);
                         SDO_C->finished = false;
-                        /* Make correction of data size actually transferred */
-                        SDO_C->sizeTran -= size_after - size_before;
                     }
                     else if (SDO_C->CANrxData[1] > SDO_C->block_seqno) {
                         /* something strange from server, break transmission */
