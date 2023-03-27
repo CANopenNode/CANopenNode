@@ -620,6 +620,7 @@ void CO_delete(CO_t *co) {
     DEBUG_PRINTF(NOTICE, "CO_delete: CAN module disable!\r\n");
     CO_CANmodule_disable(co->CANmodule);
 
+#if 0
     /* CANmodule */
     CO_free(co->CANtx);
     CO_free(co->CANrx);
@@ -693,6 +694,8 @@ void CO_delete(CO_t *co) {
 
     /* CANopen object */
     CO_free(co);
+#endif
+
 }
 #endif /* #ifndef CO_USE_GLOBALS */
 
