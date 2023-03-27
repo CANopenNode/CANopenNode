@@ -1302,7 +1302,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     bool_t NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
                                     || NMTstate == CO_NMT_OPERATIONAL);
 
-    DEBUG_PRINTF(INFO, "CO_process: 1\r\n");
     /* CAN module */
     CO_CANmodule_process(co->CANmodule);
 
@@ -1329,8 +1328,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
  #ifndef CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS
   #define CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS 0
  #endif
-
-    DEBUG_PRINTF(INFO, "CO_process: 2\r\n");
 
     if (CO_GET_CNT(LEDS) == 1) {
         CO_LEDs_process(co->LEDs,
@@ -1372,8 +1369,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
                              || NMTstate == CO_NMT_OPERATIONAL);
 
-    DEBUG_PRINTF(INFO, "CO_process: 3\r\n");
-
     /* SDOserver */
     for (uint8_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
         CO_SDOserver_process(&co->SDOserver[i],
@@ -1391,8 +1386,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     }
 #endif
 
-    DEBUG_PRINTF(INFO, "CO_process: 4\r\n");
-
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     if (CO_GET_CNT(TIME) == 1) {
         CO_TIME_process(co->TIME, NMTisPreOrOperational, timeDifference_us);
@@ -1407,7 +1400,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                         timerNext_us);
     }
 #endif
-    DEBUG_PRINTF(INFO, "CO_process: 5\r\n");
     return reset;
 }
 
