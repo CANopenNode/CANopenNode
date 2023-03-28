@@ -194,7 +194,7 @@ typedef enum {
     /** SDO abort 0x08000022 - Data can't be transf. (present device state) */
     ODR_DATA_DEV_STATE = 23,
     /** SDO abort 0x08000023 - Object dictionary not present */
-    ODR_OD_MISSING = 23,
+    ODR_OD_MISSING = 24,
     /** SDO abort 0x08000024 - No data available */
     ODR_NO_DATA = 25,
     /** Last element, number of responses */
