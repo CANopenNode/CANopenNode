@@ -199,13 +199,13 @@ extern "C" {
  * - CO_CONFIG_EM_PROD_CONFIGURABLE - Emergency producer COB-ID is configurable,
  *   OD object 0x1014. If not configurable, then 0x1014 is read-only, COB_ID
  *   is set to CO_CAN_ID_EMERGENCY + nodeId and write is not verified.
- * - CO_CONFIG_EM_PROD_INHIBIT - Enable inhibit timer on emergency producer,
+ * - CO_CONFIG_EM_PROD_MSG_ENABLED - Enable inhibit timer on emergency producer,
  *   OD object 0x1015.
  * - CO_CONFIG_EM_HISTORY - Enable error history, OD object 0x1003,
  *   "Pre-defined error field"
  * - CO_CONFIG_EM_CONSUMER - Enable simple emergency consumer with callback.
- * - CO_CONFIG_EM_SRVC_MSG_ENABLED - Enable/Disable emcy messages in order to report
- * - only custom messages (via callback). 
+ * - CO_CONFIG_EM_PROD_MSG_ENABLED - Enable/Disable emcy messages in order to
+ * - report only custom emcy messages(via callback).
  * - CO_CONFIG_EM_STATUS_BITS - Access @ref CO_EM_errorStatusBits_t from OD.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   emergency condition by CO_errorReport() or CO_errorReset() call.
