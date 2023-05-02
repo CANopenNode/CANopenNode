@@ -222,7 +222,7 @@ extern "C" {
 #define CO_CONFIG_EM_HISTORY 0x08
 #define CO_CONFIG_EM_STATUS_BITS 0x10
 #define CO_CONFIG_EM_CONSUMER 0x20
-#define CO_CONFIG_EM_SRVC_MSG_ENABLED 0x40
+#define CO_CONFIG_EM_PROD_MSG_ENABLED 0x40
 
 /**
  * Maximum number of @ref CO_EM_errorStatusBits_t
