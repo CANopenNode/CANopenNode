@@ -204,6 +204,8 @@ extern "C" {
  * - CO_CONFIG_EM_HISTORY - Enable error history, OD object 0x1003,
  *   "Pre-defined error field"
  * - CO_CONFIG_EM_CONSUMER - Enable simple emergency consumer with callback.
+ * - CO_CONFIG_EM_SRVC_MSG_ENABLED - Enable/Disable emcy messages in order to report
+ * - only custom messages (via callback). 
  * - CO_CONFIG_EM_STATUS_BITS - Access @ref CO_EM_errorStatusBits_t from OD.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   emergency condition by CO_errorReport() or CO_errorReset() call.
@@ -220,6 +222,7 @@ extern "C" {
 #define CO_CONFIG_EM_HISTORY 0x08
 #define CO_CONFIG_EM_STATUS_BITS 0x10
 #define CO_CONFIG_EM_CONSUMER 0x20
+#define CO_CONFIG_EM_SRVC_MSG_ENABLED 0x40
 
 /**
  * Maximum number of @ref CO_EM_errorStatusBits_t

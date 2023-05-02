@@ -647,8 +647,9 @@ void CO_EM_process(CO_EM_t *em,
             /* send emergency message */
             memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr].msg,
                 sizeof(em->CANtxBuff->data));
+ #if (CO_CONFIG_EM) & CO_CONFIG_EM_SRVC_MSG_ENABLED
             CO_CANsend(em->CANdevTx, em->CANtxBuff);
-
+ #endif
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
             /* report also own emergency messages */
             if (em->pFunctSignalRx != NULL) {
