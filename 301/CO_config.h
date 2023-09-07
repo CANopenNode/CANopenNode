@@ -187,6 +187,35 @@ extern "C" {
 
 
 /**
+ * @defgroup CO_STACK_CONFIG_NODE_GUARDING CANopen Node Guarding slave and master objects.
+ * Specified in standard CiA 301
+ * @{
+ */
+/**
+ * Configuration of @ref CO_Node_Guarding
+ *
+ * Possible flags, can be ORed:
+ * - CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE - Enable Node guarding slave.
+ * - CO_CONFIG_NODE_GUARDING_MASTER_ENABLE - Enable Node guarding master.
+ * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
+ *   inside CO_nodeGuardingSlave_process().
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_NODE_GUARDING (0)
+#endif
+#define CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE 0x01
+#define CO_CONFIG_NODE_GUARDING_MASTER_ENABLE 0x02
+
+/**
+ * Maximum number of nodes monitored by master
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_NODE_GUARDING_MASTER_COUNT 0x7F
+#endif
+/** @} */ /* CO_STACK_CONFIG_NODE_GUARDING */
+
+
+/**
  * @defgroup CO_STACK_CONFIG_EMERGENCY Emergency producer/consumer
  * Specified in standard CiA 301
  * @{

@@ -467,8 +467,8 @@ Object Dictionary Requirements By CANopenNode {#object-dictionary-requirements-b
 | 1008  | Manufacturer device name      |                      |               |
 | 1009  | Manufacturer hardware version |                      |               |
 | 100A  | Manufacturer software version |                      |               |
-| 100C  | Guard time                    |                      |               |
-| 100D  | Life time factor              |                      |               |
+| 100C  | Guard time                    | Node guarding slave  |               |
+| 100D  | Life time factor              | Node guarding slave  |               |
 | 1010  | Store parameters              |                      | STORAGE       |
 | 1011  | Restore default parameters    |                      |               |
 | 1012  | COB-ID time stamp object      | TIME, req            | TIME          |

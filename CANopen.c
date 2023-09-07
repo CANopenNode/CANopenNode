@@ -4,7 +4,7 @@
  * @file        CANopen.c
  * @ingroup     CO_CANopen
  * @author      Janez Paternoster
- * @copyright   2010 - 2020 Janez Paternoster
+ * @copyright   2010 - 2023 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -70,6 +70,21 @@
  #define CO_RX_CNT_HB_CONS OD_CNT_ARR_1016
 #else
  #define CO_RX_CNT_HB_CONS 0
+#endif
+
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+ #define CO_RX_CNT_NG_SLV 1
+ #define CO_TX_CNT_NG_SLV 1
+#else
+ #define CO_RX_CNT_NG_SLV 0
+ #define CO_TX_CNT_NG_SLV 0
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+ #define CO_RX_CNT_NG_MST 1
+ #define CO_TX_CNT_NG_MST 1
+#else
+ #define CO_RX_CNT_NG_MST 0
+ #define CO_TX_CNT_NG_MST 0
 #endif
 
 #if OD_CNT_EM != 1
@@ -267,7 +282,9 @@
 #define CO_RX_IDX_SDO_SRV   (CO_RX_IDX_RPDO     + CO_RX_CNT_RPDO)
 #define CO_RX_IDX_SDO_CLI   (CO_RX_IDX_SDO_SRV  + CO_RX_CNT_SDO_SRV)
 #define CO_RX_IDX_HB_CONS   (CO_RX_IDX_SDO_CLI  + CO_RX_CNT_SDO_CLI)
-#define CO_RX_IDX_LSS_SLV   (CO_RX_IDX_HB_CONS  + CO_RX_CNT_HB_CONS)
+#define CO_RX_IDX_NG_SLV    (CO_RX_IDX_HB_CONS  + CO_RX_CNT_HB_CONS)
+#define CO_RX_IDX_NG_MST    (CO_RX_IDX_NG_SLV   + CO_RX_CNT_NG_SLV)
+#define CO_RX_IDX_LSS_SLV   (CO_RX_IDX_NG_MST   + CO_RX_CNT_NG_MST)
 #define CO_RX_IDX_LSS_MST   (CO_RX_IDX_LSS_SLV  + CO_RX_CNT_LSS_SLV)
 #define CO_CNT_ALL_RX_MSGS  (CO_RX_IDX_LSS_MST  + CO_RX_CNT_LSS_MST)
 
@@ -281,7 +298,9 @@
 #define CO_TX_IDX_SDO_SRV   (CO_TX_IDX_TPDO     + CO_TX_CNT_TPDO)
 #define CO_TX_IDX_SDO_CLI   (CO_TX_IDX_SDO_SRV  + CO_TX_CNT_SDO_SRV)
 #define CO_TX_IDX_HB_PROD   (CO_TX_IDX_SDO_CLI  + CO_TX_CNT_SDO_CLI)
-#define CO_TX_IDX_LSS_SLV   (CO_TX_IDX_HB_PROD  + CO_TX_CNT_HB_PROD)
+#define CO_TX_IDX_NG_SLV    (CO_TX_IDX_HB_PROD  + CO_TX_CNT_HB_PROD)
+#define CO_TX_IDX_NG_MST    (CO_TX_IDX_NG_SLV   + CO_TX_CNT_NG_SLV)
+#define CO_TX_IDX_LSS_SLV   (CO_TX_IDX_NG_MST   + CO_TX_CNT_NG_MST)
 #define CO_TX_IDX_LSS_MST   (CO_TX_IDX_LSS_SLV  + CO_TX_CNT_LSS_SLV)
 #define CO_CNT_ALL_TX_MSGS  (CO_TX_IDX_LSS_MST  + CO_TX_CNT_LSS_MST)
 #endif /* #ifdef #else CO_MULTIPLE_OD */
@@ -381,6 +400,14 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
             CO_alloc_break_on_fail(co->HBconsMonitoredNodes, countOfMonitoredNodes, sizeof(*co->HBconsMonitoredNodes));
             ON_MULTI_OD(RX_CNT_HB_CONS = countOfMonitoredNodes);
         }
+#endif
+
+        /* Node guarding */
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+        CO_alloc_break_on_fail(co->NGslave, 1, sizeof(*co->NGslave));
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+        CO_alloc_break_on_fail(co->NGmaster, 1, sizeof(*co->NGmaster));
 #endif
 
         /* Emergency */
@@ -549,6 +576,12 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
         co->RX_IDX_HB_CONS = idxRx; idxRx += RX_CNT_HB_CONS;
 #endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+        co->RX_IDX_NG_SLV = idxRx; idxRx += 1;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+        co->RX_IDX_NG_MST = idxRx; idxRx += 1;
+#endif
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
         co->RX_IDX_LSS_SLV = idxRx; idxRx += RX_CNT_LSS_SLV;
 #endif
@@ -580,6 +613,12 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         co->TX_IDX_SDO_CLI = idxTx; idxTx += TX_CNT_SDO_CLI;
 #endif
         co->TX_IDX_HB_PROD = idxTx; idxTx += TX_CNT_HB_PROD;
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+        co->TX_IDX_NG_SLV = idxTx; idxTx += 1;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+        co->TX_IDX_NG_MST = idxTx; idxTx += 1;
+#endif
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
         co->TX_IDX_LSS_SLV = idxTx; idxTx += TX_CNT_LSS_SLV;
 #endif
@@ -682,6 +721,13 @@ void CO_delete(CO_t *co) {
     CO_free(co->em_fifo);
 #endif
 
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    CO_free(co->NGslave);
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    CO_free(co->NGmaster);
+#endif
+
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     CO_free(co->HBconsMonitoredNodes);
     CO_free(co->HBcons);
@@ -709,6 +755,12 @@ void CO_delete(CO_t *co) {
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     static CO_HBconsumer_t COO_HBcons;
     static CO_HBconsNode_t COO_HBconsMonitoredNodes[OD_CNT_ARR_1016];
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    static CO_nodeGuardingSlave_t COO_NGslave;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    static CO_nodeGuardingMaster_t COO_NGmaster;
 #endif
     static CO_EM_t COO_EM;
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
@@ -771,6 +823,12 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     co->HBcons = &COO_HBcons;
     co->HBconsMonitoredNodes = &COO_HBconsMonitoredNodes[0];
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    co->NGslave = &COO_NGslave;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    co->NGmaster = &COO_NGmaster;
 #endif
     co->em = &COO_EM;
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
@@ -1014,6 +1072,29 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                  errInfo);
         if (err) return err;
     }
+#endif
+
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    err = CO_nodeGuardingSlave_init(co->NGslave,
+                                    OD_GET(H100C, OD_H100C_GUARD_TIME),
+                                    OD_GET(H100D, OD_H100D_LIFETIME_FACTOR),
+                                    em,
+                                    CO_CAN_ID_HEARTBEAT + nodeId,
+                                    co->CANmodule,
+                                    CO_GET_CO(RX_IDX_NG_SLV),
+                                    co->CANmodule,
+                                    CO_GET_CO(TX_IDX_NG_SLV),
+                                    errInfo);
+    if (err) return err;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    err = CO_nodeGuardingMaster_init(co->NGmaster,
+                                     em,
+                                     co->CANmodule,
+                                     CO_GET_CO(RX_IDX_NG_MST),
+                                     co->CANmodule,
+                                     CO_GET_CO(TX_IDX_NG_MST));
+    if (err) return err;
 #endif
 
     /* SDOserver */
@@ -1383,6 +1464,18 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                               timeDifference_us,
                               timerNext_us);
     }
+#endif
+
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    CO_nodeGuardingSlave_process(co->NGslave,
+                                 NMTstate,
+                                 timeDifference_us,
+                                 timerNext_us);
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    CO_nodeGuardingMaster_process(co->NGmaster,
+                                  timeDifference_us,
+                                  timerNext_us);
 #endif
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE

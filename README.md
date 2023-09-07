@@ -19,7 +19,7 @@ Characteristics
 ### CANopen
  - [Object Dictionary](https://www.can-cia.org/can-knowledge/canopen/device-architecture/) offers clear and flexible organisation of any variables. Variables can be accessed directly or via read/write functions.
  - [NMT](https://www.can-cia.org/can-knowledge/canopen/network-management/) slave to start, stop, reset device. Simple NMT master.
- - [Heartbeat](https://www.can-cia.org/can-knowledge/canopen/error-control-protocols/) producer/consumer error control for monitoring of CANopen devices.
+ - [Heartbeat](https://www.can-cia.org/can-knowledge/canopen/error-control-protocols/) producer/consumer error control for monitoring of CANopen devices. An older alternative, 'node guarding', is also available.
  - [PDO](https://www.can-cia.org/can-knowledge/canopen/pdo-protocol/) for broadcasting process data with high priority and no protocol overhead. Variables from Object Dictionary can be dynamically mapped to the TPDO, which is then transmitted according to communication rules and received as RPDO by another device.
  - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) server enables expedited, segmented and block transfer access to all Object Dictionary variables inside CANopen device.
  - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) client can access any Object Dictionary variable on any CANopen device inside the network.
@@ -200,7 +200,7 @@ It is not practical to have all device interfaces in a single project. Interface
 Some details
 ------------
 ### RTR
-RTR (remote transmission request) is a feature of CAN bus. Usage of RTR is not recommended for CANopen and it is not implemented in CANopenNode.
+RTR (remote transmission request) is a feature of CAN bus. Usage of RTR is not recommended for CANopen. RTR PDO is not implemented in CANopenNode.
 
 ### Error control
 When node is started (in NMT operational state), it is allowed to send or receive Process Data Objects (PDO). If Error Register (object 0x1001) is set, then NMT operational state may not be allowed.

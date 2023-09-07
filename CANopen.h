@@ -5,7 +5,7 @@
  * @ingroup     CO_CANopen
  * @author      Janez Paternoster
  * @author      Uwe Kindler
- * @copyright   2010 - 2020 Janez Paternoster
+ * @copyright   2010 - 2023 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -32,6 +32,7 @@
 #include "301/CO_ODinterface.h"
 #include "301/CO_NMT_Heartbeat.h"
 #include "301/CO_HBconsumer.h"
+#include "301/CO_Node_Guarding.h"
 #include "301/CO_Emergency.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_SDOclient.h"
@@ -207,6 +208,10 @@ typedef struct {
      * object, 1 to 127. */
     uint8_t CNT_ARR_1016;
     OD_entry_t *ENTRY_H1016; /**< OD entry for @ref CO_HBconsumer_init()*/
+    /** OD entry for @ref CO_nodeGuardingSlave_init() */
+    OD_entry_t *ENTRY_H100C;
+    /** OD entry for @ref CO_nodeGuardingSlave_init() */
+    OD_entry_t *ENTRY_H100D;
     /** Number of Emergency objects, 0 or 1: optional producer (CANtx) +
      * optional consumer (CANrx), configurable by @ref CO_CONFIG_EM.
      * There must be one Emergency object in the device. */
@@ -302,6 +307,22 @@ typedef struct {
     CO_HBconsNode_t *HBconsMonitoredNodes;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
     uint16_t RX_IDX_HB_CONS; /**< Start index in CANrx. */
+ #endif
+#endif
+#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) || defined CO_DOXYGEN
+    /** Node guarding slave object, initialised by @ref CO_nodeGuardingSlave_init() */
+    CO_nodeGuardingSlave_t *NGslave;
+ #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
+    uint16_t RX_IDX_NG_SLV; /**< Start index in CANrx. */
+    uint16_t TX_IDX_NG_SLV; /**< Start index in CANtx. */
+ #endif
+#endif
+#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) || defined CO_DOXYGEN
+    /** Node guarding master object, initialised by @ref CO_nodeGuardingMaster_init() */
+    CO_nodeGuardingMaster_t *NGmaster;
+ #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
+    uint16_t RX_IDX_NG_MST; /**< Start index in CANrx. */
+    uint16_t TX_IDX_NG_MST; /**< Start index in CANtx. */
  #endif
 #endif
     /** Emergency object, initialised by @ref CO_EM_init() */
