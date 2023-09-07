@@ -73,6 +73,7 @@ extern "C" {
     #include "CO_TIME.h"
     #include "CO_PDO.h"
     #include "CO_HBconsumer.h"
+    #include "CO_Node_Guarding.h"
 #if CO_NO_SDO_CLIENT != 0
     #include "CO_SDOmaster.h"
 #endif
@@ -129,6 +130,12 @@ typedef struct{
     CO_RPDO_t          *RPDO[CO_NO_RPDO];/**< RPDO objects */
     CO_TPDO_t          *TPDO[CO_NO_TPDO];/**< TPDO objects */
     CO_HBconsumer_t    *HBcons;         /**<  Heartbeat consumer object*/
+#if CO_NODE_GUARDING_SLAVE > 0
+    CO_nodeGuardingSlave_t *NGslave;
+#endif
+#if CO_NODE_GUARDING_MASTER > 0
+    CO_nodeGuardingMaster_t *NGmaster;
+#endif
 #if CO_NO_LSS_SERVER == 1
     CO_LSSslave_t      *LSSslave;       /**< LSS server/slave object */
 #endif

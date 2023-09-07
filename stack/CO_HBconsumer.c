@@ -266,6 +266,7 @@ void CO_HBconsumer_process(
 {
     uint8_t i;
     uint8_t emcyHeartbeatTimeoutActive = 0;
+    uint8_t monitoringActive = 0;
     uint8_t emcyRemoteResetActive = 0;
     uint8_t AllMonitoredOperationalCopy;
     CO_HBconsNode_t *monitoredNode;
@@ -277,6 +278,7 @@ void CO_HBconsumer_process(
         for(i=0; i<HBcons->numberOfMonitoredNodes; i++){
             uint16_t timeDifference_ms_copy = timeDifference_ms;
             if(monitoredNode->time > 0){/* is node monitored */
+                monitoringActive = 1;
                 /* Verify if received message is heartbeat or bootup */
                 if(IS_CANrxNew(monitoredNode->CANrxNew)){
                     if(monitoredNode->NMTstate == CO_NMT_INITIALIZING){
@@ -347,10 +349,10 @@ void CO_HBconsumer_process(
     }
     /* clear emergencies. We only have one emergency index for all
      * monitored nodes! */
-    if ( ! emcyHeartbeatTimeoutActive) {
+    if ( ! emcyHeartbeatTimeoutActive && monitoringActive) {
         CO_errorReset(HBcons->em, CO_EM_HEARTBEAT_CONSUMER, 0);
     }
-    if ( ! emcyRemoteResetActive) {
+    if ( ! emcyRemoteResetActive && monitoringActive) {
         CO_errorReset(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, 0);
     }
 

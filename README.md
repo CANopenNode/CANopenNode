@@ -23,7 +23,7 @@ CANopenNode homepage is https://github.com/CANopenNode/CANopenNode
 CANopen Features
 ----------------
  - NMT slave to start, stop, reset device. Simple NMT master.
- - Heartbeat producer/consumer error control.
+ - Heartbeat producer/consumer error control. Node guarding.
  - PDO linking and dynamic mapping for fast exchange of process variables.
  - SDO expedited, segmented and block transfer for service access to all parameters.
  - SDO master.
@@ -35,7 +35,7 @@ CANopen Features
 
 ### RTR
 RTR (remote transmission request) is a feature of CAN bus. Usage of RTR
-is not recommended for CANopen and it is not implemented in CANopenNode.
+is not recommended for CANopen. RTR PDO is not implemented in CANopenNode.
 
 ### Self start
 Object **0x1F80** from Object Dictionary enables the NMT slaves to start

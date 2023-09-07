@@ -88,6 +88,16 @@
         #define CO_NO_HB_CONS   0
     #endif
     #define CO_NO_HB_PROD      1                                      /*  Producer Heartbeat Cont */
+    #if CO_NODE_GUARDING_SLAVE > 0
+        #define CO_NO_NG_SLV 1
+    #else
+        #define CO_NO_NG_SLV 0
+    #endif
+    #if CO_NODE_GUARDING_MASTER > 0
+        #define CO_NO_NG_MST 1
+    #else
+        #define CO_NO_NG_MST 0
+    #endif
 
     #define CO_RXCAN_NMT       0                                      /*  index for NMT message */
     #define CO_RXCAN_SYNC      1                                      /*  index for SYNC message */
@@ -97,7 +107,9 @@
     #define CO_RXCAN_SDO_SRV  (CO_RXCAN_RPDO+CO_NO_RPDO)              /*  start index for SDO server message (request) */
     #define CO_RXCAN_SDO_CLI  (CO_RXCAN_SDO_SRV+CO_NO_SDO_SERVER)     /*  start index for SDO client message (response) */
     #define CO_RXCAN_CONS_HB  (CO_RXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  start index for Heartbeat Consumer messages */
-    #define CO_RXCAN_LSS      (CO_RXCAN_CONS_HB+CO_NO_HB_CONS)        /*  index for LSS rx message */
+    #define CO_RXCAN_NG_SLV   (CO_RXCAN_CONS_HB+CO_NO_HB_CONS)        /*  index for Node guarding slave rx message */
+    #define CO_RXCAN_NG_MST   (CO_RXCAN_NG_SLV+CO_NO_NG_SLV)          /*  index for Node guarding master rx message */
+    #define CO_RXCAN_LSS      (CO_RXCAN_NG_MST+CO_NO_NG_MST)          /*  index for LSS rx message */
     /* total number of received CAN messages */
     #define CO_RXCAN_NO_MSGS (\
         1 + \
@@ -108,6 +120,8 @@
         CO_NO_SDO_SERVER + \
         CO_NO_SDO_CLIENT + \
         CO_NO_HB_CONS + \
+        CO_NO_NG_SLV + \
+        CO_NO_NG_MST + \
         CO_NO_LSS_SERVER + \
         CO_NO_LSS_CLIENT + \
         0 \
@@ -121,7 +135,9 @@
     #define CO_TXCAN_SDO_SRV  (CO_TXCAN_TPDO+CO_NO_TPDO)              /*  start index for SDO server message (response) */
     #define CO_TXCAN_SDO_CLI  (CO_TXCAN_SDO_SRV+CO_NO_SDO_SERVER)     /*  start index for SDO client message (request) */
     #define CO_TXCAN_HB       (CO_TXCAN_SDO_CLI+CO_NO_SDO_CLIENT)     /*  index for Heartbeat message */
-    #define CO_TXCAN_LSS      (CO_TXCAN_HB+CO_NO_HB_PROD)             /*  index for LSS tx message */
+    #define CO_TXCAN_NG_SLV   (CO_TXCAN_HB+CO_NO_HB_PROD)             /*  index for LSS tx message */
+    #define CO_TXCAN_NG_MST   (CO_TXCAN_NG_SLV+CO_NO_NG_SLV)          /*  index for LSS tx message */
+    #define CO_TXCAN_LSS      (CO_TXCAN_NG_MST+CO_NO_NG_MST)          /*  index for LSS tx message */
     /* total number of transmitted CAN messages */
     #define CO_TXCAN_NO_MSGS ( \
         CO_NO_NMT_MASTER + \
@@ -132,6 +148,8 @@
         CO_NO_SDO_SERVER + \
         CO_NO_SDO_CLIENT + \
         CO_NO_HB_PROD + \
+        CO_NO_NG_SLV + \
+        CO_NO_NG_MST + \
         CO_NO_LSS_SERVER + \
         CO_NO_LSS_CLIENT + \
         0\
@@ -157,6 +175,12 @@
     static CO_TPDO_t            COO_TPDO[CO_NO_TPDO];
     static CO_HBconsumer_t      COO_HBcons;
     static CO_HBconsNode_t      COO_HBcons_monitoredNodes[CO_NO_HB_CONS];
+#if CO_NODE_GUARDING_SLAVE > 0
+    static CO_nodeGuardingSlave_t COO_NGslave;
+#endif
+#if CO_NODE_GUARDING_MASTER > 0
+    static CO_nodeGuardingMaster_t COO_NGmaster;
+#endif
 #if CO_NO_LSS_SERVER == 1
     static CO_LSSslave_t        CO0_LSSslave;
 #endif
@@ -307,6 +331,12 @@ CO_ReturnError_t CO_new(void)
         CO->TPDO[i]                     = &COO_TPDO[i];
     CO->HBcons                          = &COO_HBcons;
     CO_HBcons_monitoredNodes            = &COO_HBcons_monitoredNodes[0];
+  #if CO_NODE_GUARDING_SLAVE > 0
+    CO->NGslave                         = &COO_NGslave;
+  #endif
+  #if CO_NODE_GUARDING_MASTER > 0
+    CO->NGmaster                        = &COO_NGmaster;
+  #endif
   #if CO_NO_LSS_SERVER == 1
     CO->LSSslave                        = &CO0_LSSslave;
   #endif
@@ -353,6 +383,12 @@ CO_ReturnError_t CO_new(void)
         }
         CO->HBcons                          = (CO_HBconsumer_t *)   calloc(1, sizeof(CO_HBconsumer_t));
         CO_HBcons_monitoredNodes            = (CO_HBconsNode_t *)   calloc(CO_NO_HB_CONS, sizeof(CO_HBconsNode_t));
+      #if CO_NODE_GUARDING_SLAVE > 0
+        CO->NGslave                         = (CO_nodeGuardingSlave_t *) calloc(1, sizeof(CO_nodeGuardingSlave_t));
+      #endif
+      #if CO_NODE_GUARDING_MASTER > 0
+        CO->NGmaster                        = (CO_nodeGuardingMaster_t *) calloc(1, sizeof(CO_nodeGuardingMaster_t));
+      #endif
       #if CO_NO_LSS_SERVER == 1
         CO->LSSslave                        = (CO_LSSslave_t *)     calloc(1, sizeof(CO_LSSslave_t));
       #endif
@@ -396,6 +432,12 @@ CO_ReturnError_t CO_new(void)
                   + sizeof(CO_TPDO_t) * CO_NO_TPDO
                   + sizeof(CO_HBconsumer_t)
                   + sizeof(CO_HBconsNode_t) * CO_NO_HB_CONS
+  #if CO_NODE_GUARDING_SLAVE > 0
+                  + sizeof(CO_nodeGuardingSlave_t)
+  #endif
+  #if CO_NODE_GUARDING_MASTER > 0
+                  + sizeof(CO_nodeGuardingMaster_t)
+  #endif
   #if CO_NO_LSS_SERVER == 1
                   + sizeof(CO_LSSslave_t)
   #endif
@@ -438,6 +480,12 @@ CO_ReturnError_t CO_new(void)
     }
     if(CO->HBcons                       == NULL) errCnt++;
     if(CO_HBcons_monitoredNodes         == NULL) errCnt++;
+  #if CO_NODE_GUARDING_SLAVE > 0
+    if(CO->NGslave                      == NULL) errCnt++;
+  #endif
+  #if CO_NODE_GUARDING_MASTER > 0
+    if(CO->NGmaster                     == NULL) errCnt++;
+  #endif
   #if CO_NO_LSS_SERVER == 1
     if(CO->LSSslave                     == NULL) errCnt++;
   #endif
@@ -705,6 +753,29 @@ CO_ReturnError_t CO_CANopenInit(
     if(err){return err;}
 
 
+#if CO_NODE_GUARDING_SLAVE > 0
+    err = CO_nodeGuardingSlave_init(CO->NGslave,
+                                    CO->em,
+                                    CO_CAN_ID_HEARTBEAT + nodeId,
+                                    CO->CANmodule[0],
+                                    CO_RXCAN_NG_SLV,
+                                    CO->CANmodule[0],
+                                    CO_TXCAN_NG_SLV);
+
+    if(err){return err;}
+#endif
+#if CO_NODE_GUARDING_MASTER > 0
+    err = CO_nodeGuardingMaster_init(CO->NGmaster,
+                                     CO->em,
+                                     CO->CANmodule[0],
+                                     CO_RXCAN_NG_MST,
+                                     CO->CANmodule[0],
+                                     CO_TXCAN_NG_MST);
+
+    if(err){return err;}
+#endif
+
+
 #if CO_NO_SDO_CLIENT != 0
 
     for(i=0; i<CO_NO_SDO_CLIENT; i++){
@@ -807,6 +878,12 @@ void CO_delete(void *CANdriverState){
   #if CO_NO_LSS_CLIENT == 1
     free(CO->LSSmaster);
   #endif
+  #if CO_NODE_GUARDING_MASTER > 0
+    free(CO->NGmaster);
+  #endif
+  #if CO_NODE_GUARDING_SLAVE > 0
+    free(CO->NGslave);
+  #endif
     free(CO_HBcons_monitoredNodes);
     free(CO->HBcons);
     for(i=0; i<CO_NO_RPDO; i++){
@@ -891,6 +968,19 @@ CO_NMT_reset_cmd_t CO_process(
             co->HBcons,
             NMTisPreOrOperational,
             timeDifference_ms);
+
+#if CO_NODE_GUARDING_SLAVE > 0
+    CO_nodeGuardingSlave_process(CO->NGslave,
+                                 CO_NMT_getInternalState(CO->NMT),
+                                 timeDifference_ms,
+                                 OD_guardTime,
+                                 OD_lifeTimeFactor);
+#endif
+
+#if CO_NODE_GUARDING_MASTER > 0
+    CO_nodeGuardingMaster_process(CO->NGmaster,
+                                  timeDifference_ms);
+#endif
 
 #if CO_NO_TIME == 1
     CO_TIME_process(
