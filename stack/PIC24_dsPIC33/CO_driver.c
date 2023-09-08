@@ -316,7 +316,7 @@ CO_ReturnError_t CO_CANmodule_init(
     DMA_REG(DMArxBaseAddress, DMA_CON) = 0x0020;
     DMA_REG(DMArxBaseAddress, DMA_PAD) = (volatile uint16_t) &CAN_REG(CANdriverState, C_RXD);
     DMA_REG(DMArxBaseAddress, DMA_CNT) = 7;
-    DMA_REG(DMArxBaseAddress, DMA_REQ) = (CANdriverState==ADDR_CAN1) ? 34 : 55;
+    DMA_REG(DMArxBaseAddress, DMA_REQ) = (CANdriverState== ADDR_CAN1) ? 34 : 55;
 
 #ifndef __HAS_EDS__
     DMA_REG(DMArxBaseAddress, DMA_STA) = CANmsgBuffDMAoffset;
@@ -331,7 +331,7 @@ CO_ReturnError_t CO_CANmodule_init(
     DMA_REG(DMAtxBaseAddress, DMA_CON) = 0x2020;
     DMA_REG(DMAtxBaseAddress, DMA_PAD) = (volatile uint16_t) &CAN_REG(CANdriverState, C_TXD);
     DMA_REG(DMAtxBaseAddress, DMA_CNT) = 7;
-    DMA_REG(DMAtxBaseAddress, DMA_REQ) = (CANdriverState==ADDR_CAN1) ? 70 : 71;
+    DMA_REG(DMAtxBaseAddress, DMA_REQ) = (CANdriverState== ADDR_CAN1) ? 70 : 71;
 
 #ifndef __HAS_EDS__
     DMA_REG(DMAtxBaseAddress, DMA_STA) = CANmsgBuffDMAoffset;
@@ -382,7 +382,7 @@ CO_ReturnError_t CO_CANrxBufferInit(
         /* buffer, which will be configured */
         CO_CANrx_t *buffer = &CANmodule->rxArray[index];
         uint16_t RXF, RXM;
-        uint16_t addr = CANmodule->CANdriverState;
+        uint16_t *addr = CANmodule->CANdriverState;
 
         /* Configure object variables */
         buffer->object = object;
@@ -538,7 +538,7 @@ static void CO_CANsendToModule(void *CANdriverState, __eds__ CO_CANrxMsg_t *dest
 /******************************************************************************/
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CO_ReturnError_t err = CO_ERROR_NO;
-    uint16_t addr = CANmodule->CANdriverState;
+    uint16_t *addr = CANmodule->CANdriverState;
     volatile uint16_t C_CTRL1old, C_TR01CONcopy;
 
     /* Verify overflow */

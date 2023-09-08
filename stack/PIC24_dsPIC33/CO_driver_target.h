@@ -24,22 +24,27 @@
  * limitations under the License.
  */
 
-
 #ifndef CO_DRIVER_TARGET_H
 #define CO_DRIVER_TARGET_H
 
-
-#if defined(__dsPIC33F__) || defined(__PIC24H__)
-#include <p33Fxxxx.h>       /* processor header file */
-#elif defined(__dsPIC33E__) || defined(__PIC24E__)
-#include <p33Exxxx.h>       /* processor header file */
+ #ifndef __XC__ 
+    #if defined(__dsPIC33F__) || defined(__PIC24H__)
+    #include <p33Fxxxx.h>       /* processor header file */
+    #elif defined(__dsPIC33E__) || defined(__PIC24E__)
+    #include <p33Exxxx.h>       /* processor header file */
+    #endif
+#else 
+#include <xc.h>
 #endif
+
 #include <stddef.h>         /* for 'NULL' */
 #include <stdint.h>         /* for 'int8_t' to 'uint64_t' */
 #include <stdbool.h>        /* for 'true' and 'false' */
 
 /* Endianness */
 #define CO_LITTLE_ENDIAN
+
+#define CO_USE_LEDS
 
 /* CAN message buffer sizes for CAN module 1 and 2. Valid values
  * are 0, 4, 6, 8, 12, 16. Default is one TX and seven RX messages (FIFO). */
@@ -89,8 +94,8 @@
 
 
 /* CAN module base addresses */
-#define ADDR_CAN1               ((uint16_t)&C1CTRL1)
-#define ADDR_CAN2               ((uint16_t)&C2CTRL1)
+#define ADDR_CAN1               ((uint16_t*)&C1CTRL1)
+#define ADDR_CAN2               ((uint16_t*)&C2CTRL1)
 
 /* DMA addresses */
 #define ADDR_DMA0               ((uint16_t)&DMA0CON)
@@ -115,7 +120,29 @@
 
 #define CO_DISABLE_INTERRUPTS()  asm volatile ("disi #0x3FFF")
 #define CO_ENABLE_INTERRUPTS()   asm volatile ("disi #0x0000")
-
+/**
+ * @name Synchronization functions
+ * synchronization for message buffer for communication between CAN receive and
+ * message processing threads.
+ *
+ * If receive function runs inside IRQ, no further synchronization is needed.
+ * Otherwise, some kind of synchronization has to be included. The following
+ * example uses GCC builtin memory barrier __sync_synchronize(). A comprehensive
+ * list can be found here: https://gist.github.com/leo-yuriev/ba186a6bf5cf3a27bae7
+ * \code{.c}
+    #define CANrxMemoryBarrier() __sync_synchronize()
+ * \endcode
+ * @{
+ */
+/** Memory barrier */
+#define CANrxMemoryBarrier()
+/** Check if new message has arrived */
+#define IS_CANrxNew(rxNew) ((uintptr_t)rxNew)
+/** Set new message flag */
+#define SET_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)1L;}
+/** Clear new message flag */
+#define CLEAR_CANrxNew(rxNew) {CANrxMemoryBarrier(); rxNew = (void*)0L;}
+/** @} */
 
 /* Data types */
 /* int8_t to uint64_t are defined in stdint.h */
