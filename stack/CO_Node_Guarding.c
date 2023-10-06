@@ -112,10 +112,10 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
         ngs->CANtxBuff->data[0] = (uint8_t) NMTstate;
         if (ngs->toggle) {
             ngs->CANtxBuff->data[0] |= 0x80;
-            ngs->toggle = 1;
+            ngs->toggle = 0;
         }
         else {
-            ngs->toggle = 0;
+            ngs->toggle = 1;
         }
         CO_CANsend(ngs->CANdevTx, ngs->CANtxBuff);
 
