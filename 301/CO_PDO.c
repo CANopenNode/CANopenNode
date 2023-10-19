@@ -656,6 +656,19 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     PDO->em = em;
     PDO->CANdev = CANdevRx;
 
+    /* Configure OD extensions */
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC
+    PDO->OD = OD;
+    PDO->OD_communicationParam_ext.object = RPDO;
+    PDO->OD_communicationParam_ext.read = OD_read_PDO_commParam;
+    PDO->OD_communicationParam_ext.write = OD_write_14xx;
+    PDO->OD_mappingParam_extension.object = RPDO;
+    PDO->OD_mappingParam_extension.read = OD_readOriginal;
+    PDO->OD_mappingParam_extension.write = OD_write_PDO_mapping;
+    OD_extension_init(OD_14xx_RPDOCommPar, &PDO->OD_communicationParam_ext);
+    OD_extension_init(OD_16xx_RPDOMapPar, &PDO->OD_mappingParam_extension);
+#endif
+
     /* Configure mapping parameters */
     uint32_t erroneousMap = 0;
     ret = PDO_initMapping(PDO,
@@ -742,18 +755,9 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     /* Configure OD extensions */
 #if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC
     PDO->isRPDO = true;
-    PDO->OD = OD;
     PDO->CANdevIdx = CANdevRxIdx;
     PDO->preDefinedCanId = preDefinedCanId;
     PDO->configuredCanId = CAN_ID;
-    PDO->OD_communicationParam_ext.object = RPDO;
-    PDO->OD_communicationParam_ext.read = OD_read_PDO_commParam;
-    PDO->OD_communicationParam_ext.write = OD_write_14xx;
-    PDO->OD_mappingParam_extension.object = RPDO;
-    PDO->OD_mappingParam_extension.read = OD_readOriginal;
-    PDO->OD_mappingParam_extension.write = OD_write_PDO_mapping;
-    OD_extension_init(OD_14xx_RPDOCommPar, &PDO->OD_communicationParam_ext);
-    OD_extension_init(OD_16xx_RPDOMapPar, &PDO->OD_mappingParam_extension);
 #endif
 
     return CO_ERROR_NO;
@@ -1095,6 +1099,19 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     PDO->em = em;
     PDO->CANdev = CANdevTx;
 
+    /* Configure OD extensions */
+#if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC
+    PDO->OD = OD;
+    PDO->OD_communicationParam_ext.object = TPDO;
+    PDO->OD_communicationParam_ext.read = OD_read_PDO_commParam;
+    PDO->OD_communicationParam_ext.write = OD_write_18xx;
+    PDO->OD_mappingParam_extension.object = TPDO;
+    PDO->OD_mappingParam_extension.read = OD_readOriginal;
+    PDO->OD_mappingParam_extension.write = OD_write_PDO_mapping;
+    OD_extension_init(OD_18xx_TPDOCommPar, &PDO->OD_communicationParam_ext);
+    OD_extension_init(OD_1Axx_TPDOMapPar, &PDO->OD_mappingParam_extension);
+#endif
+
     /* Configure mapping parameters */
     uint32_t erroneousMap = 0;
     CO_ReturnError_t ret = PDO_initMapping(PDO,
@@ -1196,18 +1213,9 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     /* Configure OD extensions */
 #if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC
     PDO->isRPDO = false;
-    PDO->OD = OD;
     PDO->CANdevIdx = CANdevTxIdx;
     PDO->preDefinedCanId = preDefinedCanId;
     PDO->configuredCanId = CAN_ID;
-    PDO->OD_communicationParam_ext.object = TPDO;
-    PDO->OD_communicationParam_ext.read = OD_read_PDO_commParam;
-    PDO->OD_communicationParam_ext.write = OD_write_18xx;
-    PDO->OD_mappingParam_extension.object = TPDO;
-    PDO->OD_mappingParam_extension.read = OD_readOriginal;
-    PDO->OD_mappingParam_extension.write = OD_write_PDO_mapping;
-    OD_extension_init(OD_18xx_TPDOCommPar, &PDO->OD_communicationParam_ext);
-    OD_extension_init(OD_1Axx_TPDOMapPar, &PDO->OD_mappingParam_extension);
 #endif
 
     return CO_ERROR_NO;
