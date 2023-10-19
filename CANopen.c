@@ -1469,6 +1469,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 #if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
     CO_nodeGuardingSlave_process(co->NGslave,
                                  NMTstate,
+                                 (co->NMT->HBproducerTime_us > 0),
                                  timeDifference_us,
                                  timerNext_us);
 #endif

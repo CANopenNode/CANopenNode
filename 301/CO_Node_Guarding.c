@@ -199,10 +199,18 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
 /******************************************************************************/
 void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
                                   CO_NMT_internalState_t NMTstate,
+                                  bool_t slaveDisable,
                                   uint32_t timeDifference_us,
                                   uint32_t *timerNext_us)
 {
     (void)timerNext_us; /* may be unused */
+
+    if (slaveDisable) {
+        ngs->toggle = false;
+        ngs->lifeTimer = 0;
+        CO_FLAG_CLEAR(ngs->CANrxNew);
+        return;
+    }
 
     /* was RTR just received */
     if (CO_FLAG_READ(ngs->CANrxNew)) {
