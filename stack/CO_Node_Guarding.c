@@ -99,10 +99,18 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
 /******************************************************************************/
 void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
                                   CO_NMT_internalState_t NMTstate,
+                                  uint8_t slaveDisable,
                                   uint16_t timeDifference_ms,
                                   uint16_t guardTime,
                                   uint8_t lifeTimeFactor)
 {
+
+    if (slaveDisable) {
+        ngs->toggle = 0;
+        ngs->lifeTimer = 0;
+        CLEAR_CANrxNew(ngs->CANrxNew);
+        return;
+    }
 
     /* was RTR just received */
     if (IS_CANrxNew(ngs->CANrxNew)) {

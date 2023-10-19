@@ -119,6 +119,7 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
  *
  * @param ngs This object.
  * @param NMTstate NMT operating state.
+ * @param slaveDisable If true, then Node guarding slave is disabled.
  * @param timeDifference_ms Time difference from previous function call in
  * milliseconds.
  * @param guardTime OD entry from 0x100C -"Guard time"
@@ -126,6 +127,7 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
  */
 void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
                                   CO_NMT_internalState_t NMTstate,
+                                  uint8_t slaveDisable,
                                   uint16_t timeDifference_ms,
                                   uint16_t guardTime,
                                   uint8_t lifeTimeFactor);
@@ -244,7 +246,6 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
  * configures monitoring of the remote node.
  *
  * @param ngm Node Guarding master object.
- * @param em Emergency object.
  * @param index Index of the slot, which will be configured.
  * 0 <= index < CO_NODE_GUARDING_MASTER.
  * @param nodeId Node Id of the monitored node.

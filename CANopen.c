@@ -972,6 +972,7 @@ CO_NMT_reset_cmd_t CO_process(
 #if CO_NODE_GUARDING_SLAVE > 0
     CO_nodeGuardingSlave_process(CO->NGslave,
                                  CO_NMT_getInternalState(CO->NMT),
+                                 (OD_producerHeartbeatTime > 0),
                                  timeDifference_ms,
                                  OD_guardTime,
                                  OD_lifeTimeFactor);
