@@ -48,6 +48,7 @@ Related projects
  - [CANopenEditor](https://github.com/CANopenNode/CANopenEditor): Object Dictionary editor, external GUI tool for editing CANopen Object Dictionary for custom device. It generates C source code, electronic data sheet and documentation for the device. It is a fork from [libedssharp](https://github.com/robincornelius/libedssharp).
  - [CANopenLinux](https://github.com/CANopenNode/CANopenLinux): CANopenNode on Linux devices. It can be a basic CANopen device or more advanced with commander functionalities.
  - [CANopenSTM32](https://github.com/CANopenNode/CanOpenSTM32): CANopenNode on STM32 microcontrollers.
+ - [Analog Devices Inc.](https://github.com/Analog-Devices-MSDK/CANopenADI): CANopenNode on Analog Devices Inc. MAX32xx microcontrollers.
  - [CANopenPIC](https://github.com/CANopenNode/CANopenPIC): CANopenNode on PIC microcontrollers from Microchip. Works with 16-bit and 32 bit devices. Includes example for Arduino style [Max32](https://reference.digilentinc.com/reference/microprocessor/max32/start) board.
  - [doc/deviceSupport.md](doc/deviceSupport.md): List of other implementations of CANopenNode on different devices.
 
