@@ -137,7 +137,7 @@ File structure
    - **crc16-ccitt.h/.c** - Calculation of CRC 16 CCITT polynomial.
  - **303/** - CANopen Recommendation
    - **CO_LEDs.h/.c** - CANopen LED Indicators
- - **304/** - CANopen Safety.
+ - **304/** - CANopen Safety (Implemented only in v1.3, not updated for the latest version).
    - **CO_SRDO.h/.c** - CANopen Safety-relevant Data Object protocol.
    - **CO_GFC.h/.c** - CANopen Global Failsafe Command (producer and consumer).
  - **305/** - CANopen layer setting services (LSS) and protocols.
