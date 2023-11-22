@@ -177,6 +177,49 @@ static void CO_LSSslave_receive(void *object, void *msg)
                 }
                 break;
             }
+            case CO_LSS_IDENT_SLAVE_VENDOR: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.vendorID = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_PRODUCT: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.productCode = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_REV_LOW: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.revisionNumberlow = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_REV_HIGH: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.revisionNumberhigh = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_SERIAL_LOW: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.serialNumberlow = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_SERIAL_HIGH: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.serialNumberhigh = CO_SWAP_32(valSw);
+
+                if (CO_LSS_IDENTIFY_REMOTE_SLAVE_EQUAL(LSSslave->lssAddress,
+                                         LSSslave->lssIdentscan)
+                ) {
+                    LSSslave->service = cs;
+                    request_LSSslave_process = true;
+                }
+                break;
+            }
             default: {
                 break;
             }
@@ -478,7 +521,9 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
             CANsend = true;
             break;
         }
-        case CO_LSS_IDENT_FASTSCAN: {
+        case CO_LSS_IDENT_FASTSCAN:
+            /* fall through */
+        case CO_LSS_IDENT_SLAVE_SERIAL_HIGH: {
             LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
             CANsend = true;
             break;
