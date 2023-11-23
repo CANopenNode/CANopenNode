@@ -172,7 +172,9 @@ typedef union {
 } CO_LSS_address_t;
 
 /**
- * beschreibung
+ * This structure is used for the LSS identify remote slave service. This
+ * service allows to get a revision and serial number if the vendor ID and
+ * product code is known.
  */
 typedef struct {
     uint32_t vendorID;
