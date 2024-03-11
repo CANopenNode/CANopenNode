@@ -331,7 +331,9 @@
 #endif
 
 /* Define macros for allocation */
-#define CO_alloc_break_on_fail(var, num, size)   if (((var) = CO_alloc((num), (size))) != NULL) { mem += (size) * (num); } else { break; }
+#define CO_alloc_break_on_fail(var, num, size) {                    \
+    var = CO_alloc((num), (size));                                  \
+    if((var) != NULL) { mem += (size) * (num); } else { break; } }
 
 #ifdef CO_MULTIPLE_OD
 #define ON_MULTI_OD(sentence) sentence
