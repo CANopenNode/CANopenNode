@@ -126,7 +126,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     uint16_t HBprodTime_ms;
     ODR_t odRet = OD_get_u16(OD_1017_ProducerHbTime, 0, &HBprodTime_ms, true);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1017_ProducerHbTime);
+        if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1017_ProducerHbTime); }
         return CO_ERROR_OD_PARAMETERS;
     }
     NMT->HBproducerTime_us = (uint32_t)HBprodTime_ms * 1000;
@@ -136,7 +136,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     NMT->OD_1017_extension.write = OD_write_1017;
     odRet = OD_extension_init(OD_1017_ProducerHbTime, &NMT->OD_1017_extension);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1017_ProducerHbTime);
+        if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1017_ProducerHbTime); }
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -298,6 +298,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
     ) {
         NMTstateCpy = CO_NMT_OPERATIONAL;
     }
+    else { /* MISRA C 2004 14.10 */ }
 
 #if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
     /* Notify operating state change */
@@ -321,7 +322,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
 #endif
 
     NMT->operatingState = NMTstateCpy;
-    if (NMTstate != NULL) *NMTstate = NMTstateCpy;
+    if (NMTstate != NULL) { *NMTstate = NMTstateCpy; }
 
     return resetCommand;
 }

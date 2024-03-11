@@ -467,7 +467,7 @@ static inline bool_t OD_mappable(OD_stream_t *stream) {
  * @param stream Object Dictionary stream object.
  */
 static inline void OD_rwRestart(OD_stream_t *stream) {
-    if (stream != NULL) stream->dataOffset = 0;
+    if (stream != NULL) { stream->dataOffset = 0; }
 }
 
 
@@ -588,7 +588,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
 static inline ODR_t OD_extension_init(OD_entry_t *entry,
                                       OD_extension_t *extension)
 {
-    if (entry == NULL) return ODR_IDX_NOT_EXIST;
+    if (entry == NULL) { return ODR_IDX_NOT_EXIST; }
     entry->extension = extension;
     return ODR_OK;
 }

@@ -114,7 +114,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
     uint32_t cobIdTimeStamp;
     ODR_t odRet = OD_get_u32(OD_1012_cobIdTimeStamp, 0, &cobIdTimeStamp, true);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1012_cobIdTimeStamp);
+        if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1012_cobIdTimeStamp); }
         return CO_ERROR_OD_PARAMETERS;
     }
 #if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC
@@ -140,8 +140,9 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
                 0,              /* rtr */
                 (void*)TIME,    /* object passed to receive function */
                 CO_TIME_receive);/*this function will process received message*/
-        if (ret != CO_ERROR_NO)
+        if (ret != CO_ERROR_NO) {
             return ret;
+        }
     }
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER

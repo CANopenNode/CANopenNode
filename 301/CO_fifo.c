@@ -398,6 +398,9 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                     delimCommandFound = true;
                 }
                 break;
+            default:
+                /* MISRA C 2004 15.3 */
+                break;
             }
             if (delimCommentFound == true) {
                 /* Comment delimiter found, clear all till end of the line. */
@@ -744,6 +747,9 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
                         case 2:
                             buf[len++] = base64EncTable[(word >> 6) & 0x3F];
                             buf[len++] = '=';
+                            break;
+                        default:
+                            /* MISRA C 2004 15.3 */
                             break;
                     }
                 }
@@ -1343,6 +1349,9 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
                     CO_fifo_putc(dest, (uint8_t)(dword >> 10));
                     CO_fifo_putc(dest, (uint8_t)(dword >> 2));
                     destSpace -= 2;
+                    break;
+                default:
+                    /* MISRA C 2004 15.3 */
                     break;
             }
 
