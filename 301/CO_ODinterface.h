@@ -223,6 +223,8 @@ typedef struct {
     OD_size_t dataOffset;
     /** Attribute bit-field of the OD sub-object, see @ref OD_attributes_t */
     OD_attr_t attribute;
+    /** Index of the OD object, informative */
+    uint16_t index;
     /** Sub index of the OD sub-object, informative */
     uint8_t subIndex;
 } OD_stream_t;

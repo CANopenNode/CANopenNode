@@ -255,6 +255,9 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
 
     /* Reset stream data offset */
     stream->dataOffset = 0;
+
+    /* Add informative data */
+    stream->index = entry->index;
     stream->subIndex = subIndex;
 
     return ODR_OK;
