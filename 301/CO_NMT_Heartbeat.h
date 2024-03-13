@@ -331,7 +331,7 @@ static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
 static inline void CO_NMT_sendInternalCommand(CO_NMT_t *NMT,
                                               CO_NMT_command_t command)
 {
-    if (NMT != NULL) NMT->internalCommand = command;
+    if (NMT != NULL) { NMT->internalCommand = command; }
 }
 
 

@@ -236,6 +236,9 @@ static CO_SDO_abortCode_t CO_ODF_traceConfig(CO_ODF_arg_t *ODF_arg) {
             }
         }
         break;
+    default:
+        /* MISRA C 2004 15.3 */
+        break;
     }
 
     return ret;
@@ -386,6 +389,9 @@ static CO_SDO_abortCode_t CO_ODF_trace(CO_ODF_arg_t *ODF_arg) {
                 ODF_arg->dataLength -= freeLen;
             }
         }
+        break;
+    default:
+        /* MISRA C 2004 15.3 */
         break;
     }
 

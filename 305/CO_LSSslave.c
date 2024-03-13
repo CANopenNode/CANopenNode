@@ -163,6 +163,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                             }
                         }
                     }
+                    else { /* MISRA C 2004 14.10 */ }
                     if (ack) {
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND
                         LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;

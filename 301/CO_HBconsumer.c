@@ -146,7 +146,7 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
         uint32_t val;
         odRet = OD_get_u32(OD_1016_HBcons, i + 1, &val, true);
         if (odRet != ODR_OK) {
-            if (errInfo != NULL) *errInfo = OD_getIndex(OD_1016_HBcons);
+            if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1016_HBcons); }
             return CO_ERROR_OD_PARAMETERS;
         }
 
@@ -154,10 +154,9 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
         uint16_t time = val & 0xFFFF;
         CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, time);
         if (ret != CO_ERROR_NO) {
-            if (errInfo != NULL) *errInfo = OD_getIndex(OD_1016_HBcons);
+            if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1016_HBcons); }
             /* don't break a program, if only value of a parameter is wrong */
-            if (ret != CO_ERROR_OD_PARAMETERS)
-                return ret;
+            if (ret != CO_ERROR_OD_PARAMETERS) { return ret; }
         }
     }
 
@@ -168,7 +167,7 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
     HBcons->OD_1016_extension.write = OD_write_1016;
     odRet = OD_extension_init(OD_1016_HBcons, &HBcons->OD_1016_extension);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1016_HBcons);
+        if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1016_HBcons); }
         return CO_ERROR_OD_PARAMETERS;
     }
 #endif
@@ -488,6 +487,7 @@ void CO_HBconsumer_process(
         allMonitoredActiveCurrent = false;
         allMonitoredOperationalCurrent = false;
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     /* Clear emergencies when all monitored nodes becomes active.
      * We only have one emergency index for all monitored nodes! */

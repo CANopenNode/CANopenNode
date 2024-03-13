@@ -331,7 +331,9 @@
 #endif
 
 /* Define macros for allocation */
-#define CO_alloc_break_on_fail(var, num, size)   if (((var) = CO_alloc((num), (size))) != NULL) { mem += (size) * (num); } else { break; }
+#define CO_alloc_break_on_fail(var, num, size) {                    \
+    var = CO_alloc((num), (size));                                  \
+    if((var) != NULL) { mem += (size) * (num); } else { break; } }
 
 #ifdef CO_MULTIPLE_OD
 #define ON_MULTI_OD(sentence) sentence
@@ -893,7 +895,7 @@ bool_t CO_isLSSslaveEnabled(CO_t *co) {
     (void) co; /* may be unused */
     bool_t en = false;
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-    if (CO_GET_CNT(LSS_SLV) == 1) en = true;
+    if (CO_GET_CNT(LSS_SLV) == 1) { en = true; }
 #endif
     return en;
 }
@@ -902,7 +904,7 @@ bool_t CO_isLSSslaveEnabled(CO_t *co) {
 CO_ReturnError_t CO_CANinit(CO_t *co, void *CANptr, uint16_t bitRate) {
     CO_ReturnError_t err;
 
-    if (co == NULL) return CO_ERROR_ILLEGAL_ARGUMENT;
+    if (co == NULL) { return CO_ERROR_ILLEGAL_ARGUMENT; }
 
     co->CANmodule->CANnormal = false;
     CO_CANsetConfigurationMode(CANptr);
@@ -993,11 +995,12 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     if (nodeId < 1 || nodeId > 127) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
+    else { /* MISRA C 2004 14.10 */ }
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     if (CO_GET_CNT(LEDS) == 1) {
         err = CO_LEDs_init(co->LEDs);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1034,7 +1037,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
  #endif
                          nodeId,
                          errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
 
     /* NMT_Heartbeat */
@@ -1057,7 +1060,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                           CO_GET_CO(TX_IDX_HB_PROD),
                           CO_CAN_ID_HEARTBEAT + nodeId,
                           errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
@@ -1070,7 +1073,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                  co->CANmodule,
                                  CO_GET_CO(RX_IDX_HB_CONS),
                                  errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1085,7 +1088,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(TX_IDX_NG_SLV),
                                     errInfo);
-    if (err) return err;
+    if (err) { return err; }
 #endif
 #if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
     err = CO_nodeGuardingMaster_init(co->NGmaster,
@@ -1094,7 +1097,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                      CO_GET_CO(RX_IDX_NG_MST),
                                      co->CANmodule,
                                      CO_GET_CO(TX_IDX_NG_MST));
-    if (err) return err;
+    if (err) { return err; }
 #endif
 
     /* SDOserver */
@@ -1111,7 +1114,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(TX_IDX_SDO_SRV) + i,
                                     errInfo);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 
@@ -1128,7 +1131,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(TX_IDX_SDO_CLI) + i,
                                     errInfo);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1144,7 +1147,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            CO_GET_CO(TX_IDX_TIME),
 #endif
                            errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1163,7 +1166,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            CO_GET_CO(TX_IDX_SYNC),
 #endif
                            errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1177,7 +1180,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                           co->CANmodule,
                           CO_GET_CO(TX_IDX_GFC),
                           CO_CAN_ID_GFC);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1189,7 +1192,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 &OD_configurationValid,
                                 OD_H13FE_SRDO_VALID,
                                 OD_H13FF_SRDO_CHECKSUM);
-        if (err) return err;
+        if (err) { return err; }
 
         OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
         OD_entry_t *SRDOmap = OD_GET(H1318, OD_H1381_SRDO_1_MAPPING);
@@ -1214,7 +1217,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                co->CANmodule,
                                CANdevTxIdx,
                                CANdevTxIdx + 1);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1229,7 +1232,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 co->CANmodule,
                                 CO_GET_CO(TX_IDX_LSS_MST),
                                 CO_CAN_ID_LSS_MST);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1251,7 +1254,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            co->LEDs,
  #endif
                            0);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1274,7 +1277,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 &OD_trace[i].triggerTime,
                                 OD_INDEX_TRACE_CONFIG + i,
                                 OD_INDEX_TRACE + i);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1327,7 +1330,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                co->CANmodule,
                                CO_GET_CO(RX_IDX_RPDO) + i,
                                errInfo);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1361,7 +1364,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                co->CANmodule,
                                CO_GET_CO(TX_IDX_TPDO) + i,
                                errInfo);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1524,6 +1527,9 @@ bool_t CO_process_SYNC(CO_t *co,
                 break;
             case CO_SYNC_PASSED_WINDOW:
                 CO_CANclearPendingSyncPDOs(co->CANmodule);
+                break;
+            default:
+                /* MISRA C 2004 15.3 */
                 break;
         }
     }
