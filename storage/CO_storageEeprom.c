@@ -34,14 +34,13 @@
  * For more information see file CO_storage.h, CO_storage_entry_t.
  */
 static ODR_t storeEeprom(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
+    (void) CANmodule;
     bool_t writeOk;
 
     /* save data to the eeprom */
-    CO_LOCK_OD(CANmodule);
     writeOk = CO_eeprom_writeBlock(entry->storageModule, entry->addr,
                                    entry->eepromAddr, entry->len);
     entry->crc = crc16_ccitt(entry->addr, entry->len, 0);
-    CO_UNLOCK_OD(CANmodule);
 
     /* Verify, if data in eeprom are equal */
     uint16_t crc_read = CO_eeprom_getCrcBlock(entry->storageModule,

@@ -257,9 +257,8 @@ typedef struct {
      * not large enough. ("*returnCode" must not return 'ODR_PARTIAL', if there
      * is still space in "buf".)
      *
-     * @warning When accessing OD variables by calling the read() function, it
-     * may be necessary to use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros.
-     * See @ref CO_critical_sections for more information.
+     * @warning Do not use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros
+     * inside the read() function. See also @ref CO_critical_sections.
      *
      * @param stream Object Dictionary stream object.
      * @param buf Pointer to external buffer, where to data will be copied.
@@ -288,9 +287,8 @@ typedef struct {
      * "write" function must always copy all available data from buf. If OD
      * variable expect more data, then "*returnCode" must return 'ODR_PARTIAL'.
      *
-     * @warning When accessing OD variables by calling the read() function, it
-     * may be necessary to use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros.
-     * See @ref CO_critical_sections for more information.
+     * @warning Do not use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros
+     * inside the write() function. See also @ref CO_critical_sections.
      *
      * @param stream Object Dictionary stream object.
      * @param buf Pointer to external buffer, from where data will be copied.
