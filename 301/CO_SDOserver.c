@@ -951,7 +951,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     || (CO_CONFIG_SDO_SRV_BUFFER_SIZE - SDO->bufOffsetWr)<(7+2)
                 ) {
                     if (!validateAndWriteToOD(SDO, &abortCode, 0, 0)) {
-                      break;
+                        break;
                     }
                 }
 
@@ -1164,10 +1164,10 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             /* unknown message received */
             abortCode = CO_SDO_AB_CMD;
             SDO->state = CO_SDO_ST_ABORT;
+            break;
         }
-        break;
         } /* switch (SDO->state) */
-    } /* if (SDO->state != CO_SDO_ST_IDLE && SDO->state != CO_SDO_ST_ABORT) */
+        } /* if (SDO->state != CO_SDO_ST_IDLE && SDO->state != CO_SDO_ST_ABORT) */
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
         SDO->timeoutTimer = 0;
 #endif
