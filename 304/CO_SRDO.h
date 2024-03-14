@@ -36,7 +36,7 @@
 #define CO_CONFIG_SRDO (0)
 #endif
 #ifndef CO_CONFIG_SRDO_MINIMUM_DELAY
-#define CO_CONFIG_SRDO_MINIMUM_DELAY 0
+#define CO_CONFIG_SRDO_MINIMUM_DELAY 0U
 #endif
 
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
@@ -60,13 +60,13 @@ extern "C" {
 
 /** Maximum size of SRDO message, 8 for standard CAN */
 #ifndef CO_SRDO_MAX_SIZE
-#define CO_SRDO_MAX_SIZE 8
+#define CO_SRDO_MAX_SIZE 8U
 #endif
 
 /** Maximum number of entries, which can be mapped to PDO, 8 for standard CAN,
  * may be less to preserve RAM usage */
 #ifndef CO_SRDO_MAX_MAPPED_ENTRIES
-#define CO_SRDO_MAX_MAPPED_ENTRIES 8
+#define CO_SRDO_MAX_MAPPED_ENTRIES 8U
 #endif
 
 #ifndef CO_SRDO_OWN_TYPES
