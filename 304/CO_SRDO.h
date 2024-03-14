@@ -115,6 +115,10 @@ typedef struct{
     CO_NMT_internalState_t  operatingStatePrev; /**< last operation state */
     uint8_t                *configurationValid; /**< pointer to the configuration valid flag in OD */
     uint8_t                 checkCRC;           /**< specifies whether a CRC check should be performed */
+    
+    /** Extension for OD object */
+    OD_extension_t OD_13FE_extension;
+    OD_extension_t OD_13FF_extension;
 }CO_SRDOGuard_t;
 
 /**
@@ -177,8 +181,9 @@ CO_ReturnError_t CO_SRDOGuard_init(
         CO_SDOserver_t         *SDO,
         CO_NMT_internalState_t *operatingState,
         uint8_t                *configurationValid,
-        uint16_t                idx_SRDOvalid,
-        uint16_t                idx_SRDOcrc);
+        OD_entry_t                *OD_13FE_SRDOValid, 
+        OD_entry_t                *OD_13FF_SRDOCRC,
+        uint32_t *errInfo);
 
 /**
  * Process operation and valid state changes.

@@ -452,30 +452,44 @@ static CO_SDO_abortCode_t CO_ODF_SRDOmap(CO_ODF_arg_t *ODF_arg){
     return CO_SDO_AB_NONE;
 }
 
-static CO_SDO_abortCode_t CO_ODF_SRDOcrc(CO_ODF_arg_t *ODF_arg){
-    CO_SRDOGuard_t *SRDOGuard;
-
-    SRDOGuard = (CO_SRDOGuard_t*) ODF_arg->object;
-
-    if (!ODF_arg->reading){
-        if(*SRDOGuard->operatingState == CO_NMT_OPERATIONAL)
-            return CO_SDO_AB_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
-        *SRDOGuard->configurationValid = CO_SRDO_INVALID;
+static ODR_t OD_write_13FE(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
+{
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
+        || count != sizeof(uint8_t) || countWritten == NULL
+    ) {
+        return ODR_DEV_INCOMPAT;
     }
-    return CO_SDO_AB_NONE;
+
+    CO_SRDOGuard_t *SRDOGuard = stream->object;
+    uint8_t value = CO_getUint8(buf);
+
+    if(*SRDOGuard->operatingState == CO_NMT_OPERATIONAL)
+        return ODR_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
+    SRDOGuard->checkCRC = value == CO_SRDO_VALID_MAGIC;
+
+    /* write value to the original location in the Object Dictionary */
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
-static CO_SDO_abortCode_t CO_ODF_SRDOvalid(CO_ODF_arg_t *ODF_arg){
-    CO_SRDOGuard_t *SRDOGuard;
-
-    SRDOGuard = (CO_SRDOGuard_t*) ODF_arg->object;
-
-    if(!ODF_arg->reading){
-        if(*SRDOGuard->operatingState == CO_NMT_OPERATIONAL)
-            return CO_SDO_AB_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
-        SRDOGuard->checkCRC = ODF_arg->data[0] == CO_SRDO_VALID_MAGIC;
+static ODR_t OD_write_13FF(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
+{
+    if (stream == NULL || stream->subIndex == 0 || buf == NULL
+        || count != sizeof(uint16_t) || countWritten == NULL
+    ) {
+        return ODR_DEV_INCOMPAT;
     }
-    return CO_SDO_AB_NONE;
+
+    CO_SRDOGuard_t *SRDOGuard = stream->object;
+    uint16_t value = CO_getUint16(buf);
+
+    if(*SRDOGuard->operatingState == CO_NMT_OPERATIONAL)
+        return ODR_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
+    *SRDOGuard->configurationValid = CO_SRDO_INVALID;
+
+    /* write value to the original location in the Object Dictionary */
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
 CO_ReturnError_t CO_SRDOGuard_init(
@@ -483,13 +497,17 @@ CO_ReturnError_t CO_SRDOGuard_init(
         CO_SDOserver_t         *SDO,
         CO_NMT_internalState_t *operatingState,
         uint8_t                *configurationValid,
-        uint16_t                idx_SRDOvalid,
-        uint16_t                idx_SRDOcrc)
+        OD_entry_t             *OD_13FE_SRDOValid,
+        OD_entry_t             *OD_13FF_SRDOCRC,
+        uint32_t *errInfo)
 {
     /* verify arguments */
-    if(SRDOGuard==NULL || SDO==NULL || operatingState==NULL || configurationValid==NULL){
+    if(SRDOGuard==NULL || SDO==NULL || operatingState==NULL || configurationValid==NULL || OD_13FE_SRDOValid==NULL || OD_13FF_SRDOCRC==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
+    
+    /* clear object */
+    memset(SRDOGuard, 0, sizeof(CO_SRDOGuard_t));
 
     SRDOGuard->operatingState = operatingState;
     SRDOGuard->operatingStatePrev = CO_NMT_INITIALIZING;
@@ -498,8 +516,15 @@ CO_ReturnError_t CO_SRDOGuard_init(
 
 
     /* Configure Object dictionary entry at index 0x13FE and 0x13FF */
-    CO_OD_configure(SDO, idx_SRDOvalid, CO_ODF_SRDOvalid, (void*)SRDOGuard, 0, 0);
-    CO_OD_configure(SDO, idx_SRDOcrc, CO_ODF_SRDOcrc, (void*)SRDOGuard, 0, 0);
+    SRDOGuard->OD_13FE_extension.object = SRDOGuard;
+    SRDOGuard->OD_13FE_extension.read = OD_readOriginal;
+    SRDOGuard->OD_13FE_extension.write = OD_write_13FE;
+    OD_extension_init(OD_13FE_SRDOValid, &SRDOGuard->OD_13FE_extension);
+    
+    SRDOGuard->OD_13FF_extension.object = SRDOGuard;
+    SRDOGuard->OD_13FF_extension.read = OD_readOriginal;
+    SRDOGuard->OD_13FF_extension.write = OD_write_13FF;
+    OD_extension_init(OD_13FF_SRDOCRC, &SRDOGuard->OD_13FF_extension);
 
     return CO_ERROR_NO;
 }
