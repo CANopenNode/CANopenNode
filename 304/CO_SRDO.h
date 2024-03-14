@@ -122,7 +122,7 @@ typedef struct{
  */
 typedef struct{
     CO_EM_t                *em;                  /**< From CO_SRDO_init() */
-    CO_SDO_t               *SDO;                 /**< From CO_SRDO_init() */
+    CO_SDOserver_t         *SDO;                 /**< From CO_SRDO_init() */
     CO_SRDOGuard_t         *SRDOGuard;           /**< From CO_SRDO_init() */
     /** Pointers to 2*8 data objects, where SRDO will be copied */
     uint8_t                *mapPointer[2][8];
@@ -174,7 +174,7 @@ typedef struct{
  */
 CO_ReturnError_t CO_SRDOGuard_init(
         CO_SRDOGuard_t         *SRDOGuard,
-        CO_SDO_t               *SDO,
+        CO_SDOserver_t         *SDO,
         CO_NMT_internalState_t *operatingState,
         uint8_t                *configurationValid,
         uint16_t                idx_SRDOvalid,
@@ -222,7 +222,7 @@ CO_ReturnError_t CO_SRDO_init(
         CO_SRDO_t              *SRDO,
         CO_SRDOGuard_t         *SRDOGuard,
         CO_EM_t                *em,
-        CO_SDO_t               *SDO,
+        CO_SDOserver_t         *SDO,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
         const CO_SRDOCommPar_t *SRDOCommPar,

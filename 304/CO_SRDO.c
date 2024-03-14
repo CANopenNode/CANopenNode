@@ -480,7 +480,7 @@ static CO_SDO_abortCode_t CO_ODF_SRDOvalid(CO_ODF_arg_t *ODF_arg){
 
 CO_ReturnError_t CO_SRDOGuard_init(
         CO_SRDOGuard_t         *SRDOGuard,
-        CO_SDO_t               *SDO,
+        CO_SDOserver_t         *SDO,
         CO_NMT_internalState_t *operatingState,
         uint8_t                *configurationValid,
         uint16_t                idx_SRDOvalid,
@@ -552,7 +552,7 @@ CO_ReturnError_t CO_SRDO_init(
         CO_SRDO_t              *SRDO,
         CO_SRDOGuard_t         *SRDOGuard,
         CO_EM_t                *em,
-        CO_SDO_t               *SDO,
+        CO_SDOserver_t         *SDO,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
         const CO_SRDOCommPar_t *SRDOCommPar,
@@ -666,7 +666,7 @@ void CO_SRDO_process(
                     if(SRDO->SDO->ODExtensions){
                         /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
                         const uint32_t* pMap = &SRDO->SRDOMapPar->mappedObjects[0];
-                        CO_SDO_t *pSDO = SRDO->SDO;
+                        CO_SDOserver_t *pSDO = SRDO->SDO;
 
                         for(i=SRDO->SRDOMapPar->numberOfMappedObjects; i>0; i--){
                             uint32_t map = *(pMap++);
@@ -779,7 +779,7 @@ void CO_SRDO_process(
                             int16_t i;
                             /* for each mapped OD, check mapping to see if an OD extension is available, and call it if it is */
                             const uint32_t* pMap = &SRDO->SRDOMapPar->mappedObjects[0];
-                            CO_SDO_t *pSDO = SRDO->SDO;
+                            CO_SDOserver_t *pSDO = SRDO->SDO;
 
                             for(i=SRDO->SRDOMapPar->numberOfMappedObjects; i>0; i--){
                                 uint32_t map = *(pMap++);
