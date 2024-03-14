@@ -101,9 +101,9 @@ static void CO_SRDOconfigCom(CO_SRDO_t* SRDO, uint32_t COB_IDnormal, uint32_t CO
     SRDO->valid = CO_SRDO_INVALID;
 
     /* is SRDO used? */
-    if(*SRDO->SRDOGuard->configurationValid == CO_SRDO_VALID_MAGIC && (SRDO->SRDOCommPar->informationDirection == CO_SRDO_TX || SRDO->SRDOCommPar->informationDirection == CO_SRDO_RX) &&
+    if(*SRDO->SRDOGuard->configurationValid == CO_SRDO_VALID_MAGIC && (SRDO->CommPar_informationDirection == CO_SRDO_TX || SRDO->CommPar_informationDirection == CO_SRDO_RX) &&
         SRDO->dataLength){
-        ID = &IDs[SRDO->SRDOCommPar->informationDirection - 1][0];
+        ID = &IDs[SRDO->CommPar_informationDirection - 1][0];
         /* is used default COB-ID? */
         for(i = 0; i < 2; i++){
             if(!(COB_ID[i] & 0xBFFFF800L)){
@@ -120,13 +120,13 @@ static void CO_SRDOconfigCom(CO_SRDO_t* SRDO, uint32_t COB_IDnormal, uint32_t CO
     }
     /* all ids are ok*/
     if(successCount == 2){
-        SRDO->valid = SRDO->SRDOCommPar->informationDirection;
+        SRDO->valid = SRDO->CommPar_informationDirection;
 
         if (SRDO->valid == CO_SRDO_TX){
             SRDO->timer = 500 * SRDO->nodeId; /* 0.5ms * node-ID delay*/
         }
         else if (SRDO->valid == CO_SRDO_RX){
-            SRDO->timer = SRDO->SRDOCommPar->safetyCycleTime * 1000U;
+            SRDO->timer = SRDO->CommPar_safetyCycleTime * 1000U;
         }
     }
     else{
@@ -166,290 +166,295 @@ static void CO_SRDOconfigCom(CO_SRDO_t* SRDO, uint32_t COB_IDnormal, uint32_t CO
     }
 }
 
-static uint32_t CO_SRDOfindMap(
-        CO_SDO_t               *SDO,
-        uint32_t                map,
-        uint8_t                 R_T,
-        uint8_t               **ppData,
-        uint8_t                *pLength,
-        uint8_t                *pSendIfCOSFlags,
-        uint8_t                *pIsMultibyteVar)
-{
-    uint16_t entryNo;
-    uint16_t index;
-    uint8_t subIndex;
-    uint8_t dataLen;
-    uint8_t objectLen;
-    uint8_t attr;
+static CO_ReturnError_t SRDO_configMap(CO_SRDO_t* SRDO,
+                                        OD_t *OD,
+                                        OD_entry_t *OD_SRDOMapPar){
+    ODR_t odRet;
+    size_t pdoDataLength[2] = { 0, 0 };
+    uint8_t mappedObjectsCount = 0;
+    uint8_t *errInfo = NULL;         
+    //uint32_t *erroneousMap = NULL;
 
-    index = (uint16_t)(map>>16);
-    subIndex = (uint8_t)(map>>8);
-    dataLen = (uint8_t) map;   /* data length in bits */
-
-    /* data length must be byte aligned */
-    if(dataLen&0x07) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
-
-    dataLen >>= 3;    /* new data length is in bytes */
-    *pLength += dataLen;
-
-    /* total PDO length can not be more than 8 bytes */
-    if(*pLength > 8) return CO_SDO_AB_MAP_LEN;  /* The number and length of the objects to be mapped would exceed PDO length. */
-
-    /* is there a reference to dummy entries */
-    if(index <=7 && subIndex == 0){
-        static uint32_t dummyTX = 0;
-        static uint32_t dummyRX;
-        uint8_t dummySize = 4;
-
-        if(index<2) dummySize = 0;
-        else if(index==2 || index==5) dummySize = 1;
-        else if(index==3 || index==6) dummySize = 2;
-
-        /* is size of variable big enough for map */
-        if(dummySize < dataLen) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
-
-        /* Data and ODE pointer */
-        if(R_T == 0) *ppData = (uint8_t*) &dummyRX;
-        else         *ppData = (uint8_t*) &dummyTX;
-
-        return 0;
+    /* number of mapped application objects in SRDO */
+    odRet = OD_get_u8(OD_SRDOMapPar, 0, &mappedObjectsCount, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_SRDOMapPar)) << 8) | 0;
+        }
+        return CO_ERROR_OD_PARAMETERS;
     }
+    if (mappedObjectsCount > CO_SRDO_MAX_SIZE) {
+        //*erroneousMap = 1;
+        return CO_ERROR_NO;
+    }
+    
+    /* iterate mapped OD variables */
+    for(uint8_t i=0; i<mappedObjectsCount; i++){
+        bool_t isRSRDO = SRDO->CommPar_informationDirection == CO_SRDO_RX;
+        uint32_t map = 0;
+        uint8_t plain_inverted = i%2;
 
-    /* find object in Object Dictionary */
-    entryNo = CO_OD_find(SDO, index);
+        odRet = OD_get_u32(OD_SRDOMapPar, i + 1, &map, true);
+        if (odRet != ODR_OK) {
+            if (errInfo != NULL) {
+                *errInfo = (((uint32_t)OD_getIndex(OD_SRDOMapPar)) << 8) | i;
+            }
+            return CO_ERROR_OD_PARAMETERS;
+        }
 
-    /* Does object exist in OD? */
-    if(entryNo == 0xFFFF || subIndex > SDO->OD[entryNo].maxSubIndex)
-        return CO_SDO_AB_NOT_EXIST;   /* Object does not exist in the object dictionary. */
+        uint16_t index = (uint16_t) (map >> 16);
+        uint8_t subIndex = (uint8_t) (map >> 8);
+        uint8_t mappedLengthBits = (uint8_t) map;
+        uint8_t mappedLength = mappedLengthBits >> 3;
+        uint8_t pdoDataStart = pdoDataLength[plain_inverted];
+        pdoDataLength[plain_inverted] += mappedLength;
 
-    attr = CO_OD_getAttribute(SDO, entryNo, subIndex);
-    /* Is object Mappable for RPDO? */
-    if(R_T==0 && !((attr&CO_ODA_RPDO_MAPABLE) && (attr&CO_ODA_WRITEABLE))) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
-    /* Is object Mappable for TPDO? */
-    if(R_T!=0 && !((attr&CO_ODA_TPDO_MAPABLE) && (attr&CO_ODA_READABLE))) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
+        if ((mappedLengthBits & 0x07) != 0 || pdoDataLength[plain_inverted] > CO_SRDO_MAX_SIZE) {
+            //*erroneousMap = map;
+            return CO_ERROR_NO;
+        }
 
-    /* is size of variable big enough for map */
-    objectLen = CO_OD_getLength(SDO, entryNo, subIndex);
-    if(objectLen < dataLen) return CO_SDO_AB_NO_MAP;   /* Object cannot be mapped to the PDO. */
+        /* is there a reference to the dummy entry */
+        if (index < 0x20 && subIndex == 0) {
+            for (uint8_t j = pdoDataStart; j < pdoDataLength[plain_inverted]; j++) {
+                static uint8_t dummyTX = 0;
+                static uint8_t dummyRX;
+                SRDO->mapPointer[plain_inverted][j] = isRSRDO ? &dummyRX : &dummyTX;
+            }
+            continue;
+        }
 
-    /* mark multibyte variable */
-    *pIsMultibyteVar = (attr&CO_ODA_MB_VALUE) ? 1 : 0;
+        /* find entry in the Object Dictionary, original location */
+        OD_IO_t OD_IO;
+        OD_entry_t *entry = OD_find(OD, index);
+        OD_attr_t testAttribute = isRSRDO ? ODA_RSRDO : ODA_TSRDO;
 
-    /* pointer to data */
-    *ppData = (uint8_t*) CO_OD_getDataPointer(SDO, entryNo, subIndex);
+        ODR_t odRet = OD_getSub(entry, subIndex, &OD_IO, true);
+        if (odRet != ODR_OK
+            || (OD_IO.stream.attribute & testAttribute) == 0
+            || OD_IO.stream.dataLength < mappedLength
+            || OD_IO.stream.dataOrig == NULL
+        ) {
+            //*erroneousMap = map;
+            return CO_ERROR_NO;
+        }
+
+        /* write locations to OD variable data bytes into PDO map pointers */
 #ifdef CO_BIG_ENDIAN
-    /* skip unused MSB bytes */
-    if(*pIsMultibyteVar){
-        *ppData += objectLen - dataLen;
-    }
+        if((OD_IO.stream.attribute & ODA_MB) != 0) {
+            uint8_t *odDataPointer = OD_IO.stream.dataOrig
+                                   + OD_IO.stream.dataLength - 1;
+            for (uint8_t j = pdoDataStart; j < pdoDataLength; j++) {
+                SRDO->mapPointer[j] = odDataPointer--;
+            }
+        }
+        else
 #endif
-
-    /* setup change of state flags */
-    if(attr&CO_ODA_TPDO_DETECT_COS){
-        int16_t i;
-        for(i=*pLength-dataLen; i<*pLength; i++){
-            *pSendIfCOSFlags |= 1<<i;
+        {
+            uint8_t *odDataPointer = OD_IO.stream.dataOrig;
+            for (uint8_t j = pdoDataStart; j < pdoDataLength[plain_inverted]; j++) {
+                SRDO->mapPointer[plain_inverted][j] = odDataPointer++;
+            }
         }
     }
 
-    return 0;
-}
-
-static uint32_t CO_SRDOconfigMap(CO_SRDO_t* SRDO, uint8_t noOfMappedObjects){
-    int16_t i;
-    uint8_t lengths[2] = {0};
-    uint32_t ret = 0;
-    const uint32_t* pMap = &SRDO->SRDOMapPar->mappedObjects[0];
-
-
-    for(i=noOfMappedObjects; i>0; i--){
-        int16_t j;
-        uint8_t* pData;
-        uint8_t dummy = 0;
-        uint8_t* length = &lengths[i%2];
-        uint8_t** mapPointer = SRDO->mapPointer[i%2];
-        uint8_t prevLength = *length;
-        uint8_t MBvar;
-        uint32_t map = *(pMap++);
-
-        /* function do much checking of errors in map */
-        ret = CO_SRDOfindMap(
-                SRDO->SDO,
-                map,
-                SRDO->SRDOCommPar->informationDirection == CO_SRDO_TX,
-                &pData,
-                length,
-                &dummy,
-                &MBvar);
-        if(ret){
-            *length = 0;
-            CO_errorReport(SRDO->em, CO_EM_PDO_WRONG_MAPPING, CO_EMC_PROTOCOL_ERROR, map);
-            break;
-        }
-
-        /* write SRDO data pointers */
-#ifdef CO_BIG_ENDIAN
-        if(MBvar){
-            for(j=*length-1; j>=prevLength; j--)
-                mapPointer[j] = pData++;
-        }
-        else{
-            for(j=prevLength; j<*length; j++)
-                mapPointer[j] = pData++;
-        }
-#else
-        for(j=prevLength; j<*length; j++){
-            mapPointer[j] = pData++;
-        }
-#endif
-
-    }
-    if(lengths[0] == lengths[1])
-        SRDO->dataLength = lengths[0];
-    else{
+    if(pdoDataLength[0] == pdoDataLength[1]){
+        SRDO->dataLength = pdoDataLength[0];
+        //SRDO->mappedObjectsCount = pdoDataLength[0];
+    }else{
         SRDO->dataLength = 0;
         CO_errorReport(SRDO->em, CO_EM_PDO_WRONG_MAPPING, CO_EMC_PROTOCOL_ERROR, 0);
-        ret = CO_SDO_AB_MAP_LEN;
+        return CO_ERROR_OD_PARAMETERS;
     }
 
-    return ret;
+    return CO_ERROR_NO;
 }
 
 static uint16_t CO_SRDOcalcCrc(const CO_SRDO_t *SRDO){
-    uint16_t i;
+    uint16_t i,tmp_u16;
     uint16_t result = 0x0000;
     uint8_t buffer[4];
-    uint32_t cob;
-
-    const CO_SRDOCommPar_t *com = SRDO->SRDOCommPar;
-    const CO_SRDOMapPar_t *map = SRDO->SRDOMapPar;
-
-    result = crc16_ccitt(&com->informationDirection, 1, result);
-    CO_memcpySwap2(&buffer[0], &com->safetyCycleTime);
+    uint32_t cob, tmp_u32;
+    uint32_t map;
+    ODR_t odRet;
+    
+    result = crc16_ccitt(&SRDO->CommPar_informationDirection, 1, result);
+    tmp_u16 = CO_SWAP_16(SRDO->CommPar_safetyCycleTime);
+    memcpy(&buffer[0], &tmp_u16, sizeof(tmp_u16));
     result = crc16_ccitt(&buffer[0], 2, result);
-    result = crc16_ccitt(&com->safetyRelatedValidationTime, 1, result);
+    result = crc16_ccitt(&SRDO->CommPar_safetyRelatedValidationTime, 1, result);
 
     /* adjust COB-ID if the default is used
     Caution: if the node id changes and you are using the default COB-ID you have to recalculate the checksum
     This behaviour is controversial and could be changed or made optional.
     */
-    cob = com->COB_ID1_normal;
+    cob = SRDO->CommPar_COB_ID1_normal;
     if(((cob)&0x7FF) == SRDO->defaultCOB_ID[0] && SRDO->nodeId <= 64)
-        cob += SRDO->nodeId;
-    CO_memcpySwap4(&buffer[0], &cob);
+        cob += 2*SRDO->nodeId;
+    tmp_u32 = CO_SWAP_32(cob);
+    memcpy(&buffer[0], &tmp_u32, sizeof(tmp_u32));
     result = crc16_ccitt(&buffer[0], 4, result);
 
-    cob = com->COB_ID2_inverted;
+    cob = SRDO->CommPar_COB_ID2_inverted;
     if(((cob)&0x7FF) == SRDO->defaultCOB_ID[1] && SRDO->nodeId <= 64)
-        cob += SRDO->nodeId;
-    CO_memcpySwap4(&buffer[0], &cob);
+        cob += 2*SRDO->nodeId;
+    tmp_u32 = CO_SWAP_32(cob);
+    memcpy(&buffer[0], &tmp_u32, sizeof(tmp_u32));
     result = crc16_ccitt(&buffer[0], 4, result);
 
-    result = crc16_ccitt(&map->numberOfMappedObjects, 1, result);
-    for(i = 0; i < map->numberOfMappedObjects;){
+    result = crc16_ccitt(&SRDO->mappedObjectsCount, 1, result);
+    for(i = 0; i < SRDO->mappedObjectsCount;){
         uint8_t subindex = i + 1;
         result = crc16_ccitt(&subindex, 1, result);
-        CO_memcpySwap4(&buffer[0], &map->mappedObjects[i]);
+        odRet = OD_get_u32(SRDO->SRDOMapPar, i + 1, &map, true);
+        if (odRet != ODR_OK) {
+            map = 0;
+        }
+        tmp_u32 = CO_SWAP_32(map);
+        memcpy(&buffer[0], &tmp_u32, sizeof(tmp_u32));
         result = crc16_ccitt(&buffer[0], 4, result);
         i = subindex;
     }
     return result;
 }
 
-static CO_SDO_abortCode_t CO_ODF_SRDOcom(CO_ODF_arg_t *ODF_arg){
-    CO_SRDO_t *SRDO;
 
-    SRDO = (CO_SRDO_t*) ODF_arg->object;
 
-    /* Reading Object Dictionary variable */
-    if(ODF_arg->reading){
-        if(ODF_arg->subIndex == 5 || ODF_arg->subIndex == 6){
-            uint32_t value = CO_getUint32(ODF_arg->data);
-            uint16_t index = ODF_arg->subIndex - 5;
-
-            /* if default COB ID is used, write default value here */
-            if(((value)&0x7FF) == SRDO->defaultCOB_ID[index] && SRDO->nodeId <= 64)
-                value += SRDO->nodeId;
-
-            /* If SRDO is not valid, set bit 31. but I do not think this applies to SRDO ?! */
-            /* if(!SRDO->valid) value |= 0x80000000L; */
-
-            CO_setUint32(ODF_arg->data, value);
-        }
-        return CO_SDO_AB_NONE;
+static ODR_t OD_read_SRDO_communicationParam(OD_stream_t *stream, void *buf,
+                                   OD_size_t count, OD_size_t *countRead)
+{
+    ODR_t returnCode = OD_readOriginal(stream, buf, count, countRead);
+    if ( returnCode != ODR_OK )
+        return returnCode;
+    
+    if (stream == NULL || stream->subIndex == 0 || buf == NULL
+        || count != sizeof(uint8_t) || countRead == NULL
+    ) {
+        return ODR_DEV_INCOMPAT;
     }
+    
+    CO_SRDO_t *SRDO = stream->object;
+    
+    /* Reading Object Dictionary variable */
+    if (stream->subIndex == 5 || stream->subIndex == 6){
+        uint32_t value = CO_getUint32(buf);
+        uint16_t index = stream->subIndex - 5;
+
+        /* if default COB ID is used, write default value here */
+        if(((value)&0x7FF) == SRDO->defaultCOB_ID[index] && SRDO->nodeId <= 64)
+            value += 2*SRDO->nodeId;
+
+        /* If SRDO is not valid, set bit 31. but I do not think this applies to SRDO ?! */
+        /* if(!SRDO->valid) value |= 0x80000000L; */
+
+        CO_setUint32(buf, value);
+    }
+    return ODR_OK;
+}
+
+
+static ODR_t OD_write_SRDO_communicationParam(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
+{
+    if (stream == NULL || stream->subIndex == 0 || buf == NULL
+        || count != sizeof(uint8_t) || countWritten == NULL
+    ) {
+        return ODR_DEV_INCOMPAT;
+    }
+
+    CO_SRDO_t *SRDO = stream->object;
+    CO_SRDOGuard_t *SRDOGuard = SRDO->SRDOGuard;
+    uint8_t bufCopy[4];
+    memcpy(bufCopy, buf, count);
 
     /* Writing Object Dictionary variable */
-    if(*SRDO->SRDOGuard->operatingState == CO_NMT_OPERATIONAL)
-        return CO_SDO_AB_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
+    if(*SRDOGuard->operatingState == CO_NMT_OPERATIONAL)
+        return ODR_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
 
-    if(ODF_arg->subIndex == 1){
-        uint8_t value = ODF_arg->data[0];
+    if(stream->subIndex == 1){
+        uint8_t value = CO_getUint8(buf);
         if (value > 2)
-            return CO_SDO_AB_INVALID_VALUE;
+            return ODR_INVALID_VALUE;
+        SRDO->CommPar_informationDirection = value;
     }
-    else if(ODF_arg->subIndex == 2){
-        uint16_t value = CO_getUint16(ODF_arg->data);
+    else if(stream->subIndex == 2){
+        uint16_t value = CO_getUint16(buf);
         if (value == 0)
-            return CO_SDO_AB_INVALID_VALUE;
+            return ODR_INVALID_VALUE;
+        SRDO->CommPar_safetyCycleTime = value;
     }
-    else if(ODF_arg->subIndex == 3){
-        uint8_t value = ODF_arg->data[0];
+    else if(stream->subIndex == 3){
+        uint8_t value = CO_getUint8(buf);
         if (value == 0)
-            return CO_SDO_AB_INVALID_VALUE;
+            return ODR_INVALID_VALUE;
+        SRDO->CommPar_safetyRelatedValidationTime = value;
     }
-    else if(ODF_arg->subIndex == 4){   /* Transmission_type */
-        uint8_t *value = (uint8_t*) ODF_arg->data;
-        if(*value != 254)
-            return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
+    else if(stream->subIndex == 4){   /* Transmission_type */
+        uint8_t value = CO_getUint8(buf);
+        if(value != 254)
+            return ODR_INVALID_VALUE;  /* Invalid value for parameter (download only). */
+        SRDO->CommPar_transmissionType = value;
     }
-   else if(ODF_arg->subIndex == 5 || ODF_arg->subIndex == 6){   /* COB_ID */
-        uint32_t value = CO_getUint32(ODF_arg->data);
-        uint16_t index = ODF_arg->subIndex - 5;
+    else if(stream->subIndex == 5 || stream->subIndex == 6){   /* COB_ID */
+        uint32_t value = CO_getUint32(buf);
+        uint16_t index = stream->subIndex - 5;
 
         /* check value range, the spec does not specify if COB-ID flags are allowed */
         if(value < 0x101 || value > 0x180 || (value & 1) == index)
-            return CO_SDO_AB_INVALID_VALUE;  /* Invalid value for parameter (download only). */
+            return ODR_INVALID_VALUE;  /* Invalid value for parameter (download only). */
 
         /* if default COB-ID is being written, write defaultCOB_ID without nodeId */
-        if(SRDO->nodeId <= 64 && value == (SRDO->defaultCOB_ID[index] + SRDO->nodeId)){
+        if(SRDO->nodeId <= 64 && value == (SRDO->defaultCOB_ID[index] + (2*SRDO->nodeId))){
             value = SRDO->defaultCOB_ID[index];
-            CO_setUint32(ODF_arg->data, value);
+            CO_setUint32(bufCopy, value);
         }
+        if(index == 0)
+            SRDO->CommPar_COB_ID1_normal = value;
+        else
+            SRDO->CommPar_COB_ID2_inverted = value;
     }
 
-    *SRDO->SRDOGuard->configurationValid = CO_SRDO_INVALID;
+    *SRDOGuard->configurationValid = CO_SRDO_INVALID;
 
-    return CO_SDO_AB_NONE;
+    /* write value to the original location in the Object Dictionary */
+    return OD_writeOriginal(stream, bufCopy, count, countWritten);
 }
 
-static CO_SDO_abortCode_t CO_ODF_SRDOmap(CO_ODF_arg_t *ODF_arg){
-    CO_SRDO_t *SRDO;
 
-    SRDO = (CO_SRDO_t*) ODF_arg->object;
-    if(ODF_arg->reading)
-        return CO_SDO_AB_NONE;
+static ODR_t OD_write_SRDO_mappingParam(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
+{
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
+        || count != sizeof(uint8_t) || countWritten == NULL
+    ) {
+        return ODR_DEV_INCOMPAT;
+    }
+    
+    CO_SRDO_t *SRDO = stream->object;
+    CO_SRDOGuard_t *SRDOGuard = SRDO->SRDOGuard;
 
     /* Writing Object Dictionary variable */
-
-    if(*SRDO->SRDOGuard->operatingState == CO_NMT_OPERATIONAL)
-        return CO_SDO_AB_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
-    if(SRDO->SRDOCommPar->informationDirection) /* SRDO must be deleted */
-        return CO_SDO_AB_UNSUPPORTED_ACCESS;  /* Unsupported access to an object. */
+    if(*SRDOGuard->operatingState == CO_NMT_OPERATIONAL)
+        return ODR_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
+    if(SRDO->CommPar_informationDirection) /* SRDO must be deleted */
+        return ODR_UNSUPP_ACCESS;  /* Unsupported access to an object. */
 
     /* numberOfMappedObjects */
-    if(ODF_arg->subIndex == 0){
-        uint8_t *value = (uint8_t*) ODF_arg->data;
-
-        if(*value > 16 || *value & 1) /*only odd numbers are allowed*/
-            return CO_SDO_AB_MAP_LEN;  /* Number and length of object to be mapped exceeds SRDO length. */
+    if(stream->subIndex == 0){
+        uint8_t value = CO_getUint8(buf);
+        if(value > 16 || value & 1) /*only odd numbers are allowed*/
+            return ODR_MAP_LEN;  /* Number and length of object to be mapped exceeds SRDO length. */
+        SRDO->mappedObjectsCount = value;
     }
     else{
-        if (SRDO->SRDOMapPar->numberOfMappedObjects != 0)
-            return CO_SDO_AB_UNSUPPORTED_ACCESS;
+        if (SRDO->mappedObjectsCount != 0)
+            return ODR_UNSUPP_ACCESS;
     }
-    *SRDO->SRDOGuard->configurationValid = CO_SRDO_INVALID;
-    return CO_SDO_AB_NONE;
+    *SRDOGuard->configurationValid = CO_SRDO_INVALID;
+    
+    
+    /* write value to the original location in the Object Dictionary */
+    return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
 static ODR_t OD_write_13FE(OD_stream_t *stream, const void *buf,
@@ -580,29 +585,34 @@ CO_ReturnError_t CO_SRDO_init(
         CO_SDOserver_t         *SDO,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
-        const CO_SRDOCommPar_t *SRDOCommPar,
-        const CO_SRDOMapPar_t  *SRDOMapPar,
+        OD_entry_t *OD_130x_SRDOCommPar,
+        OD_entry_t  *OD_138x_SRDOMapPar,
         const uint16_t         *checksum,
-        uint16_t                idx_SRDOCommPar,
-        uint16_t                idx_SRDOMapPar,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdxNormal,
         uint16_t                CANdevRxIdxInverted,
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdxNormal,
-        uint16_t                CANdevTxIdxInverted)
+        uint16_t                CANdevTxIdxInverted,
+        uint32_t *errInfo)
 {
+    ODR_t odRet;
+
         /* verify arguments */
     if(SRDO==NULL || SRDOGuard==NULL || em==NULL || SDO==NULL || checksum==NULL ||
-        SRDOCommPar==NULL || SRDOMapPar==NULL || CANdevRx==NULL || CANdevTx==NULL){
+        OD_130x_SRDOCommPar==NULL || OD_138x_SRDOMapPar==NULL || CANdevRx==NULL || CANdevTx==NULL){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
+        
+    /* clear object */
+    memset(SRDO, 0, sizeof(CO_SRDO_t));
 
+    /* Configure object variables */
     SRDO->SRDOGuard = SRDOGuard;
     SRDO->em = em;
     SRDO->SDO = SDO;
-    SRDO->SRDOCommPar = SRDOCommPar;
-    SRDO->SRDOMapPar = SRDOMapPar;
+    SRDO->SRDOCommPar = OD_130x_SRDOCommPar;
+    SRDO->SRDOMapPar = OD_138x_SRDOMapPar;
     SRDO->checksum = checksum;
     SRDO->CANdevRx = CANdevRx;
     SRDO->CANdevRxIdx[0] = CANdevRxIdxNormal;
@@ -623,9 +633,86 @@ CO_ReturnError_t CO_SRDO_init(
     SRDO->functSignalObjectPre = NULL;
 #endif
 
+    uint8_t informationDirection = 0;
+    odRet = OD_get_u8(OD_130x_SRDOCommPar, 1, &informationDirection, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_130x_SRDOCommPar)) << 8) | 1;
+        }
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    SRDO->CommPar_informationDirection = informationDirection;
+
+    uint16_t safetyCycleTime = 0;
+    odRet = OD_get_u16(OD_130x_SRDOCommPar, 2, &safetyCycleTime, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_130x_SRDOCommPar)) << 8) | 2;
+        }
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    SRDO->CommPar_safetyCycleTime= safetyCycleTime;
+    
+    uint8_t safetyRelatedValidationTime = 0;
+    odRet = OD_get_u8(OD_130x_SRDOCommPar, 3, &safetyRelatedValidationTime, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_130x_SRDOCommPar)) << 8) | 3;
+        }
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    SRDO->CommPar_safetyRelatedValidationTime = safetyRelatedValidationTime;
+    
+    uint8_t transmissionType = 0;
+    odRet = OD_get_u8(OD_130x_SRDOCommPar, 4, &transmissionType, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_130x_SRDOCommPar)) << 8) | 4;
+        }
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    SRDO->CommPar_transmissionType = transmissionType;
+    
+    uint32_t COB_ID1_normal = 0;
+    odRet = OD_get_u32(OD_130x_SRDOCommPar, 5, &COB_ID1_normal, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_130x_SRDOCommPar)) << 8) | 5;
+        }
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    SRDO->CommPar_COB_ID1_normal = COB_ID1_normal;
+    
+    uint32_t COB_ID2_inverted = 0;
+    odRet = OD_get_u32(OD_130x_SRDOCommPar, 6, &COB_ID2_inverted, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_130x_SRDOCommPar)) << 8) | 6;
+        }
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    SRDO->CommPar_COB_ID2_inverted = COB_ID2_inverted;
+
     /* Configure Object dictionary entry at index 0x1301+ and 0x1381+ */
-    CO_OD_configure(SDO, idx_SRDOCommPar, CO_ODF_SRDOcom, (void*)SRDO, 0, 0);
-    CO_OD_configure(SDO, idx_SRDOMapPar, CO_ODF_SRDOmap, (void*)SRDO, 0, 0);
+    SRDO->OD_communicationParam_ext.object = SRDO;
+    SRDO->OD_communicationParam_ext.read = OD_read_SRDO_communicationParam;
+    SRDO->OD_communicationParam_ext.write = OD_write_SRDO_communicationParam;
+    OD_extension_init(OD_130x_SRDOCommPar, &SRDO->OD_communicationParam_ext);
+    
+    uint8_t numberOfMappedObjects = 0;
+    odRet = OD_get_u8(OD_138x_SRDOMapPar, 0, &numberOfMappedObjects, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_138x_SRDOMapPar)) << 8) | 0;
+        }
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    SRDO->mappedObjectsCount = numberOfMappedObjects;
+
+    SRDO->OD_mappingParam_extension.object = SRDO;
+    SRDO->OD_mappingParam_extension.read = OD_readOriginal;
+    SRDO->OD_mappingParam_extension.write = OD_write_SRDO_mappingParam;
+    OD_extension_init(OD_138x_SRDOMapPar, &SRDO->OD_mappingParam_extension);
 
     return CO_ERROR_NO;
 }
@@ -661,8 +748,8 @@ void CO_SRDO_process(
     }
 
     if((commands & (1<<0)) && *SRDO->SRDOGuard->configurationValid == CO_SRDO_VALID_MAGIC){
-        if(CO_SRDOconfigMap(SRDO, SRDO->SRDOMapPar->numberOfMappedObjects) == 0){
-            CO_SRDOconfigCom(SRDO, SRDO->SRDOCommPar->COB_ID1_normal, SRDO->SRDOCommPar->COB_ID2_inverted);
+        if(SRDO_configMap(SRDO,SRDO->SDO->OD,SRDO->SRDOMapPar) == CO_ERROR_NO){
+            CO_SRDOconfigCom(SRDO, SRDO->CommPar_COB_ID1_normal, SRDO->CommPar_COB_ID2_inverted);
         }
         else{
             SRDO->valid = CO_SRDO_INVALID;
@@ -675,7 +762,7 @@ void CO_SRDO_process(
             if(SRDO->timer == 0){
                 if(SRDO->toogle){
                     CO_CANsend(SRDO->CANdevTx, SRDO->CANtxBuff[1]);
-                    SRDO->timer = SRDO->SRDOCommPar->safetyCycleTime * 1000U - CO_CONFIG_SRDO_MINIMUM_DELAY;
+                    SRDO->timer = SRDO->CommPar_safetyCycleTime * 1000U - CO_CONFIG_SRDO_MINIMUM_DELAY;
                 }
                 else{
 
@@ -693,7 +780,7 @@ void CO_SRDO_process(
                         const uint32_t* pMap = &SRDO->SRDOMapPar->mappedObjects[0];
                         CO_SDOserver_t *pSDO = SRDO->SDO;
 
-                        for(i=SRDO->SRDOMapPar->numberOfMappedObjects; i>0; i--){
+                        for(i=SRDO->mappedObjectsCount; i>0; i--){
                             uint32_t map = *(pMap++);
                             uint16_t index = (uint16_t)(map>>16);
                             uint8_t subIndex = (uint8_t)(map>>8);
@@ -806,7 +893,7 @@ void CO_SRDO_process(
                             const uint32_t* pMap = &SRDO->SRDOMapPar->mappedObjects[0];
                             CO_SDOserver_t *pSDO = SRDO->SDO;
 
-                            for(i=SRDO->SRDOMapPar->numberOfMappedObjects; i>0; i--){
+                            for(i=SRDO->mappedObjectsCount; i>0; i--){
                                 uint32_t map = *(pMap++);
                                 uint16_t index = (uint16_t)(map>>16);
                                 uint8_t subIndex = (uint8_t)(map>>8);
@@ -842,17 +929,17 @@ void CO_SRDO_process(
                         }
                     }
 
-                    SRDO->timer = SRDO->SRDOCommPar->safetyCycleTime * 1000U;
+                    SRDO->timer = SRDO->CommPar_safetyCycleTime * 1000U;
                 }
                 else{
-                    SRDO->timer = SRDO->SRDOCommPar->safetyRelatedValidationTime * 1000U;
+                    SRDO->timer = SRDO->CommPar_safetyRelatedValidationTime * 1000U;
                 }
                 SRDO->toogle = !SRDO->toogle;
             }
 
             if(SRDO->timer == 0){
                 SRDO->toogle = 0;
-                SRDO->timer = SRDO->SRDOCommPar->safetyRelatedValidationTime * 1000U;
+                SRDO->timer = SRDO->CommPar_safetyRelatedValidationTime * 1000U;
                 CO_FLAG_CLEAR(SRDO->CANrxNew[0]);
                 CO_FLAG_CLEAR(SRDO->CANrxNew[1]);
                 /* save state */
