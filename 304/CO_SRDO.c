@@ -330,7 +330,7 @@ static ODR_t OD_read_SRDO_communicationParam(OD_stream_t *stream, void *buf,
     }
     
     if ((stream == NULL) || (stream->subIndex == 0U) || (buf == NULL)
-        || (count != sizeof(uint8_t)) || (countRead == NULL)
+        || (count > sizeof(uint32_t)) || (countRead == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -360,7 +360,7 @@ static ODR_t OD_write_SRDO_communicationParam(OD_stream_t *stream, const void *b
                            OD_size_t count, OD_size_t *countWritten)
 {
     if ((stream == NULL) || (stream->subIndex == 0U) || (buf == NULL)
-        || (count != sizeof(uint8_t)) || (countWritten == NULL)
+        || (count > sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -437,7 +437,7 @@ static ODR_t OD_write_SRDO_mappingParam(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
     if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
-        || (count != sizeof(uint8_t)) || (countWritten == NULL)
+        || (count > sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -488,7 +488,7 @@ static ODR_t OD_write_13FE(OD_stream_t *stream, const void *buf,
     if(*SRDOGuard->operatingState == CO_NMT_OPERATIONAL){
         return ODR_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
     }
-    SRDOGuard->checkCRC = value == CO_SRDO_VALID_MAGIC;
+    SRDOGuard->checkCRC = ( value == CO_SRDO_VALID_MAGIC );
 
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, buf, count, countWritten);
