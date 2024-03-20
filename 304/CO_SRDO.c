@@ -41,6 +41,9 @@
 #define CO_SRDO_VALID_MAGIC    (0xA5)
 
 
+#define CO_SRDO_BITCMD_OPERATIONAL      (0x01U)
+#define CO_SRDO_BITCMD_CALC_CRC         (0x02U)
+
 static void CO_SRDO_receive_normal(void *object, void *msg){
     CO_SRDO_t *SRDO;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
@@ -99,7 +102,7 @@ static void CO_SRDOconfigCom(CO_SRDO_t* SRDO, uint32_t COB_IDnormal, uint32_t CO
     SRDO->valid = CO_SRDO_INVALID;
 
     /* is SRDO used? */
-    if((*SRDO->SRDOGuard->configurationValid == CO_SRDO_VALID_MAGIC) && ((SRDO->CommPar_informationDirection == CO_SRDO_TX) || (SRDO->CommPar_informationDirection == CO_SRDO_RX)) &&
+    if((SRDO->SRDOGuard->configurationValid == CO_SRDO_VALID_MAGIC) && ((SRDO->CommPar_informationDirection == CO_SRDO_TX) || (SRDO->CommPar_informationDirection == CO_SRDO_RX)) &&
         SRDO->dataLength){
         ID = &IDs[SRDO->CommPar_informationDirection - 1][0];
         /* is used default COB-ID? */
@@ -360,7 +363,7 @@ static ODR_t OD_write_SRDO_communicationParam(OD_stream_t *stream, const void *b
                            OD_size_t count, OD_size_t *countWritten)
 {
     if ((stream == NULL) || (stream->subIndex == 0U) || (buf == NULL)
-        || (count > sizeof(uint32_t)) || (countWritten == NULL)
+        || (countWritten == NULL) || (count > 4)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -426,7 +429,7 @@ static ODR_t OD_write_SRDO_communicationParam(OD_stream_t *stream, const void *b
     }
     else { /* MISRA C 2004 14.10 */ }
 
-    *SRDOGuard->configurationValid = CO_SRDO_INVALID;
+    SRDOGuard->configurationValid = CO_SRDO_INVALID;
 
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, bufCopy, count, countWritten);
@@ -436,8 +439,8 @@ static ODR_t OD_write_SRDO_communicationParam(OD_stream_t *stream, const void *b
 static ODR_t OD_write_SRDO_mappingParam(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
-        || (count > sizeof(uint32_t)) || (countWritten == NULL)
+    if ((stream == NULL) || (buf == NULL) || (countWritten == NULL) ||
+        (count > sizeof(uint32_t)) || (stream->subIndex > CO_SRDO_MAX_MAPPED_ENTRIES)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -466,11 +469,31 @@ static ODR_t OD_write_SRDO_mappingParam(OD_stream_t *stream, const void *buf,
             return ODR_UNSUPP_ACCESS;
         }
     }
-    *SRDOGuard->configurationValid = CO_SRDO_INVALID;
+    SRDOGuard->configurationValid = CO_SRDO_INVALID;
     
     
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, buf, count, countWritten);
+}
+
+static ODR_t OD_read_13FE(OD_stream_t *stream, void *buf,
+                                   OD_size_t count, OD_size_t *countRead)
+{
+    ODR_t returnCode = OD_readOriginal(stream, buf, count, countRead);
+    if ( returnCode != ODR_OK ){
+        return returnCode;
+    }
+    
+    if ((stream == NULL) || (stream->subIndex == 0U) || (buf == NULL)
+        || (count != sizeof(uint8_t)) || (countRead == NULL)
+    ) {
+        return ODR_DEV_INCOMPAT;
+    }
+    
+    CO_SRDOGuard_t *SRDOGuard = stream->object;
+    CO_setUint8(buf, SRDOGuard->configurationValid);
+    
+    return ODR_OK;
 }
 
 static ODR_t OD_write_13FE(OD_stream_t *stream, const void *buf,
@@ -489,6 +512,8 @@ static ODR_t OD_write_13FE(OD_stream_t *stream, const void *buf,
         return ODR_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
     }
     SRDOGuard->checkCRC = ( value == CO_SRDO_VALID_MAGIC );
+    
+    SRDOGuard->configurationValid = value;
 
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, buf, count, countWritten);
@@ -509,7 +534,7 @@ static ODR_t OD_write_13FF(OD_stream_t *stream, const void *buf,
     if(*SRDOGuard->operatingState == CO_NMT_OPERATIONAL){
         return ODR_DATA_DEV_STATE;   /* Data cannot be transferred or stored to the application because of the present device state. */
     }
-    *SRDOGuard->configurationValid = CO_SRDO_INVALID;
+    SRDOGuard->configurationValid = CO_SRDO_INVALID;
 
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, buf, count, countWritten);
@@ -519,28 +544,39 @@ CO_ReturnError_t CO_SRDOGuard_init(
         CO_SRDOGuard_t         *SRDOGuard,
         CO_SDOserver_t         *SDO,
         CO_NMT_internalState_t *operatingState,
-        uint8_t                *configurationValid,
         OD_entry_t             *OD_13FE_SRDOValid,
         OD_entry_t             *OD_13FF_SRDOCRC,
         uint32_t *errInfo)
 {
+    ODR_t odRet;
+
     /* verify arguments */
-    if((SRDOGuard==NULL) || (SDO==NULL) || (operatingState==NULL) || (configurationValid==NULL) || (OD_13FE_SRDOValid==NULL) || (OD_13FF_SRDOCRC==NULL)){
+    if((SRDOGuard==NULL) || (SDO==NULL) || (operatingState==NULL) || (OD_13FE_SRDOValid==NULL) || (OD_13FF_SRDOCRC==NULL)){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
-    
+
     /* clear object */
     memset(SRDOGuard, 0, sizeof(CO_SRDOGuard_t));
 
     SRDOGuard->operatingState = operatingState;
     SRDOGuard->operatingStatePrev = CO_NMT_INITIALIZING;
-    SRDOGuard->configurationValid = configurationValid;
-    SRDOGuard->checkCRC = *configurationValid == CO_SRDO_VALID_MAGIC;
+    SRDOGuard->SRDO_CRC = OD_13FF_SRDOCRC;
 
+    uint8_t value = 0;
+    odRet = OD_get_u8(OD_13FE_SRDOValid, 0, &value, true);
+    if (odRet != ODR_OK) {
+        if (errInfo != NULL) {
+            *errInfo = (((uint32_t)OD_getIndex(OD_13FE_SRDOValid)) << 8) | 1U;
+        }
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    SRDOGuard->configurationValid = value;
+
+    SRDOGuard->checkCRC = (SRDOGuard->configurationValid == CO_SRDO_VALID_MAGIC);
 
     /* Configure Object dictionary entry at index 0x13FE and 0x13FF */
     SRDOGuard->OD_13FE_extension.object = SRDOGuard;
-    SRDOGuard->OD_13FE_extension.read = OD_readOriginal;
+    SRDOGuard->OD_13FE_extension.read = OD_read_13FE;
     SRDOGuard->OD_13FE_extension.write = OD_write_13FE;
     OD_extension_init(OD_13FE_SRDOValid, &SRDOGuard->OD_13FE_extension);
     
@@ -560,12 +596,12 @@ uint8_t CO_SRDOGuard_process(
     if(operatingState != SRDOGuard->operatingStatePrev){
         SRDOGuard->operatingStatePrev = operatingState;
         if (operatingState == CO_NMT_OPERATIONAL){
-            result |= 1 << 0;
+            result |= CO_SRDO_BITCMD_OPERATIONAL;
         }
     }
 
     if(SRDOGuard->checkCRC){
-        result |= 1 << 1;
+        result |= CO_SRDO_BITCMD_CALC_CRC;
         SRDOGuard->checkCRC = 0;
     }
     return result;
@@ -599,6 +635,7 @@ void CO_SRDO_initCallbackEnterSafeState(
 
 CO_ReturnError_t CO_SRDO_init(
         CO_SRDO_t              *SRDO,
+        uint8_t                SRDO_Index,
         CO_SRDOGuard_t         *SRDOGuard,
         CO_EM_t                *em,
         CO_SDOserver_t         *SDO,
@@ -606,7 +643,6 @@ CO_ReturnError_t CO_SRDO_init(
         uint16_t                defaultCOB_ID,
         OD_entry_t *OD_130x_SRDOCommPar,
         OD_entry_t  *OD_138x_SRDOMapPar,
-        const uint16_t         *checksum,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdxNormal,
         uint16_t                CANdevRxIdxInverted,
@@ -618,7 +654,7 @@ CO_ReturnError_t CO_SRDO_init(
     ODR_t odRet;
 
         /* verify arguments */
-    if((SRDO==NULL) || (SRDOGuard==NULL) || (em==NULL) || (SDO==NULL) || (checksum==NULL) ||
+    if((SRDO==NULL) || (SRDOGuard==NULL) || (em==NULL) || (SDO==NULL) ||
         (OD_130x_SRDOCommPar==NULL) || (OD_138x_SRDOMapPar==NULL) || (CANdevRx==NULL) || (CANdevTx==NULL)){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -627,12 +663,12 @@ CO_ReturnError_t CO_SRDO_init(
     memset(SRDO, 0, sizeof(CO_SRDO_t));
 
     /* Configure object variables */
+    SRDO->SRDO_Index = SRDO_Index;
     SRDO->SRDOGuard = SRDOGuard;
     SRDO->em = em;
     SRDO->SDO = SDO;
     SRDO->SRDOCommPar = OD_130x_SRDOCommPar;
     SRDO->SRDOMapPar = OD_138x_SRDOMapPar;
-    SRDO->checksum = checksum;
     SRDO->CANdevRx = CANdevRx;
     SRDO->CANdevRxIdx[0] = CANdevRxIdxNormal;
     SRDO->CANdevRxIdx[1] = CANdevRxIdxInverted;
@@ -761,16 +797,21 @@ void CO_SRDO_process(
         uint32_t                timeDifference_us,
         uint32_t               *timerNext_us)
 {
+    ODR_t odRet;
+
     (void)timerNext_us; /* may be unused */
 
-    if(commands & (1<<1)){
+    if(commands & CO_SRDO_BITCMD_CALC_CRC){
         uint16_t crcValue = CO_SRDOcalcCrc(SRDO);
-        if (*SRDO->checksum != crcValue){
-            *SRDO->SRDOGuard->configurationValid = 0;
+
+        uint16_t crcSRDO = 0;
+        odRet = OD_get_u16(SRDO->SRDOGuard->SRDO_CRC, SRDO->SRDO_Index+1, &crcSRDO, true);
+        if ((odRet != ODR_OK) || (crcSRDO != crcValue)) {
+            SRDO->SRDOGuard->configurationValid = 0;
         }
     }
 
-    if((commands & (1<<0)) && (*SRDO->SRDOGuard->configurationValid == CO_SRDO_VALID_MAGIC)){
+    if((commands & CO_SRDO_BITCMD_OPERATIONAL) && (SRDO->SRDOGuard->configurationValid == CO_SRDO_VALID_MAGIC)){
         if(SRDO_configMap(SRDO,SRDO->SDO->OD,SRDO->SRDOMapPar) == CO_ERROR_NO){
             CO_SRDOconfigCom(SRDO, SRDO->CommPar_COB_ID1_normal, SRDO->CommPar_COB_ID2_inverted);
         }

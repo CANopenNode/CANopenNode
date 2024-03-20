@@ -85,9 +85,9 @@ typedef uint8_t CO_SRDO_size_t;
 typedef struct{
     CO_NMT_internalState_t *operatingState;     /**< pointer to current operation state */
     CO_NMT_internalState_t  operatingStatePrev; /**< last operation state */
-    uint8_t                *configurationValid; /**< pointer to the configuration valid flag in OD */
+    uint8_t                 configurationValid;
+    OD_entry_t             *SRDO_CRC;
     uint8_t                 checkCRC;           /**< specifies whether a CRC check should be performed */
-    
     /** Extension for OD object */
     OD_extension_t OD_13FE_extension;
     OD_extension_t OD_13FF_extension;
@@ -100,6 +100,7 @@ typedef struct{
     CO_EM_t                *em;                  /**< From CO_SRDO_init() */
     CO_SDOserver_t         *SDO;                 /**< From CO_SRDO_init() */
     CO_SRDOGuard_t         *SRDOGuard;           /**< From CO_SRDO_init() */
+    uint8_t                 SRDO_Index;          /**< From CO_SRDO_init() */
     /** Number of mapped objects in SRDO */
     uint8_t                 mappedObjectsCount;
     /** Pointers to 2*8 data objects, where SRDO will be copied */
@@ -110,9 +111,8 @@ typedef struct{
     uint16_t                defaultCOB_ID[2];    /**< From CO_SRDO_init() */
     /** 0 - invalid, 1 - tx, 2 - rx */
     uint8_t                 valid;
-    OD_entry_t *SRDOCommPar;         /**< From CO_SRDO_init() */
-    OD_entry_t  *SRDOMapPar;          /**< From CO_SRDO_init() */
-    const uint16_t         *checksum;            /**< From CO_SRDO_init() */
+    OD_entry_t             *SRDOCommPar;         /**< From CO_SRDO_init() */
+    OD_entry_t             *SRDOMapPar;          /**< From CO_SRDO_init() */
     CO_CANmodule_t         *CANdevRx;            /**< From CO_SRDO_init() */
     CO_CANmodule_t         *CANdevTx;            /**< From CO_SRDO_init() */
     CO_CANtx_t             *CANtxBuff[2];        /**< CAN transmit buffer inside CANdevTx */
@@ -164,7 +164,6 @@ CO_ReturnError_t CO_SRDOGuard_init(
         CO_SRDOGuard_t         *SRDOGuard,
         CO_SDOserver_t         *SDO,
         CO_NMT_internalState_t *operatingState,
-        uint8_t                *configurationValid,
         OD_entry_t                *OD_13FE_SRDOValid, 
         OD_entry_t                *OD_13FF_SRDOCRC,
         uint32_t *errInfo);
@@ -209,6 +208,7 @@ uint8_t CO_SRDOGuard_process(
  */
 CO_ReturnError_t CO_SRDO_init(
         CO_SRDO_t              *SRDO,
+        uint8_t                 SRDO_Index,
         CO_SRDOGuard_t         *SRDOGuard,
         CO_EM_t                *em,
         CO_SDOserver_t         *SDO,
@@ -216,7 +216,6 @@ CO_ReturnError_t CO_SRDO_init(
         uint16_t                defaultCOB_ID,
         OD_entry_t             *SRDOCommPar,
         OD_entry_t             *SRDOMapPar,
-        const uint16_t         *checksum,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdxNormal,
         uint16_t                CANdevRxIdxInverted,
