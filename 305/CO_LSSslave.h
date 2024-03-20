@@ -94,6 +94,8 @@ typedef struct{
     CO_LSS_address_t        lssFastscan;      /**< Received LSS Address by fastscan */
     uint8_t                 fastscanPos;      /**< Current state of fastscan */
 
+    CO_LSS_ident_address_t  lssIdentscan;     /**< Received LSS Address by identify remote slave */
+
     uint16_t               *pendingBitRate;   /**< Bit rate value that is temporarily configured */
     uint8_t                *pendingNodeID;    /**< Node ID that is temporarily configured */
     uint8_t                 activeNodeID;     /**< Node ID used at the CAN interface */

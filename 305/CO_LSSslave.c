@@ -38,6 +38,14 @@
 /* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_BIT_TIMING_1000 */
 #define CO_LSS_BIT_TIMING_VALID(index) (index != 5 && index <= CO_LSS_BIT_TIMING_AUTO)
 
+/* checks commands witch have to be handle in waiting an global mode */
+#define LSS_MODE_INDIPENDENT_COMMAND(cs) (cs == CO_LSS_IDENT_SLAVE_VENDOR || \
+                                          cs == CO_LSS_IDENT_SLAVE_PRODUCT || \
+                                          cs == CO_LSS_IDENT_SLAVE_REV_LOW || \
+                                          cs == CO_LSS_IDENT_SLAVE_REV_HIGH || \
+                                          cs == CO_LSS_IDENT_SLAVE_SERIAL_LOW || \
+                                          cs == CO_LSS_IDENT_SLAVE_SERIAL_HIGH)
+
 #if CO_LSS_FASTSCAN_BIT0!=0 || CO_LSS_FASTSCAN_VENDOR_ID!=0 || CO_LSS_BIT_TIMING_1000!=0
 #error Inconsistency in LSS macros
 #endif
@@ -81,6 +89,56 @@ static void CO_LSSslave_receive(void *object, void *msg)
                     break;
                 default:
                     break;
+            }
+        }
+        else if (LSS_MODE_INDIPENDENT_COMMAND(cs)) {
+            switch (cs) {
+            case CO_LSS_IDENT_SLAVE_VENDOR: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.vendorID = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_PRODUCT: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.productCode = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_REV_LOW: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.revisionNumberlow = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_REV_HIGH: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.revisionNumberhigh = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_SERIAL_LOW: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.serialNumberlow = CO_SWAP_32(valSw);
+                break;
+            }
+            case CO_LSS_IDENT_SLAVE_SERIAL_HIGH: {
+                uint32_t valSw;
+                memcpy(&valSw, &data[1], sizeof(valSw));
+                LSSslave->lssIdentscan.serialNumberhigh = CO_SWAP_32(valSw);
+
+                if (CO_LSS_IDENTIFY_REMOTE_SLAVE_EQUAL(LSSslave->lssAddress,
+                                         LSSslave->lssIdentscan)
+                ) {
+                    LSSslave->service = cs;
+                    request_LSSslave_process = true;
+                }
+                break;
+            }
+            default: {
+                break;
+            }
             }
         }
         else if(LSSslave->lssState == CO_LSS_STATE_WAITING) {
@@ -178,6 +236,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                 }
                 break;
             }
+
             default: {
                 break;
             }
@@ -479,7 +538,9 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
             CANsend = true;
             break;
         }
-        case CO_LSS_IDENT_FASTSCAN: {
+        case CO_LSS_IDENT_FASTSCAN:
+            /* fall through */
+        case CO_LSS_IDENT_SLAVE_SERIAL_HIGH: {
             LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
             CANsend = true;
             break;
