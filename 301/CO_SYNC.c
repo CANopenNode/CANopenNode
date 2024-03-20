@@ -148,6 +148,48 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
     }
 #endif /* CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER */
 
+    /* reset timeout error and don't restart timeout until next SYNC */
+    if (SYNC->timeoutError == 2) {
+        CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, 0);
+    }
+    SYNC->timeoutError = 0;
+
+    /* write value to the original location in the Object Dictionary */
+    return OD_writeOriginal(stream, buf, count, countWritten);
+}
+
+/*
+ * Custom function for writing OD object "communication cycle period"
+ *
+ * For more information see file CO_ODinterface.h, OD_IO_t.
+ */
+static ODR_t OD_write_1006(OD_stream_t *stream, const void *buf,
+                           OD_size_t count, OD_size_t *countWritten)
+{
+    if (stream == NULL || stream->subIndex != 0 || buf == NULL
+        || count != sizeof(uint32_t) || countWritten == NULL
+    ) {
+        return ODR_DEV_INCOMPAT;
+    }
+
+    CO_SYNC_t *SYNC = stream->object;
+    uint32_t commCyclePeriod = CO_getUint32(buf);
+
+#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+    /* reset SYNC counter if new non-zero period */
+    if (*SYNC->OD_1006_period == 0 && commCyclePeriod > 0) {
+        if (SYNC->isProducer) {
+            SYNC->counter = 0;
+            SYNC->timer = 0;
+        }
+    }
+#endif
+    /* reset timeout error and don't restart timeout until next SYNC */
+    if (SYNC->timeoutError == 2) {
+        CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, 0);
+    }
+    SYNC->timeoutError = 0;
+
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, buf, count, countWritten);
 }
@@ -244,6 +286,11 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     SYNC->OD_1005_extension.read = OD_readOriginal;
     SYNC->OD_1005_extension.write = OD_write_1005;
     OD_extension_init(OD_1005_cobIdSync, &SYNC->OD_1005_extension);
+
+    SYNC->OD_1006_extension.object = SYNC;
+    SYNC->OD_1006_extension.read = OD_readOriginal;
+    SYNC->OD_1006_extension.write = OD_write_1006;
+    OD_extension_init(OD_1006_commCyclePeriod, &SYNC->OD_1006_extension);
 #endif
 
     /* get and verify "Communication cycle period" from OD */
