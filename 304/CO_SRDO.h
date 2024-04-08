@@ -27,9 +27,7 @@
 #define CO_SRDO_H
 
 #include "301/CO_driver.h"
-#include "301/CO_SDOserver.h"
 #include "301/CO_Emergency.h"
-#include "301/CO_NMT_Heartbeat.h"
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_SRDO
@@ -83,8 +81,7 @@ typedef uint8_t CO_SRDO_size_t;
  * - change in operation state
  */
 typedef struct{
-    CO_NMT_internalState_t *operatingState;     /**< pointer to current operation state */
-    CO_NMT_internalState_t  operatingStatePrev; /**< last operation state */
+    bool                    operatingState;
     uint8_t                 configurationValid;
     OD_entry_t             *SRDO_CRC;
     uint8_t                 checkCRC;           /**< specifies whether a CRC check should be performed */
@@ -98,8 +95,8 @@ typedef struct{
  */
 typedef struct{
     CO_EM_t                *em;                  /**< From CO_SRDO_init() */
-    CO_SDOserver_t         *SDO;                 /**< From CO_SRDO_init() */
     CO_SRDOGuard_t         *SRDOGuard;           /**< From CO_SRDO_init() */
+    OD_t                   *OD;
     uint8_t                 SRDO_Index;          /**< From CO_SRDO_init() */
     /** Number of mapped objects in SRDO */
     uint8_t                 mappedObjectsCount;
@@ -162,8 +159,6 @@ typedef struct{
  */
 CO_ReturnError_t CO_SRDOGuard_init(
         CO_SRDOGuard_t         *SRDOGuard,
-        CO_SDOserver_t         *SDO,
-        CO_NMT_internalState_t *operatingState,
         OD_entry_t                *OD_13FE_SRDOValid, 
         OD_entry_t                *OD_13FF_SRDOCRC,
         uint32_t *errInfo);
@@ -177,7 +172,8 @@ CO_ReturnError_t CO_SRDOGuard_init(
  * - bit 1 validate checksum
  */
 uint8_t CO_SRDOGuard_process(
-        CO_SRDOGuard_t         *SRDOGuard);
+        CO_SRDOGuard_t         *SRDOGuard,
+        bool_t NMTisOperational);
 
 /**
  * Initialize SRDO object.
@@ -210,8 +206,8 @@ CO_ReturnError_t CO_SRDO_init(
         CO_SRDO_t              *SRDO,
         uint8_t                 SRDO_Index,
         CO_SRDOGuard_t         *SRDOGuard,
+        OD_t                   *OD,
         CO_EM_t                *em,
-        CO_SDOserver_t         *SDO,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
         OD_entry_t             *SRDOCommPar,
