@@ -26,7 +26,7 @@
 #ifndef CO_SRDO_H
 #define CO_SRDO_H
 
-#include "301/CO_driver.h"
+#include "301/CO_ODinterface.h"
 #include "301/CO_Emergency.h"
 
 /* default configuration, see CO_config.h */
