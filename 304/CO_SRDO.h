@@ -26,17 +26,15 @@
 #ifndef CO_SRDO_H
 #define CO_SRDO_H
 
-#include "301/CO_driver.h"
-#include "301/CO_SDOserver.h"
+#include "301/CO_ODinterface.h"
 #include "301/CO_Emergency.h"
-#include "301/CO_NMT_Heartbeat.h"
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_SRDO
 #define CO_CONFIG_SRDO (0)
 #endif
 #ifndef CO_CONFIG_SRDO_MINIMUM_DELAY
-#define CO_CONFIG_SRDO_MINIMUM_DELAY 0
+#define CO_CONFIG_SRDO_MINIMUM_DELAY 0U
 #endif
 
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
@@ -58,50 +56,22 @@ extern "C" {
  * If the security protocol is used, at least one SRDO is mandatory.
  */
 
+/** Maximum size of SRDO message, 8 for standard CAN */
+#ifndef CO_SRDO_MAX_SIZE
+#define CO_SRDO_MAX_SIZE 8U
+#endif
 
-/**
- * SRDO communication parameter. The same as record from Object dictionary (index 0x1301-0x1340).
- */
-typedef struct{
-    uint8_t             maxSubIndex;    /**< Equal to 6 */
-    /** Direction of the SRDO. Values:
-        - 0: SRDO is invalid (deleted)
-        - 1: SRDO is transmiting data
-        - 2: SRDO is receive data */
-    uint8_t             informationDirection;
-    /** Refresh-time / SCT
-        - in tx mode (Refresh-time): transmission interval
-        - in rx mode (SCT): receive timeout between two SRDO */
-    uint16_t            safetyCycleTime;
-    /** SRVT
-        - in tx mode: unsed
-        - in rx mode: receive timeout between first and second SRDO message */
-    uint8_t             safetyRelatedValidationTime;
-    /** Transmission type. Values:
-        - 254:     Manufacturer specific.*/
-    uint8_t             transmissionType;
-    /** Communication object identifier for message received. Meaning of the specific bits:
-        - Bit  0-10: COB-ID for SRDO
-        - Bit 11-31: set to 0 for 11 bit COB-ID. */
-    uint32_t            COB_ID1_normal;
-    /** Communication object identifier for message received. Meaning of the specific bits:
-        - Bit  0-10: COB-ID for SRDO
-        - Bit 11-31: set to 0 for 11 bit COB-ID. */
-    uint32_t            COB_ID2_inverted;
-}CO_SRDOCommPar_t;
+/** Maximum number of entries, which can be mapped to PDO, 8 for standard CAN,
+ * may be less to preserve RAM usage */
+#ifndef CO_SRDO_MAX_MAPPED_ENTRIES
+#define CO_SRDO_MAX_MAPPED_ENTRIES 8U
+#endif
 
+#ifndef CO_SRDO_OWN_TYPES
+/** Variable of type CO_SRDO_size_t contains data length in bytes of SRDO */
+typedef uint8_t CO_SRDO_size_t;
+#endif
 
-typedef struct{
-    /** Actual number of mapped objects from 0 to 16. Only even numbers are allowed. To change mapped object,
-    this value must be 0. */
-    uint8_t             numberOfMappedObjects;
-    /** Location and size of the mapped object.
-        Even index is the normal object. Odd index is the inverted object. Bit meanings `0xIIIISSLL`:
-        - Bit  0-7:  Data Length in bits.
-        - Bit 8-15:  Subindex from object distionary.
-        - Bit 16-31: Index from object distionary. */
-    uint32_t            mappedObjects[16];
-}CO_SRDOMapPar_t;
 
 /**
  * Gurad Object for SRDO
@@ -111,10 +81,13 @@ typedef struct{
  * - change in operation state
  */
 typedef struct{
-    CO_NMT_internalState_t *operatingState;     /**< pointer to current operation state */
-    CO_NMT_internalState_t  operatingStatePrev; /**< last operation state */
-    uint8_t                *configurationValid; /**< pointer to the configuration valid flag in OD */
+    bool                    operatingState;
+    uint8_t                 configurationValid;
+    OD_entry_t             *SRDO_CRC;
     uint8_t                 checkCRC;           /**< specifies whether a CRC check should be performed */
+    /** Extension for OD object */
+    OD_extension_t OD_13FE_extension;
+    OD_extension_t OD_13FF_extension;
 }CO_SRDOGuard_t;
 
 /**
@@ -122,19 +95,21 @@ typedef struct{
  */
 typedef struct{
     CO_EM_t                *em;                  /**< From CO_SRDO_init() */
-    CO_SDO_t               *SDO;                 /**< From CO_SRDO_init() */
     CO_SRDOGuard_t         *SRDOGuard;           /**< From CO_SRDO_init() */
+    OD_t                   *OD;
+    uint8_t                 SRDO_Index;          /**< From CO_SRDO_init() */
+    /** Number of mapped objects in SRDO */
+    uint8_t                 mappedObjectsCount;
     /** Pointers to 2*8 data objects, where SRDO will be copied */
-    uint8_t                *mapPointer[2][8];
+    uint8_t                *mapPointer[2][CO_SRDO_MAX_SIZE];
     /** Data length of the received SRDO message. Calculated from mapping */
-    uint8_t                 dataLength;
+    CO_SRDO_size_t          dataLength;
     uint8_t                 nodeId;              /**< From CO_SRDO_init() */
     uint16_t                defaultCOB_ID[2];    /**< From CO_SRDO_init() */
     /** 0 - invalid, 1 - tx, 2 - rx */
     uint8_t                 valid;
-    const CO_SRDOCommPar_t *SRDOCommPar;         /**< From CO_SRDO_init() */
-    const CO_SRDOMapPar_t  *SRDOMapPar;          /**< From CO_SRDO_init() */
-    const uint16_t         *checksum;            /**< From CO_SRDO_init() */
+    OD_entry_t             *SRDOCommPar;         /**< From CO_SRDO_init() */
+    OD_entry_t             *SRDOMapPar;          /**< From CO_SRDO_init() */
     CO_CANmodule_t         *CANdevRx;            /**< From CO_SRDO_init() */
     CO_CANmodule_t         *CANdevTx;            /**< From CO_SRDO_init() */
     CO_CANtx_t             *CANtxBuff[2];        /**< CAN transmit buffer inside CANdevTx */
@@ -156,6 +131,16 @@ typedef struct{
     /** From CO_SRDO_initCallbackPre() or NULL */
     void                   *functSignalObjectPre;
 #endif
+    /** Extension for OD object */
+    OD_extension_t OD_communicationParam_ext;
+    OD_extension_t OD_mappingParam_extension;
+    
+    uint8_t             CommPar_informationDirection;
+    uint16_t            CommPar_safetyCycleTime;
+    uint8_t             CommPar_safetyRelatedValidationTime;
+    uint8_t             CommPar_transmissionType;
+    uint32_t            CommPar_COB_ID1_normal;
+    uint32_t            CommPar_COB_ID2_inverted;
 }CO_SRDO_t;
 
 /**
@@ -174,11 +159,9 @@ typedef struct{
  */
 CO_ReturnError_t CO_SRDOGuard_init(
         CO_SRDOGuard_t         *SRDOGuard,
-        CO_SDO_t               *SDO,
-        CO_NMT_internalState_t *operatingState,
-        uint8_t                *configurationValid,
-        uint16_t                idx_SRDOvalid,
-        uint16_t                idx_SRDOcrc);
+        OD_entry_t                *OD_13FE_SRDOValid, 
+        OD_entry_t                *OD_13FF_SRDOCRC,
+        uint32_t *errInfo);
 
 /**
  * Process operation and valid state changes.
@@ -189,7 +172,8 @@ CO_ReturnError_t CO_SRDOGuard_init(
  * - bit 1 validate checksum
  */
 uint8_t CO_SRDOGuard_process(
-        CO_SRDOGuard_t         *SRDOGuard);
+        CO_SRDOGuard_t         *SRDOGuard,
+        bool_t NMTisOperational);
 
 /**
  * Initialize SRDO object.
@@ -220,22 +204,21 @@ uint8_t CO_SRDOGuard_process(
  */
 CO_ReturnError_t CO_SRDO_init(
         CO_SRDO_t              *SRDO,
+        uint8_t                 SRDO_Index,
         CO_SRDOGuard_t         *SRDOGuard,
+        OD_t                   *OD,
         CO_EM_t                *em,
-        CO_SDO_t               *SDO,
         uint8_t                 nodeId,
         uint16_t                defaultCOB_ID,
-        const CO_SRDOCommPar_t *SRDOCommPar,
-        const CO_SRDOMapPar_t  *SRDOMapPar,
-        const uint16_t         *checksum,
-        uint16_t                idx_SRDOCommPar,
-        uint16_t                idx_SRDOMapPar,
+        OD_entry_t             *SRDOCommPar,
+        OD_entry_t             *SRDOMapPar,
         CO_CANmodule_t         *CANdevRx,
         uint16_t                CANdevRxIdxNormal,
         uint16_t                CANdevRxIdxInverted,
         CO_CANmodule_t         *CANdevTx,
         uint16_t                CANdevTxIdxNormal,
-        uint16_t                CANdevTxIdxInverted);
+        uint16_t                CANdevTxIdxInverted,
+        uint32_t *errInfo);
 
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
 /**

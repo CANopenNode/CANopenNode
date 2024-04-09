@@ -1187,36 +1187,32 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
     if (CO_GET_CNT(SRDO) > 0) {
         err = CO_SRDOGuard_init(co->SRDOGuard,
-                                co->SDO[0],
-                                &co->NMT->operatingState,
-                                &OD_configurationValid,
-                                OD_H13FE_SRDO_VALID,
-                                OD_H13FF_SRDO_CHECKSUM);
+                                OD_GET(H13FE, OD_H13FE_SRDO_VALID),
+                                OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
+                                errInfo);
         if (err) { return err; }
 
         OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
-        OD_entry_t *SRDOmap = OD_GET(H1318, OD_H1381_SRDO_1_MAPPING);
+        OD_entry_t *SRDOmap = OD_GET(H1381, OD_H1381_SRDO_1_MAPPING);
         for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
             uint16_t CANdevRxIdx = CO_GET_CO(RX_IDX_SRDO) + 2 * i;
             uint16_t CANdevTxIdx = CO_GET_CO(TX_IDX_SRDO) + 2 * i;
 
-            err = CO_SRDO_init(&co->SRDO[i],
+            err = CO_SRDO_init(&co->SRDO[i], i,
                                co->SRDOGuard,
+                               od,
                                em,
-                               co->SDO[0],
                                nodeId,
                                ((i == 0) ? CO_CAN_ID_SRDO_1 : 0),
                                SRDOcomm++,
                                SRDOmap++,
-                               &OD_safetyConfigurationChecksum[i],
-                               OD_H1301_SRDO_1_PARAM + i,
-                               OD_H1381_SRDO_1_MAPPING + i,
                                co->CANmodule,
                                CANdevRxIdx,
                                CANdevRxIdx + 1,
                                co->CANmodule,
                                CANdevTxIdx,
-                               CANdevTxIdx + 1);
+                               CANdevTxIdx + 1,
+                               errInfo);
             if (err) { return err; }
         }
     }
@@ -1604,11 +1600,15 @@ void CO_process_SRDO(CO_t *co,
     if (co->nodeIdUnconfigured) {
         return;
     }
+    
+    bool_t NMTisOperational =
+        CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
 
-    uint8_t firstOperational = CO_SRDOGuard_process(co->SRDOGuard);
+    uint8_t firstOperational = CO_SRDOGuard_process(co->SRDOGuard, 
+                        NMTisOperational);
 
     for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
-        CO_SRDO_process(&co->SRDO[i],
+                        CO_SRDO_process(&co->SRDO[i],
                         firstOperational,
                         timeDifference_us,
                         timerNext_us);
