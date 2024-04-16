@@ -101,6 +101,12 @@ typedef enum {
     CO_LSS_INQUIRE_REV              = 0x5CU, /**< Inquire identity revision-number protocol */
     CO_LSS_INQUIRE_SERIAL           = 0x5DU, /**< Inquire identity serial-number protocol */
     CO_LSS_INQUIRE_NODE_ID          = 0x5EU, /**< Inquire node-ID protocol */
+    CO_LSS_IDENT_SLAVE_VENDOR       = 0x46U, /**< LSS Identify remote slave scan - Vendor ID */
+    CO_LSS_IDENT_SLAVE_PRODUCT      = 0x47U, /**< LSS Identify remote slave scan - Product code */
+    CO_LSS_IDENT_SLAVE_REV_LOW      = 0x48U, /**< LSS Identify remote slave scan - Revision number low boarder */
+    CO_LSS_IDENT_SLAVE_REV_HIGH     = 0x49U, /**< LSS Identify remote slave scan - Revision number high boarder */
+    CO_LSS_IDENT_SLAVE_SERIAL_LOW   = 0x4aU, /**< LSS Identify remote slave scan - Serial number low boarder */
+    CO_LSS_IDENT_SLAVE_SERIAL_HIGH  = 0x4bU, /**< LSS Identify remote slave scan - Serial number high boarder */
 } CO_LSS_cs_t;
 
 /**
@@ -164,6 +170,20 @@ typedef union {
         uint32_t serialNumber;
     } identity;
 } CO_LSS_address_t;
+
+/**
+ * This structure is used for the LSS identify remote slave service. This
+ * service allows to get a revision and serial number if the vendor ID and
+ * product code is known.
+ */
+typedef struct {
+    uint32_t vendorID;
+    uint32_t productCode;
+    uint32_t revisionNumberlow;
+    uint32_t revisionNumberhigh;
+    uint32_t serialNumberlow;
+    uint32_t serialNumberhigh;
+}CO_LSS_ident_address_t;
 
 /**
  * LSS finite state automaton
@@ -230,6 +250,17 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
       a1.identity.revisionNumber == a2.identity.revisionNumber &&   \
       a1.identity.serialNumber == a2.identity.serialNumber &&       \
       a1.identity.vendorID == a2.identity.vendorID)
+
+/**
+ * Macro to check LSS Identify Remote Slave address are equal
+ */
+#define CO_LSS_IDENTIFY_REMOTE_SLAVE_EQUAL(/*CO_LSS_address_t*/ a1, /*CO_LSS_address_t*/ a2) \
+     (a1.identity.productCode == a2.productCode &&                  \
+      a1.identity.vendorID == a2.vendorID &&                        \
+      a1.identity.serialNumber >= a2.serialNumberlow &&             \
+      a1.identity.serialNumber <= a2.serialNumberhigh &&            \
+      a1.identity.revisionNumber >= a2.revisionNumberlow &&         \
+      a1.identity.revisionNumber <= a2.revisionNumberhigh)
 
 /** @} */ /*@defgroup CO_LSS*/
 
