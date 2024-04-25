@@ -38,10 +38,6 @@
 /* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_BIT_TIMING_1000 */
 #define CO_LSS_BIT_TIMING_VALID(index) (index != 5 && index <= CO_LSS_BIT_TIMING_AUTO)
 
-#if CO_LSS_FASTSCAN_BIT0!=0 || CO_LSS_FASTSCAN_VENDOR_ID!=0 || CO_LSS_BIT_TIMING_1000!=0
-#error Inconsistency in LSS macros
-#endif
-
 /*
  * Read received message from CAN module.
  *

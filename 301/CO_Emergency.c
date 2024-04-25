@@ -371,7 +371,6 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 {
     (void) nodeId; /* may be unused */
     CO_ReturnError_t ret = CO_ERROR_NO;
-    ODR_t odRet;
 
     /* verify arguments */
     if (em == NULL || OD_1001_errReg == NULL
@@ -413,6 +412,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
     /* get initial and verify "COB-ID EMCY" from Object Dictionary */
     uint32_t COB_IDEmergency32;
+    ODR_t odRet;
     odRet = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
     if (odRet != ODR_OK || (COB_IDEmergency32 & 0x7FFFF800) != 0) {
         if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1014_cobIdEm); }
