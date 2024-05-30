@@ -570,10 +570,6 @@ extern "C" {
  * Possible flags, can be ORed:
  * - CO_CONFIG_SRDO_ENABLE - Enable the SRDO object.
  * - CO_CONFIG_SRDO_CHECK_TX - Enable checking data before sending.
- * - CO_CONFIG_RSRDO_CALLS_EXTENSION - Enable calling configured extension
- *   callbacks when received RSRDO CAN message modifies OD entries.
- * - CO_CONFIG_TRSRDO_CALLS_EXTENSION - Enable calling configured extension
- *   callbacks before TSRDO CAN message is sent.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received RSRDO CAN message.
  *   Callback is configured by CO_SRDO_initCallbackPre().
@@ -585,8 +581,6 @@ extern "C" {
 #endif
 #define CO_CONFIG_SRDO_ENABLE 0x01
 #define CO_CONFIG_SRDO_CHECK_TX 0x02
-#define CO_CONFIG_RSRDO_CALLS_EXTENSION 0x04
-#define CO_CONFIG_TSRDO_CALLS_EXTENSION 0x08
 
 /**
  * SRDO Tx time delay

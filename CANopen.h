@@ -261,8 +261,8 @@ typedef struct {
     uint8_t CNT_SRDO;
     OD_entry_t *ENTRY_H1301; /**< OD entry for @ref CO_SRDO_init() */
     OD_entry_t *ENTRY_H1381; /**< OD entry for @ref CO_SRDO_init() */
-    OD_entry_t *ENTRY_H13FE; /**< OD entry for @ref CO_SRDOGuard_init() */
-    OD_entry_t *ENTRY_H13FF; /**< OD entry for @ref CO_SRDOGuard_init() */
+    OD_entry_t *ENTRY_H13FE; /**< OD entry for @ref CO_SRDO_init() */
+    OD_entry_t *ENTRY_H13FF; /**< OD entry for @ref CO_SRDO_init() */
     /** Number of LSSslave objects, 0 or 1 (CANrx + CANtx). */
     uint8_t CNT_LSS_SLV;
     /** Number of LSSmaster objects, 0 or 1 (CANrx + CANtx). */
@@ -393,8 +393,8 @@ typedef struct {
  #endif
 #endif
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
-    /** SRDO object, initialised by @ref CO_SRDOGuard_init(), single SRDOGuard
-     * object is included inside all SRDO objects */
+    /** SRDO guard object, initialised by @ref CO_SRDO_init_start(), single
+     * SRDOGuard object is included inside all SRDO objects */
     CO_SRDOGuard_t *SRDOGuard;
     /** SRDO objects, initialised by @ref CO_SRDO_init() */
     CO_SRDO_t *SRDO;
@@ -577,6 +577,34 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                    uint32_t *errInfo);
 
 
+
+
+/**
+ * Initialize Safety related Data Objects.
+ *
+ * Function must be called in the end of communication reset section after all
+ * CANopen and application initialization, otherwise some OD variables wont be
+ * mapped into SRDO correctly.
+ *
+ * @param co CANopen object.
+ * @param em Emergency object, which is used inside PDO objects for error
+ * reporting.
+ * @param od CANopen Object dictionary
+ * @param nodeId CANopen Node ID (1 ... 127) or 0xFF(unconfigured). If
+ * unconfigured, then PDO will not be initialized nor processed.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
+ *
+ * @return CO_ERROR_NO in case of success.
+ */
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE)
+CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
+                                    CO_EM_t *em,
+                                    OD_t *od,
+                                    uint8_t nodeId,
+                                    uint32_t *errInfo);
+#endif
+
+
 /**
  * Process CANopen objects.
  *
@@ -682,10 +710,12 @@ void CO_process_TPDO(CO_t *co,
  * @param timeDifference_us Time difference from previous function call in
  * microseconds.
  * @param [out] timerNext_us info to OS - see CO_process().
+ *
+ * @return @CO_SRDO_state_t lowest state of the SRDO objects.
  */
-void CO_process_SRDO(CO_t *co,
-                     uint32_t timeDifference_us,
-                     uint32_t *timerNext_us);
+CO_SRDO_state_t CO_process_SRDO(CO_t *co,
+                                uint32_t timeDifference_us,
+                                uint32_t *timerNext_us);
 #endif
 
 /** @} */ /* CO_CANopen */

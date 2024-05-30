@@ -273,11 +273,11 @@
  * number of them. Indexes are sorted in a way, that objects with highest
  * priority of the CAN identifier are listed first. */
 #define CO_RX_IDX_NMT_SLV   0
-#define CO_RX_IDX_SYNC      (CO_RX_IDX_NMT_SLV  + CO_RX_CNT_NMT_SLV)
+#define CO_RX_IDX_GFC       (CO_RX_IDX_NMT_SLV  + CO_RX_CNT_NMT_SLV)
+#define CO_RX_IDX_SYNC      (CO_RX_IDX_GFC      + CO_RX_CNT_GFC)
 #define CO_RX_IDX_EM_CONS   (CO_RX_IDX_SYNC     + CO_RX_CNT_SYNC)
 #define CO_RX_IDX_TIME      (CO_RX_IDX_EM_CONS  + CO_RX_CNT_EM_CONS)
-#define CO_RX_IDX_GFC       (CO_RX_IDX_TIME     + CO_RX_CNT_TIME)
-#define CO_RX_IDX_SRDO      (CO_RX_IDX_GFC      + CO_RX_CNT_GFC)
+#define CO_RX_IDX_SRDO      (CO_RX_IDX_TIME     + CO_RX_CNT_TIME)
 #define CO_RX_IDX_RPDO      (CO_RX_IDX_SRDO     + CO_RX_CNT_SRDO * 2)
 #define CO_RX_IDX_SDO_SRV   (CO_RX_IDX_RPDO     + CO_RX_CNT_RPDO)
 #define CO_RX_IDX_SDO_CLI   (CO_RX_IDX_SDO_SRV  + CO_RX_CNT_SDO_SRV)
@@ -289,11 +289,11 @@
 #define CO_CNT_ALL_RX_MSGS  (CO_RX_IDX_LSS_MST  + CO_RX_CNT_LSS_MST)
 
 #define CO_TX_IDX_NMT_MST   0
-#define CO_TX_IDX_SYNC      (CO_TX_IDX_NMT_MST  + CO_TX_CNT_NMT_MST)
+#define CO_TX_IDX_GFC       (CO_TX_IDX_NMT_MST  + CO_TX_CNT_NMT_MST)
+#define CO_TX_IDX_SYNC      (CO_TX_IDX_GFC      + CO_TX_CNT_GFC)
 #define CO_TX_IDX_EM_PROD   (CO_TX_IDX_SYNC     + CO_TX_CNT_SYNC)
 #define CO_TX_IDX_TIME      (CO_TX_IDX_EM_PROD  + CO_TX_CNT_EM_PROD)
-#define CO_TX_IDX_GFC       (CO_TX_IDX_TIME     + CO_TX_CNT_TIME)
-#define CO_TX_IDX_SRDO      (CO_TX_IDX_GFC      + CO_TX_CNT_GFC)
+#define CO_TX_IDX_SRDO      (CO_TX_IDX_TIME     + CO_TX_CNT_TIME)
 #define CO_TX_IDX_TPDO      (CO_TX_IDX_SRDO     + CO_TX_CNT_SRDO * 2)
 #define CO_TX_IDX_SDO_SRV   (CO_TX_IDX_TPDO     + CO_TX_CNT_TPDO)
 #define CO_TX_IDX_SDO_CLI   (CO_TX_IDX_SDO_SRV  + CO_TX_CNT_SDO_SRV)
@@ -555,15 +555,15 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
          * highest priority of the CAN identifier are listed first. */
         int16_t idxRx = 0;
         co->RX_IDX_NMT_SLV = idxRx; idxRx += RX_CNT_NMT_SLV;
+#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
+        co->RX_IDX_GFC = idxRx; idxRx += RX_CNT_GFC;
+#endif
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
         co->RX_IDX_SYNC = idxRx; idxRx += RX_CNT_SYNC;
 #endif
         co->RX_IDX_EM_CONS = idxRx; idxRx += RX_CNT_EM_CONS;
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
         co->RX_IDX_TIME = idxRx; idxRx += RX_CNT_TIME;
-#endif
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
-        co->RX_IDX_GFC = idxRx; idxRx += RX_CNT_GFC;
 #endif
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
         co->RX_IDX_SRDO = idxRx; idxRx += RX_CNT_SRDO * 2;
@@ -594,15 +594,15 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 
         int16_t idxTx = 0;
         co->TX_IDX_NMT_MST = idxTx; idxTx += TX_CNT_NMT_MST;
+#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
+        co->TX_IDX_GFC = idxTx; idxTx += TX_CNT_GFC;
+#endif
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
         co->TX_IDX_SYNC = idxTx; idxTx += TX_CNT_SYNC;
 #endif
         co->TX_IDX_EM_PROD = idxTx; idxTx += TX_CNT_EM_PROD;
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
         co->TX_IDX_TIME = idxTx; idxTx += TX_CNT_TIME;
-#endif
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
-        co->TX_IDX_GFC = idxTx; idxTx += TX_CNT_GFC;
 #endif
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
         co->TX_IDX_SRDO = idxTx; idxTx += TX_CNT_SRDO * 2;
@@ -1170,54 +1170,6 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     }
 #endif
 
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
-    if (CO_GET_CNT(GFC) == 1) {
-        err = CO_GFC_init(co->GFC,
-                          &OD_globalFailSafeCommandParameter,
-                          co->CANmodule,
-                          CO_GET_CO(RX_IDX_GFC),
-                          CO_CAN_ID_GFC,
-                          co->CANmodule,
-                          CO_GET_CO(TX_IDX_GFC),
-                          CO_CAN_ID_GFC);
-        if (err) { return err; }
-    }
-#endif
-
-#if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
-    if (CO_GET_CNT(SRDO) > 0) {
-        err = CO_SRDOGuard_init(co->SRDOGuard,
-                                OD_GET(H13FE, OD_H13FE_SRDO_VALID),
-                                OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
-                                errInfo);
-        if (err) { return err; }
-
-        OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
-        OD_entry_t *SRDOmap = OD_GET(H1381, OD_H1381_SRDO_1_MAPPING);
-        for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
-            uint16_t CANdevRxIdx = CO_GET_CO(RX_IDX_SRDO) + 2 * i;
-            uint16_t CANdevTxIdx = CO_GET_CO(TX_IDX_SRDO) + 2 * i;
-
-            err = CO_SRDO_init(&co->SRDO[i], i,
-                               co->SRDOGuard,
-                               od,
-                               em,
-                               nodeId,
-                               ((i == 0) ? CO_CAN_ID_SRDO_1 : 0),
-                               SRDOcomm++,
-                               SRDOmap++,
-                               co->CANmodule,
-                               CANdevRxIdx,
-                               CANdevRxIdx + 1,
-                               co->CANmodule,
-                               CANdevTxIdx,
-                               CANdevTxIdx + 1,
-                               errInfo);
-            if (err) { return err; }
-        }
-    }
-#endif
-
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
     if (CO_GET_CNT(LSS_MST) == 1) {
         err = CO_LSSmaster_init(co->LSSmaster,
@@ -1368,6 +1320,84 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
     return CO_ERROR_NO;
 }
 
+
+/******************************************************************************/
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE)
+CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
+                                    CO_EM_t *em,
+                                    OD_t *od,
+                                    uint8_t nodeId,
+                                    uint32_t *errInfo)
+{
+    if (co == NULL) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+    if (nodeId < 1 || nodeId > 127 || co->nodeIdUnconfigured) {
+        return (co->nodeIdUnconfigured)
+               ? CO_ERROR_NODE_ID_UNCONFIGURED_LSS : CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+
+#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
+    if (CO_GET_CNT(GFC) == 1) {
+        CO_ReturnError_t err;
+        err = CO_GFC_init(co->GFC,
+                          OD_GET(H1300, OD_H1300_GFC_PARAM),
+                          co->CANmodule,
+                          CO_GET_CO(RX_IDX_GFC),
+                          CO_CAN_ID_GFC,
+                          co->CANmodule,
+                          CO_GET_CO(TX_IDX_GFC),
+                          CO_CAN_ID_GFC);
+        if (err) { return err; }
+    }
+#endif
+
+#if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
+    if (CO_GET_CNT(SRDO) > 0) {
+        CO_ReturnError_t err;
+        err = CO_SRDO_init_start(co->SRDOGuard,
+                                 OD_GET(H13FE, OD_H13FE_SRDO_VALID),
+                                 OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
+                                 errInfo);
+        if (err) { return err; }
+
+        OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
+        OD_entry_t *SRDOmap = OD_GET(H1381, OD_H1381_SRDO_1_MAPPING);
+        for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
+            uint16_t CANdevRxIdx = CO_GET_CO(RX_IDX_SRDO) + 2 * i;
+            uint16_t CANdevTxIdx = CO_GET_CO(TX_IDX_SRDO) + 2 * i;
+
+            err = CO_SRDO_init(&co->SRDO[i],
+                               i,
+                               co->SRDOGuard,
+                               od,
+                               em,
+                               nodeId,
+                               ((i == 0) ? CO_CAN_ID_SRDO_1 : 0),
+                               SRDOcomm++,
+                               SRDOmap++,
+                               OD_GET(H13FE, OD_H13FE_SRDO_VALID),
+                               OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
+                               co->CANmodule,
+                               co->CANmodule,
+                               CANdevRxIdx,
+                               CANdevRxIdx + 1,
+                               co->CANmodule,
+                               co->CANmodule,
+                               CANdevTxIdx,
+                               CANdevTxIdx + 1,
+                               errInfo);
+            if (err) { return err; }
+        }
+
+        CO_SRDO_init_end(co->SRDOGuard);
+    }
+#endif
+
+    return CO_ERROR_NO;
+}
+#endif
 
 /******************************************************************************/
 CO_NMT_reset_cmd_t CO_process(CO_t *co,
@@ -1593,25 +1623,30 @@ void CO_process_TPDO(CO_t *co,
 
 /******************************************************************************/
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
-void CO_process_SRDO(CO_t *co,
-                     uint32_t timeDifference_us,
-                     uint32_t *timerNext_us)
+CO_SRDO_state_t CO_process_SRDO(CO_t *co,
+                                uint32_t timeDifference_us,
+                                uint32_t *timerNext_us)
 {
     if (co->nodeIdUnconfigured) {
-        return;
+        return CO_SRDO_state_unknown;
     }
-    
+
     bool_t NMTisOperational =
         CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
 
-    uint8_t firstOperational = CO_SRDOGuard_process(co->SRDOGuard, 
-                        NMTisOperational);
+
+    CO_SRDO_state_t lowestState = CO_SRDO_state_deleted;
 
     for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
-                        CO_SRDO_process(&co->SRDO[i],
-                        firstOperational,
-                        timeDifference_us,
-                        timerNext_us);
+        CO_SRDO_state_t state = CO_SRDO_process(&co->SRDO[i],
+                                                timeDifference_us,
+                                                timerNext_us,
+                                                NMTisOperational);
+        if (state < lowestState) {
+            state = lowestState;
+        }
     }
+
+    return lowestState;
 }
 #endif

@@ -304,8 +304,8 @@ typedef enum {
     /** 0x1C, communication, critical, Heartbeat consumer detected remote node
      * reset */
     CO_EM_HB_CONSUMER_REMOTE_RESET  = 0x1CU,
-    /** 0x1D, communication, critical, (unused) */
-    CO_EM_1D_unused                 = 0x1DU,
+    /** 0x1D, communication, critical, Error in SRDO configuration parameters. */
+    CO_EM_SRDO_CONFIGURATION        = 0x1DU,
     /** 0x1E, communication, critical, (unused) */
     CO_EM_1E_unused                 = 0x1EU,
     /** 0x1F, communication, critical, (unused) */
