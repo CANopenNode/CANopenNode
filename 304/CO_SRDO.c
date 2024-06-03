@@ -444,9 +444,9 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
             err = ERR_INFO(0x1381 + SRDO_Index, 0, 1);
         }
         else {
-            for (uint8_t i = 1; i <= CO_SRDO_MAX_MAPPED_ENTRIES; i++) {
-                if (OD_get_u32(OD_138x_SRDOMapPar, i, &mapping[i-1], true) != ODR_OK) {
-                    err = ERR_INFO(0x1381 + SRDO_Index, i, 1);
+            for (uint8_t i = 0; i < mappedObjectsCount; i++) {
+                if (OD_get_u32(OD_138x_SRDOMapPar, i+1, &mapping[i], true) != ODR_OK) {
+                    err = ERR_INFO(0x1381 + SRDO_Index, i+1, 1);
                     break;
                 }
             }
