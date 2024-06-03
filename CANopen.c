@@ -1643,7 +1643,7 @@ CO_SRDO_state_t CO_process_SRDO(CO_t *co,
                                                 timerNext_us,
                                                 NMTisOperational);
         if (state < lowestState) {
-            state = lowestState;
+            lowestState = state;
         }
     }
 

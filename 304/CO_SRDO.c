@@ -444,9 +444,9 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
             err = ERR_INFO(0x1381 + SRDO_Index, 0, 1);
         }
         else {
-            for (uint8_t i = 1; i <= CO_SRDO_MAX_MAPPED_ENTRIES; i++) {
-                if (OD_get_u32(OD_138x_SRDOMapPar, i, &mapping[i], true) != ODR_OK) {
-                    err = ERR_INFO(0x1381 + SRDO_Index, i, 1);
+            for (uint8_t i = 0; i < mappedObjectsCount; i++) {
+                if (OD_get_u32(OD_138x_SRDOMapPar, i+1, &mapping[i], true) != ODR_OK) {
+                    err = ERR_INFO(0x1381 + SRDO_Index, i+1, 1);
                     break;
                 }
             }
@@ -717,7 +717,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
             if (SRDO->cycleTimer == 0U) {
                 if (SRDO->nextIsNormal) {
                     uint8_t *dataSRDO[2] = {&SRDO->CANtxBuff[0]->data[0], &SRDO->CANtxBuff[1]->data[0]};
-                    size_t verifyLength = 0;
+                    size_t verifyLength[2] = { 0, 0 };
 
                     /* copy mapped data from Object Dictionary into CAN buffers */
                     for (uint8_t i = 0; i < SRDO->mappedObjectsCount; i++) {
@@ -729,8 +729,8 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         uint8_t mappedLength = (uint8_t) stream->dataOffset;
 
                         /* additional safety check */
-                        verifyLength += mappedLength;
-                        if (verifyLength > CO_SRDO_MAX_SIZE) {
+                        verifyLength[plain_inverted] += mappedLength;
+                        if (verifyLength[plain_inverted] > CO_SRDO_MAX_SIZE) {
                             break;
                         }
 
@@ -778,7 +778,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         dataSRDO[plain_inverted] += mappedLength;
                     }
 
-                    if (verifyLength > CO_SRDO_MAX_SIZE || verifyLength != SRDO->dataLength) {
+                    if (verifyLength[0]!=verifyLength[1] || verifyLength[0] > CO_SRDO_MAX_SIZE ||  verifyLength[0] != SRDO->dataLength) {
                         SRDO->internalState = CO_SRDO_state_error_internal; /* should not happen */
                     }
                     else {
@@ -843,7 +843,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
 
                     /* Verify, if normal and inverted data matches properly */
                     for (uint8_t i = 0; i < SRDO->dataLength; i++) {
-                        if (~dataSRDO[0][i] != dataSRDO[1][i]) {
+                        if ( (uint8_t)(~dataSRDO[0][i]) != dataSRDO[1][i]) {
                             data_ok = false;
                             SRDO->internalState = CO_SRDO_state_error_rxNotInverted;
                             break;
@@ -852,7 +852,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
 
                     /* copy data from CAN messages into mapped data from Object Dictionary */
                     if (data_ok) {
-                        size_t verifyLength = 0;
+                        size_t verifyLength[2] = { 0, 0 };
                         for (uint8_t i = 0; i < SRDO->mappedObjectsCount; i++) {
                             uint8_t plain_inverted = i % 2;
                             OD_IO_t *OD_IO = &SRDO->OD_IO[i];
@@ -863,8 +863,8 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                             uint8_t mappedLength = (uint8_t) (*dataOffset);
 
                             /* additional safety check */
-                            verifyLength += mappedLength;
-                            if (verifyLength > CO_SRDO_MAX_SIZE) {
+                            verifyLength[plain_inverted] += mappedLength;
+                            if (verifyLength[plain_inverted] > CO_SRDO_MAX_SIZE) {
                                 break;
                             }
 
@@ -911,7 +911,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         } /* for (uint8_t i = 0; i < SRDO->mappedObjectsCount; i++) */
 
                         /* safety check, this should not happen */
-                        if (verifyLength > CO_SRDO_MAX_SIZE || verifyLength != SRDO->dataLength) {
+                        if (verifyLength[0]!=verifyLength[1] || verifyLength[0] > CO_SRDO_MAX_SIZE || verifyLength[0] != SRDO->dataLength) {
                             SRDO->internalState = CO_SRDO_state_error_internal;
                         }
                         else {
