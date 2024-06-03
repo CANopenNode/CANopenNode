@@ -843,7 +843,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
 
                     /* Verify, if normal and inverted data matches properly */
                     for (uint8_t i = 0; i < SRDO->dataLength; i++) {
-                        if (~dataSRDO[0][i] != dataSRDO[1][i]) {
+                        if ( (uint8_t)(~dataSRDO[0][i]) != dataSRDO[1][i]) {
                             data_ok = false;
                             SRDO->internalState = CO_SRDO_state_error_rxNotInverted;
                             break;
