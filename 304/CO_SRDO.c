@@ -778,7 +778,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         dataSRDO[plain_inverted] += mappedLength;
                     }
 
-                    if (verifyLength[0]!=verifyLength[1] || verifyLength[0] > CO_SRDO_MAX_SIZE ||  verifyLength[0] != SRDO->dataLength) {
+                    if (verifyLength[0] != verifyLength[1] || verifyLength[0] > CO_SRDO_MAX_SIZE || verifyLength[0] != SRDO->dataLength) {
                         SRDO->internalState = CO_SRDO_state_error_internal; /* should not happen */
                     }
                     else {
@@ -786,7 +786,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_CHECK_TX
                         /* check data before sending (optional) */
                         for (uint8_t i = 0; i < SRDO->dataLength; i++) {
-                            if (~SRDO->CANtxBuff[0]->data[i] != SRDO->CANtxBuff[1]->data[i]) {
+                            if ((uint8_t)(~SRDO->CANtxBuff[0]->data[i]) != SRDO->CANtxBuff[1]->data[i]) {
                                 SRDO->internalState = CO_SRDO_state_error_txNotInverted;
                                 data_ok = false;
                                 break;
@@ -843,7 +843,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
 
                     /* Verify, if normal and inverted data matches properly */
                     for (uint8_t i = 0; i < SRDO->dataLength; i++) {
-                        if ( (uint8_t)(~dataSRDO[0][i]) != dataSRDO[1][i]) {
+                        if ((uint8_t)(~dataSRDO[0][i]) != dataSRDO[1][i]) {
                             data_ok = false;
                             SRDO->internalState = CO_SRDO_state_error_rxNotInverted;
                             break;
@@ -911,7 +911,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         } /* for (uint8_t i = 0; i < SRDO->mappedObjectsCount; i++) */
 
                         /* safety check, this should not happen */
-                        if (verifyLength[0]!=verifyLength[1] || verifyLength[0] > CO_SRDO_MAX_SIZE || verifyLength[0] != SRDO->dataLength) {
+                        if (verifyLength[0] != verifyLength[1] || verifyLength[0] > CO_SRDO_MAX_SIZE || verifyLength[0] != SRDO->dataLength) {
                             SRDO->internalState = CO_SRDO_state_error_internal;
                         }
                         else {
