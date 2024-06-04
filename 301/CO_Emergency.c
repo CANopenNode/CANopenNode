@@ -591,7 +591,7 @@ void CO_EM_process(CO_EM_t *em,
         }
         if (CANerrStChanged & CO_CAN_ERRRX_OVERFLOW) {
             CO_error(em, (CANerrSt & CO_CAN_ERRRX_OVERFLOW) != 0,
-                     CO_EM_CAN_RXB_OVERFLOW, CO_EM_CAN_RXB_OVERFLOW, 0);
+                     CO_EM_CAN_RXB_OVERFLOW, CO_EMC_CAN_OVERRUN, 0);
         }
     }
 
