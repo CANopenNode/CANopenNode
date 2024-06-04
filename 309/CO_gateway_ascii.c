@@ -742,6 +742,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         case 3: /* <command> token contains digit */
             err = true;
             break;
+        default:
+            /* MISRA C 2004 15.3 */
+            break;
         }
         if (err) break;
 

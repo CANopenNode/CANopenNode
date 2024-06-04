@@ -75,8 +75,8 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
             LEDs->LEDtmr200ms = 0;
             rd = gr = 0;
 
-            if ((LEDs->LEDred & CO_LED_blink) == 0) rd |= CO_LED_blink;
-            else                                    gr |= CO_LED_blink;
+            if ((LEDs->LEDred & CO_LED_blink) == 0) { rd |= CO_LED_blink; }
+            else                                    { gr |= CO_LED_blink; }
 
             switch (++LEDs->LEDtmrflash_1) {
                 case 1: rd |= CO_LED_flash_1; break;
@@ -110,8 +110,8 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
         }
 
         /* calculate 10Hz flickering */
-        if (rdFlickerNext) rd |= CO_LED_flicker;
-        else               gr |= CO_LED_flicker;
+        if (rdFlickerNext) { rd |= CO_LED_flicker; }
+        else               { gr |= CO_LED_flicker; }
 
     } /* while (LEDs->LEDtmr50ms >= 50000) */
 
@@ -119,25 +119,25 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
         uint8_t rd_co, gr_co;
 
         /* CANopen red ERROR LED */
-        if      (ErrCANbusOff)                      rd_co = 1;
-        else if (NMTstate == CO_NMT_INITIALIZING)   rd_co = rd & CO_LED_flicker;
-        else if (ErrRpdo)                           rd_co = rd & CO_LED_flash_4;
-        else if (ErrSync)                           rd_co = rd & CO_LED_flash_3;
-        else if (ErrHbCons)                         rd_co = rd & CO_LED_flash_2;
-        else if (ErrCANbusWarn)                     rd_co = rd & CO_LED_flash_1;
-        else if (ErrOther)                          rd_co = rd & CO_LED_blink;
-        else                                        rd_co = 0;
+        if      (ErrCANbusOff)                   { rd_co = 1;}
+        else if (NMTstate == CO_NMT_INITIALIZING){ rd_co = rd & CO_LED_flicker;}
+        else if (ErrRpdo)                        { rd_co = rd & CO_LED_flash_4;}
+        else if (ErrSync)                        { rd_co = rd & CO_LED_flash_3;}
+        else if (ErrHbCons)                      { rd_co = rd & CO_LED_flash_2;}
+        else if (ErrCANbusWarn)                  { rd_co = rd & CO_LED_flash_1;}
+        else if (ErrOther)                       { rd_co = rd & CO_LED_blink;}
+        else                                     { rd_co = 0;}
 
         /* CANopen green RUN LED */
-        if      (LSSconfig)                         gr_co = gr & CO_LED_flicker;
-        else if (firmwareDownload)                  gr_co = gr & CO_LED_flash_3;
-        else if (NMTstate == CO_NMT_STOPPED)        gr_co = gr & CO_LED_flash_1;
-        else if (NMTstate == CO_NMT_PRE_OPERATIONAL)gr_co = gr & CO_LED_blink;
-        else if (NMTstate == CO_NMT_OPERATIONAL)    gr_co = 1;
-        else                                        gr_co = 0;
+        if      (LSSconfig)                         {gr_co = gr & CO_LED_flicker;}
+        else if (firmwareDownload)                  {gr_co = gr & CO_LED_flash_3;}
+        else if (NMTstate == CO_NMT_STOPPED)        {gr_co = gr & CO_LED_flash_1;}
+        else if (NMTstate == CO_NMT_PRE_OPERATIONAL){gr_co = gr & CO_LED_blink;}
+        else if (NMTstate == CO_NMT_OPERATIONAL)    {gr_co = 1;}
+        else                                        {gr_co = 0;}
 
-        if (rd_co != 0) rd |= CO_LED_CANopen;
-        if (gr_co != 0) gr |= CO_LED_CANopen;
+        if (rd_co != 0) { rd |= CO_LED_CANopen; }
+        if (gr_co != 0) { gr |= CO_LED_CANopen; }
         LEDs->LEDred = rd;
         LEDs->LEDgreen = gr;
     } /* if (tick) */

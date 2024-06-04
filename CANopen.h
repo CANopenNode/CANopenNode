@@ -5,7 +5,7 @@
  * @ingroup     CO_CANopen
  * @author      Janez Paternoster
  * @author      Uwe Kindler
- * @copyright   2010 - 2020 Janez Paternoster
+ * @copyright   2010 - 2023 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -32,6 +32,7 @@
 #include "301/CO_ODinterface.h"
 #include "301/CO_NMT_Heartbeat.h"
 #include "301/CO_HBconsumer.h"
+#include "301/CO_Node_Guarding.h"
 #include "301/CO_Emergency.h"
 #include "301/CO_SDOserver.h"
 #include "301/CO_SDOclient.h"
@@ -207,6 +208,10 @@ typedef struct {
      * object, 1 to 127. */
     uint8_t CNT_ARR_1016;
     OD_entry_t *ENTRY_H1016; /**< OD entry for @ref CO_HBconsumer_init()*/
+    /** OD entry for @ref CO_nodeGuardingSlave_init() */
+    OD_entry_t *ENTRY_H100C;
+    /** OD entry for @ref CO_nodeGuardingSlave_init() */
+    OD_entry_t *ENTRY_H100D;
     /** Number of Emergency objects, 0 or 1: optional producer (CANtx) +
      * optional consumer (CANrx), configurable by @ref CO_CONFIG_EM.
      * There must be one Emergency object in the device. */
@@ -256,8 +261,8 @@ typedef struct {
     uint8_t CNT_SRDO;
     OD_entry_t *ENTRY_H1301; /**< OD entry for @ref CO_SRDO_init() */
     OD_entry_t *ENTRY_H1381; /**< OD entry for @ref CO_SRDO_init() */
-    OD_entry_t *ENTRY_H13FE; /**< OD entry for @ref CO_SRDOGuard_init() */
-    OD_entry_t *ENTRY_H13FF; /**< OD entry for @ref CO_SRDOGuard_init() */
+    OD_entry_t *ENTRY_H13FE; /**< OD entry for @ref CO_SRDO_init() */
+    OD_entry_t *ENTRY_H13FF; /**< OD entry for @ref CO_SRDO_init() */
     /** Number of LSSslave objects, 0 or 1 (CANrx + CANtx). */
     uint8_t CNT_LSS_SLV;
     /** Number of LSSmaster objects, 0 or 1 (CANrx + CANtx). */
@@ -302,6 +307,22 @@ typedef struct {
     CO_HBconsNode_t *HBconsMonitoredNodes;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
     uint16_t RX_IDX_HB_CONS; /**< Start index in CANrx. */
+ #endif
+#endif
+#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) || defined CO_DOXYGEN
+    /** Node guarding slave object, initialised by @ref CO_nodeGuardingSlave_init() */
+    CO_nodeGuardingSlave_t *NGslave;
+ #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
+    uint16_t RX_IDX_NG_SLV; /**< Start index in CANrx. */
+    uint16_t TX_IDX_NG_SLV; /**< Start index in CANtx. */
+ #endif
+#endif
+#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) || defined CO_DOXYGEN
+    /** Node guarding master object, initialised by @ref CO_nodeGuardingMaster_init() */
+    CO_nodeGuardingMaster_t *NGmaster;
+ #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
+    uint16_t RX_IDX_NG_MST; /**< Start index in CANrx. */
+    uint16_t TX_IDX_NG_MST; /**< Start index in CANtx. */
  #endif
 #endif
     /** Emergency object, initialised by @ref CO_EM_init() */
@@ -372,8 +393,8 @@ typedef struct {
  #endif
 #endif
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
-    /** SRDO object, initialised by @ref CO_SRDOGuard_init(), single SRDOGuard
-     * object is included inside all SRDO objects */
+    /** SRDO guard object, initialised by @ref CO_SRDO_init_start(), single
+     * SRDOGuard object is included inside all SRDO objects */
     CO_SRDOGuard_t *SRDOGuard;
     /** SRDO objects, initialised by @ref CO_SRDO_init() */
     CO_SRDO_t *SRDO;
@@ -556,6 +577,34 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                    uint32_t *errInfo);
 
 
+
+
+/**
+ * Initialize Safety related Data Objects.
+ *
+ * Function must be called in the end of communication reset section after all
+ * CANopen and application initialization, otherwise some OD variables wont be
+ * mapped into SRDO correctly.
+ *
+ * @param co CANopen object.
+ * @param em Emergency object, which is used inside PDO objects for error
+ * reporting.
+ * @param od CANopen Object dictionary
+ * @param nodeId CANopen Node ID (1 ... 127) or 0xFF(unconfigured). If
+ * unconfigured, then PDO will not be initialized nor processed.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
+ *
+ * @return CO_ERROR_NO in case of success.
+ */
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE)
+CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
+                                    CO_EM_t *em,
+                                    OD_t *od,
+                                    uint8_t nodeId,
+                                    uint32_t *errInfo);
+#endif
+
+
 /**
  * Process CANopen objects.
  *
@@ -661,10 +710,12 @@ void CO_process_TPDO(CO_t *co,
  * @param timeDifference_us Time difference from previous function call in
  * microseconds.
  * @param [out] timerNext_us info to OS - see CO_process().
+ *
+ * @return @CO_SRDO_state_t lowest state of the SRDO objects.
  */
-void CO_process_SRDO(CO_t *co,
-                     uint32_t timeDifference_us,
-                     uint32_t *timerNext_us);
+CO_SRDO_state_t CO_process_SRDO(CO_t *co,
+                                uint32_t timeDifference_us,
+                                uint32_t *timerNext_us);
 #endif
 
 /** @} */ /* CO_CANopen */

@@ -53,7 +53,6 @@ extern "C" {
  * only, don't use period after the sentence.
  */
 
-
 /**
  * Brief description of the object ends at this dot. Details follow
  * here.
@@ -64,7 +63,6 @@ typedef struct {
     /** Long description of the variable stringMember. More description. */
     char_t stringMember[5];
 } object1_t;
-
 
 /**
  * Function example 1.
@@ -80,29 +78,58 @@ typedef struct {
  *
  * @return Some value.
  */
-int32_t foo1(object1_t *thisObj,
-             int32_t argument_2,
-             uint16_t argument_3,
-             float32_t argument_4)
-{
+int32_t
+foo1(object1_t* thisObj, int32_t argument_2, uint16_t argument_3, float32_t argument_4, bool_t argument_5,
+     int32_t argument_6) {
     /* Comment */
 
     /* Multiline
      * comment.
      */
 
+    /* All if and else statement must have use { } around their bodies
+     * (MISRA C 2004 rule 14.9)
+     */
     if (xy == yz) { /* Comment. '//' comments are not allowed */
         a = b;
-    } else {
+    } else if (xy < yz) {
         a = c;
+    } else {
+        /* To stay compliant with MISRA C 2004 14.10
+         * all else if statements need a final else even if empty
+         */
     }
 
+    /* Assignment operators shall not be used in expressions which return
+     * boolean values (MISRA C 2004 rule 13.1)
+     * This is true for: 'if' and 'while' statements.
+     * For instance:
+     */
+    if (xy = yz) {}
+    while (xy = yz) {}
+
     switch (zx) {
-    case 1:
-        a = b;
-        break;
+        case 1:
+            a = b;
+            break default :
+                /* To stay compliant with MISRA C 2004 15.3
+                 * the default case must be present */
+                break;
     }
 }
+
+/* MISRA C 2004 Rule E14.4.3
+ * There should be no more than one break or goto statement used to terminate
+ * any iteration statement.
+ */
+
+/* MISRA C 2004 Rule 14.5
+ * The continue statement shall not be used.
+ */
+
+/* More about MISRA C
+ * https://www.ibm.com/docs/en/devops-test-embedded/9.0.0?topic=review-code-misra-2004-rules
+ */
 
 /** @} */
 

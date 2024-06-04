@@ -236,7 +236,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
 
     odRet = OD_get_u32(OD_1005_cobIdSync, 0, &cobIdSync, true);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1005_cobIdSync);
+        if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1005_cobIdSync); }
         return CO_ERROR_OD_PARAMETERS;
     }
 #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC
@@ -251,12 +251,16 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
                                      sizeof(uint32_t), NULL);
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
     if (SYNC->OD_1006_period == NULL) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1006_commCyclePeriod);
+        if (errInfo != NULL) { 
+            *errInfo = OD_getIndex(OD_1006_commCyclePeriod);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
 #else
     if (OD_1006_commCyclePeriod != NULL && SYNC->OD_1006_period == NULL) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1006_commCyclePeriod);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_1006_commCyclePeriod);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
 #endif
@@ -265,7 +269,9 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     SYNC->OD_1007_window = OD_getPtr(OD_1007_syncWindowLen, 0,
                                      sizeof(uint32_t), NULL);
     if (OD_1007_syncWindowLen != NULL && SYNC->OD_1007_window == NULL) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1007_syncWindowLen);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_1007_syncWindowLen);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -276,11 +282,14 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     if (OD_1019_syncCounterOvf != NULL) {
         odRet = OD_get_u8(OD_1019_syncCounterOvf, 0, &syncCounterOvf, true);
         if (odRet != ODR_OK) {
-            if (errInfo != NULL) *errInfo = OD_getIndex(OD_1019_syncCounterOvf);
+            if (errInfo != NULL) { 
+                *errInfo = OD_getIndex(OD_1019_syncCounterOvf);
+            }
             return CO_ERROR_OD_PARAMETERS;
         }
-        if (syncCounterOvf == 1) syncCounterOvf = 2;
-        else if (syncCounterOvf > 240) syncCounterOvf = 240;
+        if (syncCounterOvf == 1) { syncCounterOvf = 2; }
+        else if (syncCounterOvf > 240) { syncCounterOvf = 240; }
+        else { /* MISRA C 2004 14.10 */ }
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
@@ -317,8 +326,9 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
             0,                  /* rtr */
             (void*)SYNC,        /* object passed to receive function */
             CO_SYNC_receive);   /* this function will process received message*/
-    if (ret != CO_ERROR_NO)
+    if (ret != CO_ERROR_NO) {
         return ret;
+    }
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
     SYNC->CANtxBuff = CO_CANtxBufferInit(
@@ -329,8 +339,9 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
             syncCounterOvf != 0 ? 1 : 0, /* number of data bytes */
             0);                 /* synchronous message flag bit */
 
-    if (SYNC->CANtxBuff == NULL)
+    if (SYNC->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
 #endif
 
     return CO_ERROR_NO;
@@ -365,7 +376,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
     if (NMTisPreOrOperational) {
         /* update sync timer, no overflow */
         uint32_t timerNew = SYNC->timer + timeDifference_us;
-        if (timerNew > SYNC->timer) SYNC->timer = timerNew;
+        if (timerNew > SYNC->timer) { SYNC->timer = timerNew; }
 
         /* was SYNC just received */
         if (CO_FLAG_READ(SYNC->CANrxNew)) {
@@ -401,7 +412,9 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
             if (SYNC->timeoutError == 1) {
                 /* periodTimeout is 1,5 * OD_1006_period, no overflow */
                 uint32_t periodTimeout = OD_1006_period + (OD_1006_period >> 1);
-                if (periodTimeout < OD_1006_period) periodTimeout = 0xFFFFFFFF;
+                if (periodTimeout < OD_1006_period) {
+                    periodTimeout = 0xFFFFFFFF;
+                }
 
                 if (SYNC->timer > periodTimeout) {
                     CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT,
@@ -417,6 +430,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
                 }
 #endif
             }
+            else { /* MISRA C 2004 14.10 */ }
         } /* if (OD_1006_period > 0) */
 
         /* Synchronous PDOs are allowed only inside time window */

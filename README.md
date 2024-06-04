@@ -19,7 +19,7 @@ Characteristics
 ### CANopen
  - [Object Dictionary](https://www.can-cia.org/can-knowledge/canopen/device-architecture/) offers clear and flexible organisation of any variables. Variables can be accessed directly or via read/write functions.
  - [NMT](https://www.can-cia.org/can-knowledge/canopen/network-management/) slave to start, stop, reset device. Simple NMT master.
- - [Heartbeat](https://www.can-cia.org/can-knowledge/canopen/error-control-protocols/) producer/consumer error control for monitoring of CANopen devices.
+ - [Heartbeat](https://www.can-cia.org/can-knowledge/canopen/error-control-protocols/) producer/consumer error control for monitoring of CANopen devices. An older alternative, 'node guarding', is also available.
  - [PDO](https://www.can-cia.org/can-knowledge/canopen/pdo-protocol/) for broadcasting process data with high priority and no protocol overhead. Variables from Object Dictionary can be dynamically mapped to the TPDO, which is then transmitted according to communication rules and received as RPDO by another device.
  - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) server enables expedited, segmented and block transfer access to all Object Dictionary variables inside CANopen device.
  - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) client can access any Object Dictionary variable on any CANopen device inside the network.
@@ -28,7 +28,7 @@ Characteristics
  - [Time-stamp](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/) producer/consumer enables date and time synchronization in millisecond resolution.
  - [LSS](https://www.can-cia.org/can-knowledge/canopen/cia305/) CANopen node-id and bitrate setup, master and slave, LSS fastscan.
  - [CANopen gateway](https://www.can-cia.org/can-knowledge/canopen/cia309/), CiA309-3 Ascii command interface for NMT master, LSS master and SDO client.
- - CANopen Safety, EN 50325-5, CiA304, "PDO like" communication in safety-relevant networks
+ - [CANopen Safety](https://standards.globalspec.com/std/1284438/en-50325-5), EN 50325-5, CiA304, "PDO like" communication in safety-relevant networks
  - [CANopen Conformance Test Tool](https://www.can-cia.org/services/test-center/conformance-test-tool/) passed.
 
 ### Other
@@ -48,6 +48,7 @@ Related projects
  - [CANopenEditor](https://github.com/CANopenNode/CANopenEditor): Object Dictionary editor, external GUI tool for editing CANopen Object Dictionary for custom device. It generates C source code, electronic data sheet and documentation for the device. It is a fork from [libedssharp](https://github.com/robincornelius/libedssharp).
  - [CANopenLinux](https://github.com/CANopenNode/CANopenLinux): CANopenNode on Linux devices. It can be a basic CANopen device or more advanced with commander functionalities.
  - [CANopenSTM32](https://github.com/CANopenNode/CanOpenSTM32): CANopenNode on STM32 microcontrollers.
+ - [Analog Devices Inc.](https://github.com/Analog-Devices-MSDK/CANopenADI): CANopenNode on Analog Devices Inc. MAX32xx microcontrollers.
  - [CANopenPIC](https://github.com/CANopenNode/CANopenPIC): CANopenNode on PIC microcontrollers from Microchip. Works with 16-bit and 32 bit devices. Includes example for Arduino style [Max32](https://reference.digilentinc.com/reference/microprocessor/max32/start) board.
  - [doc/deviceSupport.md](doc/deviceSupport.md): List of other implementations of CANopenNode on different devices.
 
@@ -136,7 +137,7 @@ File structure
    - **crc16-ccitt.h/.c** - Calculation of CRC 16 CCITT polynomial.
  - **303/** - CANopen Recommendation
    - **CO_LEDs.h/.c** - CANopen LED Indicators
- - **304/** - CANopen Safety.
+ - **304/** - CANopen Safety Related Data Object, as specified by EN 50325-5:2010
    - **CO_SRDO.h/.c** - CANopen Safety-relevant Data Object protocol.
    - **CO_GFC.h/.c** - CANopen Global Failsafe Command (producer and consumer).
  - **305/** - CANopen layer setting services (LSS) and protocols.
@@ -200,7 +201,7 @@ It is not practical to have all device interfaces in a single project. Interface
 Some details
 ------------
 ### RTR
-RTR (remote transmission request) is a feature of CAN bus. Usage of RTR is not recommended for CANopen and it is not implemented in CANopenNode.
+RTR (remote transmission request) is a feature of CAN bus. Usage of RTR is not recommended for CANopen. RTR PDO is not implemented in CANopenNode.
 
 ### Error control
 When node is started (in NMT operational state), it is allowed to send or receive Process Data Objects (PDO). If Error Register (object 0x1001) is set, then NMT operational state may not be allowed.

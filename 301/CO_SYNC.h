@@ -223,7 +223,7 @@ void CO_SYNC_initCallbackPre(CO_SYNC_t *SYNC,
  * @return Same as CO_CANsend().
  */
 static inline CO_ReturnError_t CO_SYNCsend(CO_SYNC_t *SYNC) {
-    if (++SYNC->counter > SYNC->counterOverflowValue) SYNC->counter = 1;
+    if (++SYNC->counter > SYNC->counterOverflowValue) { SYNC->counter = 1; }
     SYNC->timer = 0;
     SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
     SYNC->CANtxBuff->data[0] = SYNC->counter;

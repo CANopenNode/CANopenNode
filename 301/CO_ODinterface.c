@@ -182,15 +182,15 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index) {
 ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
                 OD_IO_t *io, bool_t odOrig)
 {
-    if (entry == NULL || entry->odObject == NULL) return ODR_IDX_NOT_EXIST;
-    if (io == NULL) return ODR_DEV_INCOMPAT;
+    if (entry == NULL || entry->odObject == NULL) { return ODR_IDX_NOT_EXIST; }
+    if (io == NULL) { return ODR_DEV_INCOMPAT; }
 
     OD_stream_t *stream = &io->stream;
 
     /* attribute, dataOrig and dataLength, depends on object type */
     switch (entry->odObjectType & ODT_TYPE_MASK) {
     case ODT_VAR: {
-        if (subIndex > 0) return ODR_SUB_NOT_EXIST;
+        if (subIndex > 0) { return ODR_SUB_NOT_EXIST; }
         CO_PROGMEM OD_obj_var_t *odo = entry->odObject;
 
 
@@ -200,7 +200,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
         break;
     }
     case ODT_ARR: {
-        if (subIndex >= entry->subEntriesCount) return ODR_SUB_NOT_EXIST;
+        if (subIndex >= entry->subEntriesCount) { return ODR_SUB_NOT_EXIST; }
         CO_PROGMEM OD_obj_array_t *odo = entry->odObject;
 
         if (subIndex == 0) {
@@ -226,7 +226,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
                 break;
             }
         }
-        if (odo == NULL) return ODR_SUB_NOT_EXIST;
+        if (odo == NULL) { return ODR_SUB_NOT_EXIST; }
 
         stream->attribute = odo->attribute;
         stream->dataOrig = odo->dataOrig;
@@ -255,6 +255,9 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
 
     /* Reset stream data offset */
     stream->dataOffset = 0;
+
+    /* Add informative data */
+    stream->index = entry->index;
     stream->subIndex = subIndex;
 
     return ODR_OK;
@@ -300,7 +303,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode) {
 ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
                    void *val, OD_size_t len, bool_t odOrig)
 {
-    if (val == NULL) return ODR_DEV_INCOMPAT;
+    if (val == NULL) { return ODR_DEV_INCOMPAT; }
 
     OD_IO_t io;
     OD_stream_t *stream = (OD_stream_t *)&io;
@@ -308,8 +311,8 @@ ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
 
     ODR_t ret = OD_getSub(entry, subIndex, &io, odOrig);
 
-    if (ret != ODR_OK) return ret;
-    if (stream->dataLength != len) return ODR_TYPE_MISMATCH;
+    if (ret != ODR_OK) { return ret; }
+    if (stream->dataLength != len) { return ODR_TYPE_MISMATCH; }
 
     return io.read(stream, val, len, &countRd);
 }
@@ -323,8 +326,8 @@ ODR_t OD_set_value(const OD_entry_t *entry, uint8_t subIndex, void *val,
 
     ODR_t ret = OD_getSub(entry, subIndex, &io, odOrig);
 
-    if (ret != ODR_OK) return ret;
-    if (stream->dataLength != len) return ODR_TYPE_MISMATCH;
+    if (ret != ODR_OK) { return ret; }
+    if (stream->dataLength != len) { return ODR_TYPE_MISMATCH; }
 
     return io.write(stream, val, len, &countWritten);
 }
@@ -345,9 +348,10 @@ void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
         else if (len != 0 && len != stream->dataLength) {
             errCopy = ODR_TYPE_MISMATCH;
         }
+        else { /* MISRA C 2004 14.10 */ }
     }
 
-    if (err != NULL) *err = errCopy;
+    if (err != NULL) { *err = errCopy; }
 
     return errCopy == ODR_OK ? stream->dataOrig : NULL;
 }

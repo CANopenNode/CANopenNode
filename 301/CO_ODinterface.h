@@ -223,6 +223,8 @@ typedef struct {
     OD_size_t dataOffset;
     /** Attribute bit-field of the OD sub-object, see @ref OD_attributes_t */
     OD_attr_t attribute;
+    /** Index of the OD object, informative */
+    uint16_t index;
     /** Sub index of the OD sub-object, informative */
     uint8_t subIndex;
 } OD_stream_t;
@@ -257,9 +259,8 @@ typedef struct {
      * not large enough. ("*returnCode" must not return 'ODR_PARTIAL', if there
      * is still space in "buf".)
      *
-     * @warning When accessing OD variables by calling the read() function, it
-     * may be necessary to use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros.
-     * See @ref CO_critical_sections for more information.
+     * @warning Do not use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros
+     * inside the read() function. See also @ref CO_critical_sections.
      *
      * @param stream Object Dictionary stream object.
      * @param buf Pointer to external buffer, where to data will be copied.
@@ -288,9 +289,8 @@ typedef struct {
      * "write" function must always copy all available data from buf. If OD
      * variable expect more data, then "*returnCode" must return 'ODR_PARTIAL'.
      *
-     * @warning When accessing OD variables by calling the read() function, it
-     * may be necessary to use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros.
-     * See @ref CO_critical_sections for more information.
+     * @warning Do not use @ref CO_LOCK_OD() and @ref CO_UNLOCK_OD() macros
+     * inside the write() function. See also @ref CO_critical_sections.
      *
      * @param stream Object Dictionary stream object.
      * @param buf Pointer to external buffer, from where data will be copied.
@@ -467,7 +467,7 @@ static inline bool_t OD_mappable(OD_stream_t *stream) {
  * @param stream Object Dictionary stream object.
  */
 static inline void OD_rwRestart(OD_stream_t *stream) {
-    if (stream != NULL) stream->dataOffset = 0;
+    if (stream != NULL) { stream->dataOffset = 0; }
 }
 
 
@@ -588,7 +588,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
 static inline ODR_t OD_extension_init(OD_entry_t *entry,
                                       OD_extension_t *extension)
 {
-    if (entry == NULL) return ODR_IDX_NOT_EXIST;
+    if (entry == NULL) { return ODR_IDX_NOT_EXIST; }
     entry->extension = extension;
     return ODR_OK;
 }

@@ -4,7 +4,7 @@
  * @file        CANopen.c
  * @ingroup     CO_CANopen
  * @author      Janez Paternoster
- * @copyright   2010 - 2020 Janez Paternoster
+ * @copyright   2010 - 2023 Janez Paternoster
  *
  * This file is part of CANopenNode, an opensource CANopen Stack.
  * Project home page is <https://github.com/CANopenNode/CANopenNode>.
@@ -70,6 +70,21 @@
  #define CO_RX_CNT_HB_CONS OD_CNT_ARR_1016
 #else
  #define CO_RX_CNT_HB_CONS 0
+#endif
+
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+ #define CO_RX_CNT_NG_SLV 1
+ #define CO_TX_CNT_NG_SLV 1
+#else
+ #define CO_RX_CNT_NG_SLV 0
+ #define CO_TX_CNT_NG_SLV 0
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+ #define CO_RX_CNT_NG_MST 1
+ #define CO_TX_CNT_NG_MST 1
+#else
+ #define CO_RX_CNT_NG_MST 0
+ #define CO_TX_CNT_NG_MST 0
 #endif
 
 #if OD_CNT_EM != 1
@@ -258,30 +273,34 @@
  * number of them. Indexes are sorted in a way, that objects with highest
  * priority of the CAN identifier are listed first. */
 #define CO_RX_IDX_NMT_SLV   0
-#define CO_RX_IDX_SYNC      (CO_RX_IDX_NMT_SLV  + CO_RX_CNT_NMT_SLV)
+#define CO_RX_IDX_GFC       (CO_RX_IDX_NMT_SLV  + CO_RX_CNT_NMT_SLV)
+#define CO_RX_IDX_SYNC      (CO_RX_IDX_GFC      + CO_RX_CNT_GFC)
 #define CO_RX_IDX_EM_CONS   (CO_RX_IDX_SYNC     + CO_RX_CNT_SYNC)
 #define CO_RX_IDX_TIME      (CO_RX_IDX_EM_CONS  + CO_RX_CNT_EM_CONS)
-#define CO_RX_IDX_GFC       (CO_RX_IDX_TIME     + CO_RX_CNT_TIME)
-#define CO_RX_IDX_SRDO      (CO_RX_IDX_GFC      + CO_RX_CNT_GFC)
+#define CO_RX_IDX_SRDO      (CO_RX_IDX_TIME     + CO_RX_CNT_TIME)
 #define CO_RX_IDX_RPDO      (CO_RX_IDX_SRDO     + CO_RX_CNT_SRDO * 2)
 #define CO_RX_IDX_SDO_SRV   (CO_RX_IDX_RPDO     + CO_RX_CNT_RPDO)
 #define CO_RX_IDX_SDO_CLI   (CO_RX_IDX_SDO_SRV  + CO_RX_CNT_SDO_SRV)
 #define CO_RX_IDX_HB_CONS   (CO_RX_IDX_SDO_CLI  + CO_RX_CNT_SDO_CLI)
-#define CO_RX_IDX_LSS_SLV   (CO_RX_IDX_HB_CONS  + CO_RX_CNT_HB_CONS)
+#define CO_RX_IDX_NG_SLV    (CO_RX_IDX_HB_CONS  + CO_RX_CNT_HB_CONS)
+#define CO_RX_IDX_NG_MST    (CO_RX_IDX_NG_SLV   + CO_RX_CNT_NG_SLV)
+#define CO_RX_IDX_LSS_SLV   (CO_RX_IDX_NG_MST   + CO_RX_CNT_NG_MST)
 #define CO_RX_IDX_LSS_MST   (CO_RX_IDX_LSS_SLV  + CO_RX_CNT_LSS_SLV)
 #define CO_CNT_ALL_RX_MSGS  (CO_RX_IDX_LSS_MST  + CO_RX_CNT_LSS_MST)
 
 #define CO_TX_IDX_NMT_MST   0
-#define CO_TX_IDX_SYNC      (CO_TX_IDX_NMT_MST  + CO_TX_CNT_NMT_MST)
+#define CO_TX_IDX_GFC       (CO_TX_IDX_NMT_MST  + CO_TX_CNT_NMT_MST)
+#define CO_TX_IDX_SYNC      (CO_TX_IDX_GFC      + CO_TX_CNT_GFC)
 #define CO_TX_IDX_EM_PROD   (CO_TX_IDX_SYNC     + CO_TX_CNT_SYNC)
 #define CO_TX_IDX_TIME      (CO_TX_IDX_EM_PROD  + CO_TX_CNT_EM_PROD)
-#define CO_TX_IDX_GFC       (CO_TX_IDX_TIME     + CO_TX_CNT_TIME)
-#define CO_TX_IDX_SRDO      (CO_TX_IDX_GFC      + CO_TX_CNT_GFC)
+#define CO_TX_IDX_SRDO      (CO_TX_IDX_TIME     + CO_TX_CNT_TIME)
 #define CO_TX_IDX_TPDO      (CO_TX_IDX_SRDO     + CO_TX_CNT_SRDO * 2)
 #define CO_TX_IDX_SDO_SRV   (CO_TX_IDX_TPDO     + CO_TX_CNT_TPDO)
 #define CO_TX_IDX_SDO_CLI   (CO_TX_IDX_SDO_SRV  + CO_TX_CNT_SDO_SRV)
 #define CO_TX_IDX_HB_PROD   (CO_TX_IDX_SDO_CLI  + CO_TX_CNT_SDO_CLI)
-#define CO_TX_IDX_LSS_SLV   (CO_TX_IDX_HB_PROD  + CO_TX_CNT_HB_PROD)
+#define CO_TX_IDX_NG_SLV    (CO_TX_IDX_HB_PROD  + CO_TX_CNT_HB_PROD)
+#define CO_TX_IDX_NG_MST    (CO_TX_IDX_NG_SLV   + CO_TX_CNT_NG_SLV)
+#define CO_TX_IDX_LSS_SLV   (CO_TX_IDX_NG_MST   + CO_TX_CNT_NG_MST)
 #define CO_TX_IDX_LSS_MST   (CO_TX_IDX_LSS_SLV  + CO_TX_CNT_LSS_SLV)
 #define CO_CNT_ALL_TX_MSGS  (CO_TX_IDX_LSS_MST  + CO_TX_CNT_LSS_MST)
 #endif /* #ifdef #else CO_MULTIPLE_OD */
@@ -312,7 +331,9 @@
 #endif
 
 /* Define macros for allocation */
-#define CO_alloc_break_on_fail(var, num, size)   if (((var) = CO_alloc((num), (size))) != NULL) { mem += (size) * (num); } else { break; }
+#define CO_alloc_break_on_fail(var, num, size) {                    \
+    var = CO_alloc((num), (size));                                  \
+    if((var) != NULL) { mem += (size) * (num); } else { break; } }
 
 #ifdef CO_MULTIPLE_OD
 #define ON_MULTI_OD(sentence) sentence
@@ -381,6 +402,14 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
             CO_alloc_break_on_fail(co->HBconsMonitoredNodes, countOfMonitoredNodes, sizeof(*co->HBconsMonitoredNodes));
             ON_MULTI_OD(RX_CNT_HB_CONS = countOfMonitoredNodes);
         }
+#endif
+
+        /* Node guarding */
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+        CO_alloc_break_on_fail(co->NGslave, 1, sizeof(*co->NGslave));
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+        CO_alloc_break_on_fail(co->NGmaster, 1, sizeof(*co->NGmaster));
 #endif
 
         /* Emergency */
@@ -526,15 +555,15 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
          * highest priority of the CAN identifier are listed first. */
         int16_t idxRx = 0;
         co->RX_IDX_NMT_SLV = idxRx; idxRx += RX_CNT_NMT_SLV;
+#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
+        co->RX_IDX_GFC = idxRx; idxRx += RX_CNT_GFC;
+#endif
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
         co->RX_IDX_SYNC = idxRx; idxRx += RX_CNT_SYNC;
 #endif
         co->RX_IDX_EM_CONS = idxRx; idxRx += RX_CNT_EM_CONS;
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
         co->RX_IDX_TIME = idxRx; idxRx += RX_CNT_TIME;
-#endif
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
-        co->RX_IDX_GFC = idxRx; idxRx += RX_CNT_GFC;
 #endif
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
         co->RX_IDX_SRDO = idxRx; idxRx += RX_CNT_SRDO * 2;
@@ -549,6 +578,12 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
         co->RX_IDX_HB_CONS = idxRx; idxRx += RX_CNT_HB_CONS;
 #endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+        co->RX_IDX_NG_SLV = idxRx; idxRx += 1;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+        co->RX_IDX_NG_MST = idxRx; idxRx += 1;
+#endif
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
         co->RX_IDX_LSS_SLV = idxRx; idxRx += RX_CNT_LSS_SLV;
 #endif
@@ -559,15 +594,15 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 
         int16_t idxTx = 0;
         co->TX_IDX_NMT_MST = idxTx; idxTx += TX_CNT_NMT_MST;
+#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
+        co->TX_IDX_GFC = idxTx; idxTx += TX_CNT_GFC;
+#endif
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
         co->TX_IDX_SYNC = idxTx; idxTx += TX_CNT_SYNC;
 #endif
         co->TX_IDX_EM_PROD = idxTx; idxTx += TX_CNT_EM_PROD;
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
         co->TX_IDX_TIME = idxTx; idxTx += TX_CNT_TIME;
-#endif
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
-        co->TX_IDX_GFC = idxTx; idxTx += TX_CNT_GFC;
 #endif
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
         co->TX_IDX_SRDO = idxTx; idxTx += TX_CNT_SRDO * 2;
@@ -580,6 +615,12 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         co->TX_IDX_SDO_CLI = idxTx; idxTx += TX_CNT_SDO_CLI;
 #endif
         co->TX_IDX_HB_PROD = idxTx; idxTx += TX_CNT_HB_PROD;
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+        co->TX_IDX_NG_SLV = idxTx; idxTx += 1;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+        co->TX_IDX_NG_MST = idxTx; idxTx += 1;
+#endif
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
         co->TX_IDX_LSS_SLV = idxTx; idxTx += TX_CNT_LSS_SLV;
 #endif
@@ -682,6 +723,13 @@ void CO_delete(CO_t *co) {
     CO_free(co->em_fifo);
 #endif
 
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    CO_free(co->NGslave);
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    CO_free(co->NGmaster);
+#endif
+
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     CO_free(co->HBconsMonitoredNodes);
     CO_free(co->HBcons);
@@ -709,6 +757,12 @@ void CO_delete(CO_t *co) {
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     static CO_HBconsumer_t COO_HBcons;
     static CO_HBconsNode_t COO_HBconsMonitoredNodes[OD_CNT_ARR_1016];
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    static CO_nodeGuardingSlave_t COO_NGslave;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    static CO_nodeGuardingMaster_t COO_NGmaster;
 #endif
     static CO_EM_t COO_EM;
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
@@ -771,6 +825,12 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
     co->HBcons = &COO_HBcons;
     co->HBconsMonitoredNodes = &COO_HBconsMonitoredNodes[0];
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    co->NGslave = &COO_NGslave;
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    co->NGmaster = &COO_NGmaster;
 #endif
     co->em = &COO_EM;
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
@@ -835,7 +895,7 @@ bool_t CO_isLSSslaveEnabled(CO_t *co) {
     (void) co; /* may be unused */
     bool_t en = false;
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-    if (CO_GET_CNT(LSS_SLV) == 1) en = true;
+    if (CO_GET_CNT(LSS_SLV) == 1) { en = true; }
 #endif
     return en;
 }
@@ -844,7 +904,7 @@ bool_t CO_isLSSslaveEnabled(CO_t *co) {
 CO_ReturnError_t CO_CANinit(CO_t *co, void *CANptr, uint16_t bitRate) {
     CO_ReturnError_t err;
 
-    if (co == NULL) return CO_ERROR_ILLEGAL_ARGUMENT;
+    if (co == NULL) { return CO_ERROR_ILLEGAL_ARGUMENT; }
 
     co->CANmodule->CANnormal = false;
     CO_CANsetConfigurationMode(CANptr);
@@ -935,11 +995,12 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     if (nodeId < 1 || nodeId > 127) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
+    else { /* MISRA C 2004 14.10 */ }
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
     if (CO_GET_CNT(LEDS) == 1) {
         err = CO_LEDs_init(co->LEDs);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -976,7 +1037,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
  #endif
                          nodeId,
                          errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
 
     /* NMT_Heartbeat */
@@ -999,7 +1060,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                           CO_GET_CO(TX_IDX_HB_PROD),
                           CO_CAN_ID_HEARTBEAT + nodeId,
                           errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
@@ -1012,8 +1073,31 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                  co->CANmodule,
                                  CO_GET_CO(RX_IDX_HB_CONS),
                                  errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
+#endif
+
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    err = CO_nodeGuardingSlave_init(co->NGslave,
+                                    OD_GET(H100C, OD_H100C_GUARD_TIME),
+                                    OD_GET(H100D, OD_H100D_LIFETIME_FACTOR),
+                                    em,
+                                    CO_CAN_ID_HEARTBEAT + nodeId,
+                                    co->CANmodule,
+                                    CO_GET_CO(RX_IDX_NG_SLV),
+                                    co->CANmodule,
+                                    CO_GET_CO(TX_IDX_NG_SLV),
+                                    errInfo);
+    if (err) { return err; }
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    err = CO_nodeGuardingMaster_init(co->NGmaster,
+                                     em,
+                                     co->CANmodule,
+                                     CO_GET_CO(RX_IDX_NG_MST),
+                                     co->CANmodule,
+                                     CO_GET_CO(TX_IDX_NG_MST));
+    if (err) { return err; }
 #endif
 
     /* SDOserver */
@@ -1030,7 +1114,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(TX_IDX_SDO_SRV) + i,
                                     errInfo);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 
@@ -1047,7 +1131,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(TX_IDX_SDO_CLI) + i,
                                     errInfo);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1063,7 +1147,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            CO_GET_CO(TX_IDX_TIME),
 #endif
                            errInfo);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1082,59 +1166,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            CO_GET_CO(TX_IDX_SYNC),
 #endif
                            errInfo);
-        if (err) return err;
-    }
-#endif
-
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
-    if (CO_GET_CNT(GFC) == 1) {
-        err = CO_GFC_init(co->GFC,
-                          &OD_globalFailSafeCommandParameter,
-                          co->CANmodule,
-                          CO_GET_CO(RX_IDX_GFC),
-                          CO_CAN_ID_GFC,
-                          co->CANmodule,
-                          CO_GET_CO(TX_IDX_GFC),
-                          CO_CAN_ID_GFC);
-        if (err) return err;
-    }
-#endif
-
-#if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
-    if (CO_GET_CNT(SRDO) > 0) {
-        err = CO_SRDOGuard_init(co->SRDOGuard,
-                                co->SDO[0],
-                                &co->NMT->operatingState,
-                                &OD_configurationValid,
-                                OD_H13FE_SRDO_VALID,
-                                OD_H13FF_SRDO_CHECKSUM);
-        if (err) return err;
-
-        OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
-        OD_entry_t *SRDOmap = OD_GET(H1318, OD_H1381_SRDO_1_MAPPING);
-        for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
-            uint16_t CANdevRxIdx = CO_GET_CO(RX_IDX_SRDO) + 2 * i;
-            uint16_t CANdevTxIdx = CO_GET_CO(TX_IDX_SRDO) + 2 * i;
-
-            err = CO_SRDO_init(&co->SRDO[i],
-                               co->SRDOGuard,
-                               em,
-                               co->SDO[0],
-                               nodeId,
-                               ((i == 0) ? CO_CAN_ID_SRDO_1 : 0),
-                               SRDOcomm++,
-                               SRDOmap++,
-                               &OD_safetyConfigurationChecksum[i],
-                               OD_H1301_SRDO_1_PARAM + i,
-                               OD_H1381_SRDO_1_MAPPING + i,
-                               co->CANmodule,
-                               CANdevRxIdx,
-                               CANdevRxIdx + 1,
-                               co->CANmodule,
-                               CANdevTxIdx,
-                               CANdevTxIdx + 1);
-            if (err) return err;
-        }
+        if (err) { return err; }
     }
 #endif
 
@@ -1148,7 +1180,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 co->CANmodule,
                                 CO_GET_CO(TX_IDX_LSS_MST),
                                 CO_CAN_ID_LSS_MST);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1170,7 +1202,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            co->LEDs,
  #endif
                            0);
-        if (err) return err;
+        if (err) { return err; }
     }
 #endif
 
@@ -1193,7 +1225,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 &OD_trace[i].triggerTime,
                                 OD_INDEX_TRACE_CONFIG + i,
                                 OD_INDEX_TRACE + i);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1246,7 +1278,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                co->CANmodule,
                                CO_GET_CO(RX_IDX_RPDO) + i,
                                errInfo);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1280,7 +1312,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                co->CANmodule,
                                CO_GET_CO(TX_IDX_TPDO) + i,
                                errInfo);
-            if (err) return err;
+            if (err) { return err; }
         }
     }
 #endif
@@ -1288,6 +1320,84 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
     return CO_ERROR_NO;
 }
 
+
+/******************************************************************************/
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE)
+CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
+                                    CO_EM_t *em,
+                                    OD_t *od,
+                                    uint8_t nodeId,
+                                    uint32_t *errInfo)
+{
+    if (co == NULL) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+    if (nodeId < 1 || nodeId > 127 || co->nodeIdUnconfigured) {
+        return (co->nodeIdUnconfigured)
+               ? CO_ERROR_NODE_ID_UNCONFIGURED_LSS : CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+
+#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
+    if (CO_GET_CNT(GFC) == 1) {
+        CO_ReturnError_t err;
+        err = CO_GFC_init(co->GFC,
+                          OD_GET(H1300, OD_H1300_GFC_PARAM),
+                          co->CANmodule,
+                          CO_GET_CO(RX_IDX_GFC),
+                          CO_CAN_ID_GFC,
+                          co->CANmodule,
+                          CO_GET_CO(TX_IDX_GFC),
+                          CO_CAN_ID_GFC);
+        if (err) { return err; }
+    }
+#endif
+
+#if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
+    if (CO_GET_CNT(SRDO) > 0) {
+        CO_ReturnError_t err;
+        err = CO_SRDO_init_start(co->SRDOGuard,
+                                 OD_GET(H13FE, OD_H13FE_SRDO_VALID),
+                                 OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
+                                 errInfo);
+        if (err) { return err; }
+
+        OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
+        OD_entry_t *SRDOmap = OD_GET(H1381, OD_H1381_SRDO_1_MAPPING);
+        for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
+            uint16_t CANdevRxIdx = CO_GET_CO(RX_IDX_SRDO) + 2 * i;
+            uint16_t CANdevTxIdx = CO_GET_CO(TX_IDX_SRDO) + 2 * i;
+
+            err = CO_SRDO_init(&co->SRDO[i],
+                               i,
+                               co->SRDOGuard,
+                               od,
+                               em,
+                               nodeId,
+                               ((i == 0) ? CO_CAN_ID_SRDO_1 : 0),
+                               SRDOcomm++,
+                               SRDOmap++,
+                               OD_GET(H13FE, OD_H13FE_SRDO_VALID),
+                               OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
+                               co->CANmodule,
+                               co->CANmodule,
+                               CANdevRxIdx,
+                               CANdevRxIdx + 1,
+                               co->CANmodule,
+                               co->CANmodule,
+                               CANdevTxIdx,
+                               CANdevTxIdx + 1,
+                               errInfo);
+            if (err) { return err; }
+        }
+
+        CO_SRDO_init_end(co->SRDOGuard);
+    }
+#endif
+
+    return CO_ERROR_NO;
+}
+#endif
 
 /******************************************************************************/
 CO_NMT_reset_cmd_t CO_process(CO_t *co,
@@ -1385,6 +1495,19 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     }
 #endif
 
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+    CO_nodeGuardingSlave_process(co->NGslave,
+                                 NMTstate,
+                                 (co->NMT->HBproducerTime_us > 0),
+                                 timeDifference_us,
+                                 timerNext_us);
+#endif
+#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+    CO_nodeGuardingMaster_process(co->NGmaster,
+                                  timeDifference_us,
+                                  timerNext_us);
+#endif
+
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
     if (CO_GET_CNT(TIME) == 1) {
         CO_TIME_process(co->TIME, NMTisPreOrOperational, timeDifference_us);
@@ -1430,6 +1553,9 @@ bool_t CO_process_SYNC(CO_t *co,
                 break;
             case CO_SYNC_PASSED_WINDOW:
                 CO_CANclearPendingSyncPDOs(co->CANmodule);
+                break;
+            default:
+                /* MISRA C 2004 15.3 */
                 break;
         }
     }
@@ -1497,21 +1623,30 @@ void CO_process_TPDO(CO_t *co,
 
 /******************************************************************************/
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
-void CO_process_SRDO(CO_t *co,
-                     uint32_t timeDifference_us,
-                     uint32_t *timerNext_us)
+CO_SRDO_state_t CO_process_SRDO(CO_t *co,
+                                uint32_t timeDifference_us,
+                                uint32_t *timerNext_us)
 {
     if (co->nodeIdUnconfigured) {
-        return;
+        return CO_SRDO_state_unknown;
     }
 
-    uint8_t firstOperational = CO_SRDOGuard_process(co->SRDOGuard);
+    bool_t NMTisOperational =
+        CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
+
+
+    CO_SRDO_state_t lowestState = CO_SRDO_state_deleted;
 
     for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
-        CO_SRDO_process(&co->SRDO[i],
-                        firstOperational,
-                        timeDifference_us,
-                        timerNext_us);
+        CO_SRDO_state_t state = CO_SRDO_process(&co->SRDO[i],
+                                                timeDifference_us,
+                                                timerNext_us,
+                                                NMTisOperational);
+        if (state < lowestState) {
+            lowestState = state;
+        }
     }
+
+    return lowestState;
 }
 #endif

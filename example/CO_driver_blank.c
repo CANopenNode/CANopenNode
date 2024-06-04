@@ -178,7 +178,7 @@ CO_CANtx_t *CO_CANtxBufferInit(
         /* CAN identifier, DLC and rtr, bit aligned with CAN module transmit buffer.
          * Microcontroller specific. */
         buffer->ident = ((uint32_t)ident & 0x07FFU)
-                      | ((uint32_t)(((uint32_t)noOfBytes & 0xFU) << 12U))
+                      | ((uint32_t)(((uint32_t)noOfBytes & 0xFU) << 11U))
                       | ((uint32_t)(rtr ? 0x8000U : 0U));
 
         buffer->bufferFull = false;
@@ -290,7 +290,7 @@ void CO_CANmodule_process(CO_CANmodule_t *CANmodule) {
             /* tx bus warning or passive */
             if (txErrors >= 128) {
                 status |= CO_CAN_ERRTX_WARNING | CO_CAN_ERRTX_PASSIVE;
-            } else if (rxErrors >= 96) {
+            } else if (txErrors >= 96) {
                 status |= CO_CAN_ERRTX_WARNING;
             }
 

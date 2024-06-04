@@ -113,6 +113,7 @@ Other
 * ESP32:
   * 2023-03-11: https://github.com/CANopenNode/CANopenNode/issues/429
   * 2020-07-14: https://github.com/CANopenNode/CANopenNode/issues/198#issuecomment-658429391
+  * [CANopenNode_ESP32](https://github.com/sicrisembay/CANopenNode_ESP32) is a CANopenNode component for ESP-IDF framework.  For ease of maintenance, this uses unmodified CANopenNode stack.  For project examples, refer to [CANopenNode_ESP32_Test](https://github.com/sicrisembay/CANopenNode_ESP32_Test).
 * [FreeRTOS](https://github.com/martinwag/CANopenNode/tree/neuberger-freertos/stack/neuberger-FreeRTOS) by Neuberger, 2020-06-23, based on v1.3-master, see also [issue 198](https://github.com/CANopenNode/CANopenNode/issues/198).
 * [STM32CubeMX HAL](https://github.com/w1ne/CANOpenNode-CubeMX-HAL), 2019-05-03, demo project for Atollic studio, tested on Nucleo STM32L452xx board.
 * K64F_FreeRTOS, Kinetis SDK, 2018-02-13, [zip file](https://github.com/CANopenNode/CANopenNode/pull/28#issuecomment-365392867)
