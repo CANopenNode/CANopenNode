@@ -41,8 +41,6 @@
 
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
 
-#warning SRDO is draft version and is not fully tested!
-
 #ifdef __cplusplus
 extern "C" {
 #endif
