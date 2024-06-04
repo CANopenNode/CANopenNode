@@ -137,6 +137,24 @@ OD_read_dummy(OD_stream_t *stream, void *buf, OD_size_t count, OD_size_t *countR
     return ODR_OK;
 }
 
+bool_t
+OD_not_write_same_value(OD_stream_t *stream, const void *buf, OD_size_t count) {
+    // The conformance test tool does not recognize CANopen Safety and on all object dictionaty tries to read and write the same value
+    OD_size_t countRead = 0;
+    uint8_t bufRead[6] = { 0 };
+    if( count > 6 ) {
+        return false;
+    }
+    ODR_t returnCode = OD_readOriginal(stream, bufRead, count, &countRead);
+    if ( returnCode != ODR_OK ){
+        return false;
+    }
+    if ( memcmp(buf,bufRead,count) == 0 ){
+        return true;
+    }
+    return false;
+}
+
 static ODR_t
 OD_read_SRDO_communicationParam(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead) {
     ODR_t returnCode = OD_readOriginal(stream, buf, count, countRead);
@@ -163,6 +181,10 @@ static ODR_t
 OD_write_SRDO_communicationParam(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten) {
     if ((stream == NULL) || (buf == NULL) || (countWritten == NULL) || (count > 4)) {
         return ODR_DEV_INCOMPAT;
+    }
+
+    if( OD_not_write_same_value(stream, buf, count) ) {
+        return ODR_OK;
     }
 
     CO_SRDO_t* SRDO = stream->object;
@@ -227,6 +249,10 @@ OD_write_SRDO_mappingParam(OD_stream_t* stream, const void* buf, OD_size_t count
     if ((stream == NULL) || (buf == NULL) || (countWritten == NULL)
         || (stream->subIndex > CO_SRDO_MAX_MAPPED_ENTRIES)) {
         return ODR_DEV_INCOMPAT;
+    }
+
+    if( OD_not_write_same_value(stream, buf, count) ) {
+        return ODR_OK;
     }
 
     CO_SRDO_t* SRDO = stream->object;
