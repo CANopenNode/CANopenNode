@@ -36,6 +36,10 @@
 #error CO_CONFIG_CRC16_ENABLE must be enabled.
 #endif
 
+#ifdef CO_CONFORMANCE_TEST_TOOL_ADAPTATION
+#warning CO_CONFORMANCE_TEST_TOOL_ADAPTATION may be used only for conformance testing (because of CTT limitations)
+#endif
+
 /* values for informationDirection and configurationValid */
 #define CO_SRDO_INVALID            (0U)
 #define CO_SRDO_TX                 (1U)
@@ -137,6 +141,7 @@ OD_read_dummy(OD_stream_t *stream, void *buf, OD_size_t count, OD_size_t *countR
     return ODR_OK;
 }
 
+#ifdef CO_CONFORMANCE_TEST_TOOL_ADAPTATION
 bool_t
 OD_not_write_same_value(OD_stream_t *stream, const void *buf, OD_size_t count) {
     // The conformance test tool does not recognize CANopen Safety and on all object dictionaty tries to read and write the same value
@@ -154,6 +159,7 @@ OD_not_write_same_value(OD_stream_t *stream, const void *buf, OD_size_t count) {
     }
     return false;
 }
+#endif
 
 static ODR_t
 OD_read_SRDO_communicationParam(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead) {
@@ -183,9 +189,11 @@ OD_write_SRDO_communicationParam(OD_stream_t* stream, const void* buf, OD_size_t
         return ODR_DEV_INCOMPAT;
     }
 
+#ifdef CO_CONFORMANCE_TEST_TOOL_ADAPTATION
     if( OD_not_write_same_value(stream, buf, count) ) {
         return ODR_OK;
     }
+#endif
 
     CO_SRDO_t* SRDO = stream->object;
     CO_SRDOGuard_t* SRDOGuard = SRDO->SRDOGuard;
@@ -251,9 +259,11 @@ OD_write_SRDO_mappingParam(OD_stream_t* stream, const void* buf, OD_size_t count
         return ODR_DEV_INCOMPAT;
     }
 
+#ifdef CO_CONFORMANCE_TEST_TOOL_ADAPTATION
     if( OD_not_write_same_value(stream, buf, count) ) {
         return ODR_OK;
     }
+#endif
 
     CO_SRDO_t* SRDO = stream->object;
     CO_SRDOGuard_t* SRDOGuard = SRDO->SRDOGuard;
