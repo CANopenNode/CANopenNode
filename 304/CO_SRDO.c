@@ -354,6 +354,7 @@ CO_ReturnError_t
 CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationValid,
                    OD_entry_t* OD_13FF_safetyConfigurationSignature, uint32_t* errInfo) {
     ODR_t odRet;
+    uint8_t configurationValid;
 
     /* verify arguments */
     if ((SRDOGuard == NULL) || (OD_13FE_configurationValid == NULL) || (OD_13FF_safetyConfigurationSignature == NULL)) {
@@ -383,9 +384,16 @@ CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationV
         }
         return CO_ERROR_OD_PARAMETERS;
     }
-
-    /* Private variable, erroneous SRDO initialization will clear this. */
-    SRDOGuard->_configurationValid = true;
+    
+    if (OD_get_u8(OD_13FE_configurationValid, 0, &configurationValid, true) != ODR_OK) {
+        *errInfo = (((uint32_t)OD_getIndex(OD_13FE_configurationValid)) << 8) | 1U;
+        return CO_ERROR_OD_PARAMETERS;
+    }
+    
+    if (configurationValid == CO_SRDO_VALID_MAGIC) {
+        /* Private variable, erroneous SRDO initialization will clear this. */
+        SRDOGuard->_configurationValid = true;
+    }
 
     return CO_ERROR_NO;
 }
