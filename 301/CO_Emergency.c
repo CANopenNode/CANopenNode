@@ -330,7 +330,8 @@ static void CO_EM_receive(void *object, void *msg) {
 
             memcpy(&errorCode, &data[0], sizeof(errorCode));
             memcpy(&infoCode, &data[4], sizeof(infoCode));
-            em->pFunctSignalRx(ident,
+            em->pFunctSignalRx(em->functSignalObjectRx,
+                               ident,
                                CO_SWAP_16(errorCode),
                                data[2],
                                data[3],
@@ -525,13 +526,16 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 /******************************************************************************/
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
 void CO_EM_initCallbackRx(CO_EM_t *em,
-                          void (*pFunctSignalRx)(const uint16_t ident,
+                          void *object,
+                          void (*pFunctSignalRx)(void* object,
+                                                 const uint16_t ident,
                                                  const uint16_t errorCode,
                                                  const uint8_t errorRegister,
                                                  const uint8_t errorBit,
                                                  const uint32_t infoCode))
 {
     if (em != NULL) {
+        em->functSignalObjectRx = object;
         em->pFunctSignalRx = pFunctSignalRx;
     }
 }
@@ -661,7 +665,8 @@ void CO_EM_process(CO_EM_t *em,
             /* report also own emergency messages */
             if (em->pFunctSignalRx != NULL) {
                 uint32_t errMsg = em->fifo[fifoPpPtr].msg;
-                em->pFunctSignalRx(0,
+                em->pFunctSignalRx(em->functSignalObjectRx,
+                                   0,
                                    CO_SWAP_16((uint16_t) errMsg),
                                    errorRegister,
                                    (uint8_t) (errMsg >> 24),
