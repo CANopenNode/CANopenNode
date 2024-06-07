@@ -448,11 +448,14 @@ typedef struct {
 
 #if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) || defined CO_DOXYGEN
     /** From CO_EM_initCallbackRx() or NULL */
-    void (*pFunctSignalRx)(const uint16_t ident,
+    void (*pFunctSignalRx)(void* object,
+                           const uint16_t ident,
                            const uint16_t errorCode,
                            const uint8_t errorRegister,
                            const uint8_t errorBit,
                            const uint32_t infoCode);
+    /** From CO_EM_initCallbackRx() or NULL */
+    void *functSignalObjectRx;
 #endif
 
 #if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
@@ -562,10 +565,14 @@ void CO_EM_initCallbackPre(CO_EM_t *em,
  * inside an ISR or inside a mainline. Must be thread safe.
  *
  * @param em This object.
+ * @param object Pointer to object, which will be passed to pFunctSignal(). Can
+ * be NULL
  * @param pFunctSignalRx Pointer to the callback function. Not called if NULL.
  */
 void CO_EM_initCallbackRx(CO_EM_t *em,
-                          void (*pFunctSignalRx)(const uint16_t ident,
+                          void *object,
+                          void (*pFunctSignalRx)(void *object,
+                                                 const uint16_t ident,
                                                  const uint16_t errorCode,
                                                  const uint8_t errorRegister,
                                                  const uint8_t errorBit,

@@ -794,8 +794,6 @@ void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
                 ODR_t *err);
 /** @} */ /* CO_ODgetSetters */
 
-
-#if defined OD_DEFINITION || defined CO_DOXYGEN
 /**
  * @defgroup CO_ODdefinition OD definition objects
  * @{
@@ -861,8 +859,6 @@ typedef struct {
 } OD_obj_record_t;
 
 /** @} */ /* CO_ODdefinition */
-
-#endif /* defined OD_DEFINITION */
 
 /** @} */ /* CO_ODinterface */
 
