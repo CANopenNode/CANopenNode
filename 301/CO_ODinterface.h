@@ -453,7 +453,7 @@ static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
  */
 static inline bool_t OD_mappable(OD_stream_t *stream) {
     return (stream != NULL)
-         ? ((stream->attribute & (ODA_TRPDO | ODA_TRSRDO)) != 0) : false;
+         ? ((stream->attribute & ((OD_attr_t)ODA_TRPDO | (OD_attr_t)ODA_TRSRDO)) != 0U) : false;
 }
 
 

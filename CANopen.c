@@ -33,8 +33,8 @@
 
 #else
 #include "OD.h"
-#define CO_GET_CO(obj) CO_##obj
-#define CO_GET_CNT(obj) OD_CNT_##obj
+#define CO_GET_CO(obj) ((uint16_t)(CO_##obj))
+#define CO_GET_CNT(obj) ((uint16_t)(OD_CNT_##obj))
 #define OD_GET(entry, index) OD_ENTRY_##entry
 
 /* Verify parameters from "OD.h" and calculate necessary values for each object:
@@ -272,37 +272,37 @@
 /* Indexes of CO_CANrx_t and CO_CANtx_t objects in CO_CANmodule_t and total
  * number of them. Indexes are sorted in a way, that objects with highest
  * priority of the CAN identifier are listed first. */
-#define CO_RX_IDX_NMT_SLV   0
-#define CO_RX_IDX_GFC       (CO_RX_IDX_NMT_SLV  + CO_RX_CNT_NMT_SLV)
-#define CO_RX_IDX_SYNC      (CO_RX_IDX_GFC      + CO_RX_CNT_GFC)
-#define CO_RX_IDX_EM_CONS   (CO_RX_IDX_SYNC     + CO_RX_CNT_SYNC)
-#define CO_RX_IDX_TIME      (CO_RX_IDX_EM_CONS  + CO_RX_CNT_EM_CONS)
-#define CO_RX_IDX_SRDO      (CO_RX_IDX_TIME     + CO_RX_CNT_TIME)
-#define CO_RX_IDX_RPDO      (CO_RX_IDX_SRDO     + CO_RX_CNT_SRDO * 2)
-#define CO_RX_IDX_SDO_SRV   (CO_RX_IDX_RPDO     + CO_RX_CNT_RPDO)
-#define CO_RX_IDX_SDO_CLI   (CO_RX_IDX_SDO_SRV  + CO_RX_CNT_SDO_SRV)
-#define CO_RX_IDX_HB_CONS   (CO_RX_IDX_SDO_CLI  + CO_RX_CNT_SDO_CLI)
-#define CO_RX_IDX_NG_SLV    (CO_RX_IDX_HB_CONS  + CO_RX_CNT_HB_CONS)
-#define CO_RX_IDX_NG_MST    (CO_RX_IDX_NG_SLV   + CO_RX_CNT_NG_SLV)
-#define CO_RX_IDX_LSS_SLV   (CO_RX_IDX_NG_MST   + CO_RX_CNT_NG_MST)
-#define CO_RX_IDX_LSS_MST   (CO_RX_IDX_LSS_SLV  + CO_RX_CNT_LSS_SLV)
-#define CO_CNT_ALL_RX_MSGS  (CO_RX_IDX_LSS_MST  + CO_RX_CNT_LSS_MST)
+#define CO_RX_IDX_NMT_SLV   0U
+#define CO_RX_IDX_GFC       (CO_RX_IDX_NMT_SLV  + (uint16_t)CO_RX_CNT_NMT_SLV)
+#define CO_RX_IDX_SYNC      (CO_RX_IDX_GFC      + (uint16_t)CO_RX_CNT_GFC)
+#define CO_RX_IDX_EM_CONS   (CO_RX_IDX_SYNC     + (uint16_t)CO_RX_CNT_SYNC)
+#define CO_RX_IDX_TIME      (CO_RX_IDX_EM_CONS  + (uint16_t)CO_RX_CNT_EM_CONS)
+#define CO_RX_IDX_SRDO      (CO_RX_IDX_TIME     + (uint16_t)CO_RX_CNT_TIME)
+#define CO_RX_IDX_RPDO      (CO_RX_IDX_SRDO     + ((uint16_t)CO_RX_CNT_SRDO * 2U))
+#define CO_RX_IDX_SDO_SRV   (CO_RX_IDX_RPDO     + (uint16_t)CO_RX_CNT_RPDO)
+#define CO_RX_IDX_SDO_CLI   (CO_RX_IDX_SDO_SRV  + (uint16_t)CO_RX_CNT_SDO_SRV)
+#define CO_RX_IDX_HB_CONS   (CO_RX_IDX_SDO_CLI  + (uint16_t)CO_RX_CNT_SDO_CLI)
+#define CO_RX_IDX_NG_SLV    (CO_RX_IDX_HB_CONS  + (uint16_t)CO_RX_CNT_HB_CONS)
+#define CO_RX_IDX_NG_MST    (CO_RX_IDX_NG_SLV   + (uint16_t)CO_RX_CNT_NG_SLV)
+#define CO_RX_IDX_LSS_SLV   (CO_RX_IDX_NG_MST   + (uint16_t)CO_RX_CNT_NG_MST)
+#define CO_RX_IDX_LSS_MST   (CO_RX_IDX_LSS_SLV  + (uint16_t)CO_RX_CNT_LSS_SLV)
+#define CO_CNT_ALL_RX_MSGS  (CO_RX_IDX_LSS_MST  + (uint16_t)CO_RX_CNT_LSS_MST)
 
-#define CO_TX_IDX_NMT_MST   0
-#define CO_TX_IDX_GFC       (CO_TX_IDX_NMT_MST  + CO_TX_CNT_NMT_MST)
-#define CO_TX_IDX_SYNC      (CO_TX_IDX_GFC      + CO_TX_CNT_GFC)
-#define CO_TX_IDX_EM_PROD   (CO_TX_IDX_SYNC     + CO_TX_CNT_SYNC)
-#define CO_TX_IDX_TIME      (CO_TX_IDX_EM_PROD  + CO_TX_CNT_EM_PROD)
-#define CO_TX_IDX_SRDO      (CO_TX_IDX_TIME     + CO_TX_CNT_TIME)
-#define CO_TX_IDX_TPDO      (CO_TX_IDX_SRDO     + CO_TX_CNT_SRDO * 2)
-#define CO_TX_IDX_SDO_SRV   (CO_TX_IDX_TPDO     + CO_TX_CNT_TPDO)
-#define CO_TX_IDX_SDO_CLI   (CO_TX_IDX_SDO_SRV  + CO_TX_CNT_SDO_SRV)
-#define CO_TX_IDX_HB_PROD   (CO_TX_IDX_SDO_CLI  + CO_TX_CNT_SDO_CLI)
-#define CO_TX_IDX_NG_SLV    (CO_TX_IDX_HB_PROD  + CO_TX_CNT_HB_PROD)
-#define CO_TX_IDX_NG_MST    (CO_TX_IDX_NG_SLV   + CO_TX_CNT_NG_SLV)
-#define CO_TX_IDX_LSS_SLV   (CO_TX_IDX_NG_MST   + CO_TX_CNT_NG_MST)
-#define CO_TX_IDX_LSS_MST   (CO_TX_IDX_LSS_SLV  + CO_TX_CNT_LSS_SLV)
-#define CO_CNT_ALL_TX_MSGS  (CO_TX_IDX_LSS_MST  + CO_TX_CNT_LSS_MST)
+#define CO_TX_IDX_NMT_MST   0U
+#define CO_TX_IDX_GFC       (CO_TX_IDX_NMT_MST  + (uint16_t)CO_TX_CNT_NMT_MST)
+#define CO_TX_IDX_SYNC      (CO_TX_IDX_GFC      + (uint16_t)CO_TX_CNT_GFC)
+#define CO_TX_IDX_EM_PROD   (CO_TX_IDX_SYNC     + (uint16_t)CO_TX_CNT_SYNC)
+#define CO_TX_IDX_TIME      (CO_TX_IDX_EM_PROD  + (uint16_t)CO_TX_CNT_EM_PROD)
+#define CO_TX_IDX_SRDO      (CO_TX_IDX_TIME     + (uint16_t)CO_TX_CNT_TIME)
+#define CO_TX_IDX_TPDO      (CO_TX_IDX_SRDO     + ((uint16_t)CO_TX_CNT_SRDO * 2U))
+#define CO_TX_IDX_SDO_SRV   (CO_TX_IDX_TPDO     + (uint16_t)CO_TX_CNT_TPDO)
+#define CO_TX_IDX_SDO_CLI   (CO_TX_IDX_SDO_SRV  + (uint16_t)CO_TX_CNT_SDO_SRV)
+#define CO_TX_IDX_HB_PROD   (CO_TX_IDX_SDO_CLI  + (uint16_t)CO_TX_CNT_SDO_CLI)
+#define CO_TX_IDX_NG_SLV    (CO_TX_IDX_HB_PROD  + (uint16_t)CO_TX_CNT_HB_PROD)
+#define CO_TX_IDX_NG_MST    (CO_TX_IDX_NG_SLV   + (uint16_t)CO_TX_CNT_NG_SLV)
+#define CO_TX_IDX_LSS_SLV   (CO_TX_IDX_NG_MST   + (uint16_t)CO_TX_CNT_NG_MST)
+#define CO_TX_IDX_LSS_MST   (CO_TX_IDX_LSS_SLV  + (uint16_t)CO_TX_CNT_LSS_SLV)
+#define CO_CNT_ALL_TX_MSGS  (CO_TX_IDX_LSS_MST  + (uint16_t)CO_TX_CNT_LSS_MST)
 #endif /* #ifdef #else CO_MULTIPLE_OD */
 
 
@@ -1058,7 +1058,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
  #endif
                           co->CANmodule,
                           CO_GET_CO(TX_IDX_HB_PROD),
-                          CO_CAN_ID_HEARTBEAT + nodeId,
+                          (uint16_t)CO_CAN_ID_HEARTBEAT + nodeId,
                           errInfo);
         if (err) { return err; }
     }
@@ -1082,7 +1082,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     OD_GET(H100C, OD_H100C_GUARD_TIME),
                                     OD_GET(H100D, OD_H100D_LIFETIME_FACTOR),
                                     em,
-                                    CO_CAN_ID_HEARTBEAT + nodeId,
+                                    (uint16_t)CO_CAN_ID_HEARTBEAT + nodeId,
                                     co->CANmodule,
                                     CO_GET_CO(RX_IDX_NG_SLV),
                                     co->CANmodule,
@@ -1103,7 +1103,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     /* SDOserver */
     if (CO_GET_CNT(SDO_SRV) > 0U) {
         OD_entry_t *SDOsrvPar = OD_GET(H1200, OD_H1200_SDO_SERVER_1_PARAM);
-        for (int16_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
+        for (uint16_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
             err = CO_SDOserver_init(&co->SDOserver[i],
                                     od,
                                     SDOsrvPar++,
@@ -1121,7 +1121,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
     if (CO_GET_CNT(SDO_CLI) > 0) {
         OD_entry_t *SDOcliPar = OD_GET(H1280, OD_H1280_SDO_CLIENT_1_PARAM);
-        for (int16_t i = 0; i < CO_GET_CNT(SDO_CLI); i++) {
+        for (uint16_t i = 0; i < CO_GET_CNT(SDO_CLI); i++) {
             err = CO_SDOclient_init(&co->SDOclient[i],
                                     od,
                                     SDOcliPar++,
@@ -1253,12 +1253,12 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
     if (CO_GET_CNT(RPDO) > 0U) {
         OD_entry_t *RPDOcomm = OD_GET(H1400, OD_H1400_RXPDO_1_PARAM);
         OD_entry_t *RPDOmap = OD_GET(H1600, OD_H1600_RXPDO_1_MAPPING);
-        for (int16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
+        for (uint16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
             CO_ReturnError_t err;
             uint16_t preDefinedCanId = 0;
             if (i < CO_RPDO_DEFAULT_CANID_COUNT) {
 #if CO_RPDO_DEFAULT_CANID_COUNT <= 4
-                preDefinedCanId = (CO_CAN_ID_RPDO_1 + i * 0x100) + nodeId;
+                preDefinedCanId = ((uint16_t)CO_CAN_ID_RPDO_1 + (i * 0x100U)) + nodeId;
 #else
                 uint16_t pdoOffset = i % 4;
                 uint16_t nodeIdOffset = i / 4;
@@ -1287,12 +1287,12 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
     if (CO_GET_CNT(TPDO) > 0U) {
         OD_entry_t *TPDOcomm = OD_GET(H1800, OD_H1800_TXPDO_1_PARAM);
         OD_entry_t *TPDOmap = OD_GET(H1A00, OD_H1A00_TXPDO_1_MAPPING);
-        for (int16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
+        for (uint16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
             CO_ReturnError_t err;
             uint16_t preDefinedCanId = 0;
             if (i < CO_TPDO_DEFAULT_CANID_COUNT) {
 #if CO_TPDO_DEFAULT_CANID_COUNT <= 4
-                preDefinedCanId = (CO_CAN_ID_TPDO_1 + i * 0x100) + nodeId;
+                preDefinedCanId = ((uint16_t)CO_CAN_ID_TPDO_1 + (i * 0x100U)) + nodeId;
 #else
                 uint16_t pdoOffset = i % 4;
                 uint16_t nodeIdOffset = i / 4;
@@ -1364,9 +1364,9 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
 
         OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
         OD_entry_t *SRDOmap = OD_GET(H1381, OD_H1381_SRDO_1_MAPPING);
-        for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
-            uint16_t CANdevRxIdx = CO_GET_CO(RX_IDX_SRDO) + 2 * i;
-            uint16_t CANdevTxIdx = CO_GET_CO(TX_IDX_SRDO) + 2 * i;
+        for (uint16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
+            uint16_t CANdevRxIdx = CO_GET_CO(RX_IDX_SRDO) + (2U * i);
+            uint16_t CANdevTxIdx = CO_GET_CO(TX_IDX_SRDO) + (2U * i);
 
             err = CO_SRDO_init(&co->SRDO[i],
                                i,
@@ -1374,7 +1374,7 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                od,
                                em,
                                nodeId,
-                               ((i == 0) ? CO_CAN_ID_SRDO_1 : 0),
+                               ((i == 0U) ? (uint16_t)CO_CAN_ID_SRDO_1 : 0U),
                                SRDOcomm++,
                                SRDOmap++,
                                OD_GET(H13FE, OD_H13FE_SRDO_VALID),
@@ -1408,8 +1408,8 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     (void) enableGateway; /* may be unused */
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     CO_NMT_internalState_t NMTstate = CO_NMT_getInternalState(co->NMT);
-    bool_t NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
-                                    || NMTstate == CO_NMT_OPERATIONAL);
+    bool_t NMTisPreOrOperational = ((NMTstate == CO_NMT_PRE_OPERATIONAL)
+                                    || (NMTstate == CO_NMT_OPERATIONAL));
 
     /* CAN module */
     CO_CANmodule_process(co->CANmodule);
@@ -1427,8 +1427,8 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     uint16_t CANerrorStatus = co->CANmodule->CANerrorStatus;
     bool_t LSSslave_configuration = false;
  #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-    if (CO_GET_CNT(LSS_SLV) == 1
-        && CO_LSSslave_getState(co->LSSslave) == CO_LSS_STATE_CONFIGURATION
+    if ((CO_GET_CNT(LSS_SLV) == 1U)
+        && (CO_LSSslave_getState(co->LSSslave) == CO_LSS_STATE_CONFIGURATION)
     ) {
         LSSslave_configuration = true;
     }
@@ -1443,8 +1443,8 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
             timeDifference_us,
             unc ? CO_NMT_INITIALIZING : NMTstate,
             LSSslave_configuration,
-            (CANerrorStatus & CO_CAN_ERRTX_BUS_OFF) != 0,
-            (CANerrorStatus & CO_CAN_ERR_WARN_PASSIVE) != 0,
+            (CANerrorStatus & (uint16_t)CO_CAN_ERRTX_BUS_OFF) != 0U,
+            (CANerrorStatus & (uint16_t)CO_CAN_ERR_WARN_PASSIVE) != 0U,
             0, /* RPDO event timer timeout */
             unc ? false : CO_isError(co->em, CO_EM_SYNC_TIME_OUT),
             unc ? false : (CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER)
@@ -1475,8 +1475,8 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                                timeDifference_us,
                                timerNext_us);
     }
-    NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
-                             || NMTstate == CO_NMT_OPERATIONAL);
+    NMTisPreOrOperational = ((NMTstate == CO_NMT_PRE_OPERATIONAL)
+                             || (NMTstate == CO_NMT_OPERATIONAL));
 
     /* SDOserver */
     for (uint8_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
@@ -1580,7 +1580,7 @@ void CO_process_RPDO(CO_t *co,
     bool_t NMTisOperational =
         CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
 
-    for (int16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
+    for (uint16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
         CO_RPDO_process(&co->RPDO[i],
 #if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE
                         timeDifference_us,
@@ -1608,7 +1608,7 @@ void CO_process_TPDO(CO_t *co,
     bool_t NMTisOperational =
         CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
 
-    for (int16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
+    for (uint16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
         CO_TPDO_process(&co->TPDO[i],
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE
                         timeDifference_us,
@@ -1637,7 +1637,7 @@ CO_SRDO_state_t CO_process_SRDO(CO_t *co,
 
     CO_SRDO_state_t lowestState = CO_SRDO_state_deleted;
 
-    for (int16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
+    for (Uint16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
         CO_SRDO_state_t state = CO_SRDO_process(&co->SRDO[i],
                                                 timeDifference_us,
                                                 timerNext_us,

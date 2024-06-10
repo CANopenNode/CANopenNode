@@ -365,15 +365,15 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                 return CO_ERROR_ILLEGAL_ARGUMENT;
             }
 
-            CanId_ClientToServer = CO_CAN_ID_SDO_CLI + nodeId;
-            CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
+            CanId_ClientToServer = (uint16_t)CO_CAN_ID_SDO_CLI + nodeId;
+            CanId_ServerToClient = (uint16_t)CO_CAN_ID_SDO_SRV + nodeId;
             SDO->valid = true;
 
             OD_set_u32(OD_1200_SDOsrvPar, 1, CanId_ClientToServer, true);
             OD_set_u32(OD_1200_SDOsrvPar, 2, CanId_ServerToClient, true);
         }
-        else if ((OD_SDOsrvParIdx > OD_H1200_SDO_SERVER_1_PARAM)
-                && (OD_SDOsrvParIdx <= (OD_H1200_SDO_SERVER_1_PARAM + 0x7F))
+        else if ((OD_SDOsrvParIdx > (uint16_t)OD_H1200_SDO_SERVER_1_PARAM)
+                && (OD_SDOsrvParIdx <= ((uint16_t)OD_H1200_SDO_SERVER_1_PARAM + 0x7FU))
         ) {
             /* configure additional SDO channel and SDO server parameters for it */
             uint8_t maxSubIndex;
@@ -896,7 +896,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                         }
                         /* strings are allowed to be shorter */
                         else if ((SDO->sizeInd < sizeInOd)
-                                 && ((SDO->OD_IO.stream.attribute & ODA_STR) == 0)
+                                 && ((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) == 0U)
                         ) {
                             abortCode = CO_SDO_AB_DATA_SHORT;
                             SDO->state = CO_SDO_ST_ABORT;

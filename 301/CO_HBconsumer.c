@@ -214,8 +214,8 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
         CO_FLAG_CLEAR(monitoredNode->CANrxNew);
 
         /* is channel used */
-            COB_ID = monitoredNode->nodeId + CO_CAN_ID_HEARTBEAT;
         if ((monitoredNode->nodeId != 0U) && (monitoredNode->time_us != 0U)) {
+            COB_ID = monitoredNode->nodeId + (uint16_t)CO_CAN_ID_HEARTBEAT;
             monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
         }
         else {
@@ -388,7 +388,7 @@ void CO_HBconsumer_process(
 #endif
                     if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
                         CO_errorReport(HBcons->em,
-                                       CO_EM_HB_CONSUMER_REMOTE_RESET,
+                                       (uint8_t)CO_EM_HB_CONSUMER_REMOTE_RESET,
                                        CO_EMC_HEARTBEAT, i);
                     }
                     monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
@@ -425,7 +425,7 @@ void CO_HBconsumer_process(
                             monitoredNode->functSignalObjectTimeout);
                     }
 #endif
-                    CO_errorReport(HBcons->em, CO_EM_HEARTBEAT_CONSUMER,
+                    CO_errorReport(HBcons->em, (uint8_t)CO_EM_HEARTBEAT_CONSUMER,
                                    CO_EMC_HEARTBEAT, i);
                     monitoredNode->NMTstate = CO_NMT_UNKNOWN;
                     monitoredNode->HBstate = CO_HBconsumer_TIMEOUT;
@@ -492,8 +492,8 @@ void CO_HBconsumer_process(
     /* Clear emergencies when all monitored nodes becomes active.
      * We only have one emergency index for all monitored nodes! */
     if (!HBcons->allMonitoredActive && allMonitoredActiveCurrent) {
-        CO_errorReset(HBcons->em, CO_EM_HEARTBEAT_CONSUMER, 0);
-        CO_errorReset(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, 0);
+        CO_errorReset(HBcons->em, (uint8_t)CO_EM_HEARTBEAT_CONSUMER, 0);
+        CO_errorReset(HBcons->em, (uint8_t)CO_EM_HB_CONSUMER_REMOTE_RESET, 0);
     }
 
     HBcons->allMonitoredActive = allMonitoredActiveCurrent;

@@ -794,7 +794,7 @@ size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     else {
         char *sRet;
         uint32_t u32 = strtoul(buf, &sRet, 0);
-        if ((sRet != strchr(buf, '\0')) || (u32 > UINT8_MAX)) st |= CO_fifo_st_errVal;
+        if ((sRet != strchr(buf, '\0')) || (u32 > (uint32_t)UINT8_MAX)) st |= CO_fifo_st_errVal;
         else {
             uint8_t num = (uint8_t) u32;
             nWr = CO_fifo_write(dest, &num, sizeof(num), NULL);
@@ -816,7 +816,7 @@ size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     else {
         char *sRet;
         uint32_t u32 = strtoul(buf, &sRet, 0);
-        if ((sRet != strchr(buf, '\0')) || (u32 > UINT16_MAX)) st |= CO_fifo_st_errVal;
+        if ((sRet != strchr(buf, '\0')) || (u32 > (uint32_t)UINT16_MAX)) st |= CO_fifo_st_errVal;
         else {
             uint16_t num = CO_SWAP_16((uint16_t) u32);
             nWr = CO_fifo_write(dest, (uint8_t *)&num, sizeof(num), NULL);

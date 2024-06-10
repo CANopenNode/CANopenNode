@@ -447,8 +447,8 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         }
 
         /* verify error from receive function */
-            CO_errorReport(SYNC->em, CO_EM_SYNC_LENGTH,
         if (SYNC->receiveError != 0U) {
+            CO_errorReport(SYNC->em, (uint8_t)CO_EM_SYNC_LENGTH,
                            CO_EMC_SYNC_DATA_LENGTH, SYNC->receiveError);
             SYNC->receiveError = 0;
         }
@@ -461,8 +461,8 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
     }
 
     if (syncStatus == CO_SYNC_RX_TX) {
-            CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, 0);
         if (SYNC->timeoutError == 2U) {
+            CO_errorReset(SYNC->em, (uint8_t)CO_EM_SYNC_TIME_OUT, 0);
         }
         SYNC->timeoutError = 1;
     }

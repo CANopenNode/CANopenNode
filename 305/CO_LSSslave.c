@@ -32,11 +32,11 @@
 #include <string.h>
 
 /* 'bit' must be unsigned or additional range check must be added: bit>=CO_LSS_FASTSCAN_BIT0 */
-#define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) ((bit<=CO_LSS_FASTSCAN_BIT31) || (bit==CO_LSS_FASTSCAN_CONFIRM))
+#define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) ((bit<=(uint8_t)CO_LSS_FASTSCAN_BIT31) || (bit==(uint8_t)CO_LSS_FASTSCAN_CONFIRM))
 /* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_FASTSCAN_VENDOR_ID */
-#define CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(index) (index<=CO_LSS_FASTSCAN_SERIAL)
+#define CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(index) (index<=(uint8_t)CO_LSS_FASTSCAN_SERIAL)
 /* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_BIT_TIMING_1000 */
-#define CO_LSS_BIT_TIMING_VALID(index) ((index != 5) && (index <= CO_LSS_BIT_TIMING_AUTO))
+#define CO_LSS_BIT_TIMING_VALID(index) ((index != 5U) && (index <= (uint8_t)CO_LSS_BIT_TIMING_AUTO))
 
 /*
  * Read received message from CAN module.
@@ -136,7 +136,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                     idNumber = CO_SWAP_32(valSw);
                     ack = false;
 
-                    if (bitCheck == CO_LSS_FASTSCAN_CONFIRM) {
+                    if (bitCheck == (uint8_t)CO_LSS_FASTSCAN_CONFIRM) {
                         /* Confirm, Reset */
                         ack = true;
                         LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;

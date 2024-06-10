@@ -188,7 +188,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     OD_stream_t *stream = &io->stream;
 
     /* attribute, dataOrig and dataLength, depends on object type */
-    switch (entry->odObjectType & ODT_TYPE_MASK) {
+    switch (entry->odObjectType & (uint8_t)ODT_TYPE_MASK) {
     case ODT_VAR: {
         if (subIndex > 0U) { return ODR_SUB_NOT_EXIST; }
         CO_PROGMEM OD_obj_var_t *odo = entry->odObject;
@@ -212,7 +212,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
             stream->attribute = odo->attribute;
             uint8_t *ptr = odo->dataOrig;
             stream->dataOrig = (ptr == NULL) ? ptr
-                             : (ptr + (odo->dataElementSizeof * (subIndex - 1)));
+                             : (ptr + (odo->dataElementSizeof * (uint8_t)(subIndex - 1U)));
             stream->dataLength = odo->dataElementLength;
         }
         break;
@@ -294,7 +294,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode) {
         0x08000024UL  /* No data available */
     };
 
-    return ((returnCode < 0) || (returnCode >= ODR_COUNT)) ?
+    return ((returnCode < ODR_OK) || (returnCode >= ODR_COUNT)) ?
         abortCodes[ODR_DEV_INCOMPAT] : abortCodes[returnCode];
 }
 

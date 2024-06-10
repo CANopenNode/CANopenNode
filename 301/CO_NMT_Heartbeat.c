@@ -243,7 +243,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
 
         if (NMTstateCpy == CO_NMT_INITIALIZING) {
             /* NMT slave self starting */
-            NMTstateCpy = ((NMT->NMTcontrol & CO_NMT_STARTUP_TO_OPERATIONAL) != 0)
+            NMTstateCpy = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_STARTUP_TO_OPERATIONAL) != 0U)
                           ? CO_NMT_OPERATIONAL : CO_NMT_PRE_OPERATIONAL;
         }
         else {
@@ -282,18 +282,18 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
     }
 
     /* verify NMT transitions based on error register */
-    bool_t busOff_HB = ((NMT->NMTcontrol & CO_NMT_ERR_ON_BUSOFF_HB) != 0)
+    bool_t busOff_HB = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_ON_BUSOFF_HB) != 0U)
                     && (CO_isError(NMT->em, CO_EM_CAN_TX_BUS_OFF)
                         || CO_isError(NMT->em, CO_EM_HEARTBEAT_CONSUMER)
                         || CO_isError(NMT->em, CO_EM_HB_CONSUMER_REMOTE_RESET));
-    bool_t errRegMasked = ((NMT->NMTcontrol & CO_NMT_ERR_ON_ERR_REG) != 0)
-                    && ((CO_getErrorRegister(NMT->em) & NMT->NMTcontrol) != 0);
+    bool_t errRegMasked = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_ON_ERR_REG) != 0U)
+                    && ((CO_getErrorRegister(NMT->em) & (uint8_t)NMT->NMTcontrol) != 0U);
 
     if ((NMTstateCpy == CO_NMT_OPERATIONAL) && (busOff_HB || errRegMasked)) {
-        NMTstateCpy = ((NMT->NMTcontrol & CO_NMT_ERR_TO_STOPPED) != 0)
+        NMTstateCpy = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_TO_STOPPED) != 0U)
                     ? CO_NMT_STOPPED : CO_NMT_PRE_OPERATIONAL;
     }
-    else if (((NMT->NMTcontrol & CO_NMT_ERR_FREE_TO_OPERATIONAL) != 0)
+    else if ((((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_FREE_TO_OPERATIONAL) != 0U)
         && (NMTstateCpy == CO_NMT_PRE_OPERATIONAL) && (!busOff_HB && !errRegMasked)
     ) {
         NMTstateCpy = CO_NMT_OPERATIONAL;

@@ -703,7 +703,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     }
     else {
         if (ret == CO_ERROR_NO) {
-            CO_errorReport(em, CO_EM_SRDO_CONFIGURATION, CO_EMC_DATA_SET, err);
+            CO_errorReport(em, (uint8_t)CO_EM_SRDO_CONFIGURATION, CO_EMC_DATA_SET, err);
             configurationValidUnset(SRDO->SRDOGuard);
         }
     }
@@ -868,7 +868,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
         else { /* CO_SRDO_RX */
             /* verify error from receive function */
             if (SRDO->rxSrdoShort) {
-                CO_errorReport(SRDO->em, CO_EM_RPDO_WRONG_LENGTH, CO_EMC_PDO_LENGTH, 0);
+                CO_errorReport(SRDO->em, (uint8_t)CO_EM_RPDO_WRONG_LENGTH, CO_EMC_PDO_LENGTH, 0);
                 SRDO->internalState = CO_SRDO_state_error_rxShort;
             }
             else if (CO_FLAG_READ(SRDO->CANrxNew[SRDO->nextIsNormal ? 0 : 1])) {

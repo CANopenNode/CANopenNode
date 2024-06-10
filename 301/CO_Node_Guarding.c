@@ -229,7 +229,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
 
         if (ngs->lifeTimeTimeout) {
             /* error bit is shared with HB consumer */
-            CO_errorReset(ngs->em, CO_EM_HEARTBEAT_CONSUMER, 0);
+            CO_errorReset(ngs->em, (uint8_t)CO_EM_HEARTBEAT_CONSUMER, 0);
             ngs->lifeTimeTimeout = false;
         }
 
@@ -252,7 +252,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
             ngs->lifeTimeTimeout = true;
 
             /* error bit is shared with HB consumer */
-            CO_errorReport(ngs->em, CO_EM_HEARTBEAT_CONSUMER,
+            CO_errorReport(ngs->em, (uint8_t)CO_EM_HEARTBEAT_CONSUMER,
                            CO_EMC_HEARTBEAT, 0);
         }
     }
@@ -415,12 +415,12 @@ void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
                     if (!node->responseRecived) {
                         node->monitoringActive = false;
                         /* error bit is shared with HB consumer */
-                        CO_errorReport(ngm->em, CO_EM_HEARTBEAT_CONSUMER,
+                        CO_errorReport(ngm->em, (uint8_t)CO_EM_HEARTBEAT_CONSUMER,
                                        CO_EMC_HEARTBEAT, node->ident & 0x7F);
                     }
                     else if (node->NMTstate != CO_NMT_UNKNOWN) {
                         node->monitoringActive = true;
-                        CO_errorReset(ngm->em, CO_EM_HEARTBEAT_CONSUMER,
+                        CO_errorReset(ngm->em, (uint8_t)CO_EM_HEARTBEAT_CONSUMER,
                                       node->ident & 0x7F);
                     }
                 }
