@@ -131,7 +131,7 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
     }
 
     /* Configure object variables */
-    memset(HBcons, 0, sizeof(CO_HBconsumer_t));
+    (void)memset(HBcons, 0, sizeof(CO_HBconsumer_t));
     HBcons->em = em;
     HBcons->monitoredNodes = monitoredNodes;
     HBcons->CANdevRx = CANdevRx;

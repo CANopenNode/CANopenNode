@@ -392,7 +392,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     }
 
     /* clear the object */
-    memset(em, 0, sizeof(CO_EM_t));
+    (void)memset(em, 0, sizeof(CO_EM_t));
 
     /* set object variables */
     em->CANdevTx = CANdevTx;

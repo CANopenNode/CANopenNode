@@ -37,7 +37,7 @@ CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs) {
     }
 
     /* clear the object */
-    memset(LEDs, 0, sizeof(CO_LEDs_t));
+    (void)memset(LEDs, 0, sizeof(CO_LEDs_t));
 
     return ret;
 }

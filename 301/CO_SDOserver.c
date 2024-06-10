@@ -1230,7 +1230,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
     /* Transmit CAN data ******************************************************/
     if (ret == CO_SDO_RT_waitingResponse) {
         /* clear response buffer */
-        memset(SDO->CANtxBuff->data, 0, sizeof(SDO->CANtxBuff->data));
+        (void)memset(SDO->CANtxBuff->data, 0, sizeof(SDO->CANtxBuff->data));
 
         switch (SDO->state) {
         case CO_SDO_ST_DOWNLOAD_INITIATE_RSP: {

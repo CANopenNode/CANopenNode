@@ -69,7 +69,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                         request_LSSslave_process = true;
                     }
                     LSSslave->lssState = CO_LSS_STATE_WAITING;
-                    memset(&LSSslave->lssSelect, 0,
+                    (void)memset(&LSSslave->lssSelect, 0,
                            sizeof(LSSslave->lssSelect));
                     break;
                 case CO_LSS_STATE_CONFIGURATION:
@@ -140,7 +140,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                         /* Confirm, Reset */
                         ack = true;
                         LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;
-                        memset(&LSSslave->lssFastscan, 0,
+                        (void)memset(&LSSslave->lssFastscan, 0,
                                 sizeof(LSSslave->lssFastscan));
                     }
                     else if (LSSslave->fastscanPos == lssSub) {
@@ -163,7 +163,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                     if (ack) {
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND
                         LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
-                        memset(&LSSslave->TXbuff->data[1], 0,
+                        (void)memset(&LSSslave->TXbuff->data[1], 0,
                                sizeof(LSSslave->TXbuff->data) - 1);
                         CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
 #else
@@ -225,7 +225,7 @@ CO_ReturnError_t CO_LSSslave_init(
     /* Application must make sure that lssAddress is filled with data. */
 
     /* clear the object */
-    memset(LSSslave, 0, sizeof(CO_LSSslave_t));
+    (void)memset(LSSslave, 0, sizeof(CO_LSSslave_t));
 
     /* Configure object variables */
     (void)memcpy(&LSSslave->lssAddress, lssAddress, sizeof(LSSslave->lssAddress));
@@ -332,7 +332,7 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
         bool_t CANsend = false;
         uint32_t valSw;
 
-        memset(&LSSslave->TXbuff->data[0], 0, sizeof(LSSslave->TXbuff->data));
+        (void)memset(&LSSslave->TXbuff->data[0], 0, sizeof(LSSslave->TXbuff->data));
 
         switch (LSSslave->service) {
         case CO_LSS_SWITCH_STATE_GLOBAL: {

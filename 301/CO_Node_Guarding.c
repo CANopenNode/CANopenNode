@@ -124,7 +124,7 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     }
 
     /* clear the object */
-    memset(ngs, 0, sizeof(CO_nodeGuardingSlave_t));
+    (void)memset(ngs, 0, sizeof(CO_nodeGuardingSlave_t));
 
     /* Configure object variables */
     ngs->em = em;
@@ -317,7 +317,7 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
     }
 
     /* clear the object */
-    memset(ngm, 0, sizeof(CO_nodeGuardingMaster_t));
+    (void)memset(ngm, 0, sizeof(CO_nodeGuardingMaster_t));
 
     /* Configure object variables */
     ngm->em = em;

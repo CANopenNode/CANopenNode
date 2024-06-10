@@ -85,7 +85,7 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
     }
 
     /* clear the object */
-    memset(gtwa, 0, sizeof(CO_GTWA_t));
+    (void)memset(gtwa, 0, sizeof(CO_GTWA_t));
 
     /* initialize variables */
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
@@ -1351,7 +1351,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             CO_LSSmaster_changeTimeout(gtwa->LSSmaster, timeout_ms);
 
             /* prepare lssFastscan, all zero */
-            memset(&gtwa->lssFastscan, 0, sizeof(gtwa->lssFastscan));
+            (void)memset(&gtwa->lssFastscan, 0, sizeof(gtwa->lssFastscan));
 
             /* continue with state machine */
             gtwa->state = CO_GTWA_ST__LSS_FASTSCAN;
@@ -1402,7 +1402,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 /* store node ID in node's NVM */
                 gtwa->lssStore = true;
                 /* prepare lssFastscan, all zero */
-                memset(&gtwa->lssFastscan, 0, sizeof(gtwa->lssFastscan));
+                (void)memset(&gtwa->lssFastscan, 0, sizeof(gtwa->lssFastscan));
             }
             if (closed == 0) {
                 /* more arguments follow */
@@ -1417,7 +1417,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
                 if (closed == 1) {
                     /* No other arguments, prepare lssFastscan, all zero */
-                    memset(&gtwa->lssFastscan, 0, sizeof(gtwa->lssFastscan));
+                    (void)memset(&gtwa->lssFastscan, 0, sizeof(gtwa->lssFastscan));
                 }
             }
             if (closed == 0) {

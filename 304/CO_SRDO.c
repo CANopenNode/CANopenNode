@@ -135,7 +135,7 @@ OD_read_dummy(OD_stream_t *stream, void *buf, OD_size_t count, OD_size_t *countR
         count = stream->dataLength;
     }
 
-    memset(buf, 0, count);
+    (void)memset(buf, 0, count);
 
     *countRead = count;
     return ODR_OK;
@@ -362,7 +362,7 @@ CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationV
     }
 
     /* clear object */
-    memset(SRDOGuard, 0, sizeof(CO_SRDOGuard_t));
+    (void)memset(SRDOGuard, 0, sizeof(CO_SRDOGuard_t));
 
     /* Configure Object dictionary extensions */
     SRDOGuard->OD_13FE_extension.object = SRDOGuard;
@@ -433,7 +433,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
     /* clear object and configure some object variables */
     if (err == 0) {
-        memset(SRDO, 0, sizeof(CO_SRDO_t));
+        (void)memset(SRDO, 0, sizeof(CO_SRDO_t));
 
         SRDO->SRDOGuard = SRDOGuard;
         SRDO->em = em;
@@ -592,7 +592,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
             /* is there a reference to the dummy entry */
             else if (index < 0x20 && subIndex == 0) {
                 OD_stream_t *stream = &OD_IO->stream;
-                memset(stream, 0, sizeof(OD_stream_t));
+                (void)memset(stream, 0, sizeof(OD_stream_t));
                 stream->dataLength = stream->dataOffset = mappedLength;
                 OD_IO->read = OD_read_dummy;
                 OD_IO->write = OD_write_dummy;
@@ -787,7 +787,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         uint8_t buf[CO_SRDO_MAX_SIZE];
                         uint8_t *dataSRDOCopy;
                         if (ODdataLength > mappedLength) {
-                            memset(buf, 0, sizeof(buf));
+                            (void)memset(buf, 0, sizeof(buf));
                             dataSRDOCopy = buf;
                         }
                         else {
@@ -922,7 +922,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                             uint8_t buf[CO_SRDO_MAX_SIZE];
                             uint8_t *dataOD;
                             if (ODdataLength > mappedLength) {
-                                memset(buf, 0, sizeof(buf));
+                                (void)memset(buf, 0, sizeof(buf));
                                 (void)memcpy(buf, dataSRDO[plain_inverted], mappedLength);
                                 dataOD = buf;
                             }

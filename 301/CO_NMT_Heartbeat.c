@@ -112,7 +112,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     }
 
     /* clear the object */
-    memset(NMT, 0, sizeof(CO_NMT_t));
+    (void)memset(NMT, 0, sizeof(CO_NMT_t));
 
     /* Configure object variables */
     NMT->operatingState = CO_NMT_INITIALIZING;

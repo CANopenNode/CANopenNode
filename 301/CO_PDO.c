@@ -65,7 +65,7 @@ static ODR_t OD_read_dummy(OD_stream_t *stream, void *buf,
         count = stream->dataLength;
     }
 
-    memset(buf, 0, count);
+    (void)memset(buf, 0, count);
 
     *countRead = count;
     return ODR_OK;
@@ -104,7 +104,7 @@ static ODR_t PDOconfigMap(CO_PDO_common_t *PDO,
     /* is there a reference to the dummy entry */
     if (index < 0x20 && subIndex == 0) {
         OD_stream_t *stream = &OD_IO->stream;
-        memset(stream, 0, sizeof(OD_stream_t));
+        (void)memset(stream, 0, sizeof(OD_stream_t));
         stream->dataLength = stream->dataOffset = mappedLength;
         OD_IO->read = OD_read_dummy;
         OD_IO->write = OD_write_dummy;
@@ -654,7 +654,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     }
 
     /* clear object */
-    memset(RPDO, 0, sizeof(CO_RPDO_t));
+    (void)memset(RPDO, 0, sizeof(CO_RPDO_t));
 
     /* Configure object variables */
     PDO->em = em;
@@ -842,7 +842,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
                 uint8_t buf[CO_PDO_MAX_SIZE];
                 uint8_t *dataOD;
                 if (ODdataLength > mappedLength) {
-                    memset(buf, 0, sizeof(buf));
+                    (void)memset(buf, 0, sizeof(buf));
                     (void)memcpy(buf, dataRPDO, mappedLength);
                     dataOD = buf;
                 }
@@ -1099,7 +1099,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     }
 
     /* clear object */
-    memset(TPDO, 0, sizeof(CO_TPDO_t));
+    (void)memset(TPDO, 0, sizeof(CO_TPDO_t));
 
     /* Configure object variables */
     PDO->em = em;
@@ -1260,7 +1260,7 @@ static CO_ReturnError_t CO_TPDOsend(CO_TPDO_t *TPDO) {
         uint8_t buf[CO_PDO_MAX_SIZE];
         uint8_t *dataTPDOCopy;
         if (ODdataLength > mappedLength) {
-            memset(buf, 0, sizeof(buf));
+            (void)memset(buf, 0, sizeof(buf));
             dataTPDOCopy = buf;
         }
         else {

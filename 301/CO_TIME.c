@@ -108,7 +108,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    memset(TIME, 0, sizeof(CO_TIME_t));
+    (void)memset(TIME, 0, sizeof(CO_TIME_t));
 
     /* get parameters from object dictionary and configure extension */
     uint32_t cobIdTimeStamp;

@@ -229,7 +229,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     }
 
     /* clear object */
-    memset(SYNC, 0, sizeof(CO_SYNC_t));
+    (void)memset(SYNC, 0, sizeof(CO_SYNC_t));
 
     /* get and verify "COB-ID SYNC message" from OD and configure extension */
     uint32_t cobIdSync = 0x00000080;
