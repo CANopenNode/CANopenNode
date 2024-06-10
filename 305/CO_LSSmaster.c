@@ -224,16 +224,16 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectInitiate(
       CO_FLAG_CLEAR(LSSmaster->CANrxNew);
       (void)memset(&LSSmaster->TXbuff->data[6], 0, sizeof(LSSmaster->TXbuff->data) - 6);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_VENDOR;
-      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.vendorID);
+      (void)CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.vendorID);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_PRODUCT;
-      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.productCode);
+      (void)CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.productCode);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_REV;
-      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.revisionNumber);
+      (void)CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.revisionNumber);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
       LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_SERIAL;
-      CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.serialNumber);
+      (void)CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.serialNumber);
       CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
       ret = CO_LSSmaster_WAIT_SLAVE;
@@ -565,7 +565,7 @@ CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(
 
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
         LSSmaster->TXbuff->data[0] = CO_LSS_CFG_ACTIVATE_BIT_TIMING;
-        CO_setUint16(&LSSmaster->TXbuff->data[1], switchDelay_ms);
+        (void)CO_setUint16(&LSSmaster->TXbuff->data[1], switchDelay_ms);
         (void)memset(&LSSmaster->TXbuff->data[3], 0, sizeof(LSSmaster->TXbuff->data) - 3);
         CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
@@ -757,7 +757,7 @@ static void CO_LSSmaster_FsSendMsg(
 
     CO_FLAG_CLEAR(LSSmaster->CANrxNew);
     LSSmaster->TXbuff->data[0] = CO_LSS_IDENT_FASTSCAN;
-    CO_setUint32(&LSSmaster->TXbuff->data[1], idNumber);
+    (void)CO_setUint32(&LSSmaster->TXbuff->data[1], idNumber);
     LSSmaster->TXbuff->data[5] = bitCheck;
     LSSmaster->TXbuff->data[6] = lssSub;
     LSSmaster->TXbuff->data[7] = lssNext;

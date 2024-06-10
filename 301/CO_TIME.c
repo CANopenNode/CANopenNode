@@ -223,8 +223,8 @@ bool_t CO_TIME_process(CO_TIME_t *TIME,
 
             uint32_t ms_swapped = CO_SWAP_32(TIME->ms);
             uint16_t days_swapped = CO_SWAP_16(TIME->days);
-            CO_setUint32(&TIME->CANtxBuff->data[0], ms_swapped);
-            CO_setUint16(&TIME->CANtxBuff->data[4], days_swapped);
+            (void)CO_setUint32(&TIME->CANtxBuff->data[0], ms_swapped);
+            (void)CO_setUint16(&TIME->CANtxBuff->data[4], days_swapped);
             CO_CANsend(TIME->CANdevTx, TIME->CANtxBuff);
         }
         else {

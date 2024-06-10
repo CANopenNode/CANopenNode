@@ -177,7 +177,7 @@ OD_read_SRDO_communicationParam(OD_stream_t* stream, void* buf, OD_size_t count,
             value += (uint32_t)SRDO->nodeId * 2;
         }
 
-        CO_setUint32(buf, value);
+        (void)CO_setUint32(buf, value);
     }
 
     return returnCode;
@@ -240,7 +240,7 @@ OD_write_SRDO_communicationParam(OD_stream_t* stream, const void* buf, OD_size_t
         /* if default COB-ID is being written, write defaultCOB_ID without nodeId */
         if ((SRDO->nodeId <= 64U) && (value == (defaultCOB_ID + ((uint32_t)SRDO->nodeId * 2)))) {
             value = defaultCOB_ID;
-            CO_setUint32(bufCopy, value);
+            (void)CO_setUint32(bufCopy, value);
         }
     } else { /* MISRA C 2004 14.10 */
     }

@@ -70,7 +70,7 @@ static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
                      CO_CAN_ID_EMERGENCY + em->nodeId : em->producerCanId;
     uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000;
     COB_IDEmergency32 |= canId;
-    CO_setUint32(buf, COB_IDEmergency32);
+    (void)CO_setUint32(buf, COB_IDEmergency32);
 
 
     *countRead = sizeof(uint32_t);
@@ -139,7 +139,7 @@ static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
 
     uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000;
     COB_IDEmergency32 |= CO_CAN_ID_EMERGENCY + em->nodeId;
-    CO_setUint32(buf, COB_IDEmergency32);
+    (void)CO_setUint32(buf, COB_IDEmergency32);
 
     *countRead = sizeof(uint32_t);
     return ODR_OK;
@@ -194,7 +194,7 @@ static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
         return ODR_DEV_INCOMPAT;
     }
     if (stream->subIndex == 0) {
-        CO_setUint8(buf, em->fifoCount);
+        (void)CO_setUint8(buf, em->fifoCount);
 
         *countRead = sizeof(uint8_t);
         return ODR_OK;
@@ -210,7 +210,7 @@ static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
             return ODR_DEV_INCOMPAT;
         }
         else { /* MISRA C 2004 14.10 */ }
-        CO_setUint32(buf, em->fifo[index].msg);
+        (void)CO_setUint32(buf, em->fifo[index].msg);
 
         *countRead = sizeof(uint32_t);
         return ODR_OK;
