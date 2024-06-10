@@ -607,7 +607,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 
     if (!SDO->finished && countRemain < countMinimum) {
         /* first move remaining data to the start of the buffer */
-        memmove(SDO->buf, SDO->buf + SDO->bufOffsetRd, countRemain);
+        (void)memmove(SDO->buf, SDO->buf + SDO->bufOffsetRd, countRemain);
         SDO->bufOffsetRd = 0;
         SDO->bufOffsetWr = countRemain;
 
