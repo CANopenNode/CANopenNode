@@ -2013,7 +2013,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             size_t lenHelpRemain = lenHelp - gtwa->helpStringOffset;
             size_t lenCopied = lenBuf < lenHelpRemain ? lenBuf : lenHelpRemain;
 
-            memcpy(gtwa->respBuf,
+            (void)memcpy(gtwa->respBuf,
                    &gtwa->helpString[gtwa->helpStringOffset],
                    lenCopied);
 

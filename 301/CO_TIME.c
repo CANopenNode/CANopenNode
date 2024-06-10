@@ -42,7 +42,7 @@ static void CO_TIME_receive(void *object, void *msg) {
     uint8_t *data = CO_CANrxMsg_readData(msg);
 
     if (DLC == CO_TIME_MSG_LENGTH) {
-        memcpy(TIME->timeStamp, data, sizeof(TIME->timeStamp));
+        (void)memcpy(TIME->timeStamp, data, sizeof(TIME->timeStamp));
         CO_FLAG_SET(TIME->CANrxNew);
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE

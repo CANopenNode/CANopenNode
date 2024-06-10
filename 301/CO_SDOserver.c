@@ -89,7 +89,7 @@ static void CO_SDO_receive(void *object, void *msg) {
 
                     /* Copy data. There is always enough space in buffer,
                     * because block_blksize was calculated before */
-                    memcpy(SDO->buf + SDO->bufOffsetWr, &data[1], 7);
+                    (void)memcpy(SDO->buf + SDO->bufOffsetWr, &data[1], 7);
                     SDO->bufOffsetWr += 7;
                     SDO->sizeTran += 7;
 
@@ -149,7 +149,7 @@ static void CO_SDO_receive(void *object, void *msg) {
         else {
             /* copy data and set 'new message' flag, data will be processed in
              * CO_SDOserver_process() */
-            memcpy(SDO->CANrxData, data, DLC);
+            (void)memcpy(SDO->CANrxData, data, DLC);
             CO_FLAG_SET(SDO->CANrxNew);
 #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE
             /* Optional signal to RTOS, which can resume task, which handles
@@ -827,7 +827,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
                 /* copy data to the temp buffer, swap data if necessary */
                 uint8_t buf[6] = {0};
-                memcpy(buf, &SDO->CANrxData[4], dataSizeToWrite);
+                (void)memcpy(buf, &SDO->CANrxData[4], dataSizeToWrite);
 #ifdef CO_BIG_ENDIAN
                 if ((SDO->OD_IO.stream.attribute & ODA_MB) != 0) {
                     reverseBytes(buf, dataSizeToWrite);
@@ -884,7 +884,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     uint32_t size;
                     OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
 
-                    memcpy(&size, &SDO->CANrxData[4], sizeof(size));
+                    (void)memcpy(&size, &SDO->CANrxData[4], sizeof(size));
                     SDO->sizeInd = CO_SWAP_32(size);
 
                     /* Indicated size of SDO matches sizeof OD variable? */
@@ -933,7 +933,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
                 /* get data size and write data to the buffer */
                 OD_size_t count = 7 - ((SDO->CANrxData[0] >> 1) & 0x07);
-                memcpy(SDO->buf + SDO->bufOffsetWr, &SDO->CANrxData[1], count);
+                (void)memcpy(SDO->buf + SDO->bufOffsetWr, &SDO->CANrxData[1], count);
                 SDO->bufOffsetWr += count;
                 SDO->sizeTran += count;
 
@@ -999,7 +999,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 uint32_t size;
                 OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
 
-                memcpy(&size, &SDO->CANrxData[4], sizeof(size));
+                (void)memcpy(&size, &SDO->CANrxData[4], sizeof(size));
                 SDO->sizeInd = CO_SWAP_32(size);
 
                 /* Indicated size of SDO matches sizeof OD variable? */
@@ -1288,7 +1288,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             if (SDO->sizeInd > 0 && SDO->sizeInd <= 4) {
                 /* expedited transfer */
                 SDO->CANtxBuff->data[0] = (uint8_t)(0x43|((4-SDO->sizeInd)<<2));
-                memcpy(&SDO->CANtxBuff->data[4], &SDO->buf, SDO->sizeInd);
+                (void)memcpy(&SDO->CANtxBuff->data[4], &SDO->buf, SDO->sizeInd);
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
             }
@@ -1299,7 +1299,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     uint32_t sizeInd = SDO->sizeInd;
                     uint32_t sizeIndSw = CO_SWAP_32(sizeInd);
                     SDO->CANtxBuff->data[0] = 0x41;
-                    memcpy(&SDO->CANtxBuff->data[4],
+                    (void)memcpy(&SDO->CANtxBuff->data[4],
                            &sizeIndSw, sizeof(sizeIndSw));
                 }
                 else {
@@ -1377,7 +1377,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             }
 
             /* copy data segment to CAN message */
-            memcpy(&SDO->CANtxBuff->data[1], SDO->buf + SDO->bufOffsetRd,
+            (void)memcpy(&SDO->CANtxBuff->data[1], SDO->buf + SDO->bufOffsetRd,
                    count);
             SDO->bufOffsetRd += count;
             SDO->sizeTran += count;
@@ -1513,7 +1513,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             if (SDO->sizeInd > 0) {
                 uint32_t size = CO_SWAP_32(SDO->sizeInd);
                 SDO->CANtxBuff->data[0] |= 0x02;
-                memcpy(&SDO->CANtxBuff->data[4], &size, sizeof(size));
+                (void)memcpy(&SDO->CANtxBuff->data[4], &size, sizeof(size));
             }
 
             /* reset timeout timer and send message */
@@ -1536,7 +1536,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             }
 
             /* copy data segment to CAN message */
-            memcpy(&SDO->CANtxBuff->data[1], SDO->buf + SDO->bufOffsetRd,
+            (void)memcpy(&SDO->CANtxBuff->data[1], SDO->buf + SDO->bufOffsetRd,
                    count);
             SDO->bufOffsetRd += count;
             SDO->block_noData = (uint8_t)(7 - count);
@@ -1606,7 +1606,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->CANtxBuff->data[2] = (uint8_t)(SDO->index >> 8);
             SDO->CANtxBuff->data[3] = SDO->subIndex;
 
-            memcpy(&SDO->CANtxBuff->data[4], &code, sizeof(code));
+            (void)memcpy(&SDO->CANtxBuff->data[4], &code, sizeof(code));
             CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;

@@ -57,7 +57,7 @@ CO_SRDO_receive_normal(void* object, void* msg) {
 
     if ((SRDO->informationDirection == CO_SRDO_RX) && (DLC >= SRDO->dataLength) && !CO_FLAG_READ(SRDO->CANrxNew[1])) {
         /* copy data into appropriate buffer and set 'new message' flag */
-        memcpy(SRDO->CANrxData[0], data, sizeof(SRDO->CANrxData[0]));
+        (void)memcpy(SRDO->CANrxData[0], data, sizeof(SRDO->CANrxData[0]));
         CO_FLAG_SET(SRDO->CANrxNew[0]);
 
 #if (CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE
@@ -81,7 +81,7 @@ CO_SRDO_receive_inverted(void* object, void* msg) {
 
     if ((SRDO->informationDirection == CO_SRDO_RX) && (DLC >= SRDO->dataLength) && CO_FLAG_READ(SRDO->CANrxNew[0])) {
         /* copy data into appropriate buffer and set 'new message' flag */
-        memcpy(SRDO->CANrxData[1], data, sizeof(SRDO->CANrxData[1]));
+        (void)memcpy(SRDO->CANrxData[1], data, sizeof(SRDO->CANrxData[1]));
         CO_FLAG_SET(SRDO->CANrxNew[1]);
 
 #if (CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE
@@ -198,7 +198,7 @@ OD_write_SRDO_communicationParam(OD_stream_t* stream, const void* buf, OD_size_t
     CO_SRDO_t* SRDO = stream->object;
     CO_SRDOGuard_t* SRDOGuard = SRDO->SRDOGuard;
     uint8_t bufCopy[4];
-    memcpy(bufCopy, buf, count);
+    (void)memcpy(bufCopy, buf, count);
 
     /* Writing Object Dictionary variable */
     if (SRDOGuard->NMTisOperational) {
@@ -816,7 +816,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
 
                         /* If auxiliary buffer, copy it to the SRDO */
                         if (ODdataLength > mappedLength) {
-                            memcpy(dataSRDO[plain_inverted], buf, mappedLength);
+                            (void)memcpy(dataSRDO[plain_inverted], buf, mappedLength);
                         }
 
                         dataSRDO[plain_inverted] += mappedLength;
@@ -923,7 +923,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                             uint8_t *dataOD;
                             if (ODdataLength > mappedLength) {
                                 memset(buf, 0, sizeof(buf));
-                                memcpy(buf, dataSRDO[plain_inverted], mappedLength);
+                                (void)memcpy(buf, dataSRDO[plain_inverted], mappedLength);
                                 dataOD = buf;
                             }
                             else {

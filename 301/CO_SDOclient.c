@@ -77,7 +77,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
         ) {
 #endif
             /* copy data and set 'new message' flag */
-            memcpy((void *)&SDO_C->CANrxData[0], (const void *)&data[0], 8);
+            (void)memcpy((void *)&SDO_C->CANrxData[0], (const void *)&data[0], 8);
             CO_FLAG_SET(SDO_C->CANrxNew);
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE
             /* Optional signal to RTOS, which can resume task, which handles
@@ -106,7 +106,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
                 if ((data[0] & 0x80) != 0) {
                     /* copy data to temporary buffer, because we don't know the
                      * number of bytes not containing data */
-                    memcpy((void *)&SDO_C->block_dataUploadLast[0],
+                    (void)memcpy((void *)&SDO_C->block_dataUploadLast[0],
                            (const void *)&data[1], 7);
                     SDO_C->finished = true;
                     state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP;
@@ -674,7 +674,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         /* is SDO abort */
         if (SDO_C->CANrxData[0] == 0x80) {
             uint32_t code;
-            memcpy(&code, &SDO_C->CANrxData[4], sizeof(code));
+            (void)memcpy(&code, &SDO_C->CANrxData[4], sizeof(code));
             abortCode = (CO_SDO_abortCode_t)CO_SWAP_32(code);
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;
@@ -922,7 +922,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 if (SDO_C->sizeInd > 0) {
                     uint32_t size = CO_SWAP_32((uint32_t)SDO_C->sizeInd);
                     SDO_C->CANtxBuff->data[0] |= 0x01;
-                    memcpy(&SDO_C->CANtxBuff->data[4], &size, sizeof(size));
+                    (void)memcpy(&SDO_C->CANtxBuff->data[4], &size, sizeof(size));
                 }
 #else
                 SDO_C->state = CO_SDO_ST_IDLE;
@@ -988,7 +988,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             if (SDO_C->sizeInd > 0) {
                 uint32_t size = CO_SWAP_32((uint32_t)SDO_C->sizeInd);
                 SDO_C->CANtxBuff->data[0] |= 0x02;
-                memcpy(&SDO_C->CANtxBuff->data[4], &size, sizeof(size));
+                (void)memcpy(&SDO_C->CANtxBuff->data[4], &size, sizeof(size));
             }
 
             /* reset timeout timer and send message */
@@ -1076,7 +1076,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             SDO_C->CANtxBuff->data[2] = (uint8_t)(SDO_C->index >> 8);
             SDO_C->CANtxBuff->data[3] = SDO_C->subIndex;
 
-            memcpy(&SDO_C->CANtxBuff->data[4], &code, sizeof(code));
+            (void)memcpy(&SDO_C->CANtxBuff->data[4], &code, sizeof(code));
             CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithClientAbort;
@@ -1289,7 +1289,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         /* is SDO abort */
         if (SDO_C->CANrxData[0] == 0x80) {
             uint32_t code;
-            memcpy(&code, &SDO_C->CANrxData[4], sizeof(code));
+            (void)memcpy(&code, &SDO_C->CANrxData[4], sizeof(code));
             abortCode = (CO_SDO_abortCode_t)CO_SWAP_32(code);
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;
@@ -1334,7 +1334,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         /* segmented transfer, is size indicated? */
                         if (SDO_C->CANrxData[0] & 0x01) {
                             uint32_t size;
-                            memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                            (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
                             SDO_C->sizeInd = CO_SWAP_32(size);
                         }
                         SDO_C->toggle = 0x00;
@@ -1428,7 +1428,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     }
                     if (SDO_C->CANrxData[0] & 0x02) {
                         uint32_t size;
-                        memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                        (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
                         SDO_C->sizeInd = CO_SWAP_32(size);
                     }
 
@@ -1477,7 +1477,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         /* segmented transfer, is size indicated? */
                         if (SDO_C->CANrxData[0] & 0x01) {
                             uint32_t size;
-                            memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                            (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
                             SDO_C->sizeInd = CO_SWAP_32(size);
                         }
                         SDO_C->toggle = 0x00;
@@ -1787,7 +1787,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             SDO_C->CANtxBuff->data[2] = (uint8_t)(SDO_C->index >> 8);
             SDO_C->CANtxBuff->data[3] = SDO_C->subIndex;
 
-            memcpy(&SDO_C->CANtxBuff->data[4], &code, sizeof(code));
+            (void)memcpy(&SDO_C->CANtxBuff->data[4], &code, sizeof(code));
             CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithClientAbort;

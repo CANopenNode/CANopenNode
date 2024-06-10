@@ -65,7 +65,7 @@ ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
         }
     }
 
-    memcpy(buf, dataOrig, dataLenToCopy);
+    (void)memcpy(buf, dataOrig, dataLenToCopy);
 
     *countRead = dataLenToCopy;
     return returnCode;
@@ -116,7 +116,7 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
         return ODR_DATA_LONG;
     }
 
-    memcpy(dataOrig, buf, dataLenToCopy);
+    (void)memcpy(dataOrig, buf, dataLenToCopy);
 
     *countWritten = dataLenToCopy;
     return returnCode;

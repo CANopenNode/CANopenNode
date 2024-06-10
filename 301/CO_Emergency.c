@@ -272,7 +272,7 @@ static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
         stream->dataLength = countReadLocal;
     }
 
-    memcpy (buf, &em->errorStatusBits[0], countReadLocal);
+    (void)memcpy (buf, &em->errorStatusBits[0], countReadLocal);
 
     *countRead = countReadLocal;
     return ODR_OK;
@@ -301,7 +301,7 @@ static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
         stream->dataLength = countWrite;
     }
 
-    memcpy (&em->errorStatusBits[0], buf, countWrite);
+    (void)memcpy (&em->errorStatusBits[0], buf, countWrite);
 
     *countWritten = countWrite;
     return ODR_OK;
@@ -328,8 +328,8 @@ static void CO_EM_receive(void *object, void *msg) {
             uint16_t errorCode;
             uint32_t infoCode;
 
-            memcpy(&errorCode, &data[0], sizeof(errorCode));
-            memcpy(&infoCode, &data[4], sizeof(infoCode));
+            (void)memcpy(&errorCode, &data[0], sizeof(errorCode));
+            (void)memcpy(&infoCode, &data[4], sizeof(infoCode));
             em->pFunctSignalRx(ident,
                                CO_SWAP_16(errorCode),
                                data[2],
@@ -653,7 +653,7 @@ void CO_EM_process(CO_EM_t *em,
             em->fifo[fifoPpPtr].msg |= (uint32_t) errorRegister << 16;
 
             /* send emergency message */
-            memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr].msg,
+            (void)memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr].msg,
                 sizeof(em->CANtxBuff->data));
             CO_CANsend(em->CANdevTx, em->CANtxBuff);
 

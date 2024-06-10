@@ -491,7 +491,7 @@ static void CO_PDO_receive(void *object, void *msg) {
 #endif
 
             /* copy data into appropriate buffer and set 'new message' flag */
-            memcpy(RPDO->CANrxData[bufNo], data,sizeof(RPDO->CANrxData[bufNo]));
+            (void)memcpy(RPDO->CANrxData[bufNo], data,sizeof(RPDO->CANrxData[bufNo]));
             CO_FLAG_SET(RPDO->CANrxNew[bufNo]);
 
 #if (CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE
@@ -529,7 +529,7 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
     CO_RPDO_t *RPDO = stream->object;
     CO_PDO_common_t *PDO = &RPDO->PDO_common;
     uint8_t bufCopy[4];
-    memcpy(bufCopy, buf, count);
+    (void)memcpy(bufCopy, buf, count);
 
     switch (stream->subIndex) {
     case 1: { /* COB-ID used by PDO */
@@ -843,7 +843,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
                 uint8_t *dataOD;
                 if (ODdataLength > mappedLength) {
                     memset(buf, 0, sizeof(buf));
-                    memcpy(buf, dataRPDO, mappedLength);
+                    (void)memcpy(buf, dataRPDO, mappedLength);
                     dataOD = buf;
                 }
                 else {
@@ -960,7 +960,7 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
     CO_TPDO_t *TPDO = stream->object;
     CO_PDO_common_t *PDO = &TPDO->PDO_common;
     uint8_t bufCopy[4];
-    memcpy(bufCopy, buf, count);
+    (void)memcpy(bufCopy, buf, count);
 
     switch (stream->subIndex) {
     case 1: { /* COB-ID used by PDO */
@@ -1289,7 +1289,7 @@ static CO_ReturnError_t CO_TPDOsend(CO_TPDO_t *TPDO) {
 
         /* If auxiliary buffer, copy it to the TPDO */
         if (ODdataLength > mappedLength) {
-            memcpy(dataTPDO, buf, mappedLength);
+            (void)memcpy(dataTPDO, buf, mappedLength);
         }
 
         /* In event driven TPDO indicate transmission of OD variable */

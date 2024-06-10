@@ -87,7 +87,7 @@ static void CO_LSSmaster_receive(void *object, void *msg)
        LSSmaster->command!=CO_LSSmaster_COMMAND_WAITING){
 
         /* copy data and set 'new message' flag */
-        memcpy(LSSmaster->CANrxData, data, sizeof(LSSmaster->CANrxData));
+        (void)memcpy(LSSmaster->CANrxData, data, sizeof(LSSmaster->CANrxData));
 
         CO_FLAG_SET(LSSmaster->CANrxNew);
 
