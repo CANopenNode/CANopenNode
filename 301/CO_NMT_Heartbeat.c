@@ -41,7 +41,7 @@ static void CO_NMT_receive(void *object, void *msg) {
 
     CO_NMT_t *NMT = (CO_NMT_t*)object;
 
-    if ((DLC == 2) && ((nodeId == 0) || (nodeId == NMT->nodeId))) {
+    if ((DLC == 2U) && ((nodeId == 0U) || (nodeId == NMT->nodeId))) {
         NMT->internalCommand = command;
 
 #if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
@@ -62,7 +62,7 @@ static void CO_NMT_receive(void *object, void *msg) {
 static ODR_t OD_write_1017(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count != sizeof(uint16_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -71,7 +71,7 @@ static ODR_t OD_write_1017(OD_stream_t *stream, const void *buf,
     CO_NMT_t *NMT = (CO_NMT_t *)stream->object;
 
     /* update object, send Heartbeat immediately */
-    NMT->HBproducerTime_us = (uint32_t)CO_getUint16(buf) * 1000;
+    NMT->HBproducerTime_us = (uint32_t)CO_getUint16(buf) * 1000U;
     NMT->HBproducerTimer = 0;
 
     /* write value to the original location in the Object Dictionary */
@@ -129,7 +129,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
         if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1017_ProducerHbTime); }
         return CO_ERROR_OD_PARAMETERS;
     }
-    NMT->HBproducerTime_us = (uint32_t)HBprodTime_ms * 1000;
+    NMT->HBproducerTime_us = (uint32_t)HBprodTime_ms * 1000U;
 
     NMT->OD_1017_extension.object = NMT;
     NMT->OD_1017_extension.read = OD_readOriginal;
@@ -229,13 +229,13 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
     bool_t NNTinit = NMTstateCpy == CO_NMT_INITIALIZING;
 
     NMT->HBproducerTimer = (NMT->HBproducerTimer > timeDifference_us )
-                         ? (NMT->HBproducerTimer - timeDifference_us) : 0;
+                         ? (NMT->HBproducerTimer - timeDifference_us) : 0U;
 
     /* Send heartbeat producer message if:
      * - First start, send bootup message or
      * - HB producer enabled and: Timer expired or NMT->operatingState changed*/
-    if (NNTinit || ((NMT->HBproducerTime_us != 0)
-                    && ((NMT->HBproducerTimer == 0)
+    if (NNTinit || ((NMT->HBproducerTime_us != 0U)
+                    && ((NMT->HBproducerTimer == 0U)
                         || (NMTstateCpy != NMT->operatingStatePrev))
     )) {
         NMT->HB_TXbuff->data[0] = (uint8_t) NMTstateCpy;

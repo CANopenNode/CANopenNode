@@ -50,7 +50,7 @@ static void CO_ngs_receive(void *object, void *msg) {
 static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count != sizeof(uint16_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -59,11 +59,11 @@ static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
     CO_nodeGuardingSlave_t *ngs = (CO_nodeGuardingSlave_t *)stream->object;
 
     /* update objects */
-    ngs->guardTime_us = (uint32_t)CO_getUint16(buf) * 1000;
+    ngs->guardTime_us = (uint32_t)CO_getUint16(buf) * 1000U;
     ngs->lifeTime_us = ngs->guardTime_us * ngs->lifeTimeFactor;
 
     /* reset running timer */
-    if (ngs->lifeTimer > 0) {
+    if (ngs->lifeTimer > 0U) {
         ngs->lifeTimer = ngs->lifeTime_us;
     }
 
@@ -80,7 +80,7 @@ static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
 static ODR_t OD_write_100D(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count != sizeof(uint8_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -93,7 +93,7 @@ static ODR_t OD_write_100D(OD_stream_t *stream, const void *buf,
     ngs->lifeTime_us = ngs->guardTime_us * ngs->lifeTimeFactor;
 
     /* reset running timer */
-    if (ngs->lifeTimer > 0) {
+    if (ngs->lifeTimer > 0U) {
         ngs->lifeTimer = ngs->lifeTime_us;
     }
 
@@ -136,7 +136,7 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
         if (errInfo != NULL) *errInfo = OD_getIndex(OD_100C_GuardTime);
         return CO_ERROR_OD_PARAMETERS;
     }
-    ngs->guardTime_us = (uint32_t)guardTime_ms * 1000;
+    ngs->guardTime_us = (uint32_t)guardTime_ms * 1000U;
 
     ngs->OD_100C_extension.object = ngs;
     ngs->OD_100C_extension.read = OD_readOriginal;
@@ -219,7 +219,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
         /* send response */
         ngs->CANtxBuff->data[0] = (uint8_t) NMTstate;
         if (ngs->toggle) {
-            ngs->CANtxBuff->data[0] |= 0x80;
+            ngs->CANtxBuff->data[0] |= 0x80U;
             ngs->toggle = false;
         }
         else {
@@ -237,7 +237,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
     }
 
     /* verify "Life time" timeout and update the timer */
-    else if (ngs->lifeTimer > 0) {
+    else if (ngs->lifeTimer > 0U) {
         if (timeDifference_us < ngs->lifeTimer) {
             ngs->lifeTimer -= timeDifference_us;
 #if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT

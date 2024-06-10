@@ -135,13 +135,13 @@ extern "C" {
 
 /** Maximum size of PDO message, 8 for standard CAN */
 #ifndef CO_PDO_MAX_SIZE
-#define CO_PDO_MAX_SIZE 8
+#define CO_PDO_MAX_SIZE 8U
 #endif
 
 /** Maximum number of entries, which can be mapped to PDO, 8 for standard CAN,
  * may be less to preserve RAM usage */
 #ifndef CO_PDO_MAX_MAPPED_ENTRIES
-#define CO_PDO_MAX_MAPPED_ENTRIES 8
+#define CO_PDO_MAX_MAPPED_ENTRIES 8U
 #endif
 
 /** Number of CANopen RPDO objects, which uses default CAN indentifiers.
@@ -152,7 +152,7 @@ extern "C" {
  * identifiers. In that case RPDO5 has CAN_ID=0x200+NodeId+1, RPDO6 has
  * CAN_ID=0x300+NodeId+1, RPDO9 has CAN_ID=0x200+NodeId+2 and so on. */
 #ifndef CO_RPDO_DEFAULT_CANID_COUNT
-#define CO_RPDO_DEFAULT_CANID_COUNT 4
+#define CO_RPDO_DEFAULT_CANID_COUNT 4U
 #endif
 
 /** Number of CANopen TPDO objects, which uses default CAN indentifiers.
@@ -161,7 +161,7 @@ extern "C" {
  * TPDO9 has CAN_ID=0x180+NodeId+2 and so on.
  * For description see @ref CO_RPDO_DEFAULT_CANID_COUNT. */
 #ifndef CO_TPDO_DEFAULT_CANID_COUNT
-#define CO_TPDO_DEFAULT_CANID_COUNT 4
+#define CO_TPDO_DEFAULT_CANID_COUNT 4U
 #endif
 
 #ifndef CO_PDO_OWN_TYPES
@@ -173,13 +173,13 @@ typedef uint8_t CO_PDO_size_t;
  * PDO transmission Types
  */
 typedef enum {
-    CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC = 0, /**< synchronous (acyclic) */
-    CO_PDO_TRANSM_TYPE_SYNC_1 = 1, /**< synchronous (cyclic every sync) */
-    CO_PDO_TRANSM_TYPE_SYNC_240 = 0xF0, /**< synchronous (cyclic every 240-th
+    CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC = 0U, /**< synchronous (acyclic) */
+    CO_PDO_TRANSM_TYPE_SYNC_1 = 1U, /**< synchronous (cyclic every sync) */
+    CO_PDO_TRANSM_TYPE_SYNC_240 = 0xF0U, /**< synchronous (cyclic every 240-th
     sync) */
-    CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO = 0xFE, /**< event-driven, lower value
+    CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO = 0xFEU, /**< event-driven, lower value
     (manufacturer specific),  */
-    CO_PDO_TRANSM_TYPE_SYNC_EVENT_HI = 0xFF /**< event-driven, higher value
+    CO_PDO_TRANSM_TYPE_SYNC_EVENT_HI = 0xFFU /**< event-driven, higher value
     (device profile and application profile specific) */
 } CO_PDO_transmissionTypes_t;
 

@@ -766,7 +766,7 @@ void CO_delete(CO_t *co) {
 #endif
     static CO_EM_t COO_EM;
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
-    static CO_EM_fifo_t COO_EM_FIFO[CO_GET_CNT(ARR_1003) + 1];
+    static CO_EM_fifo_t COO_EM_FIFO[CO_GET_CNT(ARR_1003) + 1U];
 #endif
     static CO_SDOserver_t COO_SDOserver[OD_CNT_SDO_SRV];
 #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
@@ -895,7 +895,7 @@ bool_t CO_isLSSslaveEnabled(CO_t *co) {
     (void) co; /* may be unused */
     bool_t en = false;
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-    if (CO_GET_CNT(LSS_SLV) == 1) { en = true; }
+    if (CO_GET_CNT(LSS_SLV) == 1U) { en = true; }
 #endif
     return en;
 }
@@ -931,7 +931,7 @@ CO_ReturnError_t CO_LSSinit(CO_t *co,
 {
     CO_ReturnError_t err;
 
-    if (co == NULL || CO_GET_CNT(LSS_SLV) != 1) {
+    if ((co == NULL) || (CO_GET_CNT(LSS_SLV) != 1U)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -969,15 +969,15 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     (void)SDOclientTimeoutTime_ms; (void)SDOclientBlockTransfer;
     CO_ReturnError_t err;
 
-    if (co == NULL
-        || (CO_GET_CNT(NMT) == 0 && NMT == NULL)
-        || (CO_GET_CNT(EM) == 0 && em == NULL)
+    if ((co == NULL)
+        || ((CO_GET_CNT(NMT) == 0U) && (NMT == NULL))
+        || ((CO_GET_CNT(EM) == 0U) && (em == NULL))
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* alternatives */
-    if (CO_GET_CNT(NMT) == 0) {
+    if (CO_GET_CNT(NMT) == 0U) {
         co->NMT = NMT;
     }
     if (em == NULL) {
@@ -987,18 +987,18 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     /* Verify CANopen Node-ID */
     co->nodeIdUnconfigured = false;
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-    if (CO_GET_CNT(LSS_SLV) == 1 && nodeId == CO_LSS_NODE_ID_ASSIGNMENT) {
+    if ((CO_GET_CNT(LSS_SLV) == 1U) && (nodeId == CO_LSS_NODE_ID_ASSIGNMENT)) {
         co->nodeIdUnconfigured = true;
     }
     else
 #endif
-    if (nodeId < 1 || nodeId > 127) {
+    if ((nodeId < 1U) || (nodeId > 127U)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
     else { /* MISRA C 2004 14.10 */ }
 
 #if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
-    if (CO_GET_CNT(LEDS) == 1) {
+    if (CO_GET_CNT(LEDS) == 1U) {
         err = CO_LEDs_init(co->LEDs);
         if (err) { return err; }
     }
@@ -1010,13 +1010,13 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     }
 
     /* Emergency */
-    if (CO_GET_CNT(EM) == 1) {
+    if (CO_GET_CNT(EM) == 1U) {
         err = CO_EM_init(co->em,
                          co->CANmodule,
                          OD_GET(H1001, OD_H1001_ERR_REG),
  #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
                          co->em_fifo,
-                         (CO_GET_CNT(ARR_1003) + 1),
+                         (CO_GET_CNT(ARR_1003) + 1U),
  #endif
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
                          OD_GET(H1014, OD_H1014_COBID_EMERGENCY),
@@ -1041,7 +1041,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     }
 
     /* NMT_Heartbeat */
-    if (CO_GET_CNT(NMT) == 1) {
+    if (CO_GET_CNT(NMT) == 1U) {
         err = CO_NMT_init(co->NMT,
                           OD_GET(H1017, OD_H1017_PRODUCER_HB_TIME),
                           em,
@@ -1064,7 +1064,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     }
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
-    if (CO_GET_CNT(HB_CONS) == 1) {
+    if (CO_GET_CNT(HB_CONS) == 1U) {
         err = CO_HBconsumer_init(co->HBcons,
                                  em,
                                  co->HBconsMonitoredNodes,
@@ -1101,7 +1101,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #endif
 
     /* SDOserver */
-    if (CO_GET_CNT(SDO_SRV) > 0) {
+    if (CO_GET_CNT(SDO_SRV) > 0U) {
         OD_entry_t *SDOsrvPar = OD_GET(H1200, OD_H1200_SDO_SERVER_1_PARAM);
         for (int16_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
             err = CO_SDOserver_init(&co->SDOserver[i],
@@ -1137,7 +1137,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #endif
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
-    if (CO_GET_CNT(TIME) == 1) {
+    if (CO_GET_CNT(TIME) == 1U) {
         err = CO_TIME_init(co->TIME,
                            OD_GET(H1012, OD_H1012_COBID_TIME),
                            co->CANmodule,
@@ -1152,7 +1152,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #endif
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
-    if (CO_GET_CNT(SYNC) == 1) {
+    if (CO_GET_CNT(SYNC) == 1U) {
         err = CO_SYNC_init(co->SYNC,
                            em,
                            OD_GET(H1005, OD_H1005_COBID_SYNC),
@@ -1244,13 +1244,13 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
     if (co == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
-    if (nodeId < 1 || nodeId > 127 || co->nodeIdUnconfigured) {
+    if ((nodeId < 1U) || (nodeId > 127U) || co->nodeIdUnconfigured) {
         return (co->nodeIdUnconfigured)
                ? CO_ERROR_NODE_ID_UNCONFIGURED_LSS : CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
 #if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
-    if (CO_GET_CNT(RPDO) > 0) {
+    if (CO_GET_CNT(RPDO) > 0U) {
         OD_entry_t *RPDOcomm = OD_GET(H1400, OD_H1400_RXPDO_1_PARAM);
         OD_entry_t *RPDOmap = OD_GET(H1600, OD_H1600_RXPDO_1_MAPPING);
         for (int16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
@@ -1284,7 +1284,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
 #endif
 
 #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
-    if (CO_GET_CNT(TPDO) > 0) {
+    if (CO_GET_CNT(TPDO) > 0U) {
         OD_entry_t *TPDOcomm = OD_GET(H1800, OD_H1800_TXPDO_1_PARAM);
         OD_entry_t *TPDOmap = OD_GET(H1A00, OD_H1A00_TXPDO_1_MAPPING);
         for (int16_t i = 0; i < CO_GET_CNT(TPDO); i++) {
@@ -1332,7 +1332,7 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
     if (co == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
-    if (nodeId < 1 || nodeId > 127 || co->nodeIdUnconfigured) {
+    if ((nodeId < 1U) || (nodeId > 127U) || co->nodeIdUnconfigured) {
         return (co->nodeIdUnconfigured)
                ? CO_ERROR_NODE_ID_UNCONFIGURED_LSS : CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -1354,7 +1354,7 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
 #endif
 
 #if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
-    if (CO_GET_CNT(SRDO) > 0) {
+    if (CO_GET_CNT(SRDO) > 0U) {
         CO_ReturnError_t err;
         err = CO_SRDO_init_start(co->SRDOGuard,
                                  OD_GET(H13FE, OD_H13FE_SRDO_VALID),
@@ -1382,11 +1382,11 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                co->CANmodule,
                                co->CANmodule,
                                CANdevRxIdx,
-                               CANdevRxIdx + 1,
+                               CANdevRxIdx + 1U,
                                co->CANmodule,
                                co->CANmodule,
                                CANdevTxIdx,
-                               CANdevTxIdx + 1,
+                               CANdevTxIdx + 1U,
                                errInfo);
             if (err) { return err; }
         }
@@ -1415,7 +1415,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     CO_CANmodule_process(co->CANmodule);
 
 #if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
-    if (CO_GET_CNT(LSS_SLV) == 1) {
+    if (CO_GET_CNT(LSS_SLV) == 1U) {
         if (CO_LSSslave_process(co->LSSslave)) {
             reset = CO_RESET_COMM;
         }
@@ -1438,7 +1438,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
   #define CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS 0
  #endif
 
-    if (CO_GET_CNT(LEDS) == 1) {
+    if (CO_GET_CNT(LEDS) == 1U) {
         CO_LEDs_process(co->LEDs,
             timeDifference_us,
             unc ? CO_NMT_INITIALIZING : NMTstate,
@@ -1449,7 +1449,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
             unc ? false : CO_isError(co->em, CO_EM_SYNC_TIME_OUT),
             unc ? false : (CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER)
                         || CO_isError(co->em, CO_EM_HB_CONSUMER_REMOTE_RESET)),
-            CO_getErrorRegister(co->em) != 0,
+            CO_getErrorRegister(co->em) != 0U,
             CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS,
             timerNext_us);
     }
@@ -1461,7 +1461,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     }
 
     /* Emergency */
-    if (CO_GET_CNT(EM) == 1) {
+    if (CO_GET_CNT(EM) == 1U) {
         CO_EM_process(co->em,
                       NMTisPreOrOperational,
                       timeDifference_us,
@@ -1469,7 +1469,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     }
 
     /* NMT_Heartbeat */
-    if (CO_GET_CNT(NMT) == 1) {
+    if (CO_GET_CNT(NMT) == 1U) {
         reset = CO_NMT_process(co->NMT,
                                &NMTstate,
                                timeDifference_us,
@@ -1487,7 +1487,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     }
 
 #if (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE
-    if (CO_GET_CNT(HB_CONS) == 1) {
+    if (CO_GET_CNT(HB_CONS) == 1U) {
         CO_HBconsumer_process(co->HBcons,
                               NMTisPreOrOperational,
                               timeDifference_us,
@@ -1498,7 +1498,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 #if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
     CO_nodeGuardingSlave_process(co->NGslave,
                                  NMTstate,
-                                 (co->NMT->HBproducerTime_us > 0),
+                                 (co->NMT->HBproducerTime_us > 0U),
                                  timeDifference_us,
                                  timerNext_us);
 #endif
@@ -1509,7 +1509,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 #endif
 
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
-    if (CO_GET_CNT(TIME) == 1) {
+    if (CO_GET_CNT(TIME) == 1U) {
         CO_TIME_process(co->TIME, NMTisPreOrOperational, timeDifference_us);
     }
 #endif
@@ -1535,10 +1535,10 @@ bool_t CO_process_SYNC(CO_t *co,
 {
     bool_t syncWas = false;
 
-    if (!co->nodeIdUnconfigured && CO_GET_CNT(SYNC) == 1) {
+    if ((!co->nodeIdUnconfigured) && (CO_GET_CNT(SYNC) == 1U)) {
         CO_NMT_internalState_t NMTstate = CO_NMT_getInternalState(co->NMT);
-        bool_t NMTisPreOrOperational = (NMTstate == CO_NMT_PRE_OPERATIONAL
-                                        || NMTstate == CO_NMT_OPERATIONAL);
+        bool_t NMTisPreOrOperational = ((NMTstate == CO_NMT_PRE_OPERATIONAL)
+                                        || (NMTstate == CO_NMT_OPERATIONAL));
 
         CO_SYNC_status_t sync_process = CO_SYNC_process(co->SYNC,
                                                         NMTisPreOrOperational,

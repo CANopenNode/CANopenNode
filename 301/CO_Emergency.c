@@ -129,7 +129,7 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
 static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
                                   OD_size_t count, OD_size_t *countRead)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count < sizeof(uint32_t)) || (countRead == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -137,8 +137,8 @@ static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
-    uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000;
     COB_IDEmergency32 |= CO_CAN_ID_EMERGENCY + em->nodeId;
+    uint32_t COB_IDEmergency32 = em->producerEnabled ? 0U : 0x80000000U;
     (void)CO_setUint32(buf, COB_IDEmergency32);
 
     *countRead = sizeof(uint32_t);
@@ -375,11 +375,11 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     /* verify arguments */
     if ((em == NULL) || (OD_1001_errReg == NULL)
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
-        || ((fifo == NULL) && (fifoSize >= 2))
+        || ((fifo == NULL) && (fifoSize >= 2U))
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
         || (OD_1014_cobIdEm == NULL) || (CANdevTx == NULL)
-        || (nodeId < 1) || (nodeId > 127)
+        || (nodeId < 1U) || (nodeId > 127U)
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
        || OD_1003_preDefErr == NULL
@@ -414,7 +414,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     uint32_t COB_IDEmergency32;
     ODR_t odRet;
     odRet = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
-    if ((odRet != ODR_OK) || ((COB_IDEmergency32 & 0x7FFFF800) != 0)) {
+    if ((odRet != ODR_OK) || ((COB_IDEmergency32 & 0x7FFFF800U) != 0U)) {
         if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1014_cobIdEm); }
          /* don't break a program, if only value of a parameter is wrong */
         if (odRet != ODR_OK) { return CO_ERROR_OD_PARAMETERS; }
@@ -442,7 +442,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     if (producerCanId == CO_CAN_ID_EMERGENCY) producerCanId += nodeId;
  #else
     uint16_t producerCanId = CO_CAN_ID_EMERGENCY + nodeId;
-    em->producerEnabled = (COB_IDEmergency32 & 0x80000000) == 0;
+    em->producerEnabled = (COB_IDEmergency32 & 0x80000000U) == 0U;
 
     em->OD_1014_extension.object = em;
     em->OD_1014_extension.read = OD_read_1014_default;
@@ -634,7 +634,7 @@ void CO_EM_process(CO_EM_t *em,
 
     /* post-process Emergency message in fifo buffer. */
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
-    if (em->fifoSize >= 2) {
+    if (em->fifoSize >= 2U) {
         uint8_t fifoPpPtr = em->fifoPpPtr;
 
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
@@ -670,16 +670,16 @@ void CO_EM_process(CO_EM_t *em,
  #endif
 
             /* increment pointer */
-            em->fifoPpPtr = (++fifoPpPtr < em->fifoSize) ? fifoPpPtr : 0;
+            em->fifoPpPtr = (++fifoPpPtr < em->fifoSize) ? fifoPpPtr : 0U;
 
             /* verify message buffer overflow. Clear error condition if all
              * messages from fifo buffer are processed */
-            if (em->fifoOverflow == 1) {
+            if (em->fifoOverflow == 1U) {
                 em->fifoOverflow = 2;
                 CO_errorReport(em, CO_EM_EMERGENCY_BUFFER_FULL,
                                CO_EMC_GENERIC, 0);
             }
-            else if ((em->fifoOverflow == 2) && (em->fifoPpPtr == em->fifoWrPtr)) {
+            else if ((em->fifoOverflow == 2U) && (em->fifoPpPtr == em->fifoWrPtr)) {
                 em->fifoOverflow = 0;
                 CO_errorReset(em, CO_EM_EMERGENCY_BUFFER_FULL, 0);
             }

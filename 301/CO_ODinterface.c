@@ -46,7 +46,7 @@ ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
 
     /* If previous read was partial or OD variable length is larger than
      * current buffer size, then data was (will be) read in several segments */
-    if ((stream->dataOffset > 0) || (dataLenToCopy > count)) {
+    if ((stream->dataOffset > 0U) || (dataLenToCopy > count)) {
         if (stream->dataOffset >= dataLenToCopy) {
             return ODR_DEV_INCOMPAT;
         }
@@ -91,7 +91,7 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
     /* If previous write was partial or OD variable length is larger than
      * current buffer size, then data was (will be) written in several
      * segments */
-    if ((stream->dataOffset > 0) || (dataLenToCopy > count)) {
+    if ((stream->dataOffset > 0U) || (dataLenToCopy > count)) {
         if (stream->dataOffset >= dataLenToCopy) {
             return ODR_DEV_INCOMPAT;
         }
@@ -141,12 +141,12 @@ static ODR_t OD_writeDisabled(OD_stream_t *stream, const void *buf,
 
 /******************************************************************************/
 OD_entry_t *OD_find(OD_t *od, uint16_t index) {
-    if ((od == NULL) || (od->size == 0)) {
+    if ((od == NULL) || (od->size == 0U)) {
         return NULL;
     }
 
     uint16_t min = 0;
-    uint16_t max = od->size - 1;
+    uint16_t max = od->size - 1U;
 
     /* Fast search in ordered Object Dictionary. If indexes are mixed,
      * this won't work. If Object Dictionary has up to N entries, then the
@@ -161,10 +161,10 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index) {
         }
 
         if (index < entry->index) {
-            max = (cur > 0) ? (cur - 1) : cur;
+            max = (cur > 0U) ? (cur - 1U) : cur;
         }
         else {
-            min = cur + 1;
+            min = cur + 1U;
         }
     }
 
@@ -190,7 +190,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     /* attribute, dataOrig and dataLength, depends on object type */
     switch (entry->odObjectType & ODT_TYPE_MASK) {
     case ODT_VAR: {
-        if (subIndex > 0) { return ODR_SUB_NOT_EXIST; }
+        if (subIndex > 0U) { return ODR_SUB_NOT_EXIST; }
         CO_PROGMEM OD_obj_var_t *odo = entry->odObject;
 
 
@@ -203,7 +203,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
         if (subIndex >= entry->subEntriesCount) { return ODR_SUB_NOT_EXIST; }
         CO_PROGMEM OD_obj_array_t *odo = entry->odObject;
 
-        if (subIndex == 0) {
+        if (subIndex == 0U) {
             stream->attribute = odo->attribute0;
             stream->dataOrig = odo->dataOrig0;
             stream->dataLength = 1;
@@ -342,10 +342,10 @@ void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
     errCopy = OD_getSub(entry, subIndex, &io, true);
 
     if (errCopy == ODR_OK) {
-        if ((stream->dataOrig == NULL) || (stream->dataLength == 0)) {
+        if ((stream->dataOrig == NULL) || (stream->dataLength == 0U)) {
             errCopy = ODR_DEV_INCOMPAT;
         }
-        else if ((len != 0) && (len != stream->dataLength)) {
+        else if ((len != 0U) && (len != stream->dataLength)) {
             errCopy = ODR_TYPE_MISMATCH;
         }
         else { /* MISRA C 2004 14.10 */ }

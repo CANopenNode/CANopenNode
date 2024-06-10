@@ -64,7 +64,7 @@ static void CO_TIME_receive(void *object, void *msg) {
 static ODR_t OD_write_1012(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -74,14 +74,14 @@ static ODR_t OD_write_1012(OD_stream_t *stream, const void *buf,
 
     /* verify written value */
     uint32_t cobIdTimeStamp = CO_getUint32(buf);
-    uint16_t CAN_ID = cobIdTimeStamp & 0x7FF;
-    if (((cobIdTimeStamp & 0x3FFFF800) != 0) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
+    uint16_t CAN_ID = cobIdTimeStamp & 0x7FFU;
+    if (((cobIdTimeStamp & 0x3FFFF800U) != 0U) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
 
     /* update object */
-    TIME->isConsumer = (cobIdTimeStamp & 0x80000000L) != 0;
-    TIME->isProducer = (cobIdTimeStamp & 0x40000000L) != 0;
+    TIME->isConsumer = (cobIdTimeStamp & 0x80000000UL) != 0U;
+    TIME->isProducer = (cobIdTimeStamp & 0x40000000UL) != 0U;
 
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, buf, count, countWritten);
@@ -125,9 +125,9 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
 #endif
 
     /* Configure object variables */
-    uint16_t cobId = cobIdTimeStamp & 0x7FF;
-    TIME->isConsumer = (cobIdTimeStamp & 0x80000000L) != 0;
-    TIME->isProducer = (cobIdTimeStamp & 0x40000000L) != 0;
+    uint16_t cobId = cobIdTimeStamp & 0x7FFU;
+    TIME->isConsumer = (cobIdTimeStamp & 0x80000000UL) != 0U;
+    TIME->isProducer = (cobIdTimeStamp & 0x40000000UL) != 0U;
     CO_FLAG_CLEAR(TIME->CANrxNew);
 
     /* configure TIME consumer message reception */
@@ -189,7 +189,7 @@ bool_t CO_TIME_process(CO_TIME_t *TIME,
         if(CO_FLAG_READ(TIME->CANrxNew)) {
             uint32_t ms_swapped = CO_getUint32(&TIME->timeStamp[0]);
             uint16_t days_swapped = CO_getUint16(&TIME->timeStamp[4]);
-            TIME->ms = CO_SWAP_32(ms_swapped) & 0x0FFFFFFF;
+            TIME->ms = CO_SWAP_32(ms_swapped) & 0x0FFFFFFFU;
             TIME->days = CO_SWAP_16(days_swapped);
             TIME->residual_us = 0;
             timestampReceived = true;
@@ -203,14 +203,14 @@ bool_t CO_TIME_process(CO_TIME_t *TIME,
 
     /* Update time */
     uint32_t ms = 0;
-    if (!timestampReceived && (timeDifference_us > 0)) {
+    if (!timestampReceived && (timeDifference_us > 0U)) {
         uint32_t us = timeDifference_us + TIME->residual_us;
-        ms = us / 1000;
-        TIME->residual_us = us % 1000;
+        ms = us / 1000U;
+        TIME->residual_us = us % 1000U;
         TIME->ms += ms;
-        if (TIME->ms >= ((uint32_t)1000*60*60*24)) {
-            TIME->ms -= ((uint32_t)1000*60*60*24);
-            TIME->days += 1;
+        if (TIME->ms >= ((uint32_t)1000U*60U*60U*24U)) {
+            TIME->ms -= ((uint32_t)1000U*60U*60U*24U);
+            TIME->days += 1U;
         }
     }
 

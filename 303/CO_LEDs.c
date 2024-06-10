@@ -64,13 +64,13 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
     bool_t tick = false;
 
     LEDs->LEDtmr50ms += timeDifference_us;
-    while (LEDs->LEDtmr50ms >= 50000) {
         bool_t rdFlickerNext = (LEDs->LEDred & CO_LED_flicker) == 0;
+    while (LEDs->LEDtmr50ms >= 50000U) {
 
         tick = true;
-        LEDs->LEDtmr50ms -= 50000;
+        LEDs->LEDtmr50ms -= 50000U;
 
-        if (++LEDs->LEDtmr200ms > 3) {
+        if (++LEDs->LEDtmr200ms > 3U) {
             /* calculate 2,5Hz blinking and flashing */
             LEDs->LEDtmr200ms = 0;
             rd = gr = 0;

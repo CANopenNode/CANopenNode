@@ -40,15 +40,15 @@
 #define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10*8)
 #endif
 #ifndef CO_CONFIG_ERR_CONDITION_GENERIC
-#define CO_CONFIG_ERR_CONDITION_GENERIC (em->errorStatusBits[5] != 0)
+#define CO_CONFIG_ERR_CONDITION_GENERIC (em->errorStatusBits[5] != 0U)
 #endif
 #ifndef CO_CONFIG_ERR_CONDITION_COMMUNICATION
-#define CO_CONFIG_ERR_CONDITION_COMMUNICATION (em->errorStatusBits[2] \
-                                            || em->errorStatusBits[3])
+#define CO_CONFIG_ERR_CONDITION_COMMUNICATION ((em->errorStatusBits[2] != 0U) \
+                                            || (em->errorStatusBits[3] != 0U))
 #endif
 #ifndef CO_CONFIG_ERR_CONDITION_MANUFACTURER
-#define CO_CONFIG_ERR_CONDITION_MANUFACTURER (em->errorStatusBits[8] \
-                                           || em->errorStatusBits[9])
+#define CO_CONFIG_ERR_CONDITION_MANUFACTURER (( em->errorStatusBits[8] != 0U) \
+                                           || (em->errorStatusBits[9] != 0U))
 #endif
 
 #ifdef __cplusplus

@@ -45,7 +45,7 @@ static void CO_HBcons_receive(void *object, void *msg) {
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     uint8_t *data = CO_CANrxMsg_readData(msg);
 
-    if (DLC == 1) {
+    if (DLC == 1U) {
         /* copy data and set 'new message' flag. */
         HBconsNode->NMTstate = (CO_NMT_internalState_t)data[0];
         CO_FLAG_SET(HBconsNode->CANrxNew);
@@ -89,7 +89,7 @@ static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
     CO_HBconsumer_t *HBcons = stream->object;
 
     if ((stream == NULL) || (buf == NULL)
-        || (stream->subIndex < 1)
+        || (stream->subIndex < 1U)
         || (stream->subIndex > HBcons->numberOfMonitoredNodes)
         || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
@@ -97,9 +97,9 @@ static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
     }
 
     uint32_t val = CO_getUint32(buf);
-    uint8_t nodeId = (val >> 16) & 0xFF;
-    uint16_t time = val & 0xFFFF;
-    CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - 1,
+    uint8_t nodeId = (val >> 16) & 0xFFU;
+    uint16_t time = val & 0xFFFFU;
+    CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - 1U,
                                                    nodeId, time);
     if (ret != CO_ERROR_NO) {
         return ODR_PAR_INCOMPAT;
@@ -139,19 +139,19 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
 
     /* get actual number of monitored nodes */
     HBcons->numberOfMonitoredNodes =
-        ((OD_1016_HBcons->subEntriesCount-1) < monitoredNodesCount) ?
-        (OD_1016_HBcons->subEntriesCount-1) : monitoredNodesCount;
+        ((OD_1016_HBcons->subEntriesCount-1U) < monitoredNodesCount) ?
+        (OD_1016_HBcons->subEntriesCount-1U) : monitoredNodesCount;
 
     for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
         uint32_t val;
-        odRet = OD_get_u32(OD_1016_HBcons, i + 1, &val, true);
+        odRet = OD_get_u32(OD_1016_HBcons, i + 1U, &val, true);
         if (odRet != ODR_OK) {
             if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1016_HBcons); }
             return CO_ERROR_OD_PARAMETERS;
         }
 
-        uint8_t nodeId = (val >> 16) & 0xFF;
-        uint16_t time = val & 0xFFFF;
+        uint8_t nodeId = (val >> 16) & 0xFFU;
+        uint16_t time = val & 0xFFFFU;
         CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, time);
         if (ret != CO_ERROR_NO) {
             if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1016_HBcons); }
@@ -190,10 +190,10 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
     }
 
     /* verify for duplicate entries */
-    if((consumerTime_ms != 0) && (nodeId != 0)) {
+    if((consumerTime_ms != 0U) && (nodeId != 0U)) {
         for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
             CO_HBconsNode_t node = HBcons->monitoredNodes[i];
-            if((idx != i) && (node.time_us != 0) && (node.nodeId == nodeId)) {
+            if((idx != i) && (node.time_us != 0U) && (node.nodeId == nodeId)) {
                 ret = CO_ERROR_OD_PARAMETERS;
             }
         }
@@ -214,8 +214,8 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
         CO_FLAG_CLEAR(monitoredNode->CANrxNew);
 
         /* is channel used */
-        if ((monitoredNode->nodeId != 0) && (monitoredNode->time_us != 0)) {
             COB_ID = monitoredNode->nodeId + CO_CAN_ID_HEARTBEAT;
+        if ((monitoredNode->nodeId != 0U) && (monitoredNode->time_us != 0U)) {
             monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
         }
         else {

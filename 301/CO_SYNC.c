@@ -39,22 +39,22 @@ static void CO_SYNC_receive(void *object, void *msg) {
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     bool_t syncReceived = false;
 
-    if (SYNC->counterOverflowValue == 0) {
-        if (DLC == 0) {
+    if (SYNC->counterOverflowValue == 0U) {
+        if (DLC == 0U) {
             syncReceived = true;
         }
         else {
-            SYNC->receiveError = DLC | 0x40;
+            SYNC->receiveError = DLC | 0x40U;
         }
     }
     else {
-        if (DLC == 1) {
+        if (DLC == 1U) {
             uint8_t *data = CO_CANrxMsg_readData(msg);
             SYNC->counter = data[0];
             syncReceived = true;
         }
         else {
-            SYNC->receiveError = DLC | 0x80;
+            SYNC->receiveError = DLC | 0x80U;
         }
     }
 
@@ -83,7 +83,7 @@ static void CO_SYNC_receive(void *object, void *msg) {
 static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -91,7 +91,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
 
     CO_SYNC_t *SYNC = stream->object;
     uint32_t cobIdSync = CO_getUint32(buf);
-    uint16_t CAN_ID = (uint16_t)(cobIdSync & 0x7FF);
+    uint16_t CAN_ID = (uint16_t)(cobIdSync & 0x7FFU);
 
     /* verify written value */
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
@@ -102,7 +102,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
         return ODR_INVALID_VALUE;
     }
 #else
-    if (((cobIdSync & 0xFFFFF800) != 0) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
+    if (((cobIdSync & 0xFFFFF800U) != 0U) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
 #endif
@@ -287,8 +287,8 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
             }
             return CO_ERROR_OD_PARAMETERS;
         }
-        if (syncCounterOvf == 1) { syncCounterOvf = 2; }
-        else if (syncCounterOvf > 240) { syncCounterOvf = 240; }
+        if (syncCounterOvf == 1U) { syncCounterOvf = 2; }
+        else if (syncCounterOvf > 240U) { syncCounterOvf = 240; }
         else { /* MISRA C 2004 14.10 */ }
 
 #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC
@@ -305,10 +305,10 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     /* Configure object variables */
     SYNC->em = em;
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
-    SYNC->isProducer = (cobIdSync & 0x40000000) != 0;
+    SYNC->isProducer = (cobIdSync & 0x40000000U) != 0U;
 #endif
 #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC
-    SYNC->CAN_ID = cobIdSync & 0x7FF;
+    SYNC->CAN_ID = cobIdSync & 0x7FFU;
     SYNC->CANdevRx = CANdevRx;
     SYNC->CANdevRxIdx = CANdevRxIdx;
  #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
@@ -321,7 +321,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     CO_ReturnError_t ret = CO_CANrxBufferInit(
             CANdevRx,           /* CAN device */
             CANdevRxIdx,        /* rx buffer index */
-            cobIdSync & 0x7FF,  /* CAN identifier */
+            cobIdSync & 0x7FFU,  /* CAN identifier */
             0x7FF,              /* mask */
             0,                  /* rtr */
             (void*)SYNC,        /* object passed to receive function */
@@ -386,9 +386,9 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         }
 
         uint32_t OD_1006_period = (SYNC->OD_1006_period != NULL)
-                                ? *SYNC->OD_1006_period : 0;
+                                ? *SYNC->OD_1006_period : 0U;
 
-        if (OD_1006_period > 0) {
+        if (OD_1006_period > 0U) {
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
             if (SYNC->isProducer) {
                 if (SYNC->timer >= OD_1006_period) {
@@ -409,7 +409,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER */
 
             /* Verify timeout of SYNC */
-            if (SYNC->timeoutError == 1) {
+            if (SYNC->timeoutError == 1U) {
                 /* periodTimeout is 1,5 * OD_1006_period, no overflow */
                 uint32_t periodTimeout = OD_1006_period + (OD_1006_period >> 1);
                 if (periodTimeout < OD_1006_period) {
@@ -417,7 +417,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
                 }
 
                 if (SYNC->timer > periodTimeout) {
-                    CO_errorReport(SYNC->em, CO_EM_SYNC_TIME_OUT,
+                    CO_errorReport(SYNC->em, (uint8_t)CO_EM_SYNC_TIME_OUT,
                                    CO_EMC_COMMUNICATION, SYNC->timer);
                     SYNC->timeoutError = 2;
                 }
@@ -434,7 +434,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         } /* if (OD_1006_period > 0) */
 
         /* Synchronous PDOs are allowed only inside time window */
-        if ((SYNC->OD_1007_window != NULL) && (*SYNC->OD_1007_window > 0)
+        if ((SYNC->OD_1007_window != NULL) && (*SYNC->OD_1007_window > 0U)
             && (SYNC->timer > *SYNC->OD_1007_window)
         ) {
             if (!SYNC->syncIsOutsideWindow) {
@@ -447,8 +447,8 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         }
 
         /* verify error from receive function */
-        if (SYNC->receiveError != 0) {
             CO_errorReport(SYNC->em, CO_EM_SYNC_LENGTH,
+        if (SYNC->receiveError != 0U) {
                            CO_EMC_SYNC_DATA_LENGTH, SYNC->receiveError);
             SYNC->receiveError = 0;
         }
@@ -461,8 +461,8 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
     }
 
     if (syncStatus == CO_SYNC_RX_TX) {
-        if (SYNC->timeoutError == 2) {
             CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, 0);
+        if (SYNC->timeoutError == 2U) {
         }
         SYNC->timeoutError = 1;
     }

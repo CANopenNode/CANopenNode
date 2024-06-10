@@ -37,7 +37,7 @@
                            CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 #ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
-#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 32
+#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 32U
 #endif
 
 #ifdef __cplusplus
@@ -496,7 +496,7 @@ typedef struct {
     /** Timeout timer for SDO communication */
     uint32_t timeoutTimer;
     /** Interim data buffer for segmented or block transfer + byte for '\0' */
-    uint8_t buf[CO_CONFIG_SDO_SRV_BUFFER_SIZE + 1];
+    uint8_t buf[CO_CONFIG_SDO_SRV_BUFFER_SIZE + 1U];
     /** Offset of next free data byte available for write in the buffer. */
     OD_size_t bufOffsetWr;
     /** Offset of first data available for read in the buffer */

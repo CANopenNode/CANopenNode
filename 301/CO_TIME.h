@@ -72,7 +72,7 @@ extern "C" {
 
 
 /** Length of the TIME message */
-#define CO_TIME_MSG_LENGTH 6
+#define CO_TIME_MSG_LENGTH 6U
 
 
 /**

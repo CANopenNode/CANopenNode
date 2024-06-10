@@ -183,16 +183,16 @@ typedef enum {
  * Definition of table_index for /CiA301/ bit timing table
  */
 typedef enum {
-    CO_LSS_BIT_TIMING_1000 = 0,              /**< 1000kbit/s */
-    CO_LSS_BIT_TIMING_800  = 1,              /**< 800kbit/s */
-    CO_LSS_BIT_TIMING_500  = 2,              /**< 500kbit/s */
-    CO_LSS_BIT_TIMING_250  = 3,              /**< 250kbit/s */
-    CO_LSS_BIT_TIMING_125  = 4,              /**< 125kbit/s */
-    /* reserved            = 5 */
-    CO_LSS_BIT_TIMING_50   = 6,              /**< 50kbit/s */
-    CO_LSS_BIT_TIMING_20   = 7,              /**< 20kbit/s */
-    CO_LSS_BIT_TIMING_10   = 8,              /**< 10kbit/s */
-    CO_LSS_BIT_TIMING_AUTO = 9,              /**< Automatic bit rate detection */
+    CO_LSS_BIT_TIMING_1000 = 0U,              /**< 1000kbit/s */
+    CO_LSS_BIT_TIMING_800  = 1U,              /**< 800kbit/s */
+    CO_LSS_BIT_TIMING_500  = 2U,              /**< 500kbit/s */
+    CO_LSS_BIT_TIMING_250  = 3U,              /**< 250kbit/s */
+    CO_LSS_BIT_TIMING_125  = 4U,              /**< 125kbit/s */
+    /* reserved            = 5U */
+    CO_LSS_BIT_TIMING_50   = 6U,              /**< 50kbit/s */
+    CO_LSS_BIT_TIMING_20   = 7U,              /**< 20kbit/s */
+    CO_LSS_BIT_TIMING_10   = 8U,              /**< 10kbit/s */
+    CO_LSS_BIT_TIMING_AUTO = 9U,              /**< Automatic bit rate detection */
 } CO_LSS_bitTimingTable_t;
 
 /**
@@ -220,7 +220,7 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
 /**
  * Macro to check if node id is valid
  */
-#define CO_LSS_NODE_ID_VALID(nid) (((nid >= 1) && (nid <= 0x7F)) || (nid == CO_LSS_NODE_ID_ASSIGNMENT))
+#define CO_LSS_NODE_ID_VALID(nid) (((nid >= 1U) && (nid <= 0x7FU)) || (nid == CO_LSS_NODE_ID_ASSIGNMENT))
 
 /**
  * Macro to check if two LSS addresses are equal

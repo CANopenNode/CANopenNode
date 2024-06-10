@@ -117,7 +117,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
     bool_t eepromOvf = false;
 
     /* verify arguments */
-    if ((storage == NULL) || (entries == NULL) || (entriesCount == 0)
+    if ((storage == NULL) || (entries == NULL) || (entriesCount == 0U)
         || (storageInitError == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -159,10 +159,10 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
     *storageInitError = 0;
     for (uint8_t i = 0; i < entriesCount; i++) {
         CO_storage_entry_t *entry = &entries[i];
-        bool_t isAuto = (entry->attr & CO_storage_auto) != 0;
+        bool_t isAuto = (entry->attr & (uint8_t)CO_storage_auto) != 0U;
 
         /* verify arguments */
-        if ((entry->addr == NULL) || (entry->len == 0) || (entry->subIndexOD < 2)) {
+        if ((entry->addr == NULL) || (entry->len == 0U) || (entry->subIndexOD < 2U)) {
             *storageInitError = i;
             return CO_ERROR_ILLEGAL_ARGUMENT;
         }
@@ -211,7 +211,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
         /* additional info in case of error */
         if (dataCorrupt) {
             uint32_t errorBit = entry->subIndexOD;
-            if (errorBit > 31) errorBit = 31;
+            if (errorBit > 31U) errorBit = 31;
             *storageInitError |= ((uint32_t) 1) << errorBit;
             ret = CO_ERROR_DATA_CORRUPT;
         }
@@ -233,7 +233,7 @@ void CO_storageEeprom_auto_process(CO_storage_t *storage, bool_t saveAll) {
     for (uint8_t i = 0; i < storage->entriesCount; i++) {
         CO_storage_entry_t *entry = &storage->entries[i];
 
-        if ((entry->attr & CO_storage_auto) == 0)
+        if ((entry->attr & (uint8_t)CO_storage_auto) == 0U)
             continue;
 
         if (saveAll) {

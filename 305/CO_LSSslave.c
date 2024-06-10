@@ -153,7 +153,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                             ack = true;
                             LSSslave->fastscanPos = lssNext;
 
-                            if ((bitCheck == 0) && (lssNext < lssSub)) {
+                            if ((bitCheck == 0U) && (lssNext < lssSub)) {
                                 /* complete match, enter configuration state */
                                 LSSslave->lssState = CO_LSS_STATE_CONFIGURATION;
                             }
@@ -375,7 +375,7 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
             errorCode = CO_LSS_CFG_BIT_TIMING_OK;
             errorCodeManuf = CO_LSS_CFG_BIT_TIMING_OK;
 
-            if ((tableSelector == 0) && CO_LSS_BIT_TIMING_VALID(tableIndex)) {
+            if ((tableSelector == 0U) && CO_LSS_BIT_TIMING_VALID(tableIndex)) {
                 uint16_t bit = CO_LSS_bitTimingTableLookup[tableIndex];
                 bool_t bit_rate_supported = LSSslave->pFunctLSScheckBitRate(
                     LSSslave->functLSScheckBitRateObject, bit);
