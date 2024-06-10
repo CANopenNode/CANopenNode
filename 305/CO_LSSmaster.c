@@ -83,8 +83,8 @@ static void CO_LSSmaster_receive(void *object, void *msg)
     LSSmaster = (CO_LSSmaster_t*)object;   /* this is the correct pointer type of the first argument */
 
     /* verify message length and message overflow (previous message was not processed yet) */
-    if(DLC==8 && !CO_FLAG_READ(LSSmaster->CANrxNew) &&
-       LSSmaster->command!=CO_LSSmaster_COMMAND_WAITING){
+    if((DLC==8) && !CO_FLAG_READ(LSSmaster->CANrxNew) &&
+       (LSSmaster->command!=CO_LSSmaster_COMMAND_WAITING)){
 
         /* copy data and set 'new message' flag */
         (void)memcpy(LSSmaster->CANrxData, data, sizeof(LSSmaster->CANrxData));
@@ -137,7 +137,7 @@ CO_ReturnError_t CO_LSSmaster_init(
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
-    if (LSSmaster==NULL || CANdevRx==NULL || CANdevTx==NULL){
+    if ((LSSmaster==NULL) || (CANdevRx==NULL) || (CANdevTx==NULL)){
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -295,8 +295,8 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
     }
 
     /* Initiate select */
-    if (LSSmaster->state==CO_LSSmaster_STATE_WAITING &&
-        LSSmaster->command==CO_LSSmaster_COMMAND_WAITING){
+    if ((LSSmaster->state==CO_LSSmaster_STATE_WAITING) &&
+        (LSSmaster->command==CO_LSSmaster_COMMAND_WAITING)){
 
         ret = CO_LSSmaster_switchStateSelectInitiate(LSSmaster, lssAddress);
     }
@@ -305,7 +305,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
         ret = CO_LSSmaster_switchStateSelectWait(LSSmaster, timeDifference_us);
     }
 
-    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
+    if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -397,7 +397,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_configureCheckWait(
         ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
     }
 
-    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
+    if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -432,8 +432,8 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
     }
 
     /* Initiate config bit */
-    if (LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE &&
-        LSSmaster->command==CO_LSSmaster_COMMAND_WAITING){
+    if ((LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE) &&
+        (LSSmaster->command==CO_LSSmaster_COMMAND_WAITING)){
 
         LSSmaster->command = CO_LSSmaster_COMMAND_CFG_BIT_TIMING;
         LSSmaster->timeoutTimer = 0;
@@ -454,7 +454,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
                 CO_LSS_CFG_BIT_TIMING);
     }
 
-    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
+    if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -470,16 +470,16 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
 
-    if (LSSmaster==NULL || !CO_LSS_NODE_ID_VALID(nodeId)){
+    if ((LSSmaster==NULL) || !CO_LSS_NODE_ID_VALID(nodeId)){
         return CO_LSSmaster_ILLEGAL_ARGUMENT;
     }
 
     /* Initiate config node ID */
-    if ((LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE ||
+    if (((LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE) ||
         /* Let un-config node ID also be run in global mode for unconfiguring all nodes */
-        (LSSmaster->state==CO_LSSmaster_STATE_CFG_GLOBAL &&
-         nodeId == CO_LSS_NODE_ID_ASSIGNMENT)) &&
-         LSSmaster->command==CO_LSSmaster_COMMAND_WAITING) {
+        ((LSSmaster->state==CO_LSSmaster_STATE_CFG_GLOBAL) &&
+         (nodeId == CO_LSS_NODE_ID_ASSIGNMENT))) &&
+         (LSSmaster->command==CO_LSSmaster_COMMAND_WAITING)) {
 
         LSSmaster->command = CO_LSSmaster_COMMAND_CFG_NODE_ID;
         LSSmaster->timeoutTimer = 0;
@@ -499,7 +499,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
                 CO_LSS_CFG_NODE_ID);
     }
 
-    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
+    if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -519,8 +519,8 @@ CO_LSSmaster_return_t CO_LSSmaster_configureStore(
     }
 
     /* Initiate config store */
-    if (LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE &&
-        LSSmaster->command==CO_LSSmaster_COMMAND_WAITING){
+    if ((LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE) &&
+        (LSSmaster->command==CO_LSSmaster_COMMAND_WAITING)){
 
         LSSmaster->command = CO_LSSmaster_COMMAND_CFG_STORE;
         LSSmaster->timeoutTimer = 0;
@@ -539,7 +539,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureStore(
                 CO_LSS_CFG_STORE);
     }
 
-    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
+    if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -560,8 +560,8 @@ CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(
 
     /* for activating bit timing, we need to have all slaves set to config
      * state. This check makes it a bit harder to shoot ourselves in the foot */
-    if (LSSmaster->state==CO_LSSmaster_STATE_CFG_GLOBAL &&
-        LSSmaster->command==CO_LSSmaster_COMMAND_WAITING){
+    if ((LSSmaster->state==CO_LSSmaster_STATE_CFG_GLOBAL) &&
+        (LSSmaster->command==CO_LSSmaster_COMMAND_WAITING)){
 
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
         LSSmaster->TXbuff->data[0] = CO_LSS_CFG_ACTIVATE_BIT_TIMING;
@@ -630,7 +630,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
     CO_LSSmaster_command_t next = CO_LSSmaster_COMMAND_WAITING;
 
-    if (LSSmaster==NULL || lssAddress==NULL){
+    if ((LSSmaster==NULL) || (lssAddress==NULL)){
         return CO_LSSmaster_ILLEGAL_ARGUMENT;
     }
 
@@ -671,8 +671,8 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
                 CO_LSS_INQUIRE_SERIAL, &lssAddress->identity.serialNumber);
     }
     /* Check for next request */
-    if (LSSmaster->state == CO_LSSmaster_STATE_CFG_SLECTIVE ||
-        LSSmaster->state == CO_LSSmaster_STATE_CFG_GLOBAL) {
+    if ((LSSmaster->state == CO_LSSmaster_STATE_CFG_SLECTIVE) ||
+        (LSSmaster->state == CO_LSSmaster_STATE_CFG_GLOBAL)) {
         if (LSSmaster->command == CO_LSSmaster_COMMAND_WAITING) {
 
             LSSmaster->command = CO_LSSmaster_COMMAND_INQUIRE_VENDOR;
@@ -700,7 +700,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
         }
     }
 
-    if (ret!=CO_LSSmaster_INVALID_STATE && ret!=CO_LSSmaster_WAIT_SLAVE) {
+    if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
         LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
     }
@@ -717,14 +717,14 @@ CO_LSSmaster_return_t CO_LSSmaster_Inquire(
 {
   CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
 
-  if (LSSmaster==NULL || value==NULL){
+  if ((LSSmaster==NULL) || (value==NULL)){
       return CO_LSSmaster_ILLEGAL_ARGUMENT;
   }
 
   /* send request */
-  if ((LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE ||
-       LSSmaster->state==CO_LSSmaster_STATE_CFG_GLOBAL) &&
-       LSSmaster->command == CO_LSSmaster_COMMAND_WAITING) {
+  if (((LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE) ||
+       (LSSmaster->state==CO_LSSmaster_STATE_CFG_GLOBAL)) &&
+       (LSSmaster->command == CO_LSSmaster_COMMAND_WAITING)) {
 
       LSSmaster->command = CO_LSSmaster_COMMAND_INQUIRE;
       LSSmaster->timeoutTimer = 0;
@@ -988,7 +988,7 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
     CO_LSS_fastscan_lss_sub_next next;
 
     /* parameter validation */
-    if (LSSmaster==NULL || fastscan==NULL){
+    if ((LSSmaster==NULL) || (fastscan==NULL)){
         return CO_LSSmaster_ILLEGAL_ARGUMENT;
     }
     if (fastscan->scan[0] == CO_LSSmaster_FS_SKIP) {
@@ -1007,9 +1007,9 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
     }
 
     /* state machine validation */
-    if (LSSmaster->state!=CO_LSSmaster_STATE_WAITING ||
-        (LSSmaster->command!=CO_LSSmaster_COMMAND_WAITING &&
-         LSSmaster->command!=CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN)) {
+    if ((LSSmaster->state!=CO_LSSmaster_STATE_WAITING) ||
+        ((LSSmaster->command!=CO_LSSmaster_COMMAND_WAITING) &&
+         (LSSmaster->command!=CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN))) {
         /* state machine not ready, other command is already processed */
         return CO_LSSmaster_INVALID_STATE;
     }

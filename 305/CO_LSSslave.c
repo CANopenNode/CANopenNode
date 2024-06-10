@@ -32,11 +32,11 @@
 #include <string.h>
 
 /* 'bit' must be unsigned or additional range check must be added: bit>=CO_LSS_FASTSCAN_BIT0 */
-#define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) (bit<=CO_LSS_FASTSCAN_BIT31 || bit==CO_LSS_FASTSCAN_CONFIRM)
+#define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) ((bit<=CO_LSS_FASTSCAN_BIT31) || (bit==CO_LSS_FASTSCAN_CONFIRM))
 /* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_FASTSCAN_VENDOR_ID */
 #define CO_LSS_FASTSCAN_LSS_SUB_NEXT_VALID(index) (index<=CO_LSS_FASTSCAN_SERIAL)
 /* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_BIT_TIMING_1000 */
-#define CO_LSS_BIT_TIMING_VALID(index) (index != 5 && index <= CO_LSS_BIT_TIMING_AUTO)
+#define CO_LSS_BIT_TIMING_VALID(index) ((index != 5) && (index <= CO_LSS_BIT_TIMING_AUTO))
 
 /*
  * Read received message from CAN module.
@@ -50,7 +50,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
     CO_LSSslave_t *LSSslave = (CO_LSSslave_t*)object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
 
-    if(DLC == 8U && !CO_FLAG_READ(LSSslave->sendResponse)) {
+    if((DLC == 8U) && !CO_FLAG_READ(LSSslave->sendResponse)) {
         bool_t request_LSSslave_process = false;
         uint8_t *data = CO_CANrxMsg_readData(msg);
         CO_LSS_cs_t cs = (CO_LSS_cs_t) data[0];
@@ -60,9 +60,9 @@ static void CO_LSSslave_receive(void *object, void *msg)
 
             switch (mode) {
                 case CO_LSS_STATE_WAITING:
-                    if (LSSslave->lssState == CO_LSS_STATE_CONFIGURATION &&
-                        LSSslave->activeNodeID == CO_LSS_NODE_ID_ASSIGNMENT &&
-                        *LSSslave->pendingNodeID != CO_LSS_NODE_ID_ASSIGNMENT)
+                    if ((LSSslave->lssState == CO_LSS_STATE_CONFIGURATION) &&
+                        (LSSslave->activeNodeID == CO_LSS_NODE_ID_ASSIGNMENT) &&
+                        (*LSSslave->pendingNodeID != CO_LSS_NODE_ID_ASSIGNMENT))
                     {
                         /* Slave process function will request NMT Reset comm.*/
                         LSSslave->service = cs;
@@ -115,8 +115,8 @@ static void CO_LSSslave_receive(void *object, void *msg)
             }
             case CO_LSS_IDENT_FASTSCAN: {
                 /* fastscan is only active on unconfigured nodes */
-                if (*LSSslave->pendingNodeID == CO_LSS_NODE_ID_ASSIGNMENT &&
-                    LSSslave->activeNodeID == CO_LSS_NODE_ID_ASSIGNMENT)
+                if ((*LSSslave->pendingNodeID == CO_LSS_NODE_ID_ASSIGNMENT) &&
+                    (LSSslave->activeNodeID == CO_LSS_NODE_ID_ASSIGNMENT))
                 {
                     uint8_t bitCheck = data[5];
                     uint8_t lssSub = data[6];
@@ -153,7 +153,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                             ack = true;
                             LSSslave->fastscanPos = lssNext;
 
-                            if (bitCheck == 0 && lssNext < lssSub) {
+                            if ((bitCheck == 0) && (lssNext < lssSub)) {
                                 /* complete match, enter configuration state */
                                 LSSslave->lssState = CO_LSS_STATE_CONFIGURATION;
                             }
@@ -215,8 +215,8 @@ CO_ReturnError_t CO_LSSslave_init(
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
-    if (LSSslave==NULL || pendingBitRate == NULL || pendingNodeID == NULL ||
-        CANdevRx==NULL || CANdevTx==NULL ||
+    if ((LSSslave==NULL) || (pendingBitRate == NULL) || (pendingNodeID == NULL) ||
+        (CANdevRx==NULL) || (CANdevTx==NULL) ||
         !CO_LSS_NODE_ID_VALID(*pendingNodeID)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -375,7 +375,7 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
             errorCode = CO_LSS_CFG_BIT_TIMING_OK;
             errorCodeManuf = CO_LSS_CFG_BIT_TIMING_OK;
 
-            if (tableSelector == 0 && CO_LSS_BIT_TIMING_VALID(tableIndex)) {
+            if ((tableSelector == 0) && CO_LSS_BIT_TIMING_VALID(tableIndex)) {
                 uint16_t bit = CO_LSS_bitTimingTableLookup[tableIndex];
                 bool_t bit_rate_supported = LSSslave->pFunctLSScheckBitRate(
                     LSSslave->functLSScheckBitRateObject, bit);

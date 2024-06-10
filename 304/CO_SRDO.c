@@ -127,7 +127,7 @@ OD_write_dummy(OD_stream_t *stream, const void *buf, OD_size_t count, OD_size_t 
 static ODR_t
 OD_read_dummy(OD_stream_t *stream, void *buf, OD_size_t count, OD_size_t *countRead)
 {
-    if (buf == NULL || stream == NULL || countRead == NULL) {
+    if ((buf == NULL) || (stream == NULL) || (countRead == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
@@ -166,7 +166,7 @@ OD_read_SRDO_communicationParam(OD_stream_t* stream, void* buf, OD_size_t count,
     ODR_t returnCode = OD_readOriginal(stream, buf, count, countRead);
 
     /* When reading COB_ID, add Node-Id to the read value, if necessary */
-    if (returnCode == ODR_OK && (stream->subIndex == 5U || stream->subIndex == 6U) && *countRead == 4) {
+    if ((returnCode == ODR_OK) && ((stream->subIndex == 5U) || (stream->subIndex == 6U)) && (*countRead == 4)) {
         CO_SRDO_t* SRDO = stream->object;
 
         uint32_t value = CO_getUint32(buf);
@@ -227,7 +227,7 @@ OD_write_SRDO_communicationParam(OD_stream_t* stream, const void* buf, OD_size_t
         if (value != 254) {
             return ODR_INVALID_VALUE;
         }
-    } else if (stream->subIndex == 5U || stream->subIndex == 6U) { /* COB_ID */
+    } else if ((stream->subIndex == 5U) || (stream->subIndex == 6U)) { /* COB_ID */
         uint32_t value = CO_getUint32(buf);
         uint16_t index = stream->subIndex - 5U;
         uint16_t defaultCOB_ID = SRDO->defaultCOB_ID + index;
@@ -378,7 +378,7 @@ CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationV
     /* Configure SRDOGuard->OD_IO_configurationValid variable.
      * It will be used for writing 0 to OD variable 13FE,00 */
     odRet = OD_getSub(OD_13FE_configurationValid, 0, &SRDOGuard->OD_IO_configurationValid, false);
-    if (odRet != ODR_OK || SRDOGuard->OD_IO_configurationValid.stream.dataLength != 1) {
+    if ((odRet != ODR_OK) || (SRDOGuard->OD_IO_configurationValid.stream.dataLength != 1)) {
         if (errInfo != NULL) {
             *errInfo = (((uint32_t)OD_getIndex(OD_13FE_configurationValid)) << 8) | 1U;
         }
@@ -497,7 +497,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
         }
 
         /* if OD contains default COB_IDs, add node-id */
-        if (COB_ID1_normal == defaultCOB_ID && COB_ID2_inverted == (defaultCOB_ID + 1) && nodeId <= 64U) {
+        if ((COB_ID1_normal == defaultCOB_ID) && (COB_ID2_inverted == (defaultCOB_ID + 1)) && (nodeId <= 64U)) {
             uint32_t add = (uint32_t)SRDO->nodeId * 2;
             COB_ID1_normal += add;
             COB_ID2_inverted += add;
@@ -510,12 +510,12 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     }
 
     /* If configurationValid is set and SRDO is valid, continue with further configuration */
-    if (err == 0 && configurationValid == CO_SRDO_VALID_MAGIC && informationDirection != CO_SRDO_INVALID) {
+    if ((err == 0) && (configurationValid == CO_SRDO_VALID_MAGIC) && (informationDirection != CO_SRDO_INVALID)) {
         configurationInProgress = true;
     }
 
     /* Verify parameters from OD */
-    if (err == 0 && configurationInProgress) {
+    if ((err == 0) && configurationInProgress) {
         if (cp_highestSubindexSupported != 6) {
             err = ERR_INFO(0x1301 + SRDO_Index, 0, 2);
         }
@@ -531,13 +531,13 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
         else if (transmissionType != 254) {
             err = ERR_INFO(0x1301 + SRDO_Index, 4, 2);
         }
-        else if (COB_ID1_normal < 0x101 || (COB_ID1_normal & 1) == 0) {
+        else if ((COB_ID1_normal < 0x101) || ((COB_ID1_normal & 1) == 0)) {
             err = ERR_INFO(0x1301 + SRDO_Index, 5, 2);
         }
-        else if ((COB_ID1_normal + 1) != COB_ID2_inverted || COB_ID2_inverted > 0x180) {
+        else if (((COB_ID1_normal + 1) != COB_ID2_inverted) || (COB_ID2_inverted > 0x180)) {
             err = ERR_INFO(0x1301 + SRDO_Index, 6, 2);
         }
-        else if (mappedObjectsCount > CO_SRDO_MAX_MAPPED_ENTRIES || (mappedObjectsCount & 1) != 0) {
+        else if ((mappedObjectsCount > CO_SRDO_MAX_MAPPED_ENTRIES) || ((mappedObjectsCount & 1) != 0)) {
             err = ERR_INFO(0x1381 + SRDO_Index, 0, 2);
         }
         else {
@@ -546,7 +546,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     }
 
     /* Verify CRC */
-    if (err == 0 && configurationInProgress) {
+    if ((err == 0) && configurationInProgress) {
         uint16_t crcResult = 0x0000;
         uint16_t tmp_u16;
         uint32_t tmp_u32;
@@ -573,7 +573,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     }
 
     /* Configure mappings */
-    if (err == 0 && configurationInProgress) {
+    if ((err == 0) && configurationInProgress) {
         size_t srdoDataLength[2] = {0, 0};
 
         for (uint8_t i = 0; i < mappedObjectsCount; i++) {
@@ -590,7 +590,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
                 err = ERR_INFO(0x1381 + SRDO_Index, i + 1, 4);
             }
             /* is there a reference to the dummy entry */
-            else if (index < 0x20 && subIndex == 0) {
+            else if ((index < 0x20) && (subIndex == 0)) {
                 OD_stream_t *stream = &OD_IO->stream;
                 (void)memset(stream, 0, sizeof(OD_stream_t));
                 stream->dataLength = stream->dataOffset = mappedLength;
@@ -608,9 +608,9 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
                 else {
                     /* verify access attributes, byte alignment and length */
                     OD_attr_t testAttribute = (informationDirection == CO_SRDO_RX) ? ODA_RSRDO : ODA_TSRDO;
-                    if ((OD_IOcopy.stream.attribute & testAttribute) == 0
-                        || (mappedLengthBits & 0x07) != 0
-                        || OD_IOcopy.stream.dataLength < mappedLength
+                    if (((OD_IOcopy.stream.attribute & testAttribute) == 0)
+                        || ((mappedLengthBits & 0x07) != 0)
+                        || (OD_IOcopy.stream.dataLength < mappedLength)
                     ) {
                         err = ERR_INFO(0x1381 + SRDO_Index, i + 1, 6);
                     }
@@ -630,7 +630,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
             if (srdoDataLength[0] != srdoDataLength[1]) {
                 err = ERR_INFO(0x1381 + SRDO_Index, 0, 7);
             }
-            else if (srdoDataLength[0] == 0 || srdoDataLength[0] > CO_SRDO_MAX_SIZE) {
+            else if ((srdoDataLength[0] == 0) || (srdoDataLength[0] > CO_SRDO_MAX_SIZE)) {
                 err = ERR_INFO(0x1381 + SRDO_Index, 0, 8);
             }
             else {
@@ -641,7 +641,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     }
 
     /* Configure CAN tx buffers */
-    if (err == 0 && configurationInProgress && informationDirection == CO_SRDO_TX) {
+    if ((err == 0) && configurationInProgress && (informationDirection == CO_SRDO_TX)) {
 
         SRDO->CANtxBuff[0] = CO_CANtxBufferInit(CANdevTxNormal, /* CAN device */
                                                 CANdevTxIdxNormal, /* index of specific buffer inside CAN module */
@@ -667,7 +667,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     }
 
     /* Configure CAN rx buffers */
-    if (err == 0 && configurationInProgress && informationDirection == CO_SRDO_RX) {
+    if ((err == 0) && configurationInProgress && (informationDirection == CO_SRDO_RX)) {
         CO_ReturnError_t ret;
 
         ret = CO_CANrxBufferInit(CANdevRxNormal, /* CAN device */
@@ -739,15 +739,15 @@ CO_SRDO_state_t
 CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext_us, bool_t NMTisOperational) {
     (void)timerNext_us; /* may be unused */
 
-    if (NMTisOperational && SRDO->informationDirection != CO_SRDO_INVALID && SRDO->SRDOGuard->configurationValid
-        && SRDO->internalState >= CO_SRDO_state_unknown) {
+    if (NMTisOperational && (SRDO->informationDirection != CO_SRDO_INVALID) && SRDO->SRDOGuard->configurationValid
+        && (SRDO->internalState >= CO_SRDO_state_unknown)) {
         SRDO->cycleTimer = (SRDO->cycleTimer > timeDifference_us) ? (SRDO->cycleTimer - timeDifference_us) : 0U;
         SRDO->validationTimer = (SRDO->validationTimer > timeDifference_us) ? (SRDO->validationTimer - timeDifference_us) : 0U;
 
         /* Detect transition to NMT operational */
         if (!SRDO->NMTisOperationalPrevious) {
             SRDO->cycleTimer = (SRDO->informationDirection == CO_SRDO_TX)
-                             ? (uint32_t)SRDO->nodeId * 500U /* 0.5ms * node-ID delay*/
+                             ? ((uint32_t)SRDO->nodeId * 500U) /* 0.5ms * node-ID delay*/
                              : SRDO->cycleTime_us;
             SRDO->validationTimer = SRDO->cycleTime_us;
             SRDO->internalState = CO_SRDO_state_initializing;
@@ -822,7 +822,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         dataSRDO[plain_inverted] += mappedLength;
                     }
 
-                    if (verifyLength[0] != verifyLength[1] || verifyLength[0] > CO_SRDO_MAX_SIZE || verifyLength[0] != SRDO->dataLength) {
+                    if ((verifyLength[0] != verifyLength[1]) || (verifyLength[0] > CO_SRDO_MAX_SIZE) || (verifyLength[0] != SRDO->dataLength)) {
                         SRDO->internalState = CO_SRDO_state_error_internal; /* should not happen */
                     }
                     else {
@@ -955,7 +955,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         } /* for (uint8_t i = 0; i < SRDO->mappedObjectsCount; i++) */
 
                         /* safety check, this should not happen */
-                        if (verifyLength[0] != verifyLength[1] || verifyLength[0] > CO_SRDO_MAX_SIZE || verifyLength[0] != SRDO->dataLength) {
+                        if ((verifyLength[0] != verifyLength[1]) || (verifyLength[0] > CO_SRDO_MAX_SIZE) || (verifyLength[0] != SRDO->dataLength)) {
                             SRDO->internalState = CO_SRDO_state_error_internal;
                         }
                         else {

@@ -64,8 +64,8 @@ static void CO_TIME_receive(void *object, void *msg) {
 static ODR_t OD_write_1012(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+        || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -75,7 +75,7 @@ static ODR_t OD_write_1012(OD_stream_t *stream, const void *buf,
     /* verify written value */
     uint32_t cobIdTimeStamp = CO_getUint32(buf);
     uint16_t CAN_ID = cobIdTimeStamp & 0x7FF;
-    if ((cobIdTimeStamp & 0x3FFFF800) != 0 || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
+    if (((cobIdTimeStamp & 0x3FFFF800) != 0) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
 
@@ -100,7 +100,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
                               uint32_t *errInfo)
 {
     /* verify arguments */
-    if (TIME == NULL || OD_1012_cobIdTimeStamp == NULL || CANdevRx == NULL
+    if ((TIME == NULL) || (OD_1012_cobIdTimeStamp == NULL) || (CANdevRx == NULL)
 #if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
         || CANdevTx == NULL
 #endif
@@ -203,7 +203,7 @@ bool_t CO_TIME_process(CO_TIME_t *TIME,
 
     /* Update time */
     uint32_t ms = 0;
-    if (!timestampReceived && timeDifference_us > 0) {
+    if (!timestampReceived && (timeDifference_us > 0)) {
         uint32_t us = timeDifference_us + TIME->residual_us;
         ms = us / 1000;
         TIME->residual_us = us % 1000;

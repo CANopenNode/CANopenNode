@@ -57,7 +57,7 @@ static ODR_t OD_write_dummy(OD_stream_t *stream, const void *buf,
 static ODR_t OD_read_dummy(OD_stream_t *stream, void *buf,
                            OD_size_t count, OD_size_t *countRead)
 {
-    if (buf == NULL || stream == NULL || countRead == NULL) {
+    if ((buf == NULL) || (stream == NULL) || (countRead == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
@@ -102,7 +102,7 @@ static ODR_t PDOconfigMap(CO_PDO_common_t *PDO,
     }
 
     /* is there a reference to the dummy entry */
-    if (index < 0x20 && subIndex == 0) {
+    if ((index < 0x20) && (subIndex == 0)) {
         OD_stream_t *stream = &OD_IO->stream;
         (void)memset(stream, 0, sizeof(OD_stream_t));
         stream->dataLength = stream->dataOffset = mappedLength;
@@ -121,9 +121,9 @@ static ODR_t PDOconfigMap(CO_PDO_common_t *PDO,
 
     /* verify access attributes, byte alignment and length */
     OD_attr_t testAttribute = isRPDO ? ODA_RPDO : ODA_TPDO;
-    if ((OD_IOcopy.stream.attribute & testAttribute) == 0
-        || (mappedLengthBits & 0x07) != 0
-        || OD_IOcopy.stream.dataLength < mappedLength
+    if (((OD_IOcopy.stream.attribute & testAttribute) == 0)
+        || ((mappedLengthBits & 0x07) != 0)
+        || (OD_IOcopy.stream.dataLength < mappedLength)
     ) {
         return ODR_NO_MAP; /* Object cannot be mapped to the PDO. */
     }
@@ -135,7 +135,7 @@ static ODR_t PDOconfigMap(CO_PDO_common_t *PDO,
     /* get TPDO request flag byte from extension */
 #if OD_FLAGS_PDO_SIZE > 0
     if (!isRPDO) {
-        if (subIndex < (OD_FLAGS_PDO_SIZE * 8) && entry->extension != NULL) {
+        if ((subIndex < (OD_FLAGS_PDO_SIZE * 8)) && (entry->extension != NULL)) {
             PDO->flagPDObyte[mapIndex] =
                     &entry->extension->flagsPDO[subIndex >> 3];
             PDO->flagPDObitmask[mapIndex] = 1 << (subIndex & 0x07);
@@ -208,8 +208,8 @@ static CO_ReturnError_t PDO_initMapping(CO_PDO_common_t *PDO,
             pdoDataLength += OD_IO->stream.dataOffset;
         }
     }
-    if (pdoDataLength > CO_PDO_MAX_SIZE
-        || (pdoDataLength == 0 && mappedObjectsCount > 0)
+    if ((pdoDataLength > CO_PDO_MAX_SIZE)
+        || ((pdoDataLength == 0) && (mappedObjectsCount > 0))
     ) {
         if (*erroneousMap == 0) { *erroneousMap = 1; }
     }
@@ -232,8 +232,8 @@ static ODR_t OD_write_PDO_mapping(OD_stream_t *stream, const void *buf,
                                   OD_size_t count, OD_size_t *countWritten)
 {
     /* "count" is already verified in *_init() function */
-    if (stream == NULL || buf == NULL || countWritten == NULL
-        || stream->subIndex > CO_PDO_MAX_MAPPED_ENTRIES
+    if ((stream == NULL) || (buf == NULL) || (countWritten == NULL)
+        || (stream->subIndex > CO_PDO_MAX_MAPPED_ENTRIES)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -242,7 +242,7 @@ static ODR_t OD_write_PDO_mapping(OD_stream_t *stream, const void *buf,
     CO_PDO_common_t *PDO = stream->object;
 
     /* PDO must be disabled before mapping configuration */
-    if (PDO->valid || (PDO->mappedObjectsCount != 0 && stream->subIndex > 0)) {
+    if ((PDO->valid) || ((PDO->mappedObjectsCount != 0) && (stream->subIndex > 0))) {
         return ODR_UNSUPP_ACCESS;
     }
 
@@ -270,7 +270,7 @@ static ODR_t OD_write_PDO_mapping(OD_stream_t *stream, const void *buf,
         if (pdoDataLength > CO_PDO_MAX_SIZE) {
             return ODR_MAP_LEN;
         }
-        if (pdoDataLength == 0 && mappedObjectsCount > 0) {
+        if ((pdoDataLength == 0) && (mappedObjectsCount > 0)) {
             return ODR_INVALID_VALUE;
         }
 
@@ -416,14 +416,14 @@ static ODR_t OD_read_PDO_commParam(OD_stream_t *stream, void *buf,
     ODR_t returnCode = OD_readOriginal(stream, buf, count, countRead);
 
     /* When reading COB_ID, add Node-Id to the read value, if necessary */
-    if (returnCode == ODR_OK && stream->subIndex == 1 && *countRead == 4) {
+    if ((returnCode == ODR_OK) && (stream->subIndex == 1) && (*countRead == 4)) {
         /* Only common part of the CO_RPDO_t or CO_TPDO_t will be used */
         CO_PDO_common_t *PDO = stream->object;
         uint32_t COB_ID = CO_getUint32(buf);
         uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FF);
 
         /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-        if (CAN_ID != 0 && CAN_ID == (PDO->preDefinedCanId & 0xFF80)) {
+        if ((CAN_ID != 0) && (CAN_ID == (PDO->preDefinedCanId & 0xFF80))) {
             COB_ID = (COB_ID & 0xFFFF0000) | PDO->preDefinedCanId;
         }
 
@@ -483,7 +483,7 @@ static void CO_PDO_receive(void *object, void *msg) {
             /* Determine, to which of the two rx buffers copy the message. */
             uint8_t bufNo = 0;
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-            if (RPDO->synchronous && RPDO->SYNC != NULL
+            if (RPDO->synchronous && (RPDO->SYNC != NULL)
                 && RPDO->SYNC->CANrxToggle
             ) {
                 bufNo = 1;
@@ -522,7 +522,7 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
     /* "count" is also verified in *_init() function */
-    if (stream == NULL || buf == NULL || countWritten == NULL || count > 4) {
+    if ((stream == NULL) || (buf == NULL) || (countWritten == NULL) || (count > 4)) {
         return ODR_DEV_INCOMPAT;
     }
 
@@ -540,16 +540,16 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
         /* bits 11...29 must be zero, PDO must be disabled on change,
          * CAN_ID == 0 is not allowed, mapping must be configured before
          * enabling the PDO */
-        if ((COB_ID & 0x3FFFF800) != 0
-            || (valid && PDO->valid && CAN_ID != PDO->configuredCanId)
+        if (((COB_ID & 0x3FFFF800) != 0)
+            || (valid && PDO->valid && (CAN_ID != PDO->configuredCanId))
             || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
-            || (valid && PDO->mappedObjectsCount == 0)
+            || (valid && (PDO->mappedObjectsCount == 0))
         ) {
             return ODR_INVALID_VALUE;
         }
 
         /* parameter changed? */
-        if (valid != PDO->valid || CAN_ID != PDO->configuredCanId) {
+        if ((valid != PDO->valid) || (CAN_ID != PDO->configuredCanId)) {
             /* if default CAN-ID is written, store to OD without Node-ID */
             if (CAN_ID == PDO->preDefinedCanId) {
                 (void)CO_setUint32(bufCopy, COB_ID & 0xFFFFFF80);
@@ -567,7 +567,7 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
                     (void*)RPDO,        /* object passed to receive function */
                     CO_PDO_receive);    /* this function will process rx msg */
 
-            if (valid && ret == CO_ERROR_NO) {
+            if (valid && (ret == CO_ERROR_NO)) {
                 PDO->valid = true;
                 PDO->configuredCanId = CAN_ID;
             }
@@ -588,8 +588,8 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
     case 2: { /* transmission type */
         uint8_t transmissionType = CO_getUint8(buf);
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-        if (transmissionType > CO_PDO_TRANSM_TYPE_SYNC_240
-            && transmissionType < CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO
+        if ((transmissionType > CO_PDO_TRANSM_TYPE_SYNC_240)
+            && (transmissionType < CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO)
         ) {
             return ODR_INVALID_VALUE;
         }
@@ -647,8 +647,8 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     ODR_t odRet;
 
     /* verify arguments */
-    if (RPDO == NULL || OD == NULL || em == NULL || OD_14xx_RPDOCommPar == NULL
-        || OD_16xx_RPDOMapPar == NULL || CANdevRx == NULL
+    if ((RPDO == NULL) || (OD == NULL) || (em == NULL) || (OD_14xx_RPDOCommPar == NULL)
+        || (OD_16xx_RPDOMapPar == NULL) || (CANdevRx == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -685,7 +685,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
 
     bool_t valid = (COB_ID & 0x80000000) == 0;
     uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FF);
-    if (valid && (PDO->mappedObjectsCount == 0 || CAN_ID == 0)) {
+    if (valid && ((PDO->mappedObjectsCount == 0) || (CAN_ID == 0))) {
         valid = false;
         if (erroneousMap == 0) { erroneousMap = 1; }
     }
@@ -693,14 +693,14 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     if (erroneousMap != 0) {
         CO_errorReport(PDO->em,
                        CO_EM_PDO_WRONG_MAPPING, CO_EMC_PROTOCOL_ERROR,
-                       erroneousMap != 1 ? erroneousMap : COB_ID);
+                       (erroneousMap != 1) ? erroneousMap : COB_ID);
     }
     if (!valid) {
         CAN_ID = 0;
     }
 
     /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-    if (CAN_ID != 0 && CAN_ID == (preDefinedCanId & 0xFF80)) {
+    if ((CAN_ID != 0) && (CAN_ID == (preDefinedCanId & 0xFF80))) {
         CAN_ID = preDefinedCanId;
     }
 
@@ -797,7 +797,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
         /* Verify errors in length of received RPDO CAN message */
         if (RPDO->receiveError > CO_RPDO_RX_ACK) {
             bool_t setError = RPDO->receiveError != CO_RPDO_RX_OK;
-            uint16_t code = RPDO->receiveError == CO_RPDO_RX_SHORT
+            uint16_t code = (RPDO->receiveError == CO_RPDO_RX_SHORT)
                           ? CO_EMC_PDO_LENGTH : CO_EMC_PDO_LENGTH_EXC;
             CO_error(PDO->em, setError, CO_EM_RPDO_WRONG_LENGTH,
                      code, PDO->dataLength);
@@ -808,7 +808,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
         /* Determine, which of the two rx buffers contains relevant message. */
         uint8_t bufNo = 0;
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-        if (RPDO->synchronous && RPDO->SYNC != NULL
+        if (RPDO->synchronous && (RPDO->SYNC != NULL)
             && !RPDO->SYNC->CANrxToggle) {
             bufNo = 1;
         }
@@ -894,8 +894,8 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
                 /* enable monitoring */
                 RPDO->timeoutTimer = 1;
             }
-            else if (RPDO->timeoutTimer > 0
-                    && RPDO->timeoutTimer < RPDO->timeoutTime_us
+            else if ((RPDO->timeoutTimer > 0)
+                    && (RPDO->timeoutTimer < RPDO->timeoutTime_us)
             ) {
                 RPDO->timeoutTimer += timeDifference_us;
 
@@ -953,7 +953,7 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
     /* "count" is also verified in *_init() function */
-    if (stream == NULL || buf == NULL || countWritten == NULL || count > 4) {
+    if ((stream == NULL) || (buf == NULL) || (countWritten == NULL) || (count > 4)) {
         return ODR_DEV_INCOMPAT;
     }
 
@@ -971,16 +971,16 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
         /* bits 11...29 must be zero, PDO must be disabled on change,
          * CAN_ID == 0 is not allowed, mapping must be configured before
          * enabling the PDO */
-        if ((COB_ID & 0x3FFFF800) != 0
-            || (valid && PDO->valid && CAN_ID != PDO->configuredCanId)
+        if (((COB_ID & 0x3FFFF800) != 0)
+            || (valid && (PDO->valid && (CAN_ID != PDO->configuredCanId)))
             || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
-            || (valid && PDO->mappedObjectsCount == 0)
+            || (valid && (PDO->mappedObjectsCount == 0))
         ) {
             return ODR_INVALID_VALUE;
         }
 
         /* parameter changed? */
-        if (valid != PDO->valid || CAN_ID != PDO->configuredCanId) {
+        if ((valid != PDO->valid) || (CAN_ID != PDO->configuredCanId)) {
             /* if default CAN-ID is written, store to OD without Node-ID */
             if (CAN_ID == PDO->preDefinedCanId) {
                 (void)CO_setUint32(bufCopy, COB_ID & 0xFFFFFF80);
@@ -1012,8 +1012,8 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
     case 2: { /* transmission type */
         uint8_t transmissionType = CO_getUint8(buf);
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-        if (transmissionType > CO_PDO_TRANSM_TYPE_SYNC_240
-            && transmissionType < CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO
+        if ((transmissionType > CO_PDO_TRANSM_TYPE_SYNC_240)
+            && (transmissionType < CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO)
         ) {
             return ODR_INVALID_VALUE;
         }
@@ -1056,7 +1056,7 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
     case 6: { /* SYNC start value */
         uint8_t syncStartValue = CO_getUint8(buf);
 
-        if (PDO->valid || syncStartValue > 240) {
+        if (PDO->valid || (syncStartValue > 240)) {
             return ODR_INVALID_VALUE;
         }
         TPDO->syncStartValue = syncStartValue;
@@ -1092,8 +1092,8 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     ODR_t odRet;
 
     /* verify arguments */
-    if (TPDO == NULL || OD == NULL || em == NULL || OD_18xx_TPDOCommPar == NULL
-        || OD_1Axx_TPDOMapPar == NULL || CANdevTx == NULL
+    if ((TPDO == NULL) || (OD == NULL) || (em == NULL) || (OD_18xx_TPDOCommPar == NULL)
+        || (OD_1Axx_TPDOMapPar == NULL) || (CANdevTx == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -1127,9 +1127,9 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
         }
         return CO_ERROR_OD_PARAMETERS;
     }
-    if (transmissionType < CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO
+    if ((transmissionType < CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO)
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-        && transmissionType > CO_PDO_TRANSM_TYPE_SYNC_240
+        && (transmissionType > CO_PDO_TRANSM_TYPE_SYNC_240)
 #endif
     ) {
         transmissionType = CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO;
@@ -1149,7 +1149,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
 
     bool_t valid = (COB_ID & 0x80000000) == 0;
     uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FF);
-    if (valid && (PDO->mappedObjectsCount == 0 || CAN_ID == 0)) {
+    if (valid && ((PDO->mappedObjectsCount == 0) || (CAN_ID == 0))) {
         valid = false;
         if (erroneousMap == 0) { erroneousMap = 1; }
     }
@@ -1157,14 +1157,14 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     if (erroneousMap != 0) {
         CO_errorReport(PDO->em,
                        CO_EM_PDO_WRONG_MAPPING, CO_EMC_PROTOCOL_ERROR,
-                       erroneousMap != 1 ? erroneousMap : COB_ID);
+                       (erroneousMap != 1) ? erroneousMap : COB_ID);
     }
     if (!valid) {
         CAN_ID = 0;
     }
 
     /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-    if (CAN_ID != 0 && CAN_ID == (preDefinedCanId & 0xFF80)) {
+    if ((CAN_ID != 0) && (CAN_ID == (preDefinedCanId & 0xFF80))) {
         CAN_ID = preDefinedCanId;
     }
 
@@ -1239,8 +1239,8 @@ static CO_ReturnError_t CO_TPDOsend(CO_TPDO_t *TPDO) {
     uint8_t *dataTPDO = &TPDO->CANtxBuff->data[0];
 #if OD_FLAGS_PDO_SIZE > 0
     bool_t eventDriven =
-            (TPDO->transmissionType == CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC
-            || TPDO->transmissionType >= CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO);
+            ((TPDO->transmissionType == CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC)
+            || (TPDO->transmissionType >= CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO));
 #endif
 
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS
@@ -1295,7 +1295,7 @@ static CO_ReturnError_t CO_TPDOsend(CO_TPDO_t *TPDO) {
         /* In event driven TPDO indicate transmission of OD variable */
  #if OD_FLAGS_PDO_SIZE > 0
         uint8_t *flagPDObyte = PDO->flagPDObyte[i];
-        if (flagPDObyte != NULL && eventDriven) {
+        if ((flagPDObyte != NULL) && eventDriven) {
            *flagPDObyte |= PDO->flagPDObitmask[i];
         }
  #endif
@@ -1344,8 +1344,8 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
 
         /* check for event timer or application event */
 #if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) || (OD_FLAGS_PDO_SIZE > 0)
-        if (TPDO->transmissionType == CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC
-            || TPDO->transmissionType >= CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO
+        if ((TPDO->transmissionType == CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC)
+            || (TPDO->transmissionType >= CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO)
         ) {
             /* event timer */
  #if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE
@@ -1388,7 +1388,7 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
                                ? (TPDO->inhibitTimer - timeDifference_us) : 0;
 
             /* send TPDO */
-            if (TPDO->sendRequest && TPDO->inhibitTimer == 0) {
+            if (TPDO->sendRequest && (TPDO->inhibitTimer == 0)) {
                 CO_TPDOsend(TPDO);
             }
 
@@ -1409,7 +1409,7 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
 
         /* Synchronous PDOs */
 #if (CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE
-        else if (TPDO->SYNC != NULL && syncWas) {
+        else if ((TPDO->SYNC != NULL) && syncWas) {
             /* send synchronous acyclic TPDO */
             if (TPDO->transmissionType == CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC) {
                 if (TPDO->sendRequest) { CO_TPDOsend(TPDO); }
@@ -1418,15 +1418,15 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
             else {
                 /* is the start of synchronous TPDO transmission */
                 if (TPDO->syncCounter == 255) {
-                    if (TPDO->SYNC->counterOverflowValue != 0
-                        && TPDO->syncStartValue != 0
+                    if ((TPDO->SYNC->counterOverflowValue != 0)
+                        && (TPDO->syncStartValue != 0)
                     ) {
                         /* syncStartValue is in use */
                         TPDO->syncCounter = 254;
                     }
                     else {
                         /* Send first TPDO somewhere in the middle */
-                        TPDO->syncCounter = TPDO->transmissionType / 2 + 1;
+                        TPDO->syncCounter = (TPDO->transmissionType / 2) + 1;
                     }
                 }
                 /* If the syncStartValue is in use, start first TPDO after SYNC

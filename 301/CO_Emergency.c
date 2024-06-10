@@ -129,8 +129,8 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
 static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
                                   OD_size_t count, OD_size_t *countRead)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count < sizeof(uint32_t) || countRead == NULL
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+        || (count < sizeof(uint32_t)) || (countRead == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -373,13 +373,13 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
-    if (em == NULL || OD_1001_errReg == NULL
+    if ((em == NULL) || (OD_1001_errReg == NULL)
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
-        || (fifo == NULL && fifoSize >= 2)
+        || ((fifo == NULL) && (fifoSize >= 2))
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
-        || OD_1014_cobIdEm == NULL || CANdevTx == NULL
-        || nodeId < 1 || nodeId > 127
+        || (OD_1014_cobIdEm == NULL) || (CANdevTx == NULL)
+        || (nodeId < 1) || (nodeId > 127)
 #endif
 #if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
        || OD_1003_preDefErr == NULL
@@ -414,7 +414,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     uint32_t COB_IDEmergency32;
     ODR_t odRet;
     odRet = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
-    if (odRet != ODR_OK || (COB_IDEmergency32 & 0x7FFFF800) != 0) {
+    if ((odRet != ODR_OK) || ((COB_IDEmergency32 & 0x7FFFF800) != 0)) {
         if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1014_cobIdEm); }
          /* don't break a program, if only value of a parameter is wrong */
         if (odRet != ODR_OK) { return CO_ERROR_OD_PARAMETERS; }
@@ -647,7 +647,7 @@ void CO_EM_process(CO_EM_t *em,
         ) {
             em->inhibitEmTimer = 0;
  #else
-        if (fifoPpPtr != em->fifoWrPtr && !em->CANtxBuff->bufferFull) {
+        if ((fifoPpPtr != em->fifoWrPtr) && (!em->CANtxBuff->bufferFull)) {
  #endif
             /* add error register to emergency message */
             em->fifo[fifoPpPtr].msg |= (uint32_t) errorRegister << 16;
@@ -679,7 +679,7 @@ void CO_EM_process(CO_EM_t *em,
                 CO_errorReport(em, CO_EM_EMERGENCY_BUFFER_FULL,
                                CO_EMC_GENERIC, 0);
             }
-            else if (em->fifoOverflow == 2 && em->fifoPpPtr == em->fifoWrPtr) {
+            else if ((em->fifoOverflow == 2) && (em->fifoPpPtr == em->fifoWrPtr)) {
                 em->fifoOverflow = 0;
                 CO_errorReset(em, CO_EM_EMERGENCY_BUFFER_FULL, 0);
             }
@@ -754,7 +754,7 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
 
 #if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
     /* prepare emergency message. Error register will be added in post-process*/
-    uint32_t errMsg = (uint32_t)errorBit << 24 | CO_SWAP_16(errorCode);
+    uint32_t errMsg = ((uint32_t)errorBit << 24) | CO_SWAP_16(errorCode);
  #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
     uint32_t infoCodeSwapped = CO_SWAP_32(infoCode);
  #endif

@@ -139,7 +139,7 @@ void CO_GTWA_initRead(CO_GTWA_t* gtwa,
 /******************************************************************************/
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
 void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
-    if (gtwa != NULL && message != NULL) {
+    if ((gtwa != NULL) && (message != NULL)) {
         const char *c;
 
         for (c = &message[0]; *c != 0; c++) {
@@ -243,7 +243,7 @@ static inline uint32_t getU32(char *token, uint32_t min,
     char *sRet;
     uint32_t num = strtoul(token, &sRet, 0);
 
-    if (sRet != strchr(token, '\0') || num < min || num > max) {
+    if ((sRet != strchr(token, '\0')) || (num < min) || (num > max)) {
         *err = true;
     }
 
@@ -262,7 +262,7 @@ static bool_t checkNetNode(CO_GTWA_t *gtwa,
         eCode = CO_GTWA_respErrorNoDefaultNodeSet;
         e = true;
     }
-    else if (node < NodeMin || node > 127) {
+    else if ((node < NodeMin) || (node > 127)) {
         eCode = CO_GTWA_respErrorUnsupportedNode;
         e = true;
     }
@@ -349,7 +349,7 @@ static const CO_GTWA_dataType_t dataTypes[] = {
 
 /* get data type from token */
 static const CO_GTWA_dataType_t *CO_GTWA_getDataType(char *token, bool_t *err) {
-    if (token != NULL && *err == false) {
+    if ((token != NULL) && (*err == false)) {
         int i;
         int len = sizeof(dataTypes) / sizeof(CO_GTWA_dataType_t);
 
@@ -655,7 +655,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     * COMMAND PARSER
     ***************************************************************************/
     /* if idle, search for new command, skip comments or empty lines */
-    while (gtwa->state == CO_GTWA_ST_IDLE
+    while ((gtwa->state == CO_GTWA_ST_IDLE)
            && CO_fifo_CommSearch(&gtwa->commFifo, false)
     ) {
         char tok[20];
@@ -671,16 +671,16 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
         /* Break if error in token or token was found, but closed with
          * command delimiter. */
-        if (err || (n > 0 && closed != 0)) {
+        if (err || ((n > 0) && (closed != 0))) {
             err = true;
             break;
         }
         /* If empty line or just comment, continue with next command */
-        else if (n == 0 && closed != 0) {
+        else if ((n == 0) && (closed != 0)) {
             responseWithEmpty(gtwa);
             continue;
         }
-        if (tok[0] != '[' || tok[strlen(tok)-1] != ']') {
+        if ((tok[0] != '[') || (tok[strlen(tok)-1] != ']')) {
             err = true;
             break;
         }
@@ -695,7 +695,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             closed = -1;
             n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok),
                                   &closed, &err);
-            if (err || n == 0) {
+            if (err || (n == 0)) {
                 /* empty token, break on error */
                 err = true;
                 break;
@@ -789,7 +789,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
                 uint8_t value;
 
-                if (closed != 0 || NodeErr) {
+                if ((closed != 0) || NodeErr) {
                     err = true;
                     break;
                 }
@@ -810,7 +810,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
                 uint16_t value;
 
-                if (closed != 0 || NodeErr) {
+                if ((closed != 0) || NodeErr) {
                     err = true;
                     break;
                 }
@@ -830,7 +830,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
                 uint16_t value;
 
-                if (closed != 0 || NodeErr) {
+                if ((closed != 0) || NodeErr) {
                     err = true;
                     break;
                 }
@@ -842,7 +842,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 value = (uint16_t)getU32(tok, 0, 1, &err);
                 if (err) break;
 
-                gtwa->SDOblockTransferEnable = value==1 ? true : false;
+                gtwa->SDOblockTransferEnable = (value==1) ? true : false;
                 responseWithOK(gtwa);
             }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
@@ -855,13 +855,13 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
 #if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
         /* Upload SDO command - 'r[ead] <index> <subindex> <datatype>' */
-        else if (strcmp(tok, "r") == 0 || strcmp(tok, "read") == 0) {
+        else if ((strcmp(tok, "r") == 0) || (strcmp(tok, "read") == 0)) {
             uint16_t idx;
             uint8_t subidx;
             CO_SDO_return_t SDO_ret;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 1, &respErrorCode);
 
-            if (closed != 0 || NodeErr) {
+            if ((closed != 0) || NodeErr) {
                 err = true;
                 break;
             }
@@ -877,7 +877,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok),
                                   &closed, &err);
             subidx = (uint8_t)getU32(tok, 0, 0xFF, &err);
-            if (err || n == 0) {
+            if (err || (n == 0)) {
                 err = true;
                 break;
             }
@@ -924,7 +924,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 
         /* Download SDO comm. - w[rite] <index> <subindex> <datatype> <value> */
-        else if (strcmp(tok, "w") == 0 || strcmp(tok, "write") == 0) {
+        else if ((strcmp(tok, "w") == 0) || (strcmp(tok, "write") == 0)) {
             uint16_t idx;
             uint8_t subidx;
             CO_fifo_st status;
@@ -932,7 +932,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             size_t size;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 1, &respErrorCode);
 
-            if (closed != 0 || NodeErr) {
+            if ((closed != 0) || NodeErr) {
                 err = true;
                 break;
             }
@@ -992,15 +992,15 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* is syntax error in command or size is zero or not the last token
              * in command */
-            if ((status & CO_fifo_st_errMask) != 0 || size == 0
-                || (gtwa->SDOdataCopyStatus == false && closed != 1)
+            if (((status & CO_fifo_st_errMask) != 0) || (size == 0)
+                || ((gtwa->SDOdataCopyStatus == false) && (closed != 1))
             ) {
                 err = true;
                 break;
             }
 
             /* if data size was not known before and is known now, update SDO */
-            if (gtwa->SDOdataType->length == 0 && !gtwa->SDOdataCopyStatus) {
+            if ((gtwa->SDOdataType->length == 0) && !gtwa->SDOdataCopyStatus) {
                 CO_SDOclientDownloadInitiateSize(gtwa->SDO_C, size);
             }
 
@@ -1018,7 +1018,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
             CO_NMT_command_t command2 = CO_NMT_ENTER_OPERATIONAL;
 
-            if (closed != 1 || NodeErr) {
+            if ((closed != 1) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1040,7 +1040,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
             CO_NMT_command_t command2 = CO_NMT_ENTER_STOPPED;
 
-            if (closed != 1 || NodeErr) {
+            if ((closed != 1) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1057,14 +1057,14 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 
         /* NMT Set node to pre-operational - 'preop[erational]' */
-        else if (strcmp(tok, "preop") == 0 ||
-                 strcmp(tok, "preoperational") == 0
+        else if ((strcmp(tok, "preop") == 0) ||
+                 (strcmp(tok, "preoperational") == 0)
         ) {
             CO_ReturnError_t ret;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
             CO_NMT_command_t command2 = CO_NMT_ENTER_PRE_OPERATIONAL;
 
-            if (closed != 1 || NodeErr) {
+            if ((closed != 1) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1086,7 +1086,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
             CO_NMT_command_t command2;
 
-            if (closed != 0 || NodeErr) {
+            if ((closed != 0) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1099,8 +1099,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             convertToLower(tok, sizeof(tok));
             if (strcmp(tok, "node") == 0) {
                 command2 = CO_NMT_RESET_NODE;
-            } else if (strcmp(tok, "comm") == 0 ||
-                       strcmp(tok, "communication") == 0
+            } else if ((strcmp(tok, "comm") == 0) ||
+                       (strcmp(tok, "communication") == 0)
             ) {
                 command2 = CO_NMT_RESET_COMMUNICATION;
             } else {
@@ -1127,7 +1127,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint8_t select;
 
-            if (closed != 0 || NodeErr) {
+            if ((closed != 0) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1162,7 +1162,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             CO_LSS_address_t *addr = &gtwa->lssAddress;
 
-            if (closed != 0 || NodeErr) {
+            if ((closed != 0) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1193,7 +1193,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         else if (strcmp(tok, "lss_set_node") == 0) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
 
-            if (closed != 0 || NodeErr) {
+            if ((closed != 0) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1202,7 +1202,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             closed = 1;
             CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
             gtwa->lssNID = (uint8_t)getU32(tok, 0, 0xFF, &err);
-            if (gtwa->lssNID > 0x7F && gtwa->lssNID < 0xFF) err = true;
+            if ((gtwa->lssNID > 0x7F) && (gtwa->lssNID < 0xFF)) err = true;
             if (err) break;
 
             /* continue with state machine */
@@ -1218,7 +1218,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             int maxIndex = (sizeof(CO_LSS_bitTimingTableLookup) /
                             sizeof(CO_LSS_bitTimingTableLookup[0])) - 1;
 
-            if (closed != 0 || NodeErr) {
+            if ((closed != 0)|| NodeErr) {
                 err = true;
                 break;
             }
@@ -1247,7 +1247,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             uint16_t switchDelay;
             CO_LSSmaster_return_t ret;
 
-            if (closed != 0 || NodeErr) {
+            if ((closed != 0) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1273,7 +1273,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         else if (strcmp(tok, "lss_store") == 0) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
 
-            if (closed != 1 || NodeErr) {
+            if ((closed != 1) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1316,7 +1316,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         else if (strcmp(tok, "lss_get_node") == 0) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
 
-            if (closed != 1 || NodeErr) {
+            if ((closed != 1) || NodeErr) {
                 err = true;
                 break;
             }
@@ -1389,7 +1389,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             }
             /* If timeout not specified, use 100ms. Should work in most cases */
-            gtwa->lssTimeout_ms = timeout_ms == 0 ? 100 : timeout_ms;
+            gtwa->lssTimeout_ms = (timeout_ms == 0) ? 100 : timeout_ms;
             CO_LSSmaster_changeTimeout(gtwa->LSSmaster, gtwa->lssTimeout_ms);
             gtwa->lssNodeCount = 0;
             gtwa->lssSubState = 0;
@@ -1568,8 +1568,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             gtwa->state = CO_GTWA_ST_IDLE;
         }
         /* Response data must be read, partially or whole */
-        else if (ret == CO_SDO_RT_uploadDataBufferFull
-                 || ret == CO_SDO_RT_ok_communicationEnd
+        else if ((ret == CO_SDO_RT_uploadDataBufferFull)
+                 || (ret == CO_SDO_RT_ok_communicationEnd)
         ) {
             size_t fifoRemain;
 
@@ -1595,7 +1595,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 fifoRemain = CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo);
 
                 /* end of communication, print newline and enter idle state */
-                if (ret == CO_SDO_RT_ok_communicationEnd && fifoRemain == 0) {
+                if ((ret == CO_SDO_RT_ok_communicationEnd) && (fifoRemain == 0)) {
                     gtwa->respBufCount +=
                         sprintf(&gtwa->respBuf[gtwa->respBufCount], "\r\n");
                     gtwa->state = CO_GTWA_ST_IDLE;
@@ -1615,7 +1615,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     gtwa->state = CO_GTWA_ST_IDLE;
                     break;
                 }
-            } while (gtwa->respHold == false && fifoRemain > 0);
+            } while ((gtwa->respHold == false) && (fifoRemain > 0));
         }
         break;
     }
@@ -1641,8 +1641,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             gtwa->SDOdataCopyStatus = (status & CO_fifo_st_partial) != 0;
 
             /* is syntax error in command or not the last token in command */
-            if ((status & CO_fifo_st_errMask) != 0
-                || (gtwa->SDOdataCopyStatus == false && closed != 1)
+            if (((status & CO_fifo_st_errMask) != 0)
+                || ((gtwa->SDOdataCopyStatus == false) && (closed != 1))
             ) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                 abort = true; /* abort SDO communication */
@@ -2011,7 +2011,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
         do {
             size_t lenHelpRemain = lenHelp - gtwa->helpStringOffset;
-            size_t lenCopied = lenBuf < lenHelpRemain ? lenBuf : lenHelpRemain;
+            size_t lenCopied = (lenBuf < lenHelpRemain) ? lenBuf : lenHelpRemain;
 
             (void)memcpy(gtwa->respBuf,
                    &gtwa->helpString[gtwa->helpStringOffset],
@@ -2040,7 +2040,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             i = 4;
         }
         else {
-            i = CO_LED_RED(gtwa->LEDs, CO_LED_CANopen) * 2 +
+            i = (CO_LED_RED(gtwa->LEDs, CO_LED_CANopen) * 2) +
                 CO_LED_GREEN(gtwa->LEDs, CO_LED_CANopen);
         }
         if (i > (CO_GTWA_LED_PRINTOUTS_SIZE - 1))
@@ -2067,7 +2067,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
     /* execute next CANopen processing immediately, if idle and more commands
      * available */
-    if (timerNext_us != NULL && gtwa->state == CO_GTWA_ST_IDLE
+    if ((timerNext_us != NULL) && (gtwa->state == CO_GTWA_ST_IDLE)
         && CO_fifo_CommSearch(&gtwa->commFifo, false)
     ) {
         *timerNext_us = 0;

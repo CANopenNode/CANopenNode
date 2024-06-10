@@ -453,7 +453,7 @@ static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
  */
 static inline bool_t OD_mappable(OD_stream_t *stream) {
     return (stream != NULL)
-         ? (stream->attribute & (ODA_TRPDO | ODA_TRSRDO)) != 0 : false;
+         ? ((stream->attribute & (ODA_TRPDO | ODA_TRSRDO)) != 0) : false;
 }
 
 
@@ -482,7 +482,7 @@ static inline void OD_rwRestart(OD_stream_t *stream) {
  */
 static inline uint8_t *OD_getFlagsPDO(OD_entry_t *entry) {
 #if OD_FLAGS_PDO_SIZE > 0
-    if (entry != NULL && entry->extension != NULL) {
+    if ((entry != NULL) && (entry->extension != NULL)) {
         return &entry->extension->flagsPDO[0];
     }
 #endif
@@ -509,7 +509,7 @@ static inline uint8_t *OD_getFlagsPDO(OD_entry_t *entry) {
  */
 static inline void OD_requestTPDO(uint8_t *flagsPDO, uint8_t subIndex) {
 #if OD_FLAGS_PDO_SIZE > 0
-    if (flagsPDO != NULL && subIndex < (OD_FLAGS_PDO_SIZE * 8)) {
+    if ((flagsPDO != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8))) {
         /* clear subIndex-th bit */
         uint8_t mask = ~(1 << (subIndex & 0x07));
         flagsPDO[subIndex >> 3] &= mask;
@@ -531,7 +531,7 @@ static inline void OD_requestTPDO(uint8_t *flagsPDO, uint8_t subIndex) {
  */
 static inline bool_t OD_TPDOtransmitted(uint8_t *flagsPDO, uint8_t subIndex) {
 #if OD_FLAGS_PDO_SIZE > 0
-    if (flagsPDO != NULL && subIndex < (OD_FLAGS_PDO_SIZE * 8)) {
+    if ((flagsPDO != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8))) {
         /* return true, if subIndex-th bit is set */
         uint8_t mask = 1 << (subIndex & 0x07);
         if ((flagsPDO[subIndex >> 3] & mask) != 0) {

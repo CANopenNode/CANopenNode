@@ -220,16 +220,16 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
 /**
  * Macro to check if node id is valid
  */
-#define CO_LSS_NODE_ID_VALID(nid) ((nid >= 1 && nid <= 0x7F) || nid == CO_LSS_NODE_ID_ASSIGNMENT)
+#define CO_LSS_NODE_ID_VALID(nid) (((nid >= 1) && (nid <= 0x7F)) || (nid == CO_LSS_NODE_ID_ASSIGNMENT))
 
 /**
  * Macro to check if two LSS addresses are equal
  */
 #define CO_LSS_ADDRESS_EQUAL(/*CO_LSS_address_t*/ a1, /*CO_LSS_address_t*/ a2) \
-     (a1.identity.productCode == a2.identity.productCode &&         \
-      a1.identity.revisionNumber == a2.identity.revisionNumber &&   \
-      a1.identity.serialNumber == a2.identity.serialNumber &&       \
-      a1.identity.vendorID == a2.identity.vendorID)
+     ((a1.identity.productCode == a2.identity.productCode) &&         \
+      (a1.identity.revisionNumber == a2.identity.revisionNumber) &&   \
+      (a1.identity.serialNumber == a2.identity.serialNumber) &&       \
+      (a1.identity.vendorID == a2.identity.vendorID))
 
 /** @} */ /*@defgroup CO_LSS*/
 

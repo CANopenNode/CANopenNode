@@ -83,8 +83,8 @@ static void CO_SYNC_receive(void *object, void *msg) {
 static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+        || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -102,7 +102,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
         return ODR_INVALID_VALUE;
     }
 #else
-    if ((cobIdSync & 0xFFFFF800) != 0 || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
+    if (((cobIdSync & 0xFFFFF800) != 0) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
 #endif
@@ -219,11 +219,11 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     ODR_t odRet;
 
     /* verify arguments */
-    if (SYNC == NULL || em == NULL || OD_1005_cobIdSync == NULL
+    if ((SYNC == NULL) || (em == NULL) || (OD_1005_cobIdSync == NULL)
 #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
-        || OD_1006_commCyclePeriod == NULL || CANdevTx == NULL
+        || (OD_1006_commCyclePeriod == NULL) || (CANdevTx == NULL)
 #endif
-        || CANdevRx == NULL
+        || (CANdevRx == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -257,7 +257,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
         return CO_ERROR_OD_PARAMETERS;
     }
 #else
-    if (OD_1006_commCyclePeriod != NULL && SYNC->OD_1006_period == NULL) {
+    if ((OD_1006_commCyclePeriod != NULL) && (SYNC->OD_1006_period == NULL)) {
         if (errInfo != NULL) {
             *errInfo = OD_getIndex(OD_1006_commCyclePeriod);
         }
@@ -268,7 +268,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     /* get "Synchronous window length" from OD (optional parameter) */
     SYNC->OD_1007_window = OD_getPtr(OD_1007_syncWindowLen, 0,
                                      sizeof(uint32_t), NULL);
-    if (OD_1007_syncWindowLen != NULL && SYNC->OD_1007_window == NULL) {
+    if ((OD_1007_syncWindowLen != NULL) && (SYNC->OD_1007_window == NULL)) {
         if (errInfo != NULL) {
             *errInfo = OD_getIndex(OD_1007_syncWindowLen);
         }
@@ -385,7 +385,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
             CO_FLAG_CLEAR(SYNC->CANrxNew);
         }
 
-        uint32_t OD_1006_period = SYNC->OD_1006_period != NULL
+        uint32_t OD_1006_period = (SYNC->OD_1006_period != NULL)
                                 ? *SYNC->OD_1006_period : 0;
 
         if (OD_1006_period > 0) {
@@ -434,8 +434,8 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         } /* if (OD_1006_period > 0) */
 
         /* Synchronous PDOs are allowed only inside time window */
-        if (SYNC->OD_1007_window != NULL && *SYNC->OD_1007_window > 0
-            && SYNC->timer > *SYNC->OD_1007_window
+        if ((SYNC->OD_1007_window != NULL) && (*SYNC->OD_1007_window > 0)
+            && (SYNC->timer > *SYNC->OD_1007_window)
         ) {
             if (!SYNC->syncIsOutsideWindow) {
                 syncStatus = CO_SYNC_PASSED_WINDOW;

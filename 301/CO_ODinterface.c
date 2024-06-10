@@ -31,7 +31,7 @@
 ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
                       OD_size_t count, OD_size_t *countRead)
 {
-    if (stream == NULL || buf == NULL || countRead == NULL) {
+    if ((stream == NULL) || (buf == NULL) || (countRead == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
@@ -46,7 +46,7 @@ ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
 
     /* If previous read was partial or OD variable length is larger than
      * current buffer size, then data was (will be) read in several segments */
-    if (stream->dataOffset > 0 || dataLenToCopy > count) {
+    if ((stream->dataOffset > 0) || (dataLenToCopy > count)) {
         if (stream->dataOffset >= dataLenToCopy) {
             return ODR_DEV_INCOMPAT;
         }
@@ -75,7 +75,7 @@ ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
 ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
                        OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || buf == NULL || countWritten == NULL) {
+    if ((stream == NULL) || (buf == NULL) || (countWritten == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
@@ -91,7 +91,7 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
     /* If previous write was partial or OD variable length is larger than
      * current buffer size, then data was (will be) written in several
      * segments */
-    if (stream->dataOffset > 0 || dataLenToCopy > count) {
+    if ((stream->dataOffset > 0) || (dataLenToCopy > count)) {
         if (stream->dataOffset >= dataLenToCopy) {
             return ODR_DEV_INCOMPAT;
         }
@@ -141,7 +141,7 @@ static ODR_t OD_writeDisabled(OD_stream_t *stream, const void *buf,
 
 /******************************************************************************/
 OD_entry_t *OD_find(OD_t *od, uint16_t index) {
-    if (od == NULL || od->size == 0) {
+    if ((od == NULL) || (od->size == 0)) {
         return NULL;
     }
 
@@ -182,7 +182,7 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index) {
 ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
                 OD_IO_t *io, bool_t odOrig)
 {
-    if (entry == NULL || entry->odObject == NULL) { return ODR_IDX_NOT_EXIST; }
+    if ((entry == NULL) || (entry->odObject == NULL)) { return ODR_IDX_NOT_EXIST; }
     if (io == NULL) { return ODR_DEV_INCOMPAT; }
 
     OD_stream_t *stream = &io->stream;
@@ -211,8 +211,8 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
         else {
             stream->attribute = odo->attribute;
             uint8_t *ptr = odo->dataOrig;
-            stream->dataOrig = ptr == NULL ? ptr
-                             : ptr + odo->dataElementSizeof * (subIndex - 1);
+            stream->dataOrig = (ptr == NULL) ? ptr
+                             : (ptr + (odo->dataElementSizeof * (subIndex - 1)));
             stream->dataLength = odo->dataElementLength;
         }
         break;
@@ -239,16 +239,16 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     }
 
     /* Access data from the original OD location */
-    if (entry->extension == NULL || odOrig) {
+    if ((entry->extension == NULL) || odOrig) {
         io->read = OD_readOriginal;
         io->write = OD_writeOriginal;
         stream->object = NULL;
     }
     /* Access data from extension specified by application */
     else {
-        io->read = entry->extension->read != NULL ?
+        io->read = (entry->extension->read != NULL) ?
                    entry->extension->read : OD_readDisabled;
-        io->write = entry->extension->write != NULL ?
+        io->write = (entry->extension->write != NULL) ?
                     entry->extension->write : OD_writeDisabled;
         stream->object = entry->extension->object;
     }
@@ -294,7 +294,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode) {
         0x08000024UL  /* No data available */
     };
 
-    return (returnCode < 0 || returnCode >= ODR_COUNT) ?
+    return ((returnCode < 0) || (returnCode >= ODR_COUNT)) ?
         abortCodes[ODR_DEV_INCOMPAT] : abortCodes[returnCode];
 }
 
@@ -342,10 +342,10 @@ void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
     errCopy = OD_getSub(entry, subIndex, &io, true);
 
     if (errCopy == ODR_OK) {
-        if (stream->dataOrig == NULL || stream->dataLength == 0) {
+        if ((stream->dataOrig == NULL) || (stream->dataLength == 0)) {
             errCopy = ODR_DEV_INCOMPAT;
         }
-        else if (len != 0 && len != stream->dataLength) {
+        else if ((len != 0) && (len != stream->dataLength)) {
             errCopy = ODR_TYPE_MISMATCH;
         }
         else { /* MISRA C 2004 14.10 */ }
@@ -353,5 +353,5 @@ void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
 
     if (err != NULL) { *err = errCopy; }
 
-    return errCopy == ODR_OK ? stream->dataOrig : NULL;
+    return (errCopy == ODR_OK) ? stream->dataOrig : NULL;
 }

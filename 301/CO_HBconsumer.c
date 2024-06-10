@@ -88,10 +88,10 @@ static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
 {
     CO_HBconsumer_t *HBcons = stream->object;
 
-    if (stream == NULL || buf == NULL
-        || stream->subIndex < 1
-        || stream->subIndex > HBcons->numberOfMonitoredNodes
-        || count != sizeof(uint32_t) || countWritten == NULL
+    if ((stream == NULL) || (buf == NULL)
+        || (stream->subIndex < 1)
+        || (stream->subIndex > HBcons->numberOfMonitoredNodes)
+        || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -124,8 +124,8 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
     ODR_t odRet;
 
     /* verify arguments */
-    if (HBcons == NULL || em == NULL || monitoredNodes == NULL
-        || OD_1016_HBcons == NULL || CANdevRx == NULL
+    if ((HBcons == NULL) || (em == NULL) || (monitoredNodes == NULL)
+        || (OD_1016_HBcons == NULL) || (CANdevRx == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -139,8 +139,8 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
 
     /* get actual number of monitored nodes */
     HBcons->numberOfMonitoredNodes =
-        OD_1016_HBcons->subEntriesCount-1 < monitoredNodesCount ?
-        OD_1016_HBcons->subEntriesCount-1 : monitoredNodesCount;
+        ((OD_1016_HBcons->subEntriesCount-1) < monitoredNodesCount) ?
+        (OD_1016_HBcons->subEntriesCount-1) : monitoredNodesCount;
 
     for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
         uint32_t val;
@@ -185,15 +185,15 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
-    if (HBcons == NULL || idx >= HBcons->numberOfMonitoredNodes) {
+    if ((HBcons == NULL) || (idx >= HBcons->numberOfMonitoredNodes)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* verify for duplicate entries */
-    if(consumerTime_ms != 0 && nodeId != 0) {
+    if((consumerTime_ms != 0) && (nodeId != 0)) {
         for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {
             CO_HBconsNode_t node = HBcons->monitoredNodes[i];
-            if(idx != i && node.time_us != 0 && node.nodeId == nodeId) {
+            if((idx != i) && (node.time_us != 0) && (node.nodeId == nodeId)) {
                 ret = CO_ERROR_OD_PARAMETERS;
             }
         }
@@ -214,7 +214,7 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
         CO_FLAG_CLEAR(monitoredNode->CANrxNew);
 
         /* is channel used */
-        if (monitoredNode->nodeId != 0 && monitoredNode->time_us != 0) {
+        if ((monitoredNode->nodeId != 0) && (monitoredNode->time_us != 0)) {
             COB_ID = monitoredNode->nodeId + CO_CAN_ID_HEARTBEAT;
             monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
         }

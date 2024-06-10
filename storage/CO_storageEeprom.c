@@ -63,7 +63,7 @@ static ODR_t storeEeprom(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
                         (uint8_t *)&signatureRead,
                         entry->eepromAddrSignature,
                         sizeof(signatureRead));
-    if(signature != signatureRead || !writeOk) {
+    if((signature != signatureRead) || !writeOk) {
         return ODR_HW;
     }
 
@@ -95,7 +95,7 @@ static ODR_t restoreEeprom(CO_storage_entry_t *entry,
                         (uint8_t *)&signatureRead,
                         entry->eepromAddrSignature,
                         sizeof(signatureRead));
-    if(signature != signatureRead || !writeOk) {
+    if((signature != signatureRead) || !writeOk) {
         return ODR_HW;
     }
 
@@ -117,8 +117,8 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
     bool_t eepromOvf = false;
 
     /* verify arguments */
-    if (storage == NULL || entries == NULL || entriesCount == 0
-        || storageInitError == NULL
+    if ((storage == NULL) || (entries == NULL) || (entriesCount == 0)
+        || (storageInitError == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -162,7 +162,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
         bool_t isAuto = (entry->attr & CO_storage_auto) != 0;
 
         /* verify arguments */
-        if (entry->addr == NULL || entry->len == 0 || entry->subIndexOD < 2) {
+        if ((entry->addr == NULL) || (entry->len == 0) || (entry->subIndexOD < 2)) {
             *storageInitError = i;
             return CO_ERROR_ILLEGAL_ARGUMENT;
         }
@@ -225,7 +225,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
 /******************************************************************************/
 void CO_storageEeprom_auto_process(CO_storage_t *storage, bool_t saveAll) {
     /* verify arguments */
-    if (storage == NULL || !storage->enabled) {
+    if ((storage == NULL) || !storage->enabled) {
         return;
     }
 

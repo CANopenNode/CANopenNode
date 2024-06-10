@@ -50,8 +50,8 @@ static void CO_ngs_receive(void *object, void *msg) {
 static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint16_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+        || (count != sizeof(uint16_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -80,8 +80,8 @@ static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
 static ODR_t OD_write_100D(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint8_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+        || (count != sizeof(uint8_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -117,8 +117,8 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
-    if (ngs == NULL || em == NULL || CANdevRx == NULL || CANdevTx == NULL
-        || OD_100C_GuardTime == NULL || OD_100D_LifeTimeFactor == NULL
+    if ((ngs == NULL) || (em == NULL) || (CANdevRx == NULL) || (CANdevTx == NULL)
+        || (OD_100C_GuardTime == NULL) || (OD_100D_LifeTimeFactor == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
