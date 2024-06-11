@@ -1637,7 +1637,7 @@ CO_SRDO_state_t CO_process_SRDO(CO_t *co,
 
     CO_SRDO_state_t lowestState = CO_SRDO_state_deleted;
 
-    for (Uint16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
+    for (uint16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
         CO_SRDO_state_t state = CO_SRDO_process(&co->SRDO[i],
                                                 timeDifference_us,
                                                 timerNext_us,
