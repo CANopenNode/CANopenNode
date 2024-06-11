@@ -575,7 +575,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
     /* Configure mappings */
     if ((err == 0U) && configurationInProgress) {
-        size_t srdoDataLength[2] = {0, 0};
+        CO_SRDO_size_t srdoDataLength[2] = {0, 0};
 
         for (uint8_t i = 0; i < mappedObjectsCount; i++) {
             uint8_t plain_inverted = i % 2U;
