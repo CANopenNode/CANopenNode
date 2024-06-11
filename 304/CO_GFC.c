@@ -82,7 +82,7 @@ CO_GFC_initCallbackEnterSafeState(CO_GFC_t* GFC, void* object, void (*pFunctSign
 CO_ReturnError_t
 CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC_CANdevRx, uint16_t GFC_rxIdx, uint16_t CANidRxGFC,
             CO_CANmodule_t* GFC_CANdevTx, uint16_t GFC_txIdx, uint16_t CANidTxGFC) {
-    if (GFC == NULL || OD_1300_gfcParameter == NULL || GFC_CANdevRx == NULL || GFC_CANdevTx == NULL) {
+    if ((GFC == NULL) || (OD_1300_gfcParameter == NULL) || (GFC_CANdevRx == NULL) || (GFC_CANdevTx == NULL)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
