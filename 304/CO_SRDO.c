@@ -142,7 +142,7 @@ OD_read_dummy(OD_stream_t *stream, void *buf, OD_size_t count, OD_size_t *countR
 }
 
 #ifdef CO_CONFORMANCE_TEST_TOOL_ADAPTATION
-bool_t
+static bool_t
 OD_not_write_same_value(OD_stream_t *stream, const void *buf, OD_size_t count) {
     // The conformance test tool does not recognize CANopen Safety and on all object dictionaty tries to read and write the same value
     OD_size_t countRead = 0;
