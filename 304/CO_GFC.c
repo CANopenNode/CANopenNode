@@ -103,9 +103,9 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
     GFC->CANtxBuff = CO_CANtxBufferInit(GFC->CANdevTx, /* CAN device */
                                         GFC_txIdx,     /* index of specific buffer inside CAN module */
                                         CANidTxGFC,    /* CAN identifier */
-                                        0,             /* rtr */
+                                        false,             /* rtr */
                                         0,             /* number of data bytes */
-                                        0);            /* synchronous message flag bit */
+                                        false);            /* synchronous message flag bit */
 
     if (GFC->CANtxBuff == NULL) {
         return CO_ERROR_TX_UNCONFIGURED;
@@ -122,7 +122,7 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
                                                   GFC_rxIdx,       /* rx buffer index */
                                                   CANidRxGFC,      /* CAN identifier */
                                                   0x7FF,           /* mask */
-                                                  0,               /* rtr */
+                                                  false,               /* rtr */
                                                   (void*)GFC,      /* object passed to receive function */
                                                   CO_GFC_receive); /* this function will process received message */
     if (r != CO_ERROR_NO) {
