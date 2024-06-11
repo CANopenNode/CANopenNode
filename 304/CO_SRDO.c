@@ -645,7 +645,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
         SRDO->CANtxBuff[0] = CO_CANtxBufferInit(CANdevTxNormal, /* CAN device */
                                                 CANdevTxIdxNormal, /* index of specific buffer inside CAN module */
-                                                COB_ID1_normal, /* CAN identifier */
+                                                (uint16_t)COB_ID1_normal, /* CAN identifier */
                                                 false, /* rtr */
                                                 SRDO->dataLength, /* number of data bytes */
                                                 false); /* synchronous message flag bit */
@@ -656,7 +656,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
         SRDO->CANtxBuff[1] = CO_CANtxBufferInit(CANdevTxInverted, /* CAN device */
                                                 CANdevTxIdxInverted, /* index of specific buffer inside CAN module */
-                                                COB_ID2_inverted, /* CAN identifier */
+                                                (uint16_t)COB_ID2_inverted, /* CAN identifier */
                                                 false, /* rtr */
                                                 SRDO->dataLength, /* number of data bytes */
                                                 false); /* synchronous message flag bit */
@@ -671,7 +671,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
         ret = CO_CANrxBufferInit(CANdevRxNormal, /* CAN device */
                                  CANdevRxIdxNormal, /* rx buffer index */
-                                 COB_ID1_normal, /* CAN identifier */
+                                 (uint16_t)COB_ID1_normal, /* CAN identifier */
                                  0x7FF, /* mask */
                                  false, /* rtr */
                                  (void*)SRDO, /* object passed to the receive function */
@@ -683,7 +683,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
         ret = CO_CANrxBufferInit(CANdevRxInverted, /* CAN device */
                                  CANdevRxIdxInverted, /* rx buffer index */
-                                 COB_ID2_inverted, /* CAN identifier */
+                                 (uint16_t)COB_ID2_inverted, /* CAN identifier */
                                  0x7FF, /* mask */
                                  false, /* rtr */
                                  (void*)SRDO, /* object passed to the receive function */
