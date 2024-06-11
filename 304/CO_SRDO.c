@@ -966,6 +966,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                     CO_FLAG_CLEAR(SRDO->CANrxNew[1]);
                 } /* inverted message received */
             }
+            else { /* MISRA C 2004 14.10 */ }
 
             /* verify timeouts */
             if (SRDO->cycleTimer == 0U) {
