@@ -411,16 +411,16 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     bool_t configurationInProgress = false;
 
     /* variables will be retrieved from Object Dictionary */
-    uint8_t cp_highestSubindexSupported;
-    uint8_t informationDirection;
-    uint16_t safetyCycleTime;
-    uint8_t safetyRelatedValidationTime;
-    uint8_t transmissionType;
-    uint32_t COB_ID1_normal;
-    uint32_t COB_ID2_inverted;
-    uint8_t configurationValid;
-    uint16_t crcSignatureFromOD;
-    uint8_t mappedObjectsCount;
+    uint8_t cp_highestSubindexSupported = 0;
+    uint8_t informationDirection = 0;
+    uint16_t safetyCycleTime = 0;
+    uint8_t safetyRelatedValidationTime = 0;
+    uint8_t transmissionType = 0;
+    uint32_t COB_ID1_normal = 0;
+    uint32_t COB_ID2_inverted = 0;
+    uint8_t configurationValid = 0;
+    uint16_t crcSignatureFromOD = 0;
+    uint8_t mappedObjectsCount = 0;
     uint32_t mapping[CO_SRDO_MAX_MAPPED_ENTRIES];
 
     /* verify arguments */
