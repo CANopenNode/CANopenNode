@@ -106,7 +106,7 @@ configurationValidUnset(CO_SRDOGuard_t* SRDOGuard) {
         OD_size_t dummy;
 
         SRDOGuard->configurationValid = false;
-        SRDOGuard->_configurationValid = false;
+        SRDOGuard->privateConfigValid = false;
 
         OD_IO->write(&OD_IO->stream, &val, sizeof(val), &dummy);
     }
@@ -393,7 +393,7 @@ CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationV
     
     if (configurationValid == CO_SRDO_VALID_MAGIC) {
         /* Private variable, erroneous SRDO initialization will clear this. */
-        SRDOGuard->_configurationValid = true;
+        SRDOGuard->privateConfigValid = true;
     }
 
     return CO_ERROR_NO;

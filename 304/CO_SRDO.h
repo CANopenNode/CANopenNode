@@ -127,7 +127,7 @@ typedef struct {
      * finish of all @CO_SRDO_init() functions. Cleared on configuration change. */
     bool_t configurationValid;
     /** Private helper variable set on the start of SRDO configuration */
-    bool_t _configurationValid;
+    bool_t privateConfigValid;
     /** Object for input / output on the OD variable 13FE:00. Configuration
      * of any of the the SRDO parameters will write 0 to that variable. */
     OD_IO_t OD_IO_configurationValid;
@@ -218,7 +218,7 @@ CO_ReturnError_t CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13
  * @param SRDOGuard This object will be finalized.
  */
 static inline void CO_SRDO_init_end(CO_SRDOGuard_t* SRDOGuard) {
-    SRDOGuard->configurationValid = SRDOGuard->_configurationValid;
+    SRDOGuard->configurationValid = SRDOGuard->privateConfigValid;
 }
 
 /**
