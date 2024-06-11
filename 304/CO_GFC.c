@@ -96,7 +96,7 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
     GFC->OD_gfcParam_ext.object = GFC;
     GFC->OD_gfcParam_ext.read = OD_readOriginal;
     GFC->OD_gfcParam_ext.write = OD_write_1300;
-    OD_extension_init(OD_1300_gfcParameter, &GFC->OD_gfcParam_ext);
+    (void)OD_extension_init(OD_1300_gfcParameter, &GFC->OD_gfcParam_ext);
 
 #if (CO_CONFIG_GFC) & CO_CONFIG_GFC_PRODUCER
     GFC->CANdevTx = GFC_CANdevTx;
