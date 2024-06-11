@@ -368,12 +368,12 @@ CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationV
     SRDOGuard->OD_13FE_extension.object = SRDOGuard;
     SRDOGuard->OD_13FE_extension.read = OD_readOriginal;
     SRDOGuard->OD_13FE_extension.write = OD_write_13FE;
-    OD_extension_init(OD_13FE_configurationValid, &SRDOGuard->OD_13FE_extension);
+    (void)OD_extension_init(OD_13FE_configurationValid, &SRDOGuard->OD_13FE_extension);
 
     SRDOGuard->OD_13FF_extension.object = SRDOGuard;
     SRDOGuard->OD_13FF_extension.read = OD_readOriginal;
     SRDOGuard->OD_13FF_extension.write = OD_write_13FF;
-    OD_extension_init(OD_13FF_safetyConfigurationSignature, &SRDOGuard->OD_13FF_extension);
+    (void)OD_extension_init(OD_13FF_safetyConfigurationSignature, &SRDOGuard->OD_13FF_extension);
 
     /* Configure SRDOGuard->OD_IO_configurationValid variable.
      * It will be used for writing 0 to OD variable 13FE,00 */
@@ -446,13 +446,13 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
         SRDO->OD_communicationParam_ext.object = SRDO;
         SRDO->OD_communicationParam_ext.read = OD_read_SRDO_communicationParam;
         SRDO->OD_communicationParam_ext.write = OD_write_SRDO_communicationParam;
-        OD_extension_init(OD_130x_SRDOCommPar, &SRDO->OD_communicationParam_ext);
+        (void)OD_extension_init(OD_130x_SRDOCommPar, &SRDO->OD_communicationParam_ext);
 
         /* Configure Object dictionary entry at index 0x1381+ */
         SRDO->OD_mappingParam_extension.object = SRDO;
         SRDO->OD_mappingParam_extension.read = OD_readOriginal;
         SRDO->OD_mappingParam_extension.write = OD_write_SRDO_mappingParam;
-        OD_extension_init(OD_138x_SRDOMapPar, &SRDO->OD_mappingParam_extension);
+        (void)OD_extension_init(OD_138x_SRDOMapPar, &SRDO->OD_mappingParam_extension);
     }
 
     /* Get variables from object Dictionary and verify it's structure. */
