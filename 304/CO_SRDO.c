@@ -105,7 +105,8 @@ configurationValidUnset(CO_SRDOGuard_t* SRDOGuard) {
         uint8_t val = CO_SRDO_INVALID;
         OD_size_t dummy;
 
-        SRDOGuard->configurationValid = SRDOGuard->_configurationValid = false;
+        SRDOGuard->configurationValid = false;
+        SRDOGuard->_configurationValid = false;
 
         OD_IO->write(&OD_IO->stream, &val, sizeof(val), &dummy);
     }
@@ -593,7 +594,8 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
             else if ((index < 0x20U) && (subIndex == 0U)) {
                 OD_stream_t *stream = &OD_IO->stream;
                 (void)memset(stream, 0, sizeof(OD_stream_t));
-                stream->dataLength = stream->dataOffset = mappedLength;
+                stream->dataLength = mappedLength;
+                stream->dataOffset = mappedLength;
                 OD_IO->read = OD_read_dummy;
                 OD_IO->write = OD_write_dummy;
             }
