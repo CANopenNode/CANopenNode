@@ -668,7 +668,6 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
     /* Configure CAN rx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_RX)) {
-        CO_ReturnError_t ret;
 
         ret = CO_CANrxBufferInit(CANdevRxNormal, /* CAN device */
                                  CANdevRxIdxNormal, /* rx buffer index */
