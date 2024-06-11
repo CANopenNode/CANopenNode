@@ -756,8 +756,8 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     PDO->OD_mappingParam_extension.object = RPDO;
     PDO->OD_mappingParam_extension.read = OD_readOriginal;
     PDO->OD_mappingParam_extension.write = OD_write_PDO_mapping;
-    OD_extension_init(OD_14xx_RPDOCommPar, &PDO->OD_communicationParam_ext);
-    OD_extension_init(OD_16xx_RPDOMapPar, &PDO->OD_mappingParam_extension);
+    (void)OD_extension_init(OD_14xx_RPDOCommPar, &PDO->OD_communicationParam_ext);
+    (void)OD_extension_init(OD_16xx_RPDOMapPar, &PDO->OD_mappingParam_extension);
 #endif
 
     return CO_ERROR_NO;
@@ -1216,8 +1216,8 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     PDO->OD_mappingParam_extension.object = TPDO;
     PDO->OD_mappingParam_extension.read = OD_readOriginal;
     PDO->OD_mappingParam_extension.write = OD_write_PDO_mapping;
-    OD_extension_init(OD_18xx_TPDOCommPar, &PDO->OD_communicationParam_ext);
-    OD_extension_init(OD_1Axx_TPDOMapPar, &PDO->OD_mappingParam_extension);
+    (void)OD_extension_init(OD_18xx_TPDOCommPar, &PDO->OD_communicationParam_ext);
+    (void)OD_extension_init(OD_1Axx_TPDOMapPar, &PDO->OD_mappingParam_extension);
 #endif
 
     return CO_ERROR_NO;

@@ -121,7 +121,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
     TIME->OD_1012_extension.object = TIME;
     TIME->OD_1012_extension.read = OD_readOriginal;
     TIME->OD_1012_extension.write = OD_write_1012;
-    OD_extension_init(OD_1012_cobIdTimeStamp, &TIME->OD_1012_extension);
+    (void)OD_extension_init(OD_1012_cobIdTimeStamp, &TIME->OD_1012_extension);
 #endif
 
     /* Configure object variables */

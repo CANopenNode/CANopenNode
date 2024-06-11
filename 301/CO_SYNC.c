@@ -243,7 +243,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     SYNC->OD_1005_extension.object = SYNC;
     SYNC->OD_1005_extension.read = OD_readOriginal;
     SYNC->OD_1005_extension.write = OD_write_1005;
-    OD_extension_init(OD_1005_cobIdSync, &SYNC->OD_1005_extension);
+    (void)OD_extension_init(OD_1005_cobIdSync, &SYNC->OD_1005_extension);
 #endif
 
     /* get and verify "Communication cycle period" from OD */
@@ -296,7 +296,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
         SYNC->OD_1019_extension.object = SYNC;
         SYNC->OD_1019_extension.read = OD_readOriginal;
         SYNC->OD_1019_extension.write = OD_write_1019;
-        OD_extension_init(OD_1019_syncCounterOvf, &SYNC->OD_1019_extension);
+        (void)OD_extension_init(OD_1019_syncCounterOvf, &SYNC->OD_1019_extension);
 #endif
 #endif
     }
