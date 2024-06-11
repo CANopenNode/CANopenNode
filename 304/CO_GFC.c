@@ -42,11 +42,11 @@ OD_write_1300(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
     CO_GFC_t* GFC = stream->object;
 
     uint8_t value = CO_getUint8(buf);
-    if (value > 1) {
+    if (value > 1U) {
         return ODR_INVALID_VALUE;
     }
 
-    GFC->valid = (value == 1);
+    GFC->valid = (value == 1U);
 
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, buf, count, countWritten);
@@ -60,7 +60,7 @@ CO_GFC_receive(void* object, void* msg) {
 
     GFC = (CO_GFC_t*)object; /* this is the correct pointer type of the first argument */
 
-    if (GFC->valid && (DLC == 0)) {
+    if (GFC->valid && (DLC == 0U)) {
 
         /* Callback signals Global Failsafe Command */
         if (GFC->pFunctSignalSafe != NULL) {
@@ -90,7 +90,7 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
     if (OD_get_u8(OD_1300_gfcParameter, 0, &valid, true) != ODR_OK) {
         return CO_ERROR_OD_PARAMETERS;
     }
-    GFC->valid = (valid == 1);
+    GFC->valid = (valid == 1U);
 
     /* Configure Object dictionary entry at index 0x1300+ */
     GFC->OD_gfcParam_ext.object = GFC;
