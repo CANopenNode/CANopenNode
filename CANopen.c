@@ -1106,7 +1106,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
         for (uint16_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
             err = CO_SDOserver_init(&co->SDOserver[i],
                                     od,
-                                    SDOsrvPar++,
+                                    SDOsrvPar,
                                     nodeId,
                                     SDOserverTimeoutTime_ms,
                                     co->CANmodule,
@@ -1115,6 +1115,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     CO_GET_CO(TX_IDX_SDO_SRV) + i,
                                     errInfo);
             if (err != CO_ERROR_NO) { return err; }
+            SDOsrvPar++;
         }
     }
 
@@ -1273,12 +1274,14 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                co->SYNC,
  #endif
                                preDefinedCanId,
-                               RPDOcomm++,
-                               RPDOmap++,
+                               RPDOcomm,
+                               RPDOmap,
                                co->CANmodule,
                                CO_GET_CO(RX_IDX_RPDO) + i,
                                errInfo);
             if (err != CO_ERROR_NO) { return err; }
+            RPDOcomm++;
+            RPDOmap++;
         }
     }
 #endif
@@ -1307,12 +1310,14 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                co->SYNC,
  #endif
                                preDefinedCanId,
-                               TPDOcomm++,
-                               TPDOmap++,
+                               TPDOcomm,
+                               TPDOmap,
                                co->CANmodule,
                                CO_GET_CO(TX_IDX_TPDO) + i,
                                errInfo);
             if (err != CO_ERROR_NO) { return err; }
+            TPDOcomm++;
+            TPDOmap++;
         }
     }
 #endif
@@ -1375,8 +1380,8 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                em,
                                nodeId,
                                ((i == 0U) ? CO_CAN_ID_SRDO_1 : 0U),
-                               SRDOcomm++,
-                               SRDOmap++,
+                               SRDOcomm,
+                               SRDOmap,
                                OD_GET(H13FE, OD_H13FE_SRDO_VALID),
                                OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
                                co->CANmodule,
@@ -1389,6 +1394,8 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                CANdevTxIdx + 1U,
                                errInfo);
             if (err != CO_ERROR_NO) { return err; }
+            SRDOcomm++;
+            SRDOmap++;
         }
 
         CO_SRDO_init_end(co->SRDOGuard);
