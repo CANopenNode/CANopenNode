@@ -692,7 +692,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
 
     if (erroneousMap != 0U) {
         CO_errorReport(PDO->em,
-                       (uint8_t)CO_EM_PDO_WRONG_MAPPING, CO_EMC_PROTOCOL_ERROR,
+                       CO_EM_PDO_WRONG_MAPPING, CO_EMC_PROTOCOL_ERROR,
                        (erroneousMap != 1U) ? erroneousMap : COB_ID);
     }
     if (!valid) {
@@ -888,7 +888,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
         if (RPDO->timeoutTime_us > 0U) {
             if (rpdoReceived) {
                 if (RPDO->timeoutTimer > RPDO->timeoutTime_us) {
-                    CO_errorReset(PDO->em, (uint8_t)CO_EM_RPDO_TIME_OUT,
+                    CO_errorReset(PDO->em, CO_EM_RPDO_TIME_OUT,
                                 RPDO->timeoutTimer);
                 }
                 /* enable monitoring */
@@ -900,7 +900,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
                 RPDO->timeoutTimer += timeDifference_us;
 
                 if (RPDO->timeoutTimer > RPDO->timeoutTime_us) {
-                    CO_errorReport(PDO->em, (uint8_t)CO_EM_RPDO_TIME_OUT,
+                    CO_errorReport(PDO->em, CO_EM_RPDO_TIME_OUT,
                                 CO_EMC_RPDO_TIMEOUT, RPDO->timeoutTimer);
                 }
             }
@@ -1156,7 +1156,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
 
     if (erroneousMap != 0U) {
         CO_errorReport(PDO->em,
-                       (uint8_t)CO_EM_PDO_WRONG_MAPPING, CO_EMC_PROTOCOL_ERROR,
+                       CO_EM_PDO_WRONG_MAPPING, CO_EMC_PROTOCOL_ERROR,
                        (erroneousMap != 1U) ? erroneousMap : COB_ID);
     }
     if (!valid) {

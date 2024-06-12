@@ -516,28 +516,25 @@ typedef enum {
 
 
 /**
- * CAN error status bitmasks.
+ * @defgroup CO_CAN_ERR_status_t CAN error status bitmasks
+ * @{
  *
  * CAN warning level is reached, if CAN transmit or receive error counter is
  * more or equal to 96. CAN passive level is reached, if counters are more or
  * equal to 128. Transmitter goes in error state 'bus off' if transmit error
  * counter is more or equal to 256.
  */
-typedef enum {
-    CO_CAN_ERRTX_WARNING = 0x0001U,  /**< 0x0001, CAN transmitter warning */
-    CO_CAN_ERRTX_PASSIVE = 0x0002U,  /**< 0x0002, CAN transmitter passive */
-    CO_CAN_ERRTX_BUS_OFF = 0x0004U,  /**< 0x0004, CAN transmitter bus off */
-    CO_CAN_ERRTX_OVERFLOW = 0x0008U, /**< 0x0008, CAN transmitter overflow */
+#define CO_CAN_ERRTX_WARNING        0x0001U  /**< 0x0001 CAN transmitter warning */
+#define CO_CAN_ERRTX_PASSIVE        0x0002U  /**< 0x0002 CAN transmitter passive */
+#define CO_CAN_ERRTX_BUS_OFF        0x0004U  /**< 0x0004 CAN transmitter bus off */
+#define CO_CAN_ERRTX_OVERFLOW       0x0008U  /**< 0x0008 CAN transmitter overflow */
+#define CO_CAN_ERRTX_PDO_LATE       0x0080U  /**< 0x0080 TPDO is outside sync window */
+#define CO_CAN_ERRRX_WARNING        0x0100U  /**< 0x0100 CAN receiver warning */
+#define CO_CAN_ERRRX_PASSIVE        0x0200U  /**< 0x0200 CAN receiver passive */
+#define CO_CAN_ERRRX_OVERFLOW       0x0800U  /**< 0x0800 CAN receiver overflow */
+#define CO_CAN_ERR_WARN_PASSIVE     0x0303U  /**< 0x0303 combination */
 
-    CO_CAN_ERRTX_PDO_LATE = 0x0080U, /**< 0x0080, TPDO is outside sync window */
-
-    CO_CAN_ERRRX_WARNING = 0x0100U,  /**< 0x0100, CAN receiver warning */
-    CO_CAN_ERRRX_PASSIVE = 0x0200U,  /**< 0x0200, CAN receiver passive */
-    CO_CAN_ERRRX_OVERFLOW = 0x0800U, /**< 0x0800, CAN receiver overflow */
-
-    CO_CAN_ERR_WARN_PASSIVE = 0x0303U/**< 0x0303, combination */
-} CO_CAN_ERR_status_t;
-
+/** @} */ /* CO_CAN_ERR_status_t */
 
 /**
  * Return values of some CANopen functions. If function was executed

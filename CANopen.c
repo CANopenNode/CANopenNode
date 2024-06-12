@@ -1443,8 +1443,8 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
             timeDifference_us,
             unc ? CO_NMT_INITIALIZING : NMTstate,
             LSSslave_configuration,
-            (CANerrorStatus & (uint16_t)CO_CAN_ERRTX_BUS_OFF) != 0U,
-            (CANerrorStatus & (uint16_t)CO_CAN_ERR_WARN_PASSIVE) != 0U,
+            (CANerrorStatus & CO_CAN_ERRTX_BUS_OFF) != 0U,
+            (CANerrorStatus & CO_CAN_ERR_WARN_PASSIVE) != 0U,
             false, /* RPDO event timer timeout */
             unc ? false : CO_isError(co->em, CO_EM_SYNC_TIME_OUT),
             unc ? false : (CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER)

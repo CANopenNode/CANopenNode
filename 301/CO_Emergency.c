@@ -564,33 +564,33 @@ void CO_EM_process(CO_EM_t *em,
         uint16_t CANerrStChanged = CANerrSt ^ em->CANerrorStatusOld;
         em->CANerrorStatusOld = CANerrSt;
 
-        if (CANerrStChanged & ((uint16_t)CO_CAN_ERRTX_WARNING | (uint16_t)CO_CAN_ERRRX_WARNING)) {
+        if (CANerrStChanged & (CO_CAN_ERRTX_WARNING | CO_CAN_ERRRX_WARNING)) {
             CO_error(em,
-                (CANerrSt & ((uint16_t)CO_CAN_ERRTX_WARNING | (uint16_t)CO_CAN_ERRRX_WARNING)) != 0U,
+                (CANerrSt & (CO_CAN_ERRTX_WARNING | CO_CAN_ERRRX_WARNING)) != 0U,
                 CO_EM_CAN_BUS_WARNING, CO_EMC_NO_ERROR, 0);
         }
-        if (CANerrStChanged & (uint16_t)CO_CAN_ERRTX_PASSIVE) {
-            CO_error(em, (CANerrSt & (uint16_t)CO_CAN_ERRTX_PASSIVE) != 0U,
+        if (CANerrStChanged & CO_CAN_ERRTX_PASSIVE) {
+            CO_error(em, (CANerrSt & CO_CAN_ERRTX_PASSIVE) != 0U,
                      CO_EM_CAN_TX_BUS_PASSIVE, CO_EMC_CAN_PASSIVE, 0);
         }
-        if (CANerrStChanged & (uint16_t)CO_CAN_ERRTX_BUS_OFF) {
-            CO_error(em, (CANerrSt & (uint16_t)CO_CAN_ERRTX_BUS_OFF) != 0U,
+        if (CANerrStChanged & CO_CAN_ERRTX_BUS_OFF) {
+            CO_error(em, (CANerrSt & CO_CAN_ERRTX_BUS_OFF) != 0U,
                      CO_EM_CAN_TX_BUS_OFF, CO_EMC_BUS_OFF_RECOVERED, 0);
         }
-        if (CANerrStChanged & (uint16_t)CO_CAN_ERRTX_OVERFLOW) {
-            CO_error(em, (CANerrSt & (uint16_t)CO_CAN_ERRTX_OVERFLOW) != 0U,
+        if (CANerrStChanged & CO_CAN_ERRTX_OVERFLOW) {
+            CO_error(em, (CANerrSt & CO_CAN_ERRTX_OVERFLOW) != 0U,
                      CO_EM_CAN_TX_OVERFLOW, CO_EMC_CAN_OVERRUN, 0);
         }
-        if (CANerrStChanged & (uint16_t)CO_CAN_ERRTX_PDO_LATE) {
-            CO_error(em, (CANerrSt & (uint16_t)CO_CAN_ERRTX_PDO_LATE) != 0U,
+        if (CANerrStChanged & CO_CAN_ERRTX_PDO_LATE) {
+            CO_error(em, (CANerrSt & CO_CAN_ERRTX_PDO_LATE) != 0U,
                      CO_EM_TPDO_OUTSIDE_WINDOW, CO_EMC_COMMUNICATION, 0);
         }
-        if (CANerrStChanged & (uint16_t)CO_CAN_ERRRX_PASSIVE) {
-            CO_error(em, (CANerrSt & (uint16_t)CO_CAN_ERRRX_PASSIVE) != 0U,
+        if (CANerrStChanged & CO_CAN_ERRRX_PASSIVE) {
+            CO_error(em, (CANerrSt & CO_CAN_ERRRX_PASSIVE) != 0U,
                      CO_EM_CAN_RX_BUS_PASSIVE, CO_EMC_CAN_PASSIVE, 0);
         }
-        if (CANerrStChanged & (uint16_t)CO_CAN_ERRRX_OVERFLOW) {
-            CO_error(em, (CANerrSt & (uint16_t)CO_CAN_ERRRX_OVERFLOW) != 0U,
+        if (CANerrStChanged & CO_CAN_ERRRX_OVERFLOW) {
+            CO_error(em, (CANerrSt & CO_CAN_ERRRX_OVERFLOW) != 0U,
                      CO_EM_CAN_RXB_OVERFLOW, CO_EMC_CAN_OVERRUN, 0);
         }
     }
@@ -681,7 +681,7 @@ void CO_EM_process(CO_EM_t *em,
             }
             else if ((em->fifoOverflow == 2U) && (em->fifoPpPtr == em->fifoWrPtr)) {
                 em->fifoOverflow = 0;
-                CO_errorReset(em, (uint8_t)CO_EM_EMERGENCY_BUFFER_FULL, 0);
+                CO_errorReset(em, CO_EM_EMERGENCY_BUFFER_FULL, 0);
             }
             else { /* MISRA C 2004 14.10 */ }
         }
@@ -719,7 +719,7 @@ void CO_EM_process(CO_EM_t *em,
 
 
 /******************************************************************************/
-void CO_error(CO_EM_t *em, bool_t setError, const CO_EM_errorStatusBits_t errorBit,
+void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
               uint16_t errorCode, uint32_t infoCode)
 {
     if (em == NULL) { return; }
