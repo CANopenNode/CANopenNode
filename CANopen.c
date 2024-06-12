@@ -1434,10 +1434,10 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
     uint16_t CANerrorStatus = co->CANmodule->CANerrorStatus;
     bool_t LSSslave_configuration = false;
  #if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0
-    if ((CO_GET_CNT(LSS_SLV) == 1U)
-        && (CO_LSSslave_getState(co->LSSslave) == CO_LSS_STATE_CONFIGURATION)
-    ) {
-        LSSslave_configuration = true;
+    if (CO_GET_CNT(LSS_SLV) == 1U) {
+        if (CO_LSSslave_getState(co->LSSslave) == CO_LSS_STATE_CONFIGURATION) {
+            LSSslave_configuration = true;
+        }
     }
  #endif
  /* default macro, can be defined externally */
