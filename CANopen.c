@@ -1435,7 +1435,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
  #endif
  /* default macro, can be defined externally */
  #ifndef CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS
-  #define CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS 0
+  #define CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS false
  #endif
 
     if (CO_GET_CNT(LEDS) == 1U) {
@@ -1445,7 +1445,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
             LSSslave_configuration,
             (CANerrorStatus & (uint16_t)CO_CAN_ERRTX_BUS_OFF) != 0U,
             (CANerrorStatus & (uint16_t)CO_CAN_ERR_WARN_PASSIVE) != 0U,
-            0, /* RPDO event timer timeout */
+            false, /* RPDO event timer timeout */
             unc ? false : CO_isError(co->em, CO_EM_SYNC_TIME_OUT),
             unc ? false : (CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER)
                         || CO_isError(co->em, CO_EM_HB_CONSUMER_REMOTE_RESET)),

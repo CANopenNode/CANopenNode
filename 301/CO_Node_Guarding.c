@@ -185,9 +185,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
             CANdevTx,           /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
             CANidNodeGuarding,  /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             1,                  /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
     if (ngs->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }

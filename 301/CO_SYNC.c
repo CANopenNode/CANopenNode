@@ -114,7 +114,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
             SYNC->CANdevRxIdx,  /* rx buffer index */
             CAN_ID,             /* CAN identifier */
             0x7FF,              /* mask */
-            0,                  /* rtr */
+            false,                  /* rtr */
             (void*)SYNC,        /* object passed to receive function */
             CO_SYNC_receive);   /* this function will process received message*/
 
@@ -127,9 +127,9 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
             SYNC->CANdevTx,     /* CAN device */
             SYNC->CANdevTxIdx,  /* index of specific buffer inside CAN module */
             CAN_ID,             /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             SYNC->counterOverflowValue != 0 ? 1 : 0, /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
 
         if (SYNC->CANtxBuff == NULL) {
             SYNC->isProducer = false;
@@ -183,9 +183,9 @@ static ODR_t OD_write_1019(OD_stream_t *stream, const void *buf,
         SYNC->CANdevTx,     /* CAN device */
         SYNC->CANdevTxIdx,  /* index of specific buffer inside CAN module */
         SYNC->CAN_ID,       /* CAN identifier */
-        0,                  /* rtr */
+        false,                  /* rtr */
         syncCounterOvf != 0 ? 1 : 0, /* number of data bytes */
-        0);                 /* synchronous message flag bit */
+        false);                 /* synchronous message flag bit */
 
     if (SYNC->CANtxBuff == NULL) {
         SYNC->isProducer = false;
@@ -323,7 +323,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
             CANdevRxIdx,        /* rx buffer index */
             cobIdSync & 0x7FFU,  /* CAN identifier */
             0x7FF,              /* mask */
-            0,                  /* rtr */
+            false,                  /* rtr */
             (void*)SYNC,        /* object passed to receive function */
             CO_SYNC_receive);   /* this function will process received message*/
     if (ret != CO_ERROR_NO) {
@@ -335,9 +335,9 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
             CANdevTx,           /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
             cobIdSync & 0x7FF,  /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             syncCounterOvf != 0 ? 1 : 0, /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
 
     if (SYNC->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;

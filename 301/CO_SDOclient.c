@@ -403,7 +403,7 @@ CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
             SDO_C->CANdevRxIdx,     /* rx buffer index */
             CanIdS2C,               /* CAN identifier */
             0x7FF,                  /* mask */
-            0,                      /* rtr */
+            false,                      /* rtr */
             (void*)SDO_C,           /* object passed to receive function */
             CO_SDOclient_receive);  /* this function will process rx msg */
 
@@ -412,9 +412,9 @@ CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
             SDO_C->CANdevTx,        /* CAN device */
             SDO_C->CANdevTxIdx,     /* index of buffer inside CAN module */
             CanIdC2S,               /* CAN identifier */
-            0,                      /* rtr */
+            false,                      /* rtr */
             8,                      /* number of data bytes */
-            0);                     /* synchronous message flag bit */
+            false);                     /* synchronous message flag bit */
 
 
     if ((ret != CO_ERROR_NO) || (SDO_C->CANtxBuff == NULL)) {

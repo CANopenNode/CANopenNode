@@ -203,7 +203,7 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
             CANdevRxIdx,            /* rx buffer index */
             idC2S,                  /* CAN identifier */
             0x7FF,                  /* mask */
-            0,                      /* rtr */
+            false,                      /* rtr */
             (void*)SDO,             /* object passed to receive function */
             CO_SDO_receive);        /* this function will process rx msg */
 
@@ -212,9 +212,9 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
             SDO->CANdevTx,          /* CAN device */
             CANdevTxIdx,            /* index of buffer inside CAN module */
             idS2C,                  /* CAN identifier */
-            0,                      /* rtr */
+            false,                      /* rtr */
             8,                      /* number of data bytes */
-            0);                     /* synchronous message flag bit */
+            false);                     /* synchronous message flag bit */
 
     if (SDO->CANtxBuff == NULL) {
         ret = CO_ERROR_ILLEGAL_ARGUMENT;

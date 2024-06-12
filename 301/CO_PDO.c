@@ -563,7 +563,7 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
                     PDO->CANdevIdx,     /* rx buffer index */
                     CAN_ID,             /* CAN identifier */
                     0x7FF,              /* mask */
-                    0,                  /* rtr */
+                    false,                  /* rtr */
                     (void*)RPDO,        /* object passed to receive function */
                     CO_PDO_receive);    /* this function will process rx msg */
 
@@ -709,7 +709,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
             CANdevRxIdx,        /* rx buffer index */
             CAN_ID,             /* CAN identifier */
             0x7FF,              /* mask */
-            0,                  /* rtr */
+            false,                  /* rtr */
             (void*)RPDO,        /* object passed to receive function */
             CO_PDO_receive);    /* this function will process received message*/
     if (ret != CO_ERROR_NO) {
@@ -993,7 +993,7 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
                 PDO->CANdev,      /* CAN device */
                 PDO->CANdevIdx,   /* index of specific buffer inside CAN mod. */
                 CAN_ID,           /* CAN identifier */
-                0,                /* rtr */
+                false,                /* rtr */
                 PDO->dataLength,  /* number of data bytes */
                 TPDO->transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240);
                                   /* synchronous message flag */
@@ -1172,7 +1172,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
             CANdevTx,           /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
             CAN_ID,             /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             PDO->dataLength,    /* number of data bytes */
             TPDO->transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240);
                                 /* synchronous message flag bit */

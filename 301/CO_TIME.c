@@ -137,7 +137,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
                 CANdevRxIdx,    /* rx buffer index */
                 cobId,          /* CAN identifier */
                 0x7FF,          /* mask */
-                0,              /* rtr */
+                false,              /* rtr */
                 (void*)TIME,    /* object passed to receive function */
                 CO_TIME_receive);/*this function will process received message*/
         if (ret != CO_ERROR_NO) {
@@ -152,9 +152,9 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
             CANdevTx,           /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
             cobId,              /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             CO_TIME_MSG_LENGTH, /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
 
     if (TIME->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;

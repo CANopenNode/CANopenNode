@@ -112,9 +112,9 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
             em->CANdevTx,       /* CAN device */
             em->CANdevTxIdx,    /* index of specific buffer inside CAN module */
             newCanId,           /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             8U,                 /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
     }
 
     /* write value to the original location in the Object Dictionary */
@@ -461,9 +461,9 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
             CANdevTx,           /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
             producerCanId,      /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             8U,                 /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
 
     if (em->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -513,7 +513,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
         CANdevRxIdx,            /* rx buffer index */
         CO_CAN_ID_EMERGENCY,    /* CAN identifier */
         0x780,                  /* mask */
-        0,                      /* rtr */
+        false,                      /* rtr */
         (void*)em,              /* object passed to receive function */
         CO_EM_receive);         /* this function will process received message*/
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER */

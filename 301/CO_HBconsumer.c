@@ -229,7 +229,7 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
                                  HBcons->CANdevRxIdxStart + idx,
                                  COB_ID,
                                  0x7FF,
-                                 0,
+                                 false,
                                  (void*)&HBcons->monitoredNodes[idx],
                                  CO_HBcons_receive);
     }

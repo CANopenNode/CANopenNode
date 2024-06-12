@@ -150,7 +150,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
             NMT_rxIdx,          /* rx buffer index */
             CANidRxNMT,         /* CAN identifier */
             0x7FF,              /* mask */
-            0,                  /* rtr */
+            false,                  /* rtr */
             (void*)NMT,         /* object passed to receive function */
             CO_NMT_receive);    /* this function will process received message*/
     if (ret != CO_ERROR_NO) {
@@ -164,9 +164,9 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
             NMT_CANdevTx,       /* CAN device */
             NMT_txIdx,          /* index of specific buffer inside CAN module */
             CANidTxNMT,         /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             2,                  /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
     if (NMT->NMT_TXbuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -178,9 +178,9 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
             HB_CANdevTx,        /* CAN device */
             HB_txIdx,           /* index of specific buffer inside CAN module */
             CANidTxHB,          /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             1,                  /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
     if (NMT->HB_TXbuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
