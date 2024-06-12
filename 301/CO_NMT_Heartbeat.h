@@ -125,7 +125,9 @@ typedef enum {
 
 
 /**
- * NMT control bitfield for NMT internal state.
+ * @defgroup CO_NMT_control_t NMT control bitfield for NMT internal state.
+ * @{
+ * 
  *
  * Variable of this type is passed to @ref CO_NMT_init() function. It
  * controls behavior of the @ref CO_NMT_internalState_t of the device according
@@ -134,28 +136,29 @@ typedef enum {
  * Internal NMT state is controlled also with external NMT command,
  * @ref CO_NMT_sendInternalCommand() or @ref CO_NMT_sendCommand() functions.
  */
-typedef enum {
-    /** First 8 bits can be used to specify bitmask for the
-     * @ref CO_errorRegister_t, to get relevant bits for the calculation. */
-    CO_NMT_ERR_REG_MASK = 0x00FFU,
-    /** If bit is set, then device enters NMT operational state after the
-     * initialization phase, otherwise it enters NMT pre-operational state. */
-    CO_NMT_STARTUP_TO_OPERATIONAL = 0x0100U,
-    /** If bit is set and device is operational, it enters NMT pre-operational
-     * or stopped state, if CAN bus is off or heartbeat consumer timeout is
-     * detected. */
-    CO_NMT_ERR_ON_BUSOFF_HB = 0x1000U,
-    /** If bit is set and device is operational, it enters NMT pre-operational
-     * or stopped state, if masked CANopen error register is different than
-     * zero. */
-    CO_NMT_ERR_ON_ERR_REG = 0x2000U,
-    /** If bit is set and CO_NMT_ERR_ON_xx condition is met, then device will
-     * enter NMT stopped state, otherwise it will enter NMT pre-op state. */
-    CO_NMT_ERR_TO_STOPPED = 0x4000U,
-    /** If bit is set and device is pre-operational, it enters NMT operational
-     * state automatically, if conditions from CO_NMT_ERR_ON_xx are all false.*/
-    CO_NMT_ERR_FREE_TO_OPERATIONAL = 0x8000U
-} CO_NMT_control_t;
+
+/** First 8 bits can be used to specify bitmask for the
+ * @ref CO_errorRegister_t to get relevant bits for the calculation. */
+#define CO_NMT_ERR_REG_MASK  0x00FFU
+/** If bit is set then device enters NMT operational state after the
+ * initialization phase otherwise it enters NMT pre-operational state. */
+#define CO_NMT_STARTUP_TO_OPERATIONAL  0x0100U
+/** If bit is set and device is operational it enters NMT pre-operational
+ * or stopped state if CAN bus is off or heartbeat consumer timeout is
+ * detected. */
+#define CO_NMT_ERR_ON_BUSOFF_HB  0x1000U
+/** If bit is set and device is operational it enters NMT pre-operational
+ * or stopped state if masked CANopen error register is different than
+ * zero. */
+#define CO_NMT_ERR_ON_ERR_REG  0x2000U
+/** If bit is set and CO_NMT_ERR_ON_xx condition is met then device will
+ * enter NMT stopped state otherwise it will enter NMT pre-op state. */
+#define CO_NMT_ERR_TO_STOPPED  0x4000U
+/** If bit is set and device is pre-operational it enters NMT operational
+ * state automatically if conditions from CO_NMT_ERR_ON_xx are all false.*/
+#define CO_NMT_ERR_FREE_TO_OPERATIONAL  0x8000U
+
+/** @} */ /* CO_NMT_control_t */
 
 
 /**
@@ -172,7 +175,7 @@ typedef struct {
     /** From CO_NMT_init() */
     uint8_t nodeId;
     /** From CO_NMT_init() */
-    CO_NMT_control_t NMTcontrol;
+    uint16_t NMTcontrol;
     /** Producer heartbeat time, calculated from OD 0x1017 */
     uint32_t HBproducerTime_us;
     /** Internal timer for HB producer */
@@ -237,7 +240,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
                              OD_entry_t *OD_1017_ProducerHbTime,
                              CO_EM_t *em,
                              uint8_t nodeId,
-                             CO_NMT_control_t NMTcontrol,
+                             uint16_t NMTcontrol,
                              uint16_t firstHBTime_ms,
                              CO_CANmodule_t *NMT_CANdevRx,
                              uint16_t NMT_rxIdx,
