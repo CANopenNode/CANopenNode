@@ -1370,8 +1370,8 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
         OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
         OD_entry_t *SRDOmap = OD_GET(H1381, OD_H1381_SRDO_1_MAPPING);
         for (uint8_t i = 0; i < CO_GET_CNT(SRDO); i++) {
-            uint16_t CANdevRxIdx = (uint16_t)(CO_GET_CO(RX_IDX_SRDO) + (2U * i));
-            uint16_t CANdevTxIdx = (uint16_t)(CO_GET_CO(TX_IDX_SRDO) + (2U * i));
+            uint16_t CANdevRxIdx = (uint16_t)(CO_GET_CO(RX_IDX_SRDO) + ((uint16_t)(i) * 2U));
+            uint16_t CANdevTxIdx = (uint16_t)(CO_GET_CO(TX_IDX_SRDO) + ((uint16_t)(i) * 2U));
 
             err = CO_SRDO_init(&co->SRDO[i],
                                i,
