@@ -1259,7 +1259,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
             uint16_t preDefinedCanId = 0;
             if (i < CO_RPDO_DEFAULT_CANID_COUNT) {
 #if CO_RPDO_DEFAULT_CANID_COUNT <= 4
-                preDefinedCanId = (CO_CAN_ID_RPDO_1 + (i * 0x100U)) + nodeId;
+                preDefinedCanId = (uint16_t)((CO_CAN_ID_RPDO_1 + (i * 0x100U)) + nodeId);
 #else
                 uint16_t pdoOffset = i % 4;
                 uint16_t nodeIdOffset = i / 4;
@@ -1295,7 +1295,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
             uint16_t preDefinedCanId = 0;
             if (i < CO_TPDO_DEFAULT_CANID_COUNT) {
 #if CO_TPDO_DEFAULT_CANID_COUNT <= 4
-                preDefinedCanId = (CO_CAN_ID_TPDO_1 + (i * 0x100U)) + nodeId;
+                preDefinedCanId = (uint16_t)((CO_CAN_ID_TPDO_1 + (i * 0x100U)) + nodeId);
 #else
                 uint16_t pdoOffset = i % 4;
                 uint16_t nodeIdOffset = i / 4;
@@ -1369,9 +1369,9 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
 
         OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
         OD_entry_t *SRDOmap = OD_GET(H1381, OD_H1381_SRDO_1_MAPPING);
-        for (uint16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
-            uint16_t CANdevRxIdx = CO_GET_CO(RX_IDX_SRDO) + (2U * i);
-            uint16_t CANdevTxIdx = CO_GET_CO(TX_IDX_SRDO) + (2U * i);
+        for (uint8_t i = 0; i < CO_GET_CNT(SRDO); i++) {
+            uint16_t CANdevRxIdx = (uint16_t)(CO_GET_CO(RX_IDX_SRDO) + (2U * i));
+            uint16_t CANdevTxIdx = (uint16_t)(CO_GET_CO(TX_IDX_SRDO) + (2U * i));
 
             err = CO_SRDO_init(&co->SRDO[i],
                                i,
