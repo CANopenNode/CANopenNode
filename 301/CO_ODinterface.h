@@ -486,7 +486,7 @@ static inline uint8_t *OD_getFlagsPDO(OD_entry_t *entry) {
         return &entry->extension->flagsPDO[0];
     }
 #endif
-    return 0;
+    return NULL;
 }
 
 
