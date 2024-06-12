@@ -757,15 +757,15 @@ static inline uint32_t CO_getUint32(const void *buf) {
  * @return number of bytes written.
  */
 static inline uint8_t CO_setUint8(void *buf, uint8_t value) {
-    (void)memmove(buf, (const void *)&value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
 }
 /** Write uint16_t value into memory buffer, see @ref CO_setUint8 */
 static inline uint8_t CO_setUint16(void *buf, uint16_t value) {
-    (void)memmove(buf, (const void *)&value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
 }
 /** Write uint32_t value into memory buffer, see @ref CO_setUint8 */
 static inline uint8_t CO_setUint32(void *buf, uint32_t value) {
-    (void)memmove(buf, (const void *)&value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
 }
 
 /** @} */ /* CO_driver */
