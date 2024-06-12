@@ -737,15 +737,15 @@ void CO_CANmodule_process(CO_CANmodule_t *CANmodule);
  * @return Value
  */
 static inline uint8_t CO_getUint8(const void *buf) {
-    uint8_t value; (void)memmove(&value, buf, sizeof(value)); return value;
+    uint8_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
 }
 /** Get uint16_t value from memory buffer, see @ref CO_getUint8 */
 static inline uint16_t CO_getUint16(const void *buf) {
-    uint16_t value; (void)memmove(&value, buf, sizeof(value)); return value;
+    uint16_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
 }
 /** Get uint32_t value from memory buffer, see @ref CO_getUint8 */
 static inline uint32_t CO_getUint32(const void *buf) {
-    uint32_t value; (void)memmove(&value, buf, sizeof(value)); return value;
+    uint32_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
 }
 
 /**
@@ -757,15 +757,15 @@ static inline uint32_t CO_getUint32(const void *buf) {
  * @return number of bytes written.
  */
 static inline uint8_t CO_setUint8(void *buf, uint8_t value) {
-    (void)memmove(buf, &value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return sizeof(value);
 }
 /** Write uint16_t value into memory buffer, see @ref CO_setUint8 */
 static inline uint8_t CO_setUint16(void *buf, uint16_t value) {
-    (void)memmove(buf, &value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return sizeof(value);
 }
 /** Write uint32_t value into memory buffer, see @ref CO_setUint8 */
 static inline uint8_t CO_setUint32(void *buf, uint32_t value) {
-    (void)memmove(buf, &value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return sizeof(value);
 }
 
 /** @} */ /* CO_driver */
