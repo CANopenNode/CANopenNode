@@ -90,10 +90,10 @@
 #if OD_CNT_EM != 1
  #error OD_CNT_EM from OD.h not correct!
 #endif
- #if (!defined OD_ENTRY_H1003) && (defined CO_MULTIPLE_OD)
+#ifndef OD_ENTRY_H1003
  #define OD_ENTRY_H1003 NULL
 #endif
- #if (!defined OD_CNT_ARR_1003) && (defined CO_MULTIPLE_OD)
+#ifndef OD_CNT_ARR_1003
  #define OD_CNT_ARR_1003 8
 #endif
 #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
@@ -102,7 +102,7 @@
  #else
   #error wrong OD_CNT_EM_PROD
  #endif
- #if (!defined OD_ENTRY_H1015) && (defined CO_MULTIPLE_OD)
+ #ifndef OD_ENTRY_H1015
   #define OD_ENTRY_H1015 NULL
  #endif
 #else
@@ -169,10 +169,10 @@
  #else
   #define CO_TX_CNT_SYNC 0
  #endif
- #if (!defined OD_ENTRY_H1007) && (defined CO_MULTIPLE_OD)
+ #ifndef OD_ENTRY_H1007
   #define OD_ENTRY_H1007 NULL
  #endif
- #if (!defined OD_ENTRY_H1019) && (defined CO_MULTIPLE_OD)
+ #ifndef OD_ENTRY_H1019
   #define OD_ENTRY_H1019 NULL
  #endif
 #else
