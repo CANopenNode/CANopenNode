@@ -463,7 +463,7 @@ typedef struct {
     volatile void *CANrxNew;
     /** 8 data bytes of the received message */
     uint8_t CANrxData[8];
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
     /** From CO_SDOserver_init() */
     CO_CANmodule_t *CANdevRx;
     /** From CO_SDOserver_init() */
@@ -480,7 +480,7 @@ typedef struct {
     /** Extension for OD object */
     OD_extension_t OD_1200_extension;
 #endif
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0) || defined CO_DOXYGEN
     /** Size of data, which will be transferred. It is optionally indicated by
      * client in case of download or by server in case of upload. */
     OD_size_t sizeInd;
@@ -502,7 +502,7 @@ typedef struct {
     /** Offset of first data available for read in the buffer */
     OD_size_t bufOffsetRd;
 #endif
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0) || defined CO_DOXYGEN
     /** Timeout time for SDO sub-block download, half of #SDOtimeoutTime_us */
     uint32_t block_SDOtimeoutTime_us;
     /** Timeout timer for SDO sub-block download */
@@ -518,7 +518,7 @@ typedef struct {
     /** Calculated CRC checksum */
     uint16_t block_crc;
 #endif
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_SDOserver_initCallbackPre() or NULL */
     void (*pFunctSignalPre)(void *object);
     /** From CO_SDOserver_initCallbackPre() or NULL */
@@ -561,7 +561,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                                    uint32_t *errInfo);
 
 
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize SDOrx callback function.
  *

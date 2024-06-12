@@ -25,7 +25,7 @@
 
 #include "303/CO_LEDs.h"
 
-#if (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE
+#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0
 
 /******************************************************************************/
 CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs) {
@@ -142,7 +142,7 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
         LEDs->LEDgreen = gr;
     } /* if (tick) */
 
-#if (CO_CONFIG_LEDS) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_LEDS) & CO_CONFIG_FLAG_TIMERNEXT) != 0
     if (timerNext_us != NULL) {
         uint32_t diff = 50000 - LEDs->LEDtmr50ms;
         if (*timerNext_us > diff) {

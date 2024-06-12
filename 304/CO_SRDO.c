@@ -27,12 +27,12 @@
 
 #include "304/CO_SRDO.h"
 
-#if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0
 
 #include "301/crc16-ccitt.h"
 
 /* verify configuration */
-#if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE)
+#if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE) == 0
 #error CO_CONFIG_CRC16_ENABLE must be enabled.
 #endif
 
@@ -60,7 +60,7 @@ CO_SRDO_receive_normal(void* object, void* msg) {
         (void)memcpy(SRDO->CANrxData[0], data, sizeof(SRDO->CANrxData[0]));
         CO_FLAG_SET(SRDO->CANrxNew[0]);
 
-#if (CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
         /* Optional signal to RTOS, which can resume task, which handles SRDO. */
         if (SRDO->pFunctSignalPre != NULL) {
             SRDO->pFunctSignalPre(SRDO->functSignalObjectPre);
@@ -84,7 +84,7 @@ CO_SRDO_receive_inverted(void* object, void* msg) {
         (void)memcpy(SRDO->CANrxData[1], data, sizeof(SRDO->CANrxData[1]));
         CO_FLAG_SET(SRDO->CANrxNew[1]);
 
-#if (CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
         /* Optional signal to RTOS, which can resume task, which handles SRDO. */
         if (SRDO->pFunctSignalPre != NULL) {
             SRDO->pFunctSignalPre(SRDO->functSignalObjectPre);
@@ -341,7 +341,7 @@ OD_write_13FF(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
     return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
-#if (CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 void
 CO_SRDO_initCallbackPre(CO_SRDO_t* SRDO, void* object, void (*pFunctSignalPre)(void* object)) {
     if (SRDO != NULL) {
@@ -828,7 +828,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                     }
                     else {
                         bool_t data_ok = true;
-#if (CO_CONFIG_SRDO) & CO_CONFIG_SRDO_CHECK_TX
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_CHECK_TX) != 0
                         /* check data before sending (optional) */
                         for (uint8_t i = 0; i < SRDO->dataLength; i++) {
                             if ((uint8_t)(~SRDO->CANtxBuff[0]->data[i]) != SRDO->CANtxBuff[1]->data[i]) {
@@ -858,7 +858,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                 }
                 SRDO->nextIsNormal = !SRDO->nextIsNormal;
             }
-#if (CO_CONFIG_SRDO) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             if (timerNext_us != NULL) {
                 if (*timerNext_us > SRDO->cycleTimer) {
                     *timerNext_us = SRDO->cycleTimer; /* Schedule for the next message timer */
@@ -980,7 +980,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
             else {
                 /* MISRA C 2004 14.10 */
             }
-#if (CO_CONFIG_SRDO) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             if (timerNext_us != NULL) {
                 if (*timerNext_us > SRDO->cycleTimer) {
                     *timerNext_us = SRDO->cycleTimer; /* Schedule for the next message timer */

@@ -26,7 +26,7 @@
 
 #include "309/CO_gateway_ascii.h"
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
 
 #include <stdlib.h>
 #include <string.h>
@@ -35,32 +35,32 @@
 #include <stdio.h>
 
 /* verify configuration */
-#if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE)
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) == 0
  #error CO_CONFIG_FIFO_ENABLE must be enabled.
 #endif
-#if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS)
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) == 0
  #error CO_CONFIG_FIFO_ASCII_COMMANDS must be enabled.
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
- #if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES)
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
+ #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) == 0
   #error CO_CONFIG_FIFO_ASCII_DATATYPES must be enabled.
  #endif
 #endif
 
 /******************************************************************************/
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
                               CO_SDOclient_t* SDO_C,
                               uint16_t SDOclientTimeoutTime_ms,
                               bool_t SDOclientBlockTransfer,
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0) || defined CO_DOXYGEN
                               CO_NMT_t *NMT,
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0) || defined CO_DOXYGEN
                               CO_LSSmaster_t *LSSmaster,
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0) || defined CO_DOXYGEN
                               CO_LEDs_t *LEDs,
 #endif
                               uint8_t dummy)
@@ -68,16 +68,16 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
     (void)dummy;
     /* verify arguments */
     if (gtwa == NULL
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
         || SDO_C == NULL || SDOclientTimeoutTime_ms == 0
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0
         || NMT == NULL
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
         || LSSmaster == NULL
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
         || LEDs == NULL
 #endif
     ) {
@@ -88,18 +88,18 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
     (void)memset(gtwa, 0, sizeof(CO_GTWA_t));
 
     /* initialize variables */
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
     gtwa->SDO_C = SDO_C;
     gtwa->SDOtimeoutTime = SDOclientTimeoutTime_ms;
     gtwa->SDOblockTransferEnable = SDOclientBlockTransfer;
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0
     gtwa->NMT = NMT;
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
     gtwa->LSSmaster = LSSmaster;
 #endif
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
     gtwa->LEDs = LEDs;
 #endif
     gtwa->net_default = -1;
@@ -111,7 +111,7 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
                  &gtwa->commBuf[0],
                  CO_CONFIG_GTWA_COMM_BUF_SIZE + 1);
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0
     CO_fifo_init(&gtwa->logFifo,
                  &gtwa->logBuf[0],
                  CO_CONFIG_GTWA_LOG_BUF_SIZE + 1);
@@ -137,7 +137,7 @@ void CO_GTWA_initRead(CO_GTWA_t* gtwa,
 
 
 /******************************************************************************/
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0
 void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
     if ((gtwa != NULL) && (message != NULL)) {
         const char *c;
@@ -153,7 +153,7 @@ void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
 /*******************************************************************************
  * HELPER FUNCTIONS
  ******************************************************************************/
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) != 0
 /* help strings ("\n" is used between string, "\r\n" closes the response.) */
 static const char CO_GTWA_helpString[] =
 "\nCommand strings start with '\"[\"<sequence>\"]\"' followed by:\n" \
@@ -224,7 +224,7 @@ static const char CO_GTWA_helpStringLss[] =
 "* <scanType>: 0=fastscan, 1=ignore, 2=match value in next parameter\r\n";
 #endif
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
 #define CO_GTWA_LED_PRINTOUTS_SIZE 5
 static const char *CO_GTWA_LED_PRINTOUTS[CO_GTWA_LED_PRINTOUTS_SIZE] = {
     " CANopen status LEDs: R  G         \r",
@@ -266,7 +266,7 @@ static bool_t checkNetNode(CO_GTWA_t *gtwa,
         eCode = CO_GTWA_respErrorUnsupportedNode;
         e = true;
     }
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_MULTI_NET
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_MULTI_NET) != 0
     else if (net == -1) {
         eCode = CO_GTWA_respErrorNoDefaultNetSet;
         e = true;
@@ -291,7 +291,7 @@ static bool_t checkNetNode(CO_GTWA_t *gtwa,
 static bool_t checkNet(CO_GTWA_t *gtwa, int32_t net,
                        CO_GTWA_respErrorCode_t *errCode)
 {
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_MULTI_NET
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_MULTI_NET) != 0
     bool_t e = false;
     CO_GTWA_respErrorCode_t eCode;
 
@@ -321,7 +321,7 @@ static bool_t checkNet(CO_GTWA_t *gtwa, int32_t net,
 }
 
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
 /* data types for SDO read or write */
 static const CO_GTWA_dataType_t dataTypes[] = {
     {"hex", 0, CO_fifo_readHex2a, CO_fifo_cpyTok2Hex},  /* hex, non-standard */
@@ -401,7 +401,7 @@ static bool_t respBufTransfer(CO_GTWA_t *gtwa) {
 }
 
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_ERROR_DESC
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_ERROR_DESC) != 0
 #ifndef CO_CONFIG_GTW_ASCII_ERROR_DESC_STRINGS
 #define CO_CONFIG_GTW_ASCII_ERROR_DESC_STRINGS
 typedef struct {
@@ -438,7 +438,7 @@ static const errorDescs_t errorDescs[] = {
     {505, "LSS command failed because of media error."},
     {600, "Running out of memory."}
 };
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
 static const errorDescs_t errorDescsSDO[] = {
     {0x00000000, "No abort."},
     {0x05030000, "Toggle bit not altered."},
@@ -496,7 +496,7 @@ static void responseWithError(CO_GTWA_t *gtwa,
     respBufTransfer(gtwa);
 }
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
 static void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                  CO_SDO_abortCode_t abortCode,
                                  bool_t postponed)
@@ -537,7 +537,7 @@ static inline void responseWithError(CO_GTWA_t *gtwa,
     respBufTransfer(gtwa);
 }
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
 static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                         CO_SDO_abortCode_t abortCode,
                                         bool_t postponed)
@@ -574,7 +574,7 @@ static inline void responseWithEmpty(CO_GTWA_t *gtwa) {
 }
 
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
 static void responseLSS(CO_GTWA_t *gtwa, CO_LSSmaster_return_t lss_ret) {
     if (lss_ret == CO_LSSmaster_OK) {
         responseWithOK(gtwa);
@@ -804,7 +804,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 gtwa->node_default = value;
                 responseWithOK(gtwa);
             }
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
             /* 'set sdo_timeout <value_ms>' */
             else if (strcmp(tok, "sdo_timeout") == 0) {
                 bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
@@ -853,7 +853,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
         }
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
         /* Upload SDO command - 'r[ead] <index> <subindex> <datatype>' */
         else if ((strcmp(tok, "r") == 0) || (strcmp(tok, "read") == 0)) {
             uint16_t idx;
@@ -1011,7 +1011,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0
         /* NMT start node - 'start' */
         else if (strcmp(tok, "start") == 0) {
             CO_ReturnError_t ret;
@@ -1121,7 +1121,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT */
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
         /* Switch state global command - 'lss_switch_glob <0|1>' */
         else if (strcmp(tok, "lss_switch_glob") == 0) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
@@ -1463,7 +1463,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS */
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0
         /* Print message log */
         else if (strcmp(tok, "log") == 0) {
             if (closed == 0) {
@@ -1474,7 +1474,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) != 0
         /* Print help */
         else if (strcmp(tok, "help") == 0) {
             if (closed == 1) {
@@ -1504,7 +1504,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP */
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
         /* Print status led diodes */
         else if (strcmp(tok, "led") == 0) {
             if (closed == 0) {
@@ -1548,7 +1548,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         return; /* skip timerNext_us calculation */
     }
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
     /* SDO upload state */
     case CO_GTWA_ST_READ: {
         CO_SDO_abortCode_t abortCode;
@@ -1708,7 +1708,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
     case CO_GTWA_ST_LSS_SWITCH_GLOB: {
         CO_LSSmaster_return_t ret;
         ret = CO_LSSmaster_switchStateSelect(gtwa->LSSmaster,
@@ -1985,7 +1985,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     } /* CO_GTWA_ST_LSS_ALLNODES */
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS */
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0
     /* print message log */
     case CO_GTWA_ST_LOG: {
         do {
@@ -2003,7 +2003,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) != 0
     /* Print help string (in multiple segments if necessary) */
     case CO_GTWA_ST_HELP: {
         size_t lenBuf = CO_GTWA_RESP_BUF_SIZE;
@@ -2030,7 +2030,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     }
 #endif
 
-#if (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
     /* print CANopen status LED diodes */
     case CO_GTWA_ST_LED: {
         uint8_t i;

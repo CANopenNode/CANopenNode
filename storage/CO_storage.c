@@ -24,7 +24,7 @@
 
 #include "storage/CO_storage.h"
 
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
 
 /*
  * Custom function for writing OD object "Store parameters"

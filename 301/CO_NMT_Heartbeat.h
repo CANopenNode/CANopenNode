@@ -181,7 +181,7 @@ typedef struct {
     OD_extension_t OD_1017_extension;
     /** From CO_NMT_init() */
     CO_EM_t *em;
-#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0) || defined CO_DOXYGEN
     /** From CO_NMT_init() */
     CO_CANmodule_t *NMT_CANdevTx;
     /** CAN transmit buffer for NMT master message */
@@ -191,13 +191,13 @@ typedef struct {
     CO_CANmodule_t *HB_CANdevTx;
     /** CAN transmit buffer for heartbeat message */
     CO_CANtx_t *HB_TXbuff;
-#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_NMT_initCallbackPre() or NULL */
     void (*pFunctSignalPre)(void *object);
     /** From CO_NMT_initCallbackPre() or NULL */
     void *functSignalObjectPre;
 #endif
-#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) != 0) || defined CO_DOXYGEN
     /** From CO_NMT_initCallbackChanged() or NULL */
     void (*pFunctNMT)(CO_NMT_internalState_t state);
 #endif
@@ -242,7 +242,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
                              CO_CANmodule_t *NMT_CANdevRx,
                              uint16_t NMT_rxIdx,
                              uint16_t CANidRxNMT,
-#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0) || defined CO_DOXYGEN
                              CO_CANmodule_t *NMT_CANdevTx,
                              uint16_t NMT_txIdx,
                              uint16_t CANidTxNMT,
@@ -253,7 +253,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
                              uint32_t *errInfo);
 
 
-#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize NMT callback function after message preprocessed.
  *
@@ -272,7 +272,7 @@ void CO_NMT_initCallbackPre(CO_NMT_t *NMT,
 #endif
 
 
-#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize NMT callback function.
  *

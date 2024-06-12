@@ -30,7 +30,7 @@
 
 #include "305/CO_LSS.h"
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,7 +102,7 @@ typedef struct{
     CO_LSS_cs_t             service;          /**< Service, which will have to be processed by mainline processing function */
     uint8_t                 CANdata[8];       /**< Received CAN data, which will be processed by mainline processing function */
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     void                  (*pFunctSignalPre)(void *object); /**< From CO_LSSslave_initCallbackPre() or NULL */
     void                   *functSignalObjectPre;/**< Pointer to object */
 #endif
@@ -194,7 +194,7 @@ static inline CO_LSS_state_t CO_LSSslave_getState(CO_LSSslave_t *LSSslave) {
 }
 
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize LSSslaveRx callback function.
  *

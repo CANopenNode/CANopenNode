@@ -37,14 +37,14 @@
 #define CO_CONFIG_SDO_CLI (0)
 #endif
 #ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
- #if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+ #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
   #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000
  #else
   #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
  #endif
 #endif
 
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -174,7 +174,7 @@ CO_SDO_abortCode_t write_SDO(CO_SDOclient_t *SDO_C, uint8_t nodeId,
  * SDO client object
  */
 typedef struct {
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0) || defined CO_DOXYGEN
     /** From CO_SDOclient_init() */
     OD_t *OD;
     /** From CO_SDOclient_init() */
@@ -192,7 +192,7 @@ typedef struct {
     uint16_t CANdevTxIdx;
     /** CAN transmit buffer inside CANdevTx for CAN tx message */
     CO_CANtx_t *CANtxBuff;
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
     /** Copy of CANopen COB_ID Client -> Server, meaning of the specific bits:
         - Bit 0...10: 11-bit CAN identifier.
         - Bit 11..30: reserved, must be 0.
@@ -234,17 +234,17 @@ typedef struct {
     volatile void *CANrxNew;
     /** 8 data bytes of the received message */
     uint8_t CANrxData[8];
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_SDOclient_initCallbackPre() or NULL */
     void (*pFunctSignal)(void *object);
     /** From CO_SDOclient_initCallbackPre() or NULL */
     void *functSignalObject;
 #endif
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0) || defined CO_DOXYGEN
     /** Toggle bit toggled in each segment in segmented transfer */
     uint8_t toggle;
 #endif
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0) || defined CO_DOXYGEN
     /** Timeout time for SDO sub-block upload, half of #SDOtimeoutTime_us */
     uint32_t block_SDOtimeoutTime_us;
     /** Timeout timer for SDO sub-block upload */
@@ -297,7 +297,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
                                    uint32_t *errInfo);
 
 
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize SDOclient callback function.
  *

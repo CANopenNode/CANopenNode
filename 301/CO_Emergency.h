@@ -360,14 +360,14 @@ typedef enum {
 
 
 
-#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) \
+#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) \
     || defined CO_DOXYGEN
 /**
  * Fifo buffer for emergency producer and error history
  */
 typedef struct {
     uint32_t msg;
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
     uint32_t info;
 #endif
 } CO_EM_fifo_t;
@@ -387,7 +387,7 @@ typedef struct {
     /** From CO_EM_init() */
     CO_CANmodule_t *CANdevTx;
 
-#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) \
+#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) \
     || defined CO_DOXYGEN
     /** Internal circular FIFO buffer for storing pre-processed emergency
      * messages. Messages are added by @ref CO_error() function. All messages
@@ -411,7 +411,7 @@ typedef struct {
     uint8_t fifoCount;
 #endif /* (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY) */
 
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
     /** True, if emergency producer is enabled, from Object dictionary */
     bool_t producerEnabled;
     /** Copy of CANopen node ID, from CO_EM_init() */
@@ -420,13 +420,13 @@ typedef struct {
     CO_CANtx_t *CANtxBuff;
     /** Extension for OD object */
     OD_extension_t OD_1014_extension;
- #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE) || defined CO_DOXYGEN
+ #if (((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE) != 0) || defined CO_DOXYGEN
     /** COB ID of emergency message, from Object dictionary */
     uint16_t producerCanId;
     /** From CO_EM_init() */
     uint16_t CANdevTxIdx;
  #endif
- #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) || defined CO_DOXYGEN
+ #if (((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN
      /** Inhibit time for emergency message, from Object dictionary */
     uint32_t inhibitEmTime_us;
     /**< Internal timer for inhibit time */
@@ -436,17 +436,17 @@ typedef struct {
  #endif
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER */
 
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0) || defined CO_DOXYGEN
     /** Extension for OD object */
     OD_extension_t OD_1003_extension;
 #endif
 
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) != 0) || defined CO_DOXYGEN
     /** Extension for OD object */
     OD_extension_t OD_statusBits_extension;
 #endif
 
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
     /** From CO_EM_initCallbackRx() or NULL */
     void (*pFunctSignalRx)(const uint16_t ident,
                            const uint16_t errorCode,
@@ -455,7 +455,7 @@ typedef struct {
                            const uint32_t infoCode);
 #endif
 
-#if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_EM_initCallbackPre() or NULL */
     void (*pFunctSignalPre)(void *object);
     /** From CO_EM_initCallbackPre() or NULL */
@@ -501,25 +501,25 @@ typedef struct {
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             CO_CANmodule_t *CANdevTx,
                             const OD_entry_t *OD_1001_errReg,
-#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) \
+#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) \
     || defined CO_DOXYGEN
                             CO_EM_fifo_t *fifo,
                             uint8_t fifoSize,
 #endif
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
                             OD_entry_t *OD_1014_cobIdEm,
                             uint16_t CANdevTxIdx,
- #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) || defined CO_DOXYGEN
+ #if (((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN
                             OD_entry_t *OD_1015_InhTime,
  #endif
 #endif
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0) || defined CO_DOXYGEN
                             OD_entry_t *OD_1003_preDefErr,
 #endif
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) != 0) || defined CO_DOXYGEN
                             OD_entry_t *OD_statusBits,
 #endif
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
                             CO_CANmodule_t *CANdevRx,
                             uint16_t CANdevRxIdx,
 #endif
@@ -527,7 +527,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             uint32_t *errInfo);
 
 
-#if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize Emergency callback function.
  *
@@ -548,7 +548,7 @@ void CO_EM_initCallbackPre(CO_EM_t *em,
 #endif
 
 
-#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
 /**
  * Initialize Emergency received callback function.
  *

@@ -300,7 +300,7 @@ typedef struct {
     uint16_t TX_IDX_NMT_MST; /**< Start index in CANtx. */
     uint16_t TX_IDX_HB_PROD; /**< Start index in CANtx. */
  #endif
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) != 0) || defined CO_DOXYGEN
     /** Heartbeat consumer object, initialised by @ref CO_HBconsumer_init() */
     CO_HBconsumer_t *HBcons;
     /** Object for monitored nodes, initialised by @ref CO_HBconsumer_init() */
@@ -309,7 +309,7 @@ typedef struct {
     uint16_t RX_IDX_HB_CONS; /**< Start index in CANrx. */
  #endif
 #endif
-#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0) || defined CO_DOXYGEN
     /** Node guarding slave object, initialised by @ref CO_nodeGuardingSlave_init() */
     CO_nodeGuardingSlave_t *NGslave;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -317,7 +317,7 @@ typedef struct {
     uint16_t TX_IDX_NG_SLV; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0) || defined CO_DOXYGEN
     /** Node guarding master object, initialised by @ref CO_nodeGuardingMaster_init() */
     CO_nodeGuardingMaster_t *NGmaster;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -331,7 +331,7 @@ typedef struct {
     uint16_t RX_IDX_EM_CONS; /**< Start index in CANrx. */
     uint16_t TX_IDX_EM_PROD; /**< Start index in CANtx. */
  #endif
-#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) \
+#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) \
     || defined CO_DOXYGEN
     /** FIFO for emergency object, initialised by @ref CO_EM_init() */
     CO_EM_fifo_t *em_fifo;
@@ -342,7 +342,7 @@ typedef struct {
     uint16_t RX_IDX_SDO_SRV; /**< Start index in CANrx. */
     uint16_t TX_IDX_SDO_SRV; /**< Start index in CANtx. */
  #endif
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) != 0) || defined CO_DOXYGEN
     /** SDO client objects, initialised by @ref CO_SDOclient_init() */
     CO_SDOclient_t *SDOclient;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -350,7 +350,7 @@ typedef struct {
     uint16_t TX_IDX_SDO_CLI; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) != 0) || defined CO_DOXYGEN
     /** TIME object, initialised by @ref CO_TIME_init() */
     CO_TIME_t *TIME;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -358,7 +358,7 @@ typedef struct {
     uint16_t TX_IDX_TIME; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
     /** SYNC object, initialised by @ref CO_SYNC_init() */
     CO_SYNC_t *SYNC;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -366,25 +366,25 @@ typedef struct {
     uint16_t TX_IDX_SYNC; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) != 0) || defined CO_DOXYGEN
     /** RPDO objects, initialised by @ref CO_RPDO_init() */
     CO_RPDO_t *RPDO;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
     uint16_t RX_IDX_RPDO; /**< Start index in CANrx. */
  #endif
 #endif
-#if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) != 0) || defined CO_DOXYGEN
     /** TPDO objects, initialised by @ref CO_TPDO_init() */
     CO_TPDO_t *TPDO;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
     uint16_t TX_IDX_TPDO; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0) || defined CO_DOXYGEN
     /** LEDs object, initialised by @ref CO_LEDs_init() */
     CO_LEDs_t *LEDs;
 #endif
-#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) != 0) || defined CO_DOXYGEN
     /** GFC object, initialised by @ref CO_GFC_init() */
     CO_GFC_t *GFC;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -392,7 +392,7 @@ typedef struct {
     uint16_t TX_IDX_GFC; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0) || defined CO_DOXYGEN
     /** SRDO guard object, initialised by @ref CO_SRDO_init_start(), single
      * SRDOGuard object is included inside all SRDO objects */
     CO_SRDOGuard_t *SRDOGuard;
@@ -403,7 +403,7 @@ typedef struct {
     uint16_t TX_IDX_SRDO; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) || defined CO_DOXYGEN
     /** LSS slave object, initialised by @ref CO_LSSslave_init(). */
     CO_LSSslave_t *LSSslave;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -411,7 +411,7 @@ typedef struct {
     uint16_t TX_IDX_LSS_SLV; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0) || defined CO_DOXYGEN
     /** LSS master object, initialised by @ref CO_LSSmaster_init(). */
     CO_LSSmaster_t *LSSmaster;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -419,7 +419,7 @@ typedef struct {
     uint16_t TX_IDX_LSS_MST; /**< Start index in CANtx. */
  #endif
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0) || defined CO_DOXYGEN
     /** Gateway-ascii object, initialised by @ref CO_GTWA_init(). */
     CO_GTWA_t *gtwa;
  #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
@@ -486,7 +486,7 @@ bool_t CO_isLSSslaveEnabled(CO_t *co);
 CO_ReturnError_t CO_CANinit(CO_t *co, void *CANptr, uint16_t bitRate);
 
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize CANopen LSS slave
  *
@@ -596,7 +596,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
  *
  * @return CO_ERROR_NO in case of success.
  */
-#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) || ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE)
+#if (((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) != 0) || (((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0)
 CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                     CO_EM_t *em,
                                     OD_t *od,
@@ -633,7 +633,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                               uint32_t *timerNext_us);
 
 
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
 /**
  * Process CANopen SYNC objects.
  *
@@ -654,7 +654,7 @@ bool_t CO_process_SYNC(CO_t *co,
 #endif
 
 
-#if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) != 0) || defined CO_DOXYGEN
 /**
  * Process CANopen RPDO objects.
  *
@@ -676,7 +676,7 @@ void CO_process_RPDO(CO_t *co,
 #endif
 
 
-#if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) != 0) || defined CO_DOXYGEN
 /**
  * Process CANopen TPDO objects.
  *
@@ -698,7 +698,7 @@ void CO_process_TPDO(CO_t *co,
 #endif
 
 
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0) || defined CO_DOXYGEN
 /**
  * Process CANopen SRDO objects.
  *

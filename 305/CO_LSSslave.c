@@ -27,7 +27,7 @@
 
 #include "305/CO_LSSslave.h"
 
-#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE
+#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0
 
 #include <string.h>
 
@@ -161,7 +161,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                     }
                     else { /* MISRA C 2004 14.10 */ }
                     if (ack) {
-#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND
+#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND) != 0
                         LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
                         (void)memset(&LSSslave->TXbuff->data[1], 0,
                                sizeof(LSSslave->TXbuff->data) - 1);
@@ -187,7 +187,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
 
         if (request_LSSslave_process) {
             CO_FLAG_SET(LSSslave->sendResponse);
-#if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
             /* Optional signal to RTOS, which can resume task,
              * which handles further processing. */
             if (LSSslave->pFunctSignalPre != NULL) {
@@ -265,7 +265,7 @@ CO_ReturnError_t CO_LSSslave_init(
 }
 
 
-#if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 /******************************************************************************/
 void CO_LSSslave_initCallbackPre(
         CO_LSSslave_t          *LSSslave,

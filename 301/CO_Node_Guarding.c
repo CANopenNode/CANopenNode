@@ -25,7 +25,7 @@
 
 #include "301/CO_Node_Guarding.h"
 
-#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0
 
 /*
  * Read received message from CAN module.
@@ -240,7 +240,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
     else if (ngs->lifeTimer > 0U) {
         if (timeDifference_us < ngs->lifeTimer) {
             ngs->lifeTimer -= timeDifference_us;
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             /* Calculate, when timeout expires */
             if (timerNext_us != NULL && *timerNext_us > ngs->lifeTimer) {
                 *timerNext_us = ngs->lifeTimer;
@@ -265,7 +265,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
 
 
 
-#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0
 /*
  * Read received message from CAN module.
  *
@@ -402,7 +402,7 @@ void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
         if (node->guardTime_us > 0 && node->ident > CO_CAN_ID_HEARTBEAT) {
             if (timeDifference_us < node->guardTimer) {
                 node->guardTimer -= timeDifference_us;
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT) != 0
                 /* Calculate, when timeout expires */
                 if (timerNext_us != NULL && *timerNext_us > node->guardTimer) {
                     *timerNext_us = node->guardTimer;

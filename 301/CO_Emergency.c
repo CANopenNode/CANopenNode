@@ -48,8 +48,8 @@
  *     to process   to process    to process      full                        *
  ******************************************************************************/
 
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE) != 0
 /*
  * Custom functions for read/write OD object "COB-ID EMCY"
  *
@@ -146,7 +146,7 @@ static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
 }
  #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE */
 
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0
 /*
  * Custom function for writing OD object "Inhibit time EMCY"
  *
@@ -243,7 +243,7 @@ static ODR_t OD_write_1003(OD_stream_t *stream, const void *buf,
 }
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY */
 
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) != 0
 /*
  * Custom functions for read/write OD object _OD_statusBits_, optional
  *
@@ -308,7 +308,7 @@ static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
 }
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS */
 
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
 /*
  * Read received message from CAN module.
  *
@@ -345,24 +345,24 @@ static void CO_EM_receive(void *object, void *msg) {
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             CO_CANmodule_t *CANdevTx,
                             const OD_entry_t *OD_1001_errReg,
-#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
                             CO_EM_fifo_t *fifo,
                             uint8_t fifoSize,
 #endif
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
                             OD_entry_t *OD_1014_cobIdEm,
                             uint16_t CANdevTxIdx,
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0
                             OD_entry_t *OD_1015_InhTime,
  #endif
 #endif
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0
                             OD_entry_t *OD_1003_preDefErr,
 #endif
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) != 0
                             OD_entry_t *OD_statusBits,
 #endif
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
                             CO_CANmodule_t *CANdevRx,
                             uint16_t CANdevRxIdx,
 #endif
@@ -374,17 +374,17 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
     /* verify arguments */
     if ((em == NULL) || (OD_1001_errReg == NULL)
-#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
         || ((fifo == NULL) && (fifoSize >= 2U))
 #endif
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
         || (OD_1014_cobIdEm == NULL) || (CANdevTx == NULL)
         || (nodeId < 1U) || (nodeId > 127U)
 #endif
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0
        || OD_1003_preDefErr == NULL
 #endif
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
        || CANdevRx == NULL
 #endif
     ) {
@@ -405,11 +405,11 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     }
     *em->errorRegister = 0;
 
-#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
     em->fifo = fifo;
     em->fifoSize = fifoSize;
 #endif
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
     /* get initial and verify "COB-ID EMCY" from Object Dictionary */
     uint32_t COB_IDEmergency32;
     ODR_t odRet;
@@ -420,7 +420,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
         if (odRet != ODR_OK) { return CO_ERROR_OD_PARAMETERS; }
     }
 
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE) != 0
     uint16_t producerCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
     em->producerEnabled = (COB_IDEmergency32 & 0x80000000) == 0
                           && producerCanId != 0;
@@ -469,7 +469,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0
     /* get and verify optional "Inhibit time EMCY" from Object Dictionary */
     em->inhibitEmTime_us = 0;
     em->inhibitEmTimer = 0;
@@ -487,7 +487,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER */
 
 
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0
     /* If OD entry available, make access to em->preDefErr */
     em->OD_1003_extension.object = em;
     em->OD_1003_extension.read = OD_read_1003;
@@ -496,7 +496,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY */
 
 
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) != 0
     /* If OD entry available, make access to em->errorStatusBits */
     em->OD_statusBits_extension.object = em;
     em->OD_statusBits_extension.read = OD_read_statusBits;
@@ -505,7 +505,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS */
 
 
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
     em->pFunctSignalRx = NULL;
     /* configure SDO server CAN reception */
     ret = CO_CANrxBufferInit(
@@ -523,7 +523,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
 
 /******************************************************************************/
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
 void CO_EM_initCallbackRx(CO_EM_t *em,
                           void (*pFunctSignalRx)(const uint16_t ident,
                                                  const uint16_t errorCode,
@@ -537,7 +537,7 @@ void CO_EM_initCallbackRx(CO_EM_t *em,
 }
 #endif
 
-#if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 void CO_EM_initCallbackPre(CO_EM_t *em,
                            void *object,
                            void (*pFunctSignal)(void *object))
@@ -633,11 +633,11 @@ void CO_EM_process(CO_EM_t *em,
     }
 
     /* post-process Emergency message in fifo buffer. */
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
     if (em->fifoSize >= 2U) {
         uint8_t fifoPpPtr = em->fifoPpPtr;
 
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0
         if (em->inhibitEmTimer < em->inhibitEmTime_us) {
             em->inhibitEmTimer += timeDifference_us;
         }
@@ -657,7 +657,7 @@ void CO_EM_process(CO_EM_t *em,
                 sizeof(em->CANtxBuff->data));
             CO_CANsend(em->CANdevTx, em->CANtxBuff);
 
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
             /* report also own emergency messages */
             if (em->pFunctSignalRx != NULL) {
                 uint32_t errMsg = em->fifo[fifoPpPtr].msg;
@@ -685,8 +685,8 @@ void CO_EM_process(CO_EM_t *em,
             }
             else { /* MISRA C 2004 14.10 */ }
         }
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT
-  #if (CO_CONFIG_EM) & CO_CONFIG_FLAG_TIMERNEXT
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0
+  #if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_TIMERNEXT) != 0
         else if (timerNext_us != NULL
                  && em->inhibitEmTimer < em->inhibitEmTime_us)
         {
@@ -699,7 +699,7 @@ void CO_EM_process(CO_EM_t *em,
   #endif
  #endif
     }
-#elif (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
+#elif ((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0
     if (em->fifoSize >= 2) {
         uint8_t fifoPpPtr = em->fifoPpPtr;
         while (fifoPpPtr != em->fifoWrPtr) {
@@ -752,10 +752,10 @@ void CO_error(CO_EM_t *em, bool_t setError, const CO_EM_errorStatusBits_t errorB
         errorCode = CO_EMC_NO_ERROR;
     }
 
-#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
     /* prepare emergency message. Error register will be added in post-process*/
     uint32_t errMsg = ((uint32_t)errorBit << 24) | CO_SWAP_16(errorCode);
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
     uint32_t infoCodeSwapped = CO_SWAP_32(infoCode);
  #endif
 #endif
@@ -765,7 +765,7 @@ void CO_error(CO_EM_t *em, bool_t setError, const CO_EM_errorStatusBits_t errorB
     if (setError) { *errorStatusBits |=  bitmask; }
     else {          *errorStatusBits &= ~bitmask; }
 
-#if (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)
+#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
     if (em->fifoSize >= 2) {
         uint8_t fifoWrPtr = em->fifoWrPtr;
         uint8_t fifoWrPtrNext = fifoWrPtr + 1;
@@ -778,7 +778,7 @@ void CO_error(CO_EM_t *em, bool_t setError, const CO_EM_errorStatusBits_t errorB
         }
         else {
             em->fifo[fifoWrPtr].msg = errMsg;
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
             em->fifo[fifoWrPtr].info = infoCodeSwapped;
  #endif
             em->fifoWrPtr = fifoWrPtrNext;
@@ -789,8 +789,8 @@ void CO_error(CO_EM_t *em, bool_t setError, const CO_EM_errorStatusBits_t errorB
 
     CO_UNLOCK_EMCY(em->CANdevTx);
 
-#if (CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE
- #if (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER
+#if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
+ #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
     /* Optional signal to RTOS, which can resume task, which handles
      * CO_EM_process */
     if (em->pFunctSignalPre != NULL && em->producerEnabled) {

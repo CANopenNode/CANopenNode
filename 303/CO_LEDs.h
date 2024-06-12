@@ -35,7 +35,7 @@
                         CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
-#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {

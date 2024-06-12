@@ -26,7 +26,7 @@
 
 #include "304/CO_GFC.h"
 
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) != 0
 
 /*
  * Custom function for reading or writing OD object.
@@ -52,7 +52,7 @@ OD_write_1300(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
     return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_CONSUMER
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_CONSUMER) != 0
 static void
 CO_GFC_receive(void* object, void* msg) {
     CO_GFC_t* GFC;
@@ -98,7 +98,7 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
     GFC->OD_gfcParam_ext.write = OD_write_1300;
     (void)OD_extension_init(OD_1300_gfcParameter, &GFC->OD_gfcParam_ext);
 
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_PRODUCER
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_PRODUCER) != 0
     GFC->CANdevTx = GFC_CANdevTx;
     GFC->CANtxBuff = CO_CANtxBufferInit(GFC->CANdevTx, /* CAN device */
                                         GFC_txIdx,     /* index of specific buffer inside CAN module */
@@ -115,7 +115,7 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
     (void)CANidTxGFC; /* unused */
 #endif
 
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_CONSUMER
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_CONSUMER) != 0
     GFC->functSignalObjectSafe = NULL;
     GFC->pFunctSignalSafe = NULL;
     const CO_ReturnError_t r = CO_CANrxBufferInit(GFC_CANdevRx,    /* CAN device */
@@ -136,7 +136,7 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
     return CO_ERROR_NO;
 }
 
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_PRODUCER
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_PRODUCER) != 0
 CO_ReturnError_t
 CO_GFCsend(CO_GFC_t* GFC) {
     if (GFC->valid) {

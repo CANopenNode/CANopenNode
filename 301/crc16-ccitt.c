@@ -25,8 +25,8 @@
 
 #include "301/crc16-ccitt.h"
 
-#if (CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE
-#if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_EXTERNAL)
+#if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE) != 0
+#if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_EXTERNAL) == 0
 
 /*
  * CRC table calculated by the following algorithm:

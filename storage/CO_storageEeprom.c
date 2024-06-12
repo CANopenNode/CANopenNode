@@ -26,7 +26,7 @@
 #include "storage/CO_eeprom.h"
 #include "301/crc16-ccitt.h"
 
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
 
 /*
  * Function for writing data on "Store parameters" command - OD object 1010

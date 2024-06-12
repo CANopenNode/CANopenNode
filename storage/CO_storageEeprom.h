@@ -28,7 +28,7 @@
 
 #include "storage/CO_storage.h"
 
-#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {

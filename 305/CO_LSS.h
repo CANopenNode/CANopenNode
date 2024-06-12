@@ -35,7 +35,7 @@
                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
 #endif
 
-#if ((CO_CONFIG_LSS) & (CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER)) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & (CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER)) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {

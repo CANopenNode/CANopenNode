@@ -39,7 +39,7 @@
 #define CO_CONFIG_SRDO_MINIMUM_DELAY 0U
 #endif
 
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -185,7 +185,7 @@ typedef struct {
     OD_extension_t OD_communicationParam_ext;
     /** Extension for OD object */
     OD_extension_t OD_mappingParam_extension;
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_SRDO_initCallbackPre() or NULL */
     void (*pFunctSignalPre)(void* object);
     /** From CO_SRDO_initCallbackPre() or NULL */
@@ -259,7 +259,7 @@ CO_ReturnError_t CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_
                               CO_CANmodule_t* CANdevTxNormal, CO_CANmodule_t* CANdevTxInverted,
                               uint16_t CANdevTxIdxNormal, uint16_t CANdevTxIdxInverted, uint32_t* errInfo);
 
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize SRDO callback function.
  *

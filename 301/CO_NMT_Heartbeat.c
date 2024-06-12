@@ -44,7 +44,7 @@ static void CO_NMT_receive(void *object, void *msg) {
     if ((DLC == 2U) && ((nodeId == 0U) || (nodeId == NMT->nodeId))) {
         NMT->internalCommand = command;
 
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
         /* Optional signal to RTOS, which can resume task, which handles NMT. */
         if (NMT->pFunctSignalPre != NULL) {
             NMT->pFunctSignalPre(NMT->functSignalObjectPre);
@@ -89,7 +89,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
                              CO_CANmodule_t *NMT_CANdevRx,
                              uint16_t NMT_rxIdx,
                              uint16_t CANidRxNMT,
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0
                              CO_CANmodule_t *NMT_CANdevTx,
                              uint16_t NMT_txIdx,
                              uint16_t CANidTxNMT,
@@ -104,7 +104,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     /* verify arguments */
     if ((NMT == NULL) || (OD_1017_ProducerHbTime == NULL) || (em == NULL)
         || (NMT_CANdevRx == NULL) || (HB_CANdevTx == NULL)
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0
         || (NMT_CANdevTx == NULL)
 #endif
     ) {
@@ -157,7 +157,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
         return ret;
     }
 
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0
     /* configure NMT CAN transmission */
     NMT->NMT_CANdevTx = NMT_CANdevTx;
     NMT->NMT_TXbuff = CO_CANtxBufferInit(
@@ -189,7 +189,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
 }
 
 
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 void CO_NMT_initCallbackPre(CO_NMT_t *NMT,
                             void *object,
                             void (*pFunctSignal)(void *object))
@@ -202,7 +202,7 @@ void CO_NMT_initCallbackPre(CO_NMT_t *NMT,
 #endif
 
 
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) != 0
 /******************************************************************************/
 void CO_NMT_initCallbackChanged(CO_NMT_t *NMT,
                                 void (*pFunctNMT)(CO_NMT_internalState_t state))
@@ -300,7 +300,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
     }
     else { /* MISRA C 2004 14.10 */ }
 
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) != 0
     /* Notify operating state change */
     if (NMT->operatingStatePrev != NMTstateCpy || NNTinit) {
         if (NMT->pFunctNMT != NULL) {
@@ -309,7 +309,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
     }
 #endif
 
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT) != 0
     /* Calculate, when next Heartbeat needs to be send */
     if (NMT->HBproducerTime_us != 0 && timerNext_us != NULL) {
         if (NMT->operatingStatePrev != NMTstateCpy) {
@@ -328,7 +328,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
 }
 
 
-#if (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER
+#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0
 /******************************************************************************/
 CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
                                     CO_NMT_command_t command,

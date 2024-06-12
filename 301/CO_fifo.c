@@ -25,14 +25,14 @@
 
 #include "301/CO_fifo.h"
 
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) != 0
 
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include "crc16-ccitt.h"
 
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) != 0
 #include <stdio.h>
 #include <inttypes.h>
 
@@ -45,8 +45,8 @@
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
 /* verify configuration */
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT
- #if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE)
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT) != 0
+ #if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE) == 0
   #error CO_CONFIG_CRC16_ENABLE must be enabled.
  #endif
 #endif
@@ -104,7 +104,7 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
 
         *bufDest = *buf;
 
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT) != 0
         if (crc != NULL) {
             crc16_ccitt_single(crc, *buf);
         }
@@ -159,7 +159,7 @@ size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof) {
         }
         i--;
 
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) != 0
         /* is delimiter? */
         if ((eof != NULL) && (c == DELIM_COMMAND)) {
             *eof = true;
@@ -172,7 +172,7 @@ size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof) {
 }
 
 
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) != 0
 /******************************************************************************/
 size_t CO_fifo_altBegin(CO_fifo_t *fifo, size_t offset) {
     size_t i;
@@ -209,7 +209,7 @@ void CO_fifo_altFinish(CO_fifo_t *fifo, uint16_t *crc) {
     else {
         const uint8_t *bufSrc = &fifo->buf[fifo->readPtr];
         while (fifo->readPtr != fifo->altReadPtr) {
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT) != 0
             crc16_ccitt_single(crc, *bufSrc);
 #endif
             /* increment variable */
@@ -254,7 +254,7 @@ size_t CO_fifo_altRead(CO_fifo_t *fifo, uint8_t *buf, size_t count) {
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ */
 
 
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) != 0
 /******************************************************************************/
 bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
     bool_t newCommand = false;
@@ -465,7 +465,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
 
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) != 0
 /******************************************************************************/
 /* Tables for mime-base64 encoding, as specified in RFC 2045, (without CR-LF,
  * but one long string). Base64 is used for encoding binary data into easy

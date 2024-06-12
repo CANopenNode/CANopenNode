@@ -26,23 +26,23 @@
 
 #include "301/CO_SDOclient.h"
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) != 0
 
 /* verify configuration */
 #if CO_CONFIG_SDO_CLI_BUFFER_SIZE < 7
  #error CO_CONFIG_SDO_CLI_BUFFER_SIZE must be set to 7 or more.
 #endif
-#if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE)
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) == 0
  #error CO_CONFIG_FIFO_ENABLE must be enabled.
 #endif
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
- #if !((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED)
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
+ #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) == 0
   #error CO_CONFIG_SDO_CLI_SEGMENTED must be enabled.
  #endif
- #if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ)
+ #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) == 0
   #error CO_CONFIG_FIFO_ALT_READ must be enabled.
  #endif
- #if !((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT)
+ #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_CRC16_CCITT) == 0
   #error CO_CONFIG_FIFO_CRC16_CCITT must be enabled.
  #endif
 #endif
@@ -70,7 +70,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
     if ((SDO_C->state != CO_SDO_ST_IDLE) && (DLC == 8U)
         && (!CO_FLAG_READ(SDO_C->CANrxNew) || (data[0] == 0x80U))
     ) {
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         if ((data[0] == 0x80U) /* abort from server */
             || ((SDO_C->state != CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ)
                 && (SDO_C->state != CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP))
@@ -79,7 +79,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
             /* copy data and set 'new message' flag */
             (void)memcpy((void *)&SDO_C->CANrxData[0], (const void *)&data[0], 8);
             CO_FLAG_SET(SDO_C->CANrxNew);
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
             /* Optional signal to RTOS, which can resume task, which handles
             * SDO client processing. */
             if (SDO_C->pFunctSignal != NULL) {
@@ -87,7 +87,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
             }
 #endif
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         }
         else if (SDO_C->state == CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ) {
             /* block upload, copy data directly */
@@ -153,7 +153,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
                  * barrier here with CO_FLAG_CLEAR() call. */
                 CO_FLAG_CLEAR(SDO_C->CANrxNew);
                 SDO_C->state = state;
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
                 /* Optional signal to RTOS, which can resume task, which handles
                 * SDO client processing. */
                 if (SDO_C->pFunctSignal != NULL) {
@@ -167,7 +167,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
 }
 
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
 /*
  * Custom function for writing OD object _SDO client parameter_
  *
@@ -267,7 +267,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
     }
 
     /* Configure object variables */
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0
     SDO_C->OD = OD;
     SDO_C->nodeId = nodeId;
 #endif
@@ -275,7 +275,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
     SDO_C->CANdevRxIdx = CANdevRxIdx;
     SDO_C->CANdevTx = CANdevTx;
     SDO_C->CANdevTxIdx = CANdevTxIdx;
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
     SDO_C->pFunctSignal = NULL;
     SDO_C->functSignalObject = NULL;
 #endif
@@ -299,7 +299,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
         return CO_ERROR_OD_PARAMETERS;
     }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
     SDO_C->OD_1280_extension.object = SDO_C;
     SDO_C->OD_1280_extension.read = OD_readOriginal;
     SDO_C->OD_1280_extension.write = OD_write_1280;
@@ -328,7 +328,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
 }
 
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 /******************************************************************************/
 void CO_SDOclient_initCallbackPre(CO_SDOclient_t *SDOclient,
                                   void *object,
@@ -341,7 +341,7 @@ void CO_SDOclient_initCallbackPre(CO_SDOclient_t *SDOclient,
 }
 #endif
 
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) && defined CO_BIG_ENDIAN
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0) && defined CO_BIG_ENDIAN
 static inline void reverseBytes(void *start, OD_size_t size) {
     uint8_t *lo = (uint8_t *)start;
     uint8_t *hi = (uint8_t *)start + size - 1;
@@ -371,7 +371,7 @@ CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
     CO_FLAG_CLEAR(SDO_C->CANrxNew);
     SDO_C->nodeIDOfTheSDOServer = nodeIDOfTheSDOServer;
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
     /* proceed only, if parameters change */
     if ((COB_IDClientToServer == SDO_C->COB_IDClientToServer)
         && (COB_IDServerToClient == SDO_C->COB_IDServerToClient)
@@ -451,7 +451,7 @@ CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
     SDO_C->timeoutTimer = 0;
     CO_fifo_reset(&SDO_C->bufFifo);
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0
     /* if node-ID of the SDO server is the same as node-ID of this node, then
      * transfer data within this node */
     if ((SDO_C->OD != NULL) && (SDO_C->nodeId != 0U)
@@ -462,7 +462,7 @@ CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
     }
     else
 #endif
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
     if (blockEnable && ((sizeIndicated == 0U) ||
                         (sizeIndicated > CO_CONFIG_SDO_CLI_PST))
     ) {
@@ -485,7 +485,7 @@ void CO_SDOclientDownloadInitiateSize(CO_SDOclient_t *SDO_C,
 {
     if (SDO_C != NULL) {
         SDO_C->sizeInd = sizeIndicated;
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         if ((SDO_C->state == CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ)
             && (sizeIndicated > 0U) && (sizeIndicated <= CO_CONFIG_SDO_CLI_PST)
         ) {
@@ -530,7 +530,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
     else if (SDO_C->state == CO_SDO_ST_IDLE) {
         ret = CO_SDO_RT_ok_communicationEnd;
     }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0
     /* Transfer data locally **************************************************/
     else if ((SDO_C->state == CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER) && !abort) {
         /* search object dictionary in first pass */
@@ -661,7 +661,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         if (ret != CO_SDO_RT_waitingLocalTransfer) {
             SDO_C->state = CO_SDO_ST_IDLE;
         }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT) != 0
         /* Inform OS to call this function again without delay. */
         else if (timerNext_us != NULL) {
             *timerNext_us = 0;
@@ -699,7 +699,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                         break;
                     }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
                     if (SDO_C->finished) {
                         /* expedited transfer */
                         SDO_C->state = CO_SDO_ST_IDLE;
@@ -723,7 +723,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 break;
             }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
             case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP: {
                 if ((SDO_C->CANrxData[0] & 0xEFU) == 0x20U) {
                     /* verify and alternate toggle bit */
@@ -752,7 +752,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
             case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP: {
                 if ((SDO_C->CANrxData[0] & 0xFBU) == 0xA0U) {
                     /* verify index and subindex */
@@ -862,7 +862,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             abortCode = CO_SDO_AB_TIMEOUT;
             SDO_C->state = CO_SDO_ST_ABORT;
         }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT) != 0
         else if (timerNext_us != NULL) {
             /* check again after timeout time elapsed */
             uint32_t diff = SDO_C->SDOtimeoutTime_us - SDO_C->timeoutTimer;
@@ -917,7 +917,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 SDO_C->finished = true;
             }
             else {
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
                 /* segmented transfer, indicate data size */
                 if (SDO_C->sizeInd > 0U) {
                     uint32_t size = CO_SWAP_32((uint32_t)SDO_C->sizeInd);
@@ -939,7 +939,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             break;
         }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
         case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: {
             /* fill data bytes */
             count = CO_fifo_read(&SDO_C->bufFifo,
@@ -977,7 +977,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ: {
             SDO_C->CANtxBuff->data[0] = 0xC4;
             SDO_C->CANtxBuff->data[1] = (uint8_t)SDO_C->index;
@@ -1034,7 +1034,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             else if (SDO_C->block_seqno >= SDO_C->block_blksize) {
                 SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP;
             }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             else {
                 /* Inform OS to call this function again without delay. */
                 if (timerNext_us != NULL) {
@@ -1081,7 +1081,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithClientAbort;
         }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         else if (SDO_C->state == CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ) {
             ret = CO_SDO_RT_blockDownldInProgress;
         }
@@ -1122,11 +1122,11 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
     CO_fifo_reset(&SDO_C->bufFifo);
     SDO_C->SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 1000U;
     SDO_C->timeoutTimer = 0;
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
     SDO_C->block_SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 700U;
 #endif
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0
     /* if node-ID of the SDO server is the same as node-ID of this node, then
      * transfer data within this node */
     if (((SDO_C->OD != NULL) && (SDO_C->nodeId != 0U))
@@ -1137,7 +1137,7 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
     }
     else
 #endif
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
     if (blockEnable) {
         SDO_C->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ;
     }
@@ -1174,7 +1174,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
     else if (SDO_C->state == CO_SDO_ST_IDLE) {
         ret = CO_SDO_RT_ok_communicationEnd;
     }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL)
     /* Transfer data locally **************************************************/
     else if ((SDO_C->state == CO_SDO_ST_UPLOAD_LOCAL_TRANSFER) && !abort) {
         /* search object dictionary in first pass */
@@ -1276,7 +1276,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         ) {
             SDO_C->state = CO_SDO_ST_IDLE;
         }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT) != 0
         /* Inform OS to call this function again without delay. */
         else if (timerNext_us != NULL) {
             *timerNext_us = 0;
@@ -1330,7 +1330,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         ret = CO_SDO_RT_ok_communicationEnd;
                     }
                     else {
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
                         /* segmented transfer, is size indicated? */
                         if (SDO_C->CANrxData[0] & 0x01U) {
                             uint32_t size;
@@ -1352,7 +1352,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 break;
             }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
             case CO_SDO_ST_UPLOAD_SEGMENT_RSP: {
                 if ((SDO_C->CANrxData[0] & 0xE0U) == 0x00U) {
                     size_t count, countWr;
@@ -1414,7 +1414,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
             case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP: {
                 if ((SDO_C->CANrxData[0] & 0xF9U) == 0xC0U) {
                     uint16_t index;
@@ -1570,7 +1570,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             }
             SDO_C->state = CO_SDO_ST_ABORT;
         }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT) != 0
         else if (timerNext_us != NULL) {
             /* check again after timeout time elapsed */
             uint32_t diff = SDO_C->SDOtimeoutTime_us - SDO_C->timeoutTimer;
@@ -1580,7 +1580,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         }
 #endif
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         /* Timeout for sub-block reception */
         if (SDO_C->state == CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ) {
             if (SDO_C->block_timeoutTimer < SDO_C->block_SDOtimeoutTime_us) {
@@ -1592,7 +1592,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 SDO_C->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP;
                 CO_FLAG_CLEAR(SDO_C->CANrxNew);
             }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             else if (timerNext_us != NULL) {
                 /* check again after timeout time elapsed */
                 uint32_t diff = SDO_C->block_SDOtimeoutTime_us -
@@ -1612,7 +1612,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
 
     /* Transmit CAN data ******************************************************/
     if (ret == CO_SDO_RT_waitingResponse) {
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         size_t count;
 #endif
         (void)memset((void *)&SDO_C->CANtxBuff->data[0], 0, 8);
@@ -1631,7 +1631,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             break;
         }
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
         case CO_SDO_ST_UPLOAD_SEGMENT_REQ: {
             /* verify, if there is enough space in data buffer */
             if (CO_fifo_getSpace(&SDO_C->bufFifo) < 7U) {
@@ -1648,7 +1648,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
 
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ: {
             SDO_C->CANtxBuff->data[0] = 0xA4;
             SDO_C->CANtxBuff->data[1] = (uint8_t)SDO_C->index;
@@ -1729,7 +1729,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         CO_DEBUG_SDO_CLIENT(msg);
                     }
 #endif
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_TIMERNEXT) != 0
                     /* Inform OS to call this function again without delay. */
                     if (timerNext_us != NULL) {
                         *timerNext_us = 0;
@@ -1792,7 +1792,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithClientAbort;
         }
-#if (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         else if (SDO_C->state == CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ) {
             ret = CO_SDO_RT_blockUploadInProgress;
         }

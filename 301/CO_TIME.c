@@ -27,7 +27,7 @@
 
 #include "301/CO_TIME.h"
 
-#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) != 0
 
 /*
  * Read received message from CAN module.
@@ -45,7 +45,7 @@ static void CO_TIME_receive(void *object, void *msg) {
         (void)memcpy(TIME->timeStamp, data, sizeof(TIME->timeStamp));
         CO_FLAG_SET(TIME->CANrxNew);
 
-#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
         /* Optional signal to RTOS, which can resume task, which handles TIME.*/
         if (TIME->pFunctSignalPre != NULL) {
             TIME->pFunctSignalPre(TIME->functSignalObjectPre);
@@ -55,7 +55,7 @@ static void CO_TIME_receive(void *object, void *msg) {
 }
 
 
-#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
 /*
  * Custom function for writing OD object "COB-ID time stamp"
  *
@@ -93,7 +93,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
                               OD_entry_t *OD_1012_cobIdTimeStamp,
                               CO_CANmodule_t *CANdevRx,
                               uint16_t CANdevRxIdx,
-#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0
                               CO_CANmodule_t *CANdevTx,
                               uint16_t CANdevTxIdx,
 #endif
@@ -101,7 +101,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
 {
     /* verify arguments */
     if ((TIME == NULL) || (OD_1012_cobIdTimeStamp == NULL) || (CANdevRx == NULL)
-#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0
         || CANdevTx == NULL
 #endif
     ) {
@@ -117,7 +117,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
         if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1012_cobIdTimeStamp); }
         return CO_ERROR_OD_PARAMETERS;
     }
-#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
     TIME->OD_1012_extension.object = TIME;
     TIME->OD_1012_extension.read = OD_readOriginal;
     TIME->OD_1012_extension.write = OD_write_1012;
@@ -145,7 +145,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
         }
     }
 
-#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0
     /* configure TIME producer message transmission */
     TIME->CANdevTx = CANdevTx;
     TIME->CANtxBuff = CO_CANtxBufferInit(
@@ -165,7 +165,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
 }
 
 
-#if (CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 void CO_TIME_initCallbackPre(CO_TIME_t *TIME,
                              void *object,
                              void (*pFunctSignalPre)(void *object))
@@ -214,7 +214,7 @@ bool_t CO_TIME_process(CO_TIME_t *TIME,
         }
     }
 
-#if (CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0
     if (NMTisPreOrOperational && TIME->isProducer
         && TIME->producerInterval_ms > 0
     ) {

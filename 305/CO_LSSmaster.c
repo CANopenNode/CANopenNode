@@ -26,7 +26,7 @@
 
 #include "305/CO_LSSmaster.h"
 
-#if (CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER
+#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0
 
 #include <string.h>
 
@@ -91,7 +91,7 @@ static void CO_LSSmaster_receive(void *object, void *msg)
 
         CO_FLAG_SET(LSSmaster->CANrxNew);
 
-#if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
         /* Optional signal to RTOS, which can resume task, which handles further processing. */
         if(LSSmaster->pFunctSignal != NULL) {
             LSSmaster->pFunctSignal(LSSmaster->functSignalObject);
@@ -147,7 +147,7 @@ CO_ReturnError_t CO_LSSmaster_init(
     LSSmaster->timeoutTimer = 0;
     CO_FLAG_CLEAR(LSSmaster->CANrxNew);
     (void)memset(LSSmaster->CANrxData, 0, sizeof(LSSmaster->CANrxData));
-#if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
     LSSmaster->pFunctSignal = NULL;
     LSSmaster->functSignalObject = NULL;
 #endif
@@ -191,7 +191,7 @@ void CO_LSSmaster_changeTimeout(
 }
 
 
-#if (CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 /******************************************************************************/
 void CO_LSSmaster_initCallbackPre(
         CO_LSSmaster_t         *LSSmaster,
