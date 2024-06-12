@@ -34,7 +34,7 @@
 #else
 #include "OD.h"
 #define CO_GET_CO(obj) ((uint16_t)(CO_##obj))
-#define CO_GET_CNT(obj) ((uint16_t)(OD_CNT_##obj))
+#define CO_GET_CNT(obj) (uint8_t)(OD_CNT_##obj)
 #define OD_GET(entry, index) OD_ENTRY_##entry
 
 /* Verify parameters from "OD.h" and calculate necessary values for each object:
