@@ -138,7 +138,7 @@ static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
     uint32_t COB_IDEmergency32 = em->producerEnabled ? 0U : 0x80000000U;
-    COB_IDEmergency32 |= (uint32_t)CO_CAN_ID_EMERGENCY + em->nodeId;
+    COB_IDEmergency32 |= CO_CAN_ID_EMERGENCY + em->nodeId;
     (void)CO_setUint32(buf, COB_IDEmergency32);
 
     *countRead = sizeof(uint32_t);
@@ -441,7 +441,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
      * to add nodeId of this node to the stored value. */
     if (producerCanId == CO_CAN_ID_EMERGENCY) producerCanId += nodeId;
  #else
-    uint32_t producerCanId = (uint32_t)CO_CAN_ID_EMERGENCY + nodeId;
+    uint32_t producerCanId = CO_CAN_ID_EMERGENCY + nodeId;
     em->producerEnabled = (COB_IDEmergency32 & 0x80000000U) == 0U;
 
     em->OD_1014_extension.object = em;

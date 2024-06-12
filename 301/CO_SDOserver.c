@@ -352,8 +352,8 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
         /* configure default SDO channel */
         if ((nodeId < 1U) || (nodeId > 127U)) { return CO_ERROR_ILLEGAL_ARGUMENT; }
 
-        CanId_ClientToServer = (uint16_t)CO_CAN_ID_SDO_CLI + nodeId;
-        CanId_ServerToClient = (uint16_t)CO_CAN_ID_SDO_SRV + nodeId;
+        CanId_ClientToServer = CO_CAN_ID_SDO_CLI + nodeId;
+        CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
         SDO->valid = true;
     }
     else {
@@ -365,8 +365,8 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                 return CO_ERROR_ILLEGAL_ARGUMENT;
             }
 
-            CanId_ClientToServer = (uint16_t)CO_CAN_ID_SDO_CLI + nodeId;
-            CanId_ServerToClient = (uint16_t)CO_CAN_ID_SDO_SRV + nodeId;
+            CanId_ClientToServer = CO_CAN_ID_SDO_CLI + nodeId;
+            CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
             SDO->valid = true;
 
             (void)OD_set_u32(OD_1200_SDOsrvPar, 1, CanId_ClientToServer, true);

@@ -469,34 +469,35 @@ typedef struct {
 
 
 /**
- * Default CANopen identifiers.
+ * @defgroup CO_Default_CAN_ID_t Default CANopen identifiers
+ * @{
  *
  * Default CANopen identifiers for CANopen communication objects. Same as
  * 11-bit addresses of CAN messages. These are default identifiers and
  * can be changed in CANopen. Especially PDO identifiers are configured
  * in PDO linking phase of the CANopen network configuration.
  */
-typedef enum {
-    CO_CAN_ID_NMT_SERVICE = 0x000U, /**< 0x000, Network management */
-    CO_CAN_ID_GFC = 0x001U,         /**< 0x001, Global fail-safe command */
-    CO_CAN_ID_SYNC = 0x080U,        /**< 0x080, Synchronous message */
-    CO_CAN_ID_EMERGENCY = 0x080U,   /**< 0x080, Emergency messages (+nodeID) */
-    CO_CAN_ID_TIME = 0x100U,        /**< 0x100, Time message */
-    CO_CAN_ID_SRDO_1 = 0x0FFU,      /**< 0x0FF, Default SRDO1 (+2*nodeID) */
-    CO_CAN_ID_TPDO_1 = 0x180U,      /**< 0x180, Default TPDO1 (+nodeID) */
-    CO_CAN_ID_RPDO_1 = 0x200U,      /**< 0x200, Default RPDO1 (+nodeID) */
-    CO_CAN_ID_TPDO_2 = 0x280U,      /**< 0x280, Default TPDO2 (+nodeID) */
-    CO_CAN_ID_RPDO_2 = 0x300U,      /**< 0x300, Default RPDO2 (+nodeID) */
-    CO_CAN_ID_TPDO_3 = 0x380U,      /**< 0x380, Default TPDO3 (+nodeID) */
-    CO_CAN_ID_RPDO_3 = 0x400U,      /**< 0x400, Default RPDO3 (+nodeID) */
-    CO_CAN_ID_TPDO_4 = 0x480U,      /**< 0x480, Default TPDO4 (+nodeID) */
-    CO_CAN_ID_RPDO_4 = 0x500U,      /**< 0x500, Default RPDO5 (+nodeID) */
-    CO_CAN_ID_SDO_SRV = 0x580U, /**< 0x580, SDO response from server (+nodeID) */
-    CO_CAN_ID_SDO_CLI = 0x600U, /**< 0x600, SDO request from client (+nodeID) */
-    CO_CAN_ID_HEARTBEAT = 0x700U,   /**< 0x700, Heartbeat message */
-    CO_CAN_ID_LSS_SLV = 0x7E4U,     /**< 0x7E4, LSS response from slave */
-    CO_CAN_ID_LSS_MST = 0x7E5U      /**< 0x7E5, LSS request from master */
-} CO_Default_CAN_ID_t;
+#define CO_CAN_ID_NMT_SERVICE   0x000U  /**< 0x000 Network management */
+#define CO_CAN_ID_GFC           0x001U  /**< 0x001 Global fail-safe command */
+#define CO_CAN_ID_SYNC          0x080U  /**< 0x080 Synchronous message */
+#define CO_CAN_ID_EMERGENCY     0x080U  /**< 0x080 Emergency messages (+nodeID) */
+#define CO_CAN_ID_TIME          0x100U  /**< 0x100 Time message */
+#define CO_CAN_ID_SRDO_1        0x0FFU  /**< 0x0FF Default SRDO1 (+2*nodeID) */
+#define CO_CAN_ID_TPDO_1        0x180U  /**< 0x180 Default TPDO1 (+nodeID) */
+#define CO_CAN_ID_RPDO_1        0x200U  /**< 0x200 Default RPDO1 (+nodeID) */
+#define CO_CAN_ID_TPDO_2        0x280U  /**< 0x280 Default TPDO2 (+nodeID) */
+#define CO_CAN_ID_RPDO_2        0x300U  /**< 0x300 Default RPDO2 (+nodeID) */
+#define CO_CAN_ID_TPDO_3        0x380U  /**< 0x380 Default TPDO3 (+nodeID) */
+#define CO_CAN_ID_RPDO_3        0x400U  /**< 0x400 Default RPDO3 (+nodeID) */
+#define CO_CAN_ID_TPDO_4        0x480U  /**< 0x480 Default TPDO4 (+nodeID) */
+#define CO_CAN_ID_RPDO_4        0x500U  /**< 0x500 Default RPDO5 (+nodeID) */
+#define CO_CAN_ID_SDO_SRV       0x580U  /**< 0x580 SDO response from server (+nodeID) */
+#define CO_CAN_ID_SDO_CLI       0x600U  /**< 0x600 SDO request from client (+nodeID) */
+#define CO_CAN_ID_HEARTBEAT     0x700U  /**< 0x700 Heartbeat message */
+#define CO_CAN_ID_LSS_SLV       0x7E4U  /**< 0x7E4 LSS response from slave */
+#define CO_CAN_ID_LSS_MST       0x7E5U  /**< 0x7E5 LSS request from master */
+
+/** @} */ /* CO_Default_CAN_ID_t */
 
 
 /**

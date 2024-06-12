@@ -1058,7 +1058,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
  #endif
                           co->CANmodule,
                           CO_GET_CO(TX_IDX_HB_PROD),
-                          (uint16_t)CO_CAN_ID_HEARTBEAT + nodeId,
+                          CO_CAN_ID_HEARTBEAT + nodeId,
                           errInfo);
         if (err != CO_ERROR_NO) { return err; }
     }
@@ -1082,7 +1082,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     OD_GET(H100C, OD_H100C_GUARD_TIME),
                                     OD_GET(H100D, OD_H100D_LIFETIME_FACTOR),
                                     em,
-                                    (uint16_t)CO_CAN_ID_HEARTBEAT + nodeId,
+                                    CO_CAN_ID_HEARTBEAT + nodeId,
                                     co->CANmodule,
                                     CO_GET_CO(RX_IDX_NG_SLV),
                                     co->CANmodule,
@@ -1258,7 +1258,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
             uint16_t preDefinedCanId = 0;
             if (i < CO_RPDO_DEFAULT_CANID_COUNT) {
 #if CO_RPDO_DEFAULT_CANID_COUNT <= 4
-                preDefinedCanId = ((uint16_t)CO_CAN_ID_RPDO_1 + (i * 0x100U)) + nodeId;
+                preDefinedCanId = (CO_CAN_ID_RPDO_1 + (i * 0x100U)) + nodeId;
 #else
                 uint16_t pdoOffset = i % 4;
                 uint16_t nodeIdOffset = i / 4;
@@ -1292,7 +1292,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
             uint16_t preDefinedCanId = 0;
             if (i < CO_TPDO_DEFAULT_CANID_COUNT) {
 #if CO_TPDO_DEFAULT_CANID_COUNT <= 4
-                preDefinedCanId = ((uint16_t)CO_CAN_ID_TPDO_1 + (i * 0x100U)) + nodeId;
+                preDefinedCanId = (CO_CAN_ID_TPDO_1 + (i * 0x100U)) + nodeId;
 #else
                 uint16_t pdoOffset = i % 4;
                 uint16_t nodeIdOffset = i / 4;
@@ -1374,7 +1374,7 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                od,
                                em,
                                nodeId,
-                               ((i == 0U) ? (uint16_t)CO_CAN_ID_SRDO_1 : 0U),
+                               ((i == 0U) ? CO_CAN_ID_SRDO_1 : 0U),
                                SRDOcomm++,
                                SRDOmap++,
                                OD_GET(H13FE, OD_H13FE_SRDO_VALID),
