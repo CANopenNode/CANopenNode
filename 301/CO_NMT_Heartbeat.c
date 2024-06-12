@@ -239,7 +239,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
                         || (NMTstateCpy != NMT->operatingStatePrev))
     )) {
         NMT->HB_TXbuff->data[0] = (uint8_t) NMTstateCpy;
-        CO_CANsend(NMT->HB_CANdevTx, NMT->HB_TXbuff);
+        (void)CO_CANsend(NMT->HB_CANdevTx, NMT->HB_TXbuff);
 
         if (NMTstateCpy == CO_NMT_INITIALIZING) {
             /* NMT slave self starting */

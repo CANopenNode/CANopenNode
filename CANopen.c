@@ -1480,7 +1480,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 
     /* SDOserver */
     for (uint8_t i = 0; i < CO_GET_CNT(SDO_SRV); i++) {
-        CO_SDOserver_process(&co->SDOserver[i],
+        (void)CO_SDOserver_process(&co->SDOserver[i],
                              NMTisPreOrOperational,
                              timeDifference_us,
                              timerNext_us);
@@ -1510,7 +1510,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 
 #if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) != 0
     if (CO_GET_CNT(TIME) == 1U) {
-        CO_TIME_process(co->TIME, NMTisPreOrOperational, timeDifference_us);
+        (void)CO_TIME_process(co->TIME, NMTisPreOrOperational, timeDifference_us);
     }
 #endif
 

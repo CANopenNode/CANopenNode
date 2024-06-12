@@ -165,7 +165,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                         LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
                         (void)memset(&LSSslave->TXbuff->data[1], 0,
                                sizeof(LSSslave->TXbuff->data) - 1);
-                        CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
+                        (void)CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
 #else
                         LSSslave->service = cs;
                         request_LSSslave_process = true;
@@ -486,7 +486,7 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
         }
 
         if(CANsend) {
-            CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
+            (void)CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
         }
 
         CO_FLAG_CLEAR(LSSslave->sendResponse);

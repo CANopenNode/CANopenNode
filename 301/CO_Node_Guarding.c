@@ -225,7 +225,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
         else {
             ngs->toggle = true;
         }
-        CO_CANsend(ngs->CANdevTx, ngs->CANtxBuff);
+        (void)CO_CANsend(ngs->CANdevTx, ngs->CANtxBuff);
 
         if (ngs->lifeTimeTimeout) {
             /* error bit is shared with HB consumer */
@@ -436,7 +436,7 @@ void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
                                                         node->ident,
                                                         true, 1, 0);
 #endif
-                    CO_CANsend(ngm->CANdevTx, ngm->CANtxBuff);
+                    (void)CO_CANsend(ngm->CANdevTx, ngm->CANtxBuff);
                     node->CANtxWasBusy = false;
                     node->responseRecived = false;
                     node->guardTimer = node->guardTime_us;

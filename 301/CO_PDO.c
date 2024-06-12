@@ -1389,7 +1389,7 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
 
             /* send TPDO */
             if (TPDO->sendRequest && (TPDO->inhibitTimer == 0U)) {
-                CO_TPDOsend(TPDO);
+                (void)CO_TPDOsend(TPDO);
             }
 
  #if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_TIMERNEXT) != 0
@@ -1402,7 +1402,7 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
  #endif
 #else
             if (TPDO->sendRequest) {
-                CO_TPDOsend(TPDO);
+                (void)CO_TPDOsend(TPDO);
             }
 #endif
         } /* if (TPDO->transmissionType >= CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO) */
@@ -1412,7 +1412,7 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
         else if ((TPDO->SYNC != NULL) && syncWas) {
             /* send synchronous acyclic TPDO */
             if (TPDO->transmissionType == (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC) {
-                if (TPDO->sendRequest) { CO_TPDOsend(TPDO); }
+                if (TPDO->sendRequest) { (void)CO_TPDOsend(TPDO); }
             }
             /* send synchronous cyclic TPDO */
             else {
@@ -1434,13 +1434,13 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
                 if (TPDO->syncCounter == 254U) {
                     if (TPDO->SYNC->counter == TPDO->syncStartValue) {
                         TPDO->syncCounter = TPDO->transmissionType;
-                        CO_TPDOsend(TPDO);
+                        (void)CO_TPDOsend(TPDO);
                     }
                 }
                 /* Send TPDO after every N-th Sync */
                 else if (--TPDO->syncCounter == 0U) {
                     TPDO->syncCounter = TPDO->transmissionType;
-                    CO_TPDOsend(TPDO);
+                    (void)CO_TPDOsend(TPDO);
                 }
                 else { /* MISRA C 2004 14.10 */ }
             }

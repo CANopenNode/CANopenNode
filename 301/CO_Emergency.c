@@ -655,7 +655,7 @@ void CO_EM_process(CO_EM_t *em,
             /* send emergency message */
             (void)memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr].msg,
                 sizeof(em->CANtxBuff->data));
-            CO_CANsend(em->CANdevTx, em->CANtxBuff);
+            (void)CO_CANsend(em->CANdevTx, em->CANtxBuff);
 
  #if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
             /* report also own emergency messages */
