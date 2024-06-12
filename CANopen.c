@@ -968,6 +968,10 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 {
     (void)SDOclientTimeoutTime_ms; (void)SDOclientBlockTransfer;
     CO_ReturnError_t err;
+    
+     #if ((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) == 0
+     (void)OD_statusBits; /* may be unused */
+     #endif
 
     if ((co == NULL)
         || ((CO_GET_CNT(NMT) == 0U) && (NMT == NULL))
