@@ -1000,7 +1000,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0
     if (CO_GET_CNT(LEDS) == 1U) {
         err = CO_LEDs_init(co->LEDs);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
     }
 #endif
 
@@ -1037,7 +1037,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
  #endif
                          nodeId,
                          errInfo);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
     }
 
     /* NMT_Heartbeat */
@@ -1060,7 +1060,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                           CO_GET_CO(TX_IDX_HB_PROD),
                           (uint16_t)CO_CAN_ID_HEARTBEAT + nodeId,
                           errInfo);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
     }
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) != 0
@@ -1073,7 +1073,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                  co->CANmodule,
                                  CO_GET_CO(RX_IDX_HB_CONS),
                                  errInfo);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
     }
 #endif
 
@@ -1088,7 +1088,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(TX_IDX_NG_SLV),
                                     errInfo);
-    if (err) { return err; }
+    if (err != CO_ERROR_NO) { return err; }
 #endif
 #if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0
     err = CO_nodeGuardingMaster_init(co->NGmaster,
@@ -1114,7 +1114,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     co->CANmodule,
                                     CO_GET_CO(TX_IDX_SDO_SRV) + i,
                                     errInfo);
-            if (err) { return err; }
+            if (err != CO_ERROR_NO) { return err; }
         }
     }
 
@@ -1147,7 +1147,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            CO_GET_CO(TX_IDX_TIME),
 #endif
                            errInfo);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
     }
 #endif
 
@@ -1166,7 +1166,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            CO_GET_CO(TX_IDX_SYNC),
 #endif
                            errInfo);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
     }
 #endif
 
@@ -1278,7 +1278,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                co->CANmodule,
                                CO_GET_CO(RX_IDX_RPDO) + i,
                                errInfo);
-            if (err) { return err; }
+            if (err != CO_ERROR_NO) { return err; }
         }
     }
 #endif
@@ -1312,7 +1312,7 @@ CO_ReturnError_t CO_CANopenInitPDO(CO_t *co,
                                co->CANmodule,
                                CO_GET_CO(TX_IDX_TPDO) + i,
                                errInfo);
-            if (err) { return err; }
+            if (err != CO_ERROR_NO) { return err; }
         }
     }
 #endif
@@ -1360,7 +1360,7 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                  OD_GET(H13FE, OD_H13FE_SRDO_VALID),
                                  OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
                                  errInfo);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
 
         OD_entry_t *SRDOcomm = OD_GET(H1301, OD_H1301_SRDO_1_PARAM);
         OD_entry_t *SRDOmap = OD_GET(H1381, OD_H1381_SRDO_1_MAPPING);
@@ -1388,7 +1388,7 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                CANdevTxIdx,
                                CANdevTxIdx + 1U,
                                errInfo);
-            if (err) { return err; }
+            if (err != CO_ERROR_NO) { return err; }
         }
 
         CO_SRDO_init_end(co->SRDOGuard);

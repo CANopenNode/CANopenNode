@@ -809,7 +809,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
         if ((SDO->state != CO_SDO_ST_IDLE) && (SDO->state != CO_SDO_ST_ABORT)) {
         switch (SDO->state) {
         case CO_SDO_ST_DOWNLOAD_INITIATE_REQ: {
-            if (SDO->CANrxData[0] & 0x02U) {
+            if ((SDO->CANrxData[0] & 0x02U) != 0U) {
                 /* Expedited transfer, max 4 bytes of data */
 
                 /* Size of OD variable (>0 if indicated) */
@@ -817,7 +817,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
                 /* Get SDO data size (indicated by SDO client or get from OD) */
                 OD_size_t dataSizeToWrite = 4;
-                if (SDO->CANrxData[0] & 0x01U) {
+                if ((SDO->CANrxData[0] & 0x01U) != 0U) {
                     dataSizeToWrite -= (SDO->CANrxData[0] >> 2) & 0x03U;
                 }
                 else if ((sizeInOd > 0U) && (sizeInOd < 4U)) {
@@ -880,7 +880,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             else {
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
                 /* segmented transfer, is size indicated? */
-                if (SDO->CANrxData[0] & 0x01U) {
+                if ((SDO->CANrxData[0] & 0x01U) != 0U) {
                     uint32_t size;
                     OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
 
