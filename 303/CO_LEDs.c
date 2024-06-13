@@ -83,25 +83,25 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
                 case 1: rd |= (uint8_t)CO_LED_flash_1; break;
                 case 2: gr |= (uint8_t)CO_LED_flash_1; break;
                 case 6: LEDs->LEDtmrflash_1 = 0; break;
-                default: break;
+                default: /* none */ break;
             }
             switch (++LEDs->LEDtmrflash_2) {
                 case 1: case 3: rd |= (uint8_t)CO_LED_flash_2; break;
                 case 2: case 4: gr |= (uint8_t)CO_LED_flash_2; break;
                 case 8: LEDs->LEDtmrflash_2 = 0; break;
-                default: break;
+                default: /* none */ break;
             }
             switch (++LEDs->LEDtmrflash_3) {
                 case 1: case 3: case 5: rd |= (uint8_t)CO_LED_flash_3; break;
                 case 2: case 4: case 6: gr |= (uint8_t)CO_LED_flash_3; break;
                 case 10: LEDs->LEDtmrflash_3 = 0; break;
-                default: break;
+                default: /* none */ break;
             }
             switch (++LEDs->LEDtmrflash_4) {
                 case 1: case 3: case 5: case 7: rd |= (uint8_t)CO_LED_flash_4; break;
                 case 2: case 4: case 6: case 8: gr |= (uint8_t)CO_LED_flash_4; break;
                 case 12: LEDs->LEDtmrflash_4 = 0; break;
-                default: break;
+                default: /* none */ break;
             }
         }
         else {
