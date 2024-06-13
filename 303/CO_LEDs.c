@@ -73,7 +73,8 @@ void CO_LEDs_process(CO_LEDs_t *LEDs,
         if (++LEDs->LEDtmr200ms > 3U) {
             /* calculate 2,5Hz blinking and flashing */
             LEDs->LEDtmr200ms = 0;
-            rd = gr = 0;
+            rd = 0;
+            gr = 0;
 
             if ((LEDs->LEDred & (uint8_t)CO_LED_blink) == 0U) { rd |= (uint8_t)CO_LED_blink; }
             else                                    { gr |= (uint8_t)CO_LED_blink; }
