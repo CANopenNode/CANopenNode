@@ -308,7 +308,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     SYNC->isProducer = (cobIdSync & 0x40000000U) != 0U;
 #endif
 #if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
-    SYNC->CAN_ID = cobIdSync & 0x7FFU;
+    SYNC->CAN_ID = (uint16_t)(cobIdSync & 0x7FFU);
     SYNC->CANdevRx = CANdevRx;
     SYNC->CANdevRxIdx = CANdevRxIdx;
  #if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
@@ -321,7 +321,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     CO_ReturnError_t ret = CO_CANrxBufferInit(
             CANdevRx,           /* CAN device */
             CANdevRxIdx,        /* rx buffer index */
-            cobIdSync & 0x7FFU,  /* CAN identifier */
+            (uint16_t)(cobIdSync & 0x7FFU),  /* CAN identifier */
             0x7FF,              /* mask */
             false,                  /* rtr */
             (void*)SYNC,        /* object passed to receive function */
