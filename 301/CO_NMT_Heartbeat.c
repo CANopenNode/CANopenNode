@@ -284,12 +284,15 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
     }
 
     /* verify NMT transitions based on error register */
-    bool_t busOff_HB = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_ON_BUSOFF_HB) != 0U)
-                    && (CO_isError(NMT->em, CO_EM_CAN_TX_BUS_OFF)
-                        || CO_isError(NMT->em, CO_EM_HEARTBEAT_CONSUMER)
-                        || CO_isError(NMT->em, CO_EM_HB_CONSUMER_REMOTE_RESET));
-    bool_t errRegMasked = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_ON_ERR_REG) != 0U)
-                    && ((CO_getErrorRegister(NMT->em) & (uint8_t)NMT->NMTcontrol) != 0U);
+    bool_t ErrOnBusOffHB = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_ON_BUSOFF_HB) != 0U);
+    bool_t ErrBusOff = CO_isError(NMT->em, CO_EM_CAN_TX_BUS_OFF);
+    bool_t ErrHbCons = CO_isError(NMT->em, CO_EM_HEARTBEAT_CONSUMER);
+    bool_t ErrHbConsRemote = CO_isError(NMT->em, CO_EM_HB_CONSUMER_REMOTE_RESET);
+    bool_t busOff_HB = ErrOnBusOffHB && (ErrBusOff|| ErrHbCons || ErrHbConsRemote);
+
+    bool_t ErrNMTErrReg = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_ON_ERR_REG) != 0U);
+    bool_t ErrNMTcontrol =((CO_getErrorRegister(NMT->em) & (uint8_t)NMT->NMTcontrol) != 0U);
+    bool_t errRegMasked = ErrNMTErrReg && ErrNMTcontrol;
 
     if ((NMTstateCpy == CO_NMT_OPERATIONAL) && (busOff_HB || errRegMasked)) {
         NMTstateCpy = (((uint16_t)NMT->NMTcontrol & (uint16_t)CO_NMT_ERR_TO_STOPPED) != 0U)
