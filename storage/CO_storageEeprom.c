@@ -211,7 +211,9 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
         /* additional info in case of error */
         if (dataCorrupt) {
             uint32_t errorBit = entry->subIndexOD;
-            if (errorBit > 31U) errorBit = 31;
+            if (errorBit > 31U) {
+                errorBit = 31;
+            }
             *storageInitError |= ((uint32_t) 1) << errorBit;
             ret = CO_ERROR_DATA_CORRUPT;
         }
@@ -233,8 +235,9 @@ void CO_storageEeprom_auto_process(CO_storage_t *storage, bool_t saveAll) {
     for (uint8_t i = 0; i < storage->entriesCount; i++) {
         CO_storage_entry_t *entry = &storage->entries[i];
 
-        if ((entry->attr & (uint8_t)CO_storage_auto) == 0U)
+        if ((entry->attr & (uint8_t)CO_storage_auto) == 0U) {
             continue;
+        }
 
         if (saveAll) {
             /* update all bytes */

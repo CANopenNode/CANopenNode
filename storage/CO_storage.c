@@ -60,19 +60,26 @@ static ODR_t OD_write_1010(OD_stream_t *stream, const void *buf,
         CO_storage_entry_t *entry = &storage->entries[i];
 
         if ((stream->subIndex == 1U) || (entry->subIndexOD == stream->subIndex)) {
-            if (found == 0U) found = 1;
+            if (found == 0U) {
+                found = 1;
+            }
             if ((entry->attr & (uint8_t)CO_storage_cmd) != 0U) {
                 ODR_t code = storage->store(entry, storage->CANmodule);
-                if (code != ODR_OK) returnCode = code;
+                if (code != ODR_OK) {
+                    returnCode = code;
+                }
                 found = 2;
             }
         }
     }
 
-    if (found != 2U)
+    if (found != 2U) {
         returnCode = (found == 0U) ? ODR_SUB_NOT_EXIST : ODR_READONLY;
+    }
 
-    if (returnCode == ODR_OK) *countWritten = sizeof(uint32_t);
+    if (returnCode == ODR_OK) {
+        *countWritten = sizeof(uint32_t);
+    }
     return returnCode;
 }
 
@@ -111,19 +118,26 @@ static ODR_t OD_write_1011(OD_stream_t *stream, const void *buf,
         CO_storage_entry_t *entry = &storage->entries[i];
 
         if ((stream->subIndex == 1U) || (entry->subIndexOD == stream->subIndex)) {
-            if (found == 0U) found = 1;
+            if (found == 0U) {
+                found = 1;
+            }
             if ((entry->attr & (uint8_t)CO_storage_restore) != 0U) {
                 ODR_t code = storage->restore(entry, storage->CANmodule);
-                if (code != ODR_OK) returnCode = code;
+                if (code != ODR_OK) {
+                    returnCode = code;
+                }
                 found = 2;
             }
         }
     }
 
-    if (found != 2U)
+    if (found != 2U) {
         returnCode = (found == 0U) ? ODR_SUB_NOT_EXIST : ODR_READONLY;
+    }
 
-    if (returnCode == ODR_OK) *countWritten = sizeof(uint32_t);
+    if (returnCode == ODR_OK) {
+        *countWritten = sizeof(uint32_t);
+    }
     return returnCode;
 }
 
