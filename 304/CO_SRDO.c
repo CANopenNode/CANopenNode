@@ -498,7 +498,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
         }
 
         /* if OD contains default COB_IDs, add node-id */
-        if ((COB_ID1_normal == defaultCOB_ID) && (COB_ID2_inverted == (uint32_t)(defaultCOB_ID + 1U)) && (nodeId <= 64U)) {
+        if ((COB_ID1_normal == defaultCOB_ID) && (COB_ID2_inverted == ((uint32_t)defaultCOB_ID + 1UL)) && (nodeId <= 64U)) {
             uint32_t add = (uint32_t)SRDO->nodeId * 2U;
             COB_ID1_normal += add;
             COB_ID2_inverted += add;
