@@ -1595,6 +1595,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 #endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
 
         default: {
+            /* none */
             break;
         }
         } /* switch (SDO->state) */
