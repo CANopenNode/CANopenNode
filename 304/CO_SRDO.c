@@ -155,7 +155,7 @@ OD_not_write_same_value(OD_stream_t *stream, const void *buf, OD_size_t count) {
     if ( returnCode != ODR_OK ){
         return false;
     }
-    if ( memcmp(buf,bufRead,count) == 0 ){
+    if ( memcmp((const void *)(buf),(const void *)(bufRead),count) == 0 ){
         return true;
     }
     return false;
@@ -199,7 +199,7 @@ OD_write_SRDO_communicationParam(OD_stream_t* stream, const void* buf, OD_size_t
     CO_SRDO_t* SRDO = stream->object;
     CO_SRDOGuard_t* SRDOGuard = SRDO->SRDOGuard;
     uint8_t bufCopy[4];
-    (void)memcpy(bufCopy, buf, count);
+    (void)memcpy((void *)(bufCopy), (const void *)(buf), count);
 
     /* Writing Object Dictionary variable */
     if (SRDOGuard->NMTisOperational) {
