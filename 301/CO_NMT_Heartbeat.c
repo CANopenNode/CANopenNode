@@ -277,6 +277,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
                 break;
             case CO_NMT_NO_COMMAND:
             default:
+                /* done */
                 break;
         }
         NMT->internalCommand = CO_NMT_NO_COMMAND;
