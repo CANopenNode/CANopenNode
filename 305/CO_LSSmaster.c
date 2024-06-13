@@ -1050,7 +1050,7 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
                 (void)memset(&fastscan->found, 0, sizeof(fastscan->found));
 
                 /* start scanning procedure by triggering vendor ID scan */
-                CO_LSSmaster_FsScanInitiate(LSSmaster, timeDifference_us,
+                (void)CO_LSSmaster_FsScanInitiate(LSSmaster, timeDifference_us,
                       fastscan->scan[CO_LSS_FASTSCAN_VENDOR_ID],
                       CO_LSS_FASTSCAN_VENDOR_ID);
                 ret = CO_LSSmaster_WAIT_SLAVE;
