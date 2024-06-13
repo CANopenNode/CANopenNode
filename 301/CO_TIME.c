@@ -131,7 +131,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
     CO_FLAG_CLEAR(TIME->CANrxNew);
 
     /* configure TIME consumer message reception */
-	if (TIME->isConsumer) {
+    if (TIME->isConsumer) {
         CO_ReturnError_t ret = CO_CANrxBufferInit(
                 CANdevRx,       /* CAN device */
                 CANdevRxIdx,    /* rx buffer index */
