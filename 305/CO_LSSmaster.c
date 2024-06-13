@@ -428,7 +428,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
         case 20:    bitTiming = CO_LSS_BIT_TIMING_20;   break;
         case 10:    bitTiming = CO_LSS_BIT_TIMING_10;   break;
         case 0:     bitTiming = CO_LSS_BIT_TIMING_AUTO; break;
-        default:    return CO_LSSmaster_ILLEGAL_ARGUMENT;
+        default:    return CO_LSSmaster_ILLEGAL_ARGUMENT; break;
     }
 
     /* Initiate config bit */
@@ -812,9 +812,11 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanInitiate(
         case CO_LSSmaster_FS_MATCH:
             /* No scanning requested */
             return CO_LSSmaster_SCAN_FINISHED;
+            break;
         case CO_LSSmaster_FS_SKIP:
         default:
             return CO_LSSmaster_SCAN_FAILED;
+            break;
     }
 
     LSSmaster->fsBitChecked = CO_LSS_FASTSCAN_BIT31;
@@ -842,9 +844,11 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanWait(
         case CO_LSSmaster_FS_MATCH:
             /* No scanning requested */
             return CO_LSSmaster_SCAN_FINISHED;
+            break;
         case CO_LSSmaster_FS_SKIP:
         default:
             return CO_LSSmaster_SCAN_FAILED;
+            break;
     }
 
     ret = CO_LSSmaster_check_timeout(LSSmaster, timeDifference_us);
@@ -905,6 +909,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyInitiate(
         case CO_LSSmaster_FS_SKIP:
         default:
             return CO_LSSmaster_SCAN_FAILED;
+            break;
     }
 
     LSSmaster->fsBitChecked = CO_LSS_FASTSCAN_BIT0;
