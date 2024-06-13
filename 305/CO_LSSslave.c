@@ -182,7 +182,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
             }
         }
         else { /* LSSslave->lssState == CO_LSS_STATE_CONFIGURATION */
-            (void)memcpy((void *)(&LSSslave->CANdata), (const void *)(&data[0]), sizeof(LSSslave->CANdata));
+            (void)memcpy((void *)(&LSSslave->CANdata[0]), (const void *)(&data[0]), sizeof(LSSslave->CANdata));
             LSSslave->service = cs;
             request_LSSslave_process = true;
         }
