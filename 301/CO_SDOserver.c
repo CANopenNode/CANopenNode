@@ -510,10 +510,12 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
             && ((sizeInOd == 0U) || (SDO->sizeTran < sizeInOd))
             && ((SDO->bufOffsetWr + 2U) <= CO_CONFIG_SDO_SRV_BUFFER_SIZE)
         ) {
-            SDO->buf[SDO->bufOffsetWr++] = 0;
+            SDO->buf[SDO->bufOffsetWr] = 0;
+            SDO->bufOffsetWr++;
             SDO->sizeTran++;
             if ((sizeInOd == 0U) || (SDO->sizeTran < sizeInOd)) {
-                SDO->buf[SDO->bufOffsetWr++] = 0;
+                SDO->buf[SDO->bufOffsetWr] = 0;
+                SDO->bufOffsetWr++;
                 SDO->sizeTran++;
             }
             SDO->OD_IO.stream.dataLength = SDO->sizeTran;
