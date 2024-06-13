@@ -133,7 +133,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     uint16_t guardTime_ms;
     ODR_t odRet = OD_get_u16(OD_100C_GuardTime, 0, &guardTime_ms, true);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_100C_GuardTime);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_100C_GuardTime);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
     ngs->guardTime_us = (uint32_t)guardTime_ms * 1000U;
@@ -143,7 +145,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     ngs->OD_100C_extension.write = OD_write_100C;
     odRet = OD_extension_init(OD_100C_GuardTime, &ngs->OD_100C_extension);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_100C_GuardTime);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_100C_GuardTime);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -151,7 +155,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     uint8_t lifeTimeFactor;
     odRet = OD_get_u8(OD_100D_LifeTimeFactor, 0, &lifeTimeFactor, true);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_100D_LifeTimeFactor);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_100D_LifeTimeFactor);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
     ngs->lifeTimeFactor = lifeTimeFactor;
@@ -162,7 +168,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     ngs->OD_100D_extension.write = OD_write_100D;
     odRet = OD_extension_init(OD_100D_LifeTimeFactor, &ngs->OD_100D_extension);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_100D_LifeTimeFactor);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_100D_LifeTimeFactor);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
 
