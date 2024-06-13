@@ -256,6 +256,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
                            CO_EMC_HEARTBEAT, 0);
         }
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     return;
 }
