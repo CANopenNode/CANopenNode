@@ -84,25 +84,25 @@ static void CO_LSSslave_receive(void *object, void *msg)
             switch (cs) {
             case CO_LSS_SWITCH_STATE_SEL_VENDOR: {
                 uint32_t valSw;
-                (void)memcpy(&valSw, &data[1], sizeof(valSw));
+                (void)memcpy((void *)(&valSw), (const void *)(&data[1]), sizeof(valSw));
                 LSSslave->lssSelect.identity.vendorID = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_PRODUCT: {
                 uint32_t valSw;
-                (void)memcpy(&valSw, &data[1], sizeof(valSw));
+                (void)memcpy((void *)(&valSw), (const void *)(&data[1]), sizeof(valSw));
                 LSSslave->lssSelect.identity.productCode = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_REV: {
                 uint32_t valSw;
-                (void)memcpy(&valSw, &data[1], sizeof(valSw));
+                (void)memcpy((void *)(&valSw), (const void *)(&data[1]), sizeof(valSw));
                 LSSslave->lssSelect.identity.revisionNumber = CO_SWAP_32(valSw);
                 break;
             }
             case CO_LSS_SWITCH_STATE_SEL_SERIAL: {
                 uint32_t valSw;
-                (void)memcpy(&valSw, &data[1], sizeof(valSw));
+                (void)memcpy((void *)(&valSw), (const void *)(&data[1]), sizeof(valSw));
                 LSSslave->lssSelect.identity.serialNumber = CO_SWAP_32(valSw);
 
                 if (CO_LSS_ADDRESS_EQUAL(LSSslave->lssAddress,
@@ -133,7 +133,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                         break;
                     }
 
-                    (void)memcpy(&valSw, &data[1], sizeof(valSw));
+                    (void)memcpy((void *)(&valSw), (const void *)(&data[1]), sizeof(valSw));
                     idNumber = CO_SWAP_32(valSw);
                     ack = false;
 
@@ -182,7 +182,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
             }
         }
         else { /* LSSslave->lssState == CO_LSS_STATE_CONFIGURATION */
-            (void)memcpy(&LSSslave->CANdata, &data[0], sizeof(LSSslave->CANdata));
+            (void)memcpy((void *)(&LSSslave->CANdata), (const void *)(&data[0]), sizeof(LSSslave->CANdata));
             LSSslave->service = cs;
             request_LSSslave_process = true;
         }
@@ -446,28 +446,28 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
         case CO_LSS_INQUIRE_VENDOR: {
             LSSslave->TXbuff->data[0] = LSSslave->service;
             valSw = CO_SWAP_32(LSSslave->lssAddress.identity.vendorID);
-            (void)memcpy(&LSSslave->TXbuff->data[1], &valSw, sizeof(valSw));
+            (void)memcpy((void *)(&LSSslave->TXbuff->data[1]), (const void *)(&valSw), sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_PRODUCT: {
             LSSslave->TXbuff->data[0] = LSSslave->service;
             valSw = CO_SWAP_32(LSSslave->lssAddress.identity.productCode);
-            (void)memcpy(&LSSslave->TXbuff->data[1], &valSw, sizeof(valSw));
+            (void)memcpy((void *)(&LSSslave->TXbuff->data[1]), (const void *)(&valSw), sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_REV: {
             LSSslave->TXbuff->data[0] = LSSslave->service;
             valSw = CO_SWAP_32(LSSslave->lssAddress.identity.revisionNumber);
-            (void)memcpy(&LSSslave->TXbuff->data[1], &valSw, sizeof(valSw));
+            (void)memcpy((void *)(&LSSslave->TXbuff->data[1]), (const void *)(&valSw), sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_SERIAL: {
             LSSslave->TXbuff->data[0] = LSSslave->service;
             valSw = CO_SWAP_32(LSSslave->lssAddress.identity.serialNumber);
-            (void)memcpy(&LSSslave->TXbuff->data[1], &valSw, sizeof(valSw));
+            (void)memcpy((void *)(&LSSslave->TXbuff->data[1]), (const void *)(&valSw), sizeof(valSw));
             CANsend = true;
             break;
         }
