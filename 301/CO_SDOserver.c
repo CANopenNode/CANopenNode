@@ -887,7 +887,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     uint32_t size;
                     OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
 
-                    (void)memcpy(&size, &SDO->CANrxData[4], sizeof(size));
+                    (void)memcpy((void *)(&size), (const void *)(&SDO->CANrxData[4]), sizeof(size));
                     SDO->sizeInd = CO_SWAP_32(size);
 
                     /* Indicated size of SDO matches sizeof OD variable? */
@@ -1291,7 +1291,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             if ((SDO->sizeInd > 0U) && (SDO->sizeInd <= 4U)) {
                 /* expedited transfer */
                 SDO->CANtxBuff->data[0] = (uint8_t)(0x43U|((4U-SDO->sizeInd)<<2U));
-                (void)memcpy(&SDO->CANtxBuff->data[4], &SDO->buf, SDO->sizeInd);
+                (void)memcpy((void *)(&SDO->CANtxBuff->data[4]), (const void *)((&SDO->buf), SDO->sizeInd);
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
             }
@@ -1302,8 +1302,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     uint32_t sizeInd = SDO->sizeInd;
                     uint32_t sizeIndSw = CO_SWAP_32(sizeInd);
                     SDO->CANtxBuff->data[0] = 0x41;
-                    (void)memcpy(&SDO->CANtxBuff->data[4],
-                           &sizeIndSw, sizeof(sizeIndSw));
+                    (void)memcpy((void *)(&SDO->CANtxBuff->data[4]),
+                           (const void *)(&sizeIndSw), sizeof(sizeIndSw));
                 }
                 else {
                     SDO->CANtxBuff->data[0] = 0x40;
@@ -1609,7 +1609,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->CANtxBuff->data[2] = (uint8_t)(SDO->index >> 8);
             SDO->CANtxBuff->data[3] = SDO->subIndex;
 
-            (void)memcpy(&SDO->CANtxBuff->data[4], &code, sizeof(code));
+            (void)memcpy((void *)(&SDO->CANtxBuff->data[4]), (const void *)(&code), sizeof(code));
             (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;
