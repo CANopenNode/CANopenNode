@@ -304,6 +304,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
     else if (LSSmaster->command == CO_LSSmaster_COMMAND_SWITCH_STATE) {
         ret = CO_LSSmaster_switchStateSelectWait(LSSmaster, timeDifference_us);
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
@@ -453,6 +454,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
         ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_CFG_BIT_TIMING);
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
@@ -498,6 +500,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
         ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_CFG_NODE_ID);
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
@@ -538,6 +541,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureStore(
         ret = CO_LSSmaster_configureCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_CFG_STORE);
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
         /* finished */
@@ -670,6 +674,8 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
         ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_us,
                 CO_LSS_INQUIRE_SERIAL, &lssAddress->identity.serialNumber);
     }
+    else { /* MISRA C 2004 14.10 */ }
+
     /* Check for next request */
     if ((LSSmaster->state == CO_LSSmaster_STATE_CFG_SLECTIVE) ||
         (LSSmaster->state == CO_LSSmaster_STATE_CFG_GLOBAL)) {
@@ -698,6 +704,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
 
             ret = CO_LSSmaster_inquireInitiate(LSSmaster, CO_LSS_INQUIRE_SERIAL);
         }
+        else { /* MISRA C 2004 14.10 */ }
     }
 
     if ((ret!=CO_LSSmaster_INVALID_STATE) && (ret!=CO_LSSmaster_WAIT_SLAVE)) {
@@ -736,6 +743,7 @@ CO_LSSmaster_return_t CO_LSSmaster_Inquire(
       ret = CO_LSSmaster_inquireCheckWait(LSSmaster, timeDifference_us,
                                           lssInquireCs, value);
   }
+  else { /* MISRA C 2004 14.10 */ }
 
   if (ret != CO_LSSmaster_WAIT_SLAVE) {
       LSSmaster->command = CO_LSSmaster_COMMAND_WAITING;
