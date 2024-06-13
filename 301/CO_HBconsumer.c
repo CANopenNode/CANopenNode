@@ -98,9 +98,9 @@ static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
 
     uint32_t val = CO_getUint32(buf);
     uint8_t nodeId = (uint8_t)((val >> 16) & 0xFFU);
-    uint16_t time = (uint16_t)(val & 0xFFFFU);
+    uint16_t consumer_time = (uint16_t)(val & 0xFFFFU);
     CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - 1U,
-                                                   nodeId, time);
+                                                   nodeId, consumer_time);
     if (ret != CO_ERROR_NO) {
         return ODR_PAR_INCOMPAT;
     }
@@ -151,8 +151,8 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
         }
 
         uint8_t nodeId = (uint8_t)((val >> 16) & 0xFFU);
-        uint16_t time = (uint16_t)(val & 0xFFFFU);
-        CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, time);
+        uint16_t consumer_time = (uint16_t)(val & 0xFFFFU);
+        CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, consumer_time);
         if (ret != CO_ERROR_NO) {
             if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1016_HBcons); }
             /* don't break a program, if only value of a parameter is wrong */
