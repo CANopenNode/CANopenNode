@@ -562,8 +562,8 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
         crcResult = crc16_ccitt((uint8_t *)&tmp_u32, 4, crcResult);
         crcResult = crc16_ccitt(&mappedObjectsCount, 1, crcResult);
         for (uint8_t i = 0; i < mappedObjectsCount; i++) {
-            uint8_t subindex = i + 1U;
-            crcResult = crc16_ccitt(&subindex, 1, crcResult);
+            uint8_t crcsubindex = i + 1U;
+            crcResult = crc16_ccitt(&crcsubindex, 1, crcResult);
             tmp_u32 = CO_SWAP_32(mapping[i]);
             crcResult = crc16_ccitt((uint8_t *)&tmp_u32, 4, crcResult);
         }
