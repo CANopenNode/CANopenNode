@@ -76,6 +76,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                     LSSslave->lssState = CO_LSS_STATE_CONFIGURATION;
                     break;
                 default:
+                    /* none */
                     break;
             }
         }
@@ -175,6 +176,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                 break;
             }
             default: {
+                /* none */
                 break;
             }
             }
@@ -481,6 +483,7 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
             break;
         }
         default: {
+            /* none */
             break;
         }
         }
