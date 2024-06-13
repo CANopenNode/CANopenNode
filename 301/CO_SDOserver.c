@@ -304,6 +304,7 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
 
         default:
             return ODR_SUB_NOT_EXIST;
+            break;
     }
 
     /* write value to the original location in the Object Dictionary */
