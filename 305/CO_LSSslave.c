@@ -145,7 +145,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                                 sizeof(LSSslave->lssFastscan));
                     }
                     else if (LSSslave->fastscanPos == lssSub) {
-                        uint32_t mask = 0xFFFFFFFF << bitCheck;
+                        uint32_t mask = 0xFFFFFFFFU << bitCheck;
 
                         if ((LSSslave->lssAddress.addr[lssSub] & mask)
                             == (idNumber & mask))
