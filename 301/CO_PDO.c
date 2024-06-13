@@ -429,7 +429,7 @@ static ODR_t OD_read_PDO_commParam(OD_stream_t *stream, void *buf,
         }
 
         /* If PDO is not valid, set bit 31 */
-        if (!PDO->valid) { COB_ID |= 0x80000000; }
+        if (!PDO->valid) { COB_ID |= 0x80000000U; }
 
         (void)CO_setUint32(buf, COB_ID);
     }
@@ -553,7 +553,7 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
         if ((valid != PDO->valid) || (CAN_ID != PDO->configuredCanId)) {
             /* if default CAN-ID is written, store to OD without Node-ID */
             if (CAN_ID == PDO->preDefinedCanId) {
-                (void)CO_setUint32(bufCopy, COB_ID & 0xFFFFFF80);
+                (void)CO_setUint32(bufCopy, COB_ID & 0xFFFFFF80U);
             }
             if (!valid) {
                 CAN_ID = 0;
@@ -984,7 +984,7 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
         if ((valid != PDO->valid) || (CAN_ID != PDO->configuredCanId)) {
             /* if default CAN-ID is written, store to OD without Node-ID */
             if (CAN_ID == PDO->preDefinedCanId) {
-                (void)CO_setUint32(bufCopy, COB_ID & 0xFFFFFF80);
+                (void)CO_setUint32(bufCopy, COB_ID & 0xFFFFFF80U);
             }
             if (!valid) {
                 CAN_ID = 0;
