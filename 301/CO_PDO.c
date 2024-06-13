@@ -105,7 +105,8 @@ static ODR_t PDOconfigMap(CO_PDO_common_t *PDO,
     if ((index < 0x20U) && (subIndex == 0U)) {
         OD_stream_t *stream = &OD_IO->stream;
         (void)memset(stream, 0, sizeof(OD_stream_t));
-        stream->dataLength = stream->dataOffset = mappedLength;
+        stream->dataLength = mappedLength;
+        stream->dataOffset = mappedLength;
         OD_IO->read = OD_read_dummy;
         OD_IO->write = OD_write_dummy;
         return ODR_OK;
@@ -1028,7 +1029,8 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
         TPDO->transmissionType = transmissionType;
         TPDO->sendRequest = true;
 #if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) != 0
-        TPDO->inhibitTimer = TPDO->eventTimer = 0;
+        TPDO->inhibitTimer = 0;
+        TPDO->eventTimer = 0;
 #endif
         break;
     }
@@ -1453,7 +1455,8 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
         /* Not operational or valid, reset triggers */
         TPDO->sendRequest = true;
 #if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) != 0
-        TPDO->inhibitTimer = TPDO->eventTimer = 0;
+        TPDO->inhibitTimer = 0;
+        TPDO->eventTimer = 0;
 #endif
 #if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) != 0
         TPDO->syncCounter = 255;
