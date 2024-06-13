@@ -74,7 +74,7 @@ static ODR_t OD_write_1012(OD_stream_t *stream, const void *buf,
 
     /* verify written value */
     uint32_t cobIdTimeStamp = CO_getUint32(buf);
-    uint16_t CAN_ID = cobIdTimeStamp & 0x7FFU;
+    uint16_t CAN_ID = (uint16_t)(cobIdTimeStamp & 0x7FFU);
     if (((cobIdTimeStamp & 0x3FFFF800U) != 0U) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
@@ -125,7 +125,7 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
 #endif
 
     /* Configure object variables */
-    uint16_t cobId = cobIdTimeStamp & 0x7FFU;
+    uint16_t cobId = (uint16_t)(cobIdTimeStamp & 0x7FFU);
     TIME->isConsumer = (cobIdTimeStamp & 0x80000000UL) != 0U;
     TIME->isProducer = (cobIdTimeStamp & 0x40000000UL) != 0U;
     CO_FLAG_CLEAR(TIME->CANrxNew);
@@ -206,7 +206,7 @@ bool_t CO_TIME_process(CO_TIME_t *TIME,
     if (!timestampReceived && (timeDifference_us > 0U)) {
         uint32_t us = timeDifference_us + TIME->residual_us;
         ms = us / 1000U;
-        TIME->residual_us = us % 1000U;
+        TIME->residual_us = (uint16_t)(us % 1000U);
         TIME->ms += ms;
         if (TIME->ms >= ((uint32_t)1000U*60U*60U*24U)) {
             TIME->ms -= ((uint32_t)1000U*60U*60U*24U);
