@@ -235,6 +235,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     }
     default: {
         return ODR_DEV_INCOMPAT;
+        break;
     }
     }
 
