@@ -83,7 +83,7 @@ static ODR_t restoreEeprom(CO_storage_entry_t *entry,
     bool_t writeOk;
 
     /* Write empty signature */
-    uint32_t signature = 0xFFFFFFFF;
+    uint32_t signature = 0xFFFFFFFFU;
     writeOk = CO_eeprom_writeBlock(entry->storageModule,
                                    (uint8_t *)&signature,
                                    entry->eepromAddrSignature,
@@ -127,7 +127,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
 
     /* Initialize storage hardware */
     if (!CO_eeprom_init(storageModule)) {
-        *storageInitError = 0xFFFFFFFF;
+        *storageInitError = 0xFFFFFFFFU;
         return CO_ERROR_DATA_CORRUPT;
     }
 
