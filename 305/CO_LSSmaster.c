@@ -1114,6 +1114,7 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
             }
             break;
         default:
+            /* none */
             break;
     }
 
