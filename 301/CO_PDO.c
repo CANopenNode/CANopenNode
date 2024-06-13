@@ -530,7 +530,7 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
     CO_RPDO_t *RPDO = stream->object;
     CO_PDO_common_t *PDO = &RPDO->PDO_common;
     uint8_t bufCopy[4];
-    (void)memcpy(bufCopy, buf, count);
+    (void)memcpy((void *)bufCopy, (const void *)buf, count);
 
     switch (stream->subIndex) {
     case 1: { /* COB-ID used by PDO */
@@ -961,7 +961,7 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
     CO_TPDO_t *TPDO = stream->object;
     CO_PDO_common_t *PDO = &TPDO->PDO_common;
     uint8_t bufCopy[4];
-    (void)memcpy(bufCopy, buf, count);
+    (void)memcpy((void *)bufCopy, (const void *)buf, count);
 
     switch (stream->subIndex) {
     case 1: { /* COB-ID used by PDO */
