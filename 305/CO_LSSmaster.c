@@ -961,7 +961,7 @@ static CO_LSS_fastscan_lss_sub_next CO_LSSmaster_FsSearchNext(
         CO_LSSmaster_t                  *LSSmaster,
         const CO_LSSmaster_fastscan_t   *fastscan)
 {
-    int i;
+    uint8_t i;
 
     /* we search for the next LSS address part to scan for, beginning with the
      * one after the current one. If there is none remaining, scanning is
