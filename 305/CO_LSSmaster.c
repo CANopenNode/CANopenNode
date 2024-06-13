@@ -31,41 +31,43 @@
 #include <string.h>
 
 /*
+ * @defgroup CO_LSSmaster_state_t
+ * @{
  * LSS master slave select state machine. Compared to #CO_LSS_state_t this
  * has information if we currently have selected one or all slaves. This
  * allows for some basic error checking.
  */
-typedef enum {
-  CO_LSSmaster_STATE_WAITING = 0,
-  CO_LSSmaster_STATE_CFG_SLECTIVE,
-  CO_LSSmaster_STATE_CFG_GLOBAL,
-} CO_LSSmaster_state_t;
+#define CO_LSSmaster_STATE_WAITING        0x00U
+#define CO_LSSmaster_STATE_CFG_SLECTIVE   0x01U
+#define CO_LSSmaster_STATE_CFG_GLOBAL     0x02U
+/** @} */ /* CO_LSSmaster_state_t */
 
 /*
- * LSS master slave command state machine
+ * @defgroup CO_LSSmaster_command_t LSS master slave command state machine
+ * @{
+ * 
  */
-typedef enum {
-  CO_LSSmaster_COMMAND_WAITING = 0,
-  CO_LSSmaster_COMMAND_SWITCH_STATE,
-  CO_LSSmaster_COMMAND_CFG_BIT_TIMING,
-  CO_LSSmaster_COMMAND_CFG_NODE_ID,
-  CO_LSSmaster_COMMAND_CFG_STORE,
-  CO_LSSmaster_COMMAND_INQUIRE_VENDOR,
-  CO_LSSmaster_COMMAND_INQUIRE_PRODUCT,
-  CO_LSSmaster_COMMAND_INQUIRE_REV,
-  CO_LSSmaster_COMMAND_INQUIRE_SERIAL,
-  CO_LSSmaster_COMMAND_INQUIRE,
-  CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN,
-} CO_LSSmaster_command_t;
+#define CO_LSSmaster_COMMAND_WAITING              0x00U
+#define CO_LSSmaster_COMMAND_SWITCH_STATE         0x01U
+#define CO_LSSmaster_COMMAND_CFG_BIT_TIMING       0x02U    
+#define CO_LSSmaster_COMMAND_CFG_NODE_ID          0x03U
+#define CO_LSSmaster_COMMAND_CFG_STORE            0x04U
+#define CO_LSSmaster_COMMAND_INQUIRE_VENDOR       0x05U    
+#define CO_LSSmaster_COMMAND_INQUIRE_PRODUCT      0x06U
+#define CO_LSSmaster_COMMAND_INQUIRE_REV          0x07U
+#define CO_LSSmaster_COMMAND_INQUIRE_SERIAL       0x08U
+#define CO_LSSmaster_COMMAND_INQUIRE              0x09U
+#define CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN    0x0AU
+/** @} */ /* CO_LSSmaster_command_t */
 
 /*
- * LSS master fastscan state machine
+ * @defgroup CO_LSSmaster_fs_t LSS master fastscan state machine
+ * @{
  */
-typedef enum {
-  CO_LSSmaster_FS_STATE_CHECK,
-  CO_LSSmaster_FS_STATE_SCAN,
-  CO_LSSmaster_FS_STATE_VERIFY
-} CO_LSSmaster_fs_t;
+#define CO_LSSmaster_FS_STATE_CHECK     0x00U
+#define CO_LSSmaster_FS_STATE_SCAN      0x01U
+#define CO_LSSmaster_FS_STATE_VERIFY    0x02U
+/** @} */ /* CO_LSSmaster_fs_t */
 
 /*
  * Read received message from CAN module.
@@ -632,7 +634,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
         CO_LSS_address_t       *lssAddress)
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
-    CO_LSSmaster_command_t next = CO_LSSmaster_COMMAND_WAITING;
+    uint8_t next = CO_LSSmaster_COMMAND_WAITING;
 
     if ((LSSmaster == NULL) || (lssAddress == NULL)){
         return CO_LSSmaster_ILLEGAL_ARGUMENT;
