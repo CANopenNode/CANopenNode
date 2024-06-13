@@ -275,6 +275,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
             case CO_NMT_RESET_COMMUNICATION:
                 resetCommand = CO_RESET_COMM;
                 break;
+            case CO_NMT_NO_COMMAND:
             default:
                 break;
         }
