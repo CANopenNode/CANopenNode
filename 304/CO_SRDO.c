@@ -609,7 +609,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
                 }
                 else {
                     /* verify access attributes, byte alignment and length */
-                    OD_attr_t testAttribute = (informationDirection == CO_SRDO_RX) ? ODA_RSRDO : ODA_TSRDO;
+                    OD_attr_t testAttribute = (informationDirection == CO_SRDO_RX) ? (OD_attr_t)(ODA_RSRDO) : (OD_attr_t)(ODA_TSRDO);
                     if (((OD_IOcopy.stream.attribute & testAttribute) == 0U)
                         || ((mappedLengthBits & 0x07U) != 0U)
                         || (OD_IOcopy.stream.dataLength < mappedLength)
