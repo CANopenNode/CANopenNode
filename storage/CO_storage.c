@@ -154,7 +154,9 @@ CO_ReturnError_t CO_storage_init(CO_storage_t *storage,
                                  uint8_t entriesCount)
 {
     /* verify arguments */
-    if (storage == NULL) {
+    if ((storage == NULL) || (CANmodule == NULL) || (OD_1010_StoreParameters == NULL) || (OD_1011_RestoreDefaultParameters == NULL)
+        || (store == NULL) || (restore == NULL) || (entries == NULL)
+    ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -166,20 +168,16 @@ CO_ReturnError_t CO_storage_init(CO_storage_t *storage,
     storage->entriesCount = entriesCount;
 
     /* configure extensions */
-    if (OD_1010_StoreParameters != NULL) {
-        storage->OD_1010_extension.object = storage;
-        storage->OD_1010_extension.read = OD_readOriginal;
-        storage->OD_1010_extension.write = OD_write_1010;
-        OD_extension_init(OD_1010_StoreParameters, &storage->OD_1010_extension);
-    }
+    storage->OD_1010_extension.object = storage;
+    storage->OD_1010_extension.read = OD_readOriginal;
+    storage->OD_1010_extension.write = OD_write_1010;
+    (void)OD_extension_init(OD_1010_StoreParameters, &storage->OD_1010_extension);
 
-    if (OD_1011_RestoreDefaultParameters != NULL) {
-        storage->OD_1011_extension.object = storage;
-        storage->OD_1011_extension.read = OD_readOriginal;
-        storage->OD_1011_extension.write = OD_write_1011;
-        OD_extension_init(OD_1011_RestoreDefaultParameters,
-                          &storage->OD_1011_extension);
-    }
+    storage->OD_1011_extension.object = storage;
+    storage->OD_1011_extension.read = OD_readOriginal;
+    storage->OD_1011_extension.write = OD_write_1011;
+    (void)OD_extension_init(OD_1011_RestoreDefaultParameters,
+                      &storage->OD_1011_extension);
 
     return CO_ERROR_NO;
 }
