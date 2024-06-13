@@ -880,7 +880,8 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                 }
                 /* inverted message received */
                 else {
-                    SRDO->cycleTimer = SRDO->validationTimer = SRDO->cycleTime_us;
+                    SRDO->cycleTimer = SRDO->cycleTime_us;
+                    SRDO->validationTimer = SRDO->cycleTime_us;
                     SRDO->nextIsNormal = true;
 
                     uint8_t *dataSRDO[2] = {&SRDO->CANrxData[0][0], &SRDO->CANrxData[1][0]};
@@ -1010,7 +1011,8 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
         }
     }
 
-    SRDO->NMTisOperationalPrevious = SRDO->SRDOGuard->NMTisOperational = NMTisOperational;
+    SRDO->NMTisOperationalPrevious = NMTisOperational;
+    SRDO->SRDOGuard->NMTisOperational = NMTisOperational;
 
     return SRDO->internalState;
 }
