@@ -413,7 +413,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
                 /* periodTimeout is 1,5 * OD_1006_period, no overflow */
                 uint32_t periodTimeout = OD_1006_period + (OD_1006_period >> 1);
                 if (periodTimeout < OD_1006_period) {
-                    periodTimeout = 0xFFFFFFFF;
+                    periodTimeout = 0xFFFFFFFFU;
                 }
 
                 if (SYNC->timer > periodTimeout) {
