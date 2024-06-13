@@ -97,8 +97,8 @@ static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
     }
 
     uint32_t val = CO_getUint32(buf);
-    uint8_t nodeId = (val >> 16) & 0xFFU;
-    uint16_t time = val & 0xFFFFU;
+    uint8_t nodeId = (uint8_t)((val >> 16) & 0xFFU);
+    uint16_t time = (uint16_t)(val & 0xFFFFU);
     CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - 1U,
                                                    nodeId, time);
     if (ret != CO_ERROR_NO) {
@@ -150,8 +150,8 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
             return CO_ERROR_OD_PARAMETERS;
         }
 
-        uint8_t nodeId = (val >> 16) & 0xFFU;
-        uint16_t time = val & 0xFFFFU;
+        uint8_t nodeId = (uint8_t)((val >> 16) & 0xFFU);
+        uint16_t time = (uint16_t)(val & 0xFFFFU);
         CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, i, nodeId, time);
         if (ret != CO_ERROR_NO) {
             if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1016_HBcons); }
@@ -205,7 +205,7 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
 
         CO_HBconsNode_t * monitoredNode = &HBcons->monitoredNodes[idx];
         monitoredNode->nodeId = nodeId;
-        monitoredNode->time_us = (int32_t)consumerTime_ms * 1000;
+        monitoredNode->time_us = (uint32_t)consumerTime_ms * 1000U;
         monitoredNode->NMTstate = CO_NMT_UNKNOWN;
 #if (((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0) \
     || (((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)
