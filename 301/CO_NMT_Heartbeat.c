@@ -120,7 +120,7 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     NMT->nodeId = nodeId;
     NMT->NMTcontrol = NMTcontrol;
     NMT->em = em;
-    NMT->HBproducerTimer = (int32_t)firstHBTime_ms * 1000;
+    NMT->HBproducerTimer = (uint32_t)firstHBTime_ms * 1000U;
 
     /* get and verify required "Producer heartbeat time" from Object Dict. */
     uint16_t HBprodTime_ms;
