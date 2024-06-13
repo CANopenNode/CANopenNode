@@ -138,7 +138,7 @@ static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
     uint32_t COB_IDEmergency32 = em->producerEnabled ? 0U : 0x80000000U;
-    COB_IDEmergency32 |= CO_CAN_ID_EMERGENCY + em->nodeId;
+    COB_IDEmergency32 |= CO_CAN_ID_EMERGENCY + (uint32_t)em->nodeId;
     (void)CO_setUint32(buf, COB_IDEmergency32);
 
     *countRead = sizeof(uint32_t);
