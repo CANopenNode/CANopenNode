@@ -441,7 +441,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
      * to add nodeId of this node to the stored value. */
     if (producerCanId == CO_CAN_ID_EMERGENCY) producerCanId += nodeId;
  #else
-    uint32_t producerCanId = CO_CAN_ID_EMERGENCY + nodeId;
+    uint16_t producerCanId = CO_CAN_ID_EMERGENCY + (uint16_t)nodeId;
     em->producerEnabled = (COB_IDEmergency32 & 0x80000000U) == 0U;
 
     em->OD_1014_extension.object = em;
