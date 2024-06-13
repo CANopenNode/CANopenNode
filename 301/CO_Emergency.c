@@ -670,7 +670,8 @@ void CO_EM_process(CO_EM_t *em,
  #endif
 
             /* increment pointer */
-            em->fifoPpPtr = (++fifoPpPtr < em->fifoSize) ? fifoPpPtr : 0U;
+            fifoPpPtr++;
+            em->fifoPpPtr = (fifoPpPtr < em->fifoSize) ? fifoPpPtr : 0U;
 
             /* verify message buffer overflow. Clear error condition if all
              * messages from fifo buffer are processed */
