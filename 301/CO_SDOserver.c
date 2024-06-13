@@ -821,7 +821,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 /* Get SDO data size (indicated by SDO client or get from OD) */
                 OD_size_t dataSizeToWrite = 4;
                 if ((SDO->CANrxData[0] & 0x01U) != 0U) {
-                    dataSizeToWrite -= (SDO->CANrxData[0] >> 2) & 0x03U;
+                    dataSizeToWrite -= (OD_size_t)((SDO->CANrxData[0] >> 2) & 0x03U);
                 }
                 else if ((sizeInOd > 0U) && (sizeInOd < 4U)) {
                     dataSizeToWrite = sizeInOd;
@@ -935,7 +935,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 }
 
                 /* get data size and write data to the buffer */
-                OD_size_t count = 7U - ((SDO->CANrxData[0] >> 1) & 0x07U);
+                OD_size_t count = (OD_size_t)(7U - ((SDO->CANrxData[0] >> 1) & 0x07U));
                 (void)memcpy(SDO->buf + SDO->bufOffsetWr, &SDO->CANrxData[1], count);
                 SDO->bufOffsetWr += count;
                 SDO->sizeTran += count;
