@@ -1028,19 +1028,17 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
     }
 
     /* evaluate LSS state machine */
-    switch (LSSmaster->command) {
-        case CO_LSSmaster_COMMAND_WAITING:
-            /* start fastscan */
-            LSSmaster->command = CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN;
+    if (LSSmaster->command == CO_LSSmaster_COMMAND_WAITING) {
+        /* start fastscan */
+        LSSmaster->command = CO_LSSmaster_COMMAND_IDENTIFY_FASTSCAN;
 
-            /* check if any nodes are waiting, if yes fastscan is reset */
-            LSSmaster->fsState = CO_LSSmaster_FS_STATE_CHECK;
-            CO_LSSmaster_FsSendMsg(LSSmaster, 0, CO_LSS_FASTSCAN_CONFIRM, 0, 0);
+        /* check if any nodes are waiting, if yes fastscan is reset */
+        LSSmaster->fsState = CO_LSSmaster_FS_STATE_CHECK;
+        CO_LSSmaster_FsSendMsg(LSSmaster, 0, CO_LSS_FASTSCAN_CONFIRM, 0, 0);
 
-            return CO_LSSmaster_WAIT_SLAVE;
-        default:
-            /* continue with evaluating fastscan state machine */
-            break;
+        return CO_LSSmaster_WAIT_SLAVE;
+    } else {
+        /* continue with evaluating fastscan state machine */
     }
 
     /* evaluate fastscan state machine. The state machine is evaluated as following
