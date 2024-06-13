@@ -140,7 +140,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
                     if (bitCheck == (uint8_t)CO_LSS_FASTSCAN_CONFIRM) {
                         /* Confirm, Reset */
                         ack = true;
-                        LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;
+                        LSSslave->fastscanPos = (uint8_t)(CO_LSS_FASTSCAN_VENDOR_ID);
                         (void)memset(&LSSslave->lssFastscan, 0,
                                 sizeof(LSSslave->lssFastscan));
                     }
@@ -232,7 +232,7 @@ CO_ReturnError_t CO_LSSslave_init(
     /* Configure object variables */
     (void)memcpy(&LSSslave->lssAddress, lssAddress, sizeof(LSSslave->lssAddress));
     LSSslave->lssState = CO_LSS_STATE_WAITING;
-    LSSslave->fastscanPos = CO_LSS_FASTSCAN_VENDOR_ID;
+    LSSslave->fastscanPos = (uint8_t)(CO_LSS_FASTSCAN_VENDOR_ID);
 
     LSSslave->pendingBitRate = pendingBitRate;
     LSSslave->pendingNodeID = pendingNodeID;
@@ -344,23 +344,23 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
             break;
         }
         case CO_LSS_SWITCH_STATE_SEL_SERIAL: {
-            LSSslave->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL;
+            LSSslave->TXbuff->data[0] = (uint8_t)(CO_LSS_SWITCH_STATE_SEL);
             CANsend = true;
             break;
         }
         case CO_LSS_CFG_NODE_ID: {
             nid = LSSslave->CANdata[1];
-            errorCode = CO_LSS_CFG_NODE_ID_OK;
+            errorCode = (uint8_t)(CO_LSS_CFG_NODE_ID_OK);
 
             if (CO_LSS_NODE_ID_VALID(nid)) {
                 *LSSslave->pendingNodeID = nid;
             }
             else {
-                errorCode = CO_LSS_CFG_NODE_ID_OUT_OF_RANGE;
+                errorCode = (uint8_t)(CO_LSS_CFG_NODE_ID_OUT_OF_RANGE);
             }
 
             /* send confirmation */
-            LSSslave->TXbuff->data[0] = LSSslave->service;
+            LSSslave->TXbuff->data[0] = (uint8_t)(LSSslave->service);
             LSSslave->TXbuff->data[1] = errorCode;
             /* we do not use spec-error, always 0 */
             CANsend = true;
@@ -374,8 +374,8 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
 
             tableSelector = LSSslave->CANdata[1];
             tableIndex = LSSslave->CANdata[2];
-            errorCode = CO_LSS_CFG_BIT_TIMING_OK;
-            errorCodeManuf = CO_LSS_CFG_BIT_TIMING_OK;
+            errorCode = (uint8_t)(CO_LSS_CFG_BIT_TIMING_OK);
+            errorCodeManuf = (uint8_t)(CO_LSS_CFG_BIT_TIMING_OK);
 
             if ((tableSelector == 0U) && CO_LSS_BIT_TIMING_VALID(tableIndex)) {
                 uint16_t bit = CO_LSS_bitTimingTableLookup[tableIndex];
@@ -386,17 +386,17 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
                     *LSSslave->pendingBitRate = bit;
                 }
                 else {
-                    errorCode = CO_LSS_CFG_BIT_TIMING_MANUFACTURER;
-                    errorCodeManuf = CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE;
+                    errorCode = (uint8_t)(CO_LSS_CFG_BIT_TIMING_MANUFACTURER);
+                    errorCodeManuf = (uint8_t)(CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE);
                 }
             }
             else {
                 /* we currently only support CiA301 bit timing table */
-                errorCode = CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE;
+                errorCode = (uint8_t)(CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE);
             }
 
             /* send confirmation */
-            LSSslave->TXbuff->data[0] = LSSslave->service;
+            LSSslave->TXbuff->data[0] = (uint8_t)(LSSslave->service);
             LSSslave->TXbuff->data[1] = errorCode;
             LSSslave->TXbuff->data[2] = errorCodeManuf;
             CANsend = true;
@@ -418,11 +418,11 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
             break;
         }
         case CO_LSS_CFG_STORE: {
-            errorCode = CO_LSS_CFG_STORE_OK;
+            errorCode = (uint8_t)(CO_LSS_CFG_STORE_OK);
 
             if (LSSslave->pFunctLSScfgStore == NULL) {
                 /* storing is not supported. Reply error */
-                errorCode = CO_LSS_CFG_STORE_NOT_SUPPORTED;
+                errorCode = (uint8_t)(CO_LSS_CFG_STORE_NOT_SUPPORTED);
             }
             else {
                 bool_t result;
@@ -432,53 +432,53 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
                                                *LSSslave->pendingNodeID,
                                                *LSSslave->pendingBitRate);
                 if (!result) {
-                    errorCode = CO_LSS_CFG_STORE_FAILED;
+                    errorCode = (uint8_t)(CO_LSS_CFG_STORE_FAILED);
                 }
             }
 
             /* send confirmation */
-            LSSslave->TXbuff->data[0] = LSSslave->service;
+            LSSslave->TXbuff->data[0] = (uint8_t)(LSSslave->service);
             LSSslave->TXbuff->data[1] = errorCode;
             /* we do not use spec-error, always 0 */
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_VENDOR: {
-            LSSslave->TXbuff->data[0] = LSSslave->service;
+            LSSslave->TXbuff->data[0] = (uint8_t)(LSSslave->service);
             valSw = CO_SWAP_32(LSSslave->lssAddress.identity.vendorID);
             (void)memcpy((void *)(&LSSslave->TXbuff->data[1]), (const void *)(&valSw), sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_PRODUCT: {
-            LSSslave->TXbuff->data[0] = LSSslave->service;
+            LSSslave->TXbuff->data[0] = (uint8_t)(LSSslave->service);
             valSw = CO_SWAP_32(LSSslave->lssAddress.identity.productCode);
             (void)memcpy((void *)(&LSSslave->TXbuff->data[1]), (const void *)(&valSw), sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_REV: {
-            LSSslave->TXbuff->data[0] = LSSslave->service;
+            LSSslave->TXbuff->data[0] = (uint8_t)(LSSslave->service);
             valSw = CO_SWAP_32(LSSslave->lssAddress.identity.revisionNumber);
             (void)memcpy((void *)(&LSSslave->TXbuff->data[1]), (const void *)(&valSw), sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_SERIAL: {
-            LSSslave->TXbuff->data[0] = LSSslave->service;
+            LSSslave->TXbuff->data[0] = (uint8_t)(LSSslave->service);
             valSw = CO_SWAP_32(LSSslave->lssAddress.identity.serialNumber);
             (void)memcpy((void *)(&LSSslave->TXbuff->data[1]), (const void *)(&valSw), sizeof(valSw));
             CANsend = true;
             break;
         }
         case CO_LSS_INQUIRE_NODE_ID: {
-            LSSslave->TXbuff->data[0] = LSSslave->service;
+            LSSslave->TXbuff->data[0] = (uint8_t)(LSSslave->service);
             LSSslave->TXbuff->data[1] = LSSslave->activeNodeID;
             CANsend = true;
             break;
         }
         case CO_LSS_IDENT_FASTSCAN: {
-            LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
+            LSSslave->TXbuff->data[0] = (uint8_t)(CO_LSS_IDENT_SLAVE);
             CANsend = true;
             break;
         }
