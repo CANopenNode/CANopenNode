@@ -653,7 +653,7 @@ void CO_EM_process(CO_EM_t *em,
             em->fifo[fifoPpPtr].msg |= (uint32_t) errorRegister << 16;
 
             /* send emergency message */
-            (void)memcpy(em->CANtxBuff->data, &em->fifo[fifoPpPtr].msg,
+            (void)memcpy((void *)em->CANtxBuff->data, (void *)&em->fifo[fifoPpPtr].msg,
                 sizeof(em->CANtxBuff->data));
             (void)CO_CANsend(em->CANdevTx, em->CANtxBuff);
 
