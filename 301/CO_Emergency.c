@@ -28,9 +28,9 @@
 #include "301/CO_Emergency.h"
 
 /* verify configuration */
-#if CO_CONFIG_EM_ERR_STATUS_BITS_COUNT < (6*8) \
-    || CO_CONFIG_EM_ERR_STATUS_BITS_COUNT > 256 \
-    || (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT % 8) != 0
+#if CO_CONFIG_EM_ERR_STATUS_BITS_COUNT < (6U*8U) \
+    || CO_CONFIG_EM_ERR_STATUS_BITS_COUNT > 256U \
+    || (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT % 8U) != 0
  #error CO_CONFIG_EM_ERR_STATUS_BITS_COUNT is not correct
 #endif
 
@@ -261,7 +261,7 @@ static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
     /* get MAX(errorStatusBitsSize, bufSize, ODsizeIndication) */
-    OD_size_t countReadLocal = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
+    OD_size_t countReadLocal = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8U;
     if (countReadLocal > count) {
         countReadLocal = count;
     }
@@ -290,7 +290,7 @@ static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
     /* get MAX(errorStatusBitsSize, bufSize, ODsizeIndication) */
-    OD_size_t countWrite = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8;
+    OD_size_t countWrite = CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8U;
     if (countWrite > count) {
         countWrite = count;
     }
@@ -725,12 +725,12 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
     if (em == NULL) { return; }
 
     uint8_t index = errorBit >> 3;
-    uint8_t bitmask = 1 << (errorBit & 0x7);
+    uint8_t bitmask = 1U << (errorBit & 0x7U);
 
     /* if unsupported errorBit, change to 'CO_EM_WRONG_ERROR_REPORT' */
-    if (index >= (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8)) {
+    if (index >= (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8U)) {
         index = CO_EM_WRONG_ERROR_REPORT >> 3;
-        bitmask = 1 << (CO_EM_WRONG_ERROR_REPORT & 0x7);
+        bitmask = 1U << (CO_EM_WRONG_ERROR_REPORT & 0x7U);
         errorCode = CO_EMC_SOFTWARE_INTERNAL;
         infoCode = errorBit;
     }
@@ -741,12 +741,12 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
     /* If error is already set (or unset), return without further actions,
      * otherwise toggle bit and continue with error indication. */
     if (setError) {
-        if (errorStatusBitMasked != 0) {
+        if (errorStatusBitMasked != 0U) {
             return;
         }
     }
     else {
-        if (errorStatusBitMasked == 0) {
+        if (errorStatusBitMasked == 0U) {
             return;
         }
         errorCode = CO_EMC_NO_ERROR;
@@ -766,9 +766,9 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
     else {          *errorStatusBits &= ~bitmask; }
 
 #if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
-    if (em->fifoSize >= 2) {
+    if (em->fifoSize >= 2U) {
         uint8_t fifoWrPtr = em->fifoWrPtr;
-        uint8_t fifoWrPtrNext = fifoWrPtr + 1;
+        uint8_t fifoWrPtrNext = fifoWrPtr + 1U;
         if (fifoWrPtrNext >= em->fifoSize) {
             fifoWrPtrNext = 0;
         }
@@ -782,7 +782,7 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
             em->fifo[fifoWrPtr].info = infoCodeSwapped;
  #endif
             em->fifoWrPtr = fifoWrPtrNext;
-            if (em->fifoCount < (em->fifoSize - 1)) { em->fifoCount++; }
+            if (em->fifoCount < (em->fifoSize - 1U)) { em->fifoCount++; }
         }
     }
 #endif /* (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY) */

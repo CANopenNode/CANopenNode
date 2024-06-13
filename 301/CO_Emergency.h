@@ -37,7 +37,7 @@
                       CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 #ifndef CO_CONFIG_EM_ERR_STATUS_BITS_COUNT
-#define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10*8)
+#define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10U*8U)
 #endif
 #ifndef CO_CONFIG_ERR_CONDITION_GENERIC
 #define CO_CONFIG_ERR_CONDITION_GENERIC (em->errorStatusBits[5] != 0U)
@@ -257,7 +257,7 @@ extern "C" {
  */
 #define CO_EM_MANUFACTURER_START        0x30U  
 /** (@ref CO_CONFIG_EM_ERR_STATUS_BITS_COUNT - 1)   largest value of the Error status bit. */
-#define CO_EM_MANUFACTURER_END          (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT - 1)
+#define CO_EM_MANUFACTURER_END          (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT - 1U)
 
 /** @} */ /* CO_EM_errorStatusBits_t */
 
@@ -282,7 +282,7 @@ typedef struct {
  */
 typedef struct {
     /** Bitfield for the internal indication of the error condition. */
-    uint8_t errorStatusBits[CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8];
+    uint8_t errorStatusBits[CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8U];
     /** Pointer to error register in object dictionary at 0x1001,00. */
     uint8_t *errorRegister;
     /** Old CAN error status bitfield */
@@ -546,7 +546,7 @@ static inline bool_t CO_isError(CO_EM_t *em, const uint8_t errorBit) {
     uint8_t index = errorBit >> 3;
     uint8_t bitmask = 1 << (errorBit & 0x7);
 
-    return (em == NULL || index >= (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8)
+    return (em == NULL || index >= (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8U)
             || (em->errorStatusBits[index] & bitmask) != 0) ? true : false;
 }
 
