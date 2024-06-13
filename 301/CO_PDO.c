@@ -121,7 +121,7 @@ static ODR_t PDOconfigMap(CO_PDO_common_t *PDO,
     }
 
     /* verify access attributes, byte alignment and length */
-    OD_attr_t testAttribute = isRPDO ? ODA_RPDO : ODA_TPDO;
+    OD_attr_t testAttribute = isRPDO ? (OD_attr_t)(ODA_RPDO) : (OD_attr_t)(ODA_TPDO);
     if (((OD_IOcopy.stream.attribute & testAttribute) == 0U)
         || ((mappedLengthBits & 0x07U) != 0U)
         || (OD_IOcopy.stream.dataLength < mappedLength)
@@ -475,10 +475,10 @@ static void CO_PDO_receive(void *object, void *msg) {
         if (DLC >= PDO->dataLength) {
             /* indicate errors in PDO length */
             if (DLC == PDO->dataLength) {
-                if (err == (uint8_t)CO_RPDO_RX_ACK_ERROR) { err = CO_RPDO_RX_OK; }
+                if (err == (uint8_t)CO_RPDO_RX_ACK_ERROR) { err = (uint8_t)(CO_RPDO_RX_OK); }
             }
             else {
-                if (err == (uint8_t)CO_RPDO_RX_ACK_NO_ERROR) { err = CO_RPDO_RX_LONG; }
+                if (err == (uint8_t)CO_RPDO_RX_ACK_NO_ERROR) { err = (uint8_t)(CO_RPDO_RX_LONG); }
             }
 
             /* Determine, to which of the two rx buffers copy the message. */
@@ -504,7 +504,7 @@ static void CO_PDO_receive(void *object, void *msg) {
 #endif
         }
         else if (err == (uint8_t)CO_RPDO_RX_ACK_NO_ERROR) {
-            err = CO_RPDO_RX_SHORT;
+            err = (uint8_t)(CO_RPDO_RX_SHORT);
         }
         else { /* MISRA C 2004 14.10 */ }
     }
@@ -722,7 +722,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
 
     /* Configure communication parameter - transmission type */
 #if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) != 0
-    uint8_t transmissionType = CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO;
+    uint8_t transmissionType = (uint8_t)(CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO);
     odRet = OD_get_u8(OD_14xx_RPDOCommPar, 2, &transmissionType, true);
     if (odRet != ODR_OK) {
         if (errInfo != NULL) {
@@ -803,7 +803,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
             CO_error(PDO->em, setError, CO_EM_RPDO_WRONG_LENGTH,
                      code, PDO->dataLength);
             RPDO->receiveError = setError
-                              ? CO_RPDO_RX_ACK_ERROR : CO_RPDO_RX_ACK_NO_ERROR;
+                              ? (uint8_t)(CO_RPDO_RX_ACK_ERROR) : (uint8_t)(CO_RPDO_RX_ACK_NO_ERROR);
         }
 
         /* Determine, which of the two rx buffers contains relevant message. */
@@ -1121,7 +1121,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
 
 
     /* Configure communication parameter - transmission type */
-    uint8_t transmissionType = CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO;
+    uint8_t transmissionType = (uint8_t)(CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO);
     odRet = OD_get_u8(OD_18xx_TPDOCommPar, 2, &transmissionType, true);
     if (odRet != ODR_OK) {
         if (errInfo != NULL) {
@@ -1134,7 +1134,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
         && (transmissionType > (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240)
 #endif
     ) {
-        transmissionType = CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO;
+        transmissionType = (uint8_t)(CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO);
     }
     TPDO->transmissionType = transmissionType;
     TPDO->sendRequest = true;
