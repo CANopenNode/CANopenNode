@@ -647,7 +647,7 @@ void CO_EM_process(CO_EM_t *em,
         ) {
             em->inhibitEmTimer = 0;
  #else
-        if ((fifoPpPtr != em->fifoWrPtr) && (!em->CANtxBuff->bufferFull)) {
+        if ((!em->CANtxBuff->bufferFull) && (fifoPpPtr != em->fifoWrPtr)) {
  #endif
             /* add error register to emergency message */
             em->fifo[fifoPpPtr].msg |= (uint32_t) errorRegister << 16;
