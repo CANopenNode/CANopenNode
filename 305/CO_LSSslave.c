@@ -165,7 +165,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
 #if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE_FASTSCAN_DIRECT_RESPOND) != 0
                         LSSslave->TXbuff->data[0] = CO_LSS_IDENT_SLAVE;
                         (void)memset(&LSSslave->TXbuff->data[1], 0,
-                               sizeof(LSSslave->TXbuff->data) - 1);
+                               sizeof(LSSslave->TXbuff->data) - 1U);
                         (void)CO_CANsend(LSSslave->CANdevTx, LSSslave->TXbuff);
 #else
                         LSSslave->service = cs;
