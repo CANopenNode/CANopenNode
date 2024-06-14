@@ -721,7 +721,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
 CO_LSSmaster_return_t CO_LSSmaster_Inquire(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
-        CO_LSS_cs_t             lssInquireCs,
+        uint8_t                 lssInquireCs,
         uint32_t               *value)
 {
   CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
@@ -809,7 +809,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsScanInitiate(
         CO_LSSmaster_t                  *LSSmaster,
         uint32_t                         timeDifference_us,
         CO_LSSmaster_scantype_t          scan,
-        CO_LSS_fastscan_lss_sub_next     lssSub)
+        uint8_t                          lssSub)
 {
     (void)timeDifference_us;    /* unused */
 
@@ -904,7 +904,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyInitiate(
         uint32_t                         timeDifference_us,
         CO_LSSmaster_scantype_t          scan,
         uint32_t                         idNumberCheck,
-        CO_LSS_fastscan_lss_sub_next     lssNext)
+        uint8_t                          lssNext)
 {
     (void)timeDifference_us;    /* unused */
 
@@ -972,7 +972,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_FsVerifyWait(
 /*
  * Helper function - check which 32 bit to scan for next, if any
  */
-static CO_LSS_fastscan_lss_sub_next CO_LSSmaster_FsSearchNext(
+static uint8_t CO_LSSmaster_FsSearchNext(
         CO_LSSmaster_t                  *LSSmaster,
         const CO_LSSmaster_fastscan_t   *fastscan)
 {
@@ -983,7 +983,7 @@ static CO_LSS_fastscan_lss_sub_next CO_LSSmaster_FsSearchNext(
      * finished */
     for (i = LSSmaster->fsLssSub + 1U; i <= CO_LSS_FASTSCAN_SERIAL; i++) {
         if (fastscan->scan[i] != CO_LSSmaster_FS_SKIP) {
-            return (CO_LSS_fastscan_lss_sub_next)i;
+            return i;
         }
     }
     /* node selection is triggered by switching node state machine back
@@ -1000,7 +1000,7 @@ CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
     uint8_t i;
     uint8_t count;
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
-    CO_LSS_fastscan_lss_sub_next next;
+    uint8_t next;
 
     /* parameter validation */
     if ((LSSmaster == NULL) || (fastscan == NULL)){

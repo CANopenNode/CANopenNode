@@ -88,7 +88,7 @@ extern "C" {
  */
 typedef struct{
     CO_LSS_address_t        lssAddress;       /**< From #CO_LSSslave_init */
-    CO_LSS_state_t          lssState;         /**< #CO_LSS_state_t */
+    uint8_t                 lssState;         /**< #CO_LSS_state_t */
     CO_LSS_address_t        lssSelect;        /**< Received LSS Address by select */
 
     CO_LSS_address_t        lssFastscan;      /**< Received LSS Address by fastscan */
@@ -99,7 +99,7 @@ typedef struct{
     uint8_t                 activeNodeID;     /**< Node ID used at the CAN interface */
 
     volatile void          *sendResponse;     /**< Variable indicates, if LSS response has to be sent by mainline processing function */
-    CO_LSS_cs_t             service;          /**< Service, which will have to be processed by mainline processing function */
+    uint8_t                 service;          /**< Service, which will have to be processed by mainline processing function */
     uint8_t                 CANdata[8];       /**< Received CAN data, which will be processed by mainline processing function */
 
 #if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
@@ -189,7 +189,7 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave);
  * @param LSSslave This object.
  * @return #CO_LSS_state_t
  */
-static inline CO_LSS_state_t CO_LSSslave_getState(CO_LSSslave_t *LSSslave) {
+static inline uint8_t CO_LSSslave_getState(CO_LSSslave_t *LSSslave) {
     return (LSSslave == NULL) ? CO_LSS_STATE_WAITING : LSSslave->lssState;
 }
 

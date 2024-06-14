@@ -371,7 +371,7 @@ typedef struct {
     /** LSS bitrate parameter */
     uint16_t lssBitrate;
     /** LSS inquire parameter */
-    CO_LSS_cs_t lssInquireCs;
+    uint8_t lssInquireCs;
     /** LSS fastscan parameter */
     CO_LSSmaster_fastscan_t lssFastscan;
     /** LSS allnodes sub state parameter */

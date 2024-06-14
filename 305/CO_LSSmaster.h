@@ -386,7 +386,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
 CO_LSSmaster_return_t CO_LSSmaster_Inquire(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
-        CO_LSS_cs_t             lssInquireCs,
+        uint8_t                 lssInquireCs,
         uint32_t               *value);
 
 
