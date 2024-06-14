@@ -306,8 +306,8 @@ ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
 {
     if (val == NULL) { return ODR_DEV_INCOMPAT; }
 
-    OD_IO_t io;
-    OD_stream_t *stream = (OD_stream_t *)&io;
+    OD_IO_t io = { NULL };
+    OD_stream_t *stream = &io.stream;
     OD_size_t countRd = 0;
 
     ODR_t ret = OD_getSub(entry, subIndex, &io, odOrig);
@@ -321,7 +321,9 @@ ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
 ODR_t OD_set_value(const OD_entry_t *entry, uint8_t subIndex, void *val,
                    OD_size_t len, bool_t odOrig)
 {
-    OD_IO_t io;
+    if (val == NULL) { return ODR_DEV_INCOMPAT; }
+
+    OD_IO_t io = { NULL };
     OD_stream_t *stream = &io.stream;
     OD_size_t countWritten = 0;
 
