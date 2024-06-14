@@ -794,6 +794,8 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
                      bool_t syncWas)
 {
     (void) syncWas;
+    (void) timerNext_us;
+    
     CO_PDO_common_t *PDO = &RPDO->PDO_common;
 
     if (PDO->valid && NMTisOperational
