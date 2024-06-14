@@ -266,7 +266,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
 
 /******************************************************************************/
 uint32_t OD_getSDOabCode(ODR_t returnCode) {
-    static const uint32_t abortCodes[ODR_COUNT] = {
+    static const uint32_t abortCodes[(uint8_t)ODR_COUNT] = {
         0x00000000UL, /* No abort */
         0x05040005UL, /* Out of memory */
         0x06010000UL, /* Unsupported access to an object */
