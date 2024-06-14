@@ -25,11 +25,11 @@
  * limitations under the License.
  */
 
+#include <string.h>
+
 #include "305/CO_LSSslave.h"
 
 #if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0
-
-#include <string.h>
 
 /* 'bit' must be unsigned or additional range check must be added: bit>=CO_LSS_FASTSCAN_BIT0 */
 #define CO_LSS_FASTSCAN_BITCHECK_VALID(bit) ((bit<=CO_LSS_FASTSCAN_BIT31) || (bit==CO_LSS_FASTSCAN_CONFIRM))

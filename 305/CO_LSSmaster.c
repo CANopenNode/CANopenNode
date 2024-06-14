@@ -24,11 +24,12 @@
  * limitations under the License.
  */
 
+#include <string.h>
+
 #include "305/CO_LSSmaster.h"
 
 #if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0
 
-#include <string.h>
 
 /*
  * @defgroup CO_LSSmaster_state_t
