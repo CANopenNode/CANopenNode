@@ -606,6 +606,9 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
                          OD_size_t countMinimum,
                          bool_t calculateCrc)
 {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) == 0
+    (void)calculateCrc;  /* may be unused */
+#endif
     OD_size_t countRemain = SDO->bufOffsetWr - SDO->bufOffsetRd;
 
     if (!SDO->finished && (countRemain < countMinimum)) {
