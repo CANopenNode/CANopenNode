@@ -704,7 +704,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
     bool_t isNew = CO_FLAG_READ(SDO->CANrxNew);
 
 
-    if (SDO->valid && (SDO->state == CO_SDO_ST_IDLE) && !isNew) {
+    if ((SDO->state == CO_SDO_ST_IDLE) && SDO->valid && !isNew) {
         /* Idle and nothing new */
         ret = CO_SDO_RT_ok_communicationEnd;
     }
@@ -809,7 +809,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 #endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
         } /* (SDO->state == CO_SDO_ST_IDLE) */
 
-        if ((SDO->state != CO_SDO_ST_IDLE) && (SDO->state != CO_SDO_ST_ABORT)) {
+        bool isOKstate = (SDO->state != CO_SDO_ST_IDLE);
+        isOKstate = (SDO->state != CO_SDO_ST_ABORT) && isOKstate;
+        if (isOKstate) {
             switch (SDO->state) {
             case CO_SDO_ST_DOWNLOAD_INITIATE_REQ: {
                 if ((SDO->CANrxData[0] & 0x02U) != 0U) {
