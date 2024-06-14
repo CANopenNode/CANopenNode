@@ -43,7 +43,7 @@
 static void CO_HBcons_receive(void *object, void *msg) {
     CO_HBconsNode_t *HBconsNode = object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
 
     if (DLC == 1U) {
         /* copy data and set 'new message' flag. */
