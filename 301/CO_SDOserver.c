@@ -778,7 +778,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
             /* load data from object dictionary, if upload and no error */
             if (upload && (abortCode == CO_SDO_AB_NONE)) {
-                SDO->bufOffsetRd = SDO->bufOffsetWr = 0;
+                SDO->bufOffsetRd = 0;
+                SDO->bufOffsetWr = 0;
                 SDO->sizeTran = 0;
                 SDO->finished = false;
 
