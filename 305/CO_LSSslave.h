@@ -78,9 +78,9 @@ extern "C" {
  * also be checked with CO->nodeIdUnconfigured variable.
  *
  * Some callback functions may be initialized by application with
- * CO_LSSslave_initCheckBitRateCallback(),
- * CO_LSSslave_initActivateBitRateCallback() and
- * CO_LSSslave_initCfgStoreCallback().
+ * CO_LSSslave_initCkBitRateCall(),
+ * CO_LSSslave_initActBitRateCall() and
+ * CO_LSSslave_initCfgStoreCall().
  */
 
 /**
@@ -106,11 +106,11 @@ typedef struct{
     void                  (*pFunctSignalPre)(void *object); /**< From CO_LSSslave_initCallbackPre() or NULL */
     void                   *functSignalObjectPre;/**< Pointer to object */
 #endif
-    bool_t                (*pFunctLSScheckBitRate)(void *object, uint16_t bitRate); /**< From CO_LSSslave_initCheckBitRateCallback() or NULL */
+    bool_t                (*pFunctLSScheckBitRate)(void *object, uint16_t bitRate); /**< From CO_LSSslave_initCkBitRateCall() or NULL */
     void                   *functLSScheckBitRateObject; /** Pointer to object */
-    void                  (*pFunctLSSactivateBitRate)(void *object, uint16_t delay); /**< From CO_LSSslave_initActivateBitRateCallback() or NULL. Delay is in ms */
+    void                  (*pFunctLSSactivateBitRate)(void *object, uint16_t delay); /**< From CO_LSSslave_initActBitRateCall() or NULL. Delay is in ms */
     void                   *functLSSactivateBitRateObject; /** Pointer to object */
-    bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate); /**< From CO_LSSslave_initCfgStoreCallback() or NULL */
+    bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate); /**< From CO_LSSslave_initCfgStoreCall() or NULL */
     void                   *functLSScfgStoreObject; /** Pointer to object */
 
     CO_CANmodule_t         *CANdevTx;         /**< From #CO_LSSslave_init() */
@@ -227,7 +227,7 @@ void CO_LSSslave_initCallbackPre(
  * @param object Pointer to object, which will be passed to pFunctLSScheckBitRate(). Can be NULL
  * @param pFunctLSScheckBitRate Pointer to the callback function. Not called if NULL.
  */
-void CO_LSSslave_initCheckBitRateCallback(
+void CO_LSSslave_initCkBitRateCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         bool_t                (*pFunctLSScheckBitRate)(void *object, uint16_t bitRate));
@@ -246,7 +246,7 @@ void CO_LSSslave_initCheckBitRateCallback(
  * @param object Pointer to object, which will be passed to pFunctLSSactivateBitRate(). Can be NULL
  * @param pFunctLSSactivateBitRate Pointer to the callback function. Not called if NULL.
  */
-void CO_LSSslave_initActivateBitRateCallback(
+void CO_LSSslave_initActBitRateCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         void                  (*pFunctLSSactivateBitRate)(void *object, uint16_t delay));
@@ -265,7 +265,7 @@ void CO_LSSslave_initActivateBitRateCallback(
  * @param object Pointer to object, which will be passed to pFunctLSScfgStore(). Can be NULL
  * @param pFunctLSScfgStore Pointer to the callback function. Not called if NULL.
  */
-void CO_LSSslave_initCfgStoreCallback(
+void CO_LSSslave_initCfgStoreCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate));

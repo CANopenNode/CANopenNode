@@ -283,7 +283,7 @@ void CO_LSSslave_initCallbackPre(
 
 
 /******************************************************************************/
-void CO_LSSslave_initCheckBitRateCallback(
+void CO_LSSslave_initCkBitRateCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         bool_t                (*pFunctLSScheckBitRate)(void *object, uint16_t bitRate))
@@ -296,7 +296,7 @@ void CO_LSSslave_initCheckBitRateCallback(
 
 
 /******************************************************************************/
-void CO_LSSslave_initActivateBitRateCallback(
+void CO_LSSslave_initActBitRateCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         void                  (*pFunctLSSactivateBitRate)(void *object, uint16_t delay))
@@ -309,7 +309,7 @@ void CO_LSSslave_initActivateBitRateCallback(
 
 
 /******************************************************************************/
-void CO_LSSslave_initCfgStoreCallback(
+void CO_LSSslave_initCfgStoreCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate))
