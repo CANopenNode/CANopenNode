@@ -49,7 +49,7 @@ static void CO_SYNC_receive(void *object, void *msg) {
     }
     else {
         if (DLC == 1U) {
-            uint8_t *data = CO_CANrxMsg_readData(msg);
+            const uint8_t *data = CO_CANrxMsg_readData(msg);
             SYNC->counter = data[0];
             syncReceived = true;
         }

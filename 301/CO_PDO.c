@@ -468,7 +468,7 @@ static void CO_PDO_receive(void *object, void *msg) {
     CO_RPDO_t *RPDO = object;
     CO_PDO_common_t *PDO = &RPDO->PDO_common;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
     uint8_t err = RPDO->receiveError;
 
     if (PDO->valid) {

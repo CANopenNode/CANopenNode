@@ -39,7 +39,7 @@
 static void CO_TIME_receive(void *object, void *msg) {
     CO_TIME_t *TIME = object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
 
     if (DLC == CO_TIME_MSG_LENGTH) {
         (void)memcpy(TIME->timeStamp, data, sizeof(TIME->timeStamp));

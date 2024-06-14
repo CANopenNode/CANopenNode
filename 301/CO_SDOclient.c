@@ -63,7 +63,7 @@
 static void CO_SDOclient_receive(void *object, void *msg) {
     CO_SDOclient_t *SDO_C = (CO_SDOclient_t*)object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
 
     /* Ignore messages in idle state and messages with wrong length. Ignore
      * message also if previous message was not processed yet and not abort */

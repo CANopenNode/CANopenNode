@@ -52,7 +52,7 @@ static void CO_LSSslave_receive(void *object, void *msg)
 
     if((DLC == 8U) && !CO_FLAG_READ(LSSslave->sendResponse)) {
         bool_t request_LSSslave_process = false;
-        uint8_t *data = CO_CANrxMsg_readData(msg);
+        const uint8_t *data = CO_CANrxMsg_readData(msg);
         uint8_t cs = data[0];
 
         if (cs == CO_LSS_SWITCH_STATE_GLOBAL) {

@@ -81,7 +81,7 @@ static void CO_LSSmaster_receive(void *object, void *msg)
 {
     CO_LSSmaster_t *LSSmaster;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
 
     LSSmaster = (CO_LSSmaster_t*)object;   /* this is the correct pointer type of the first argument */
 

@@ -35,7 +35,7 @@
  */
 static void CO_NMT_receive(void *object, void *msg) {
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
     CO_NMT_command_t command = (CO_NMT_command_t)data[0];
     uint8_t nodeId = data[1];
 

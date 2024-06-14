@@ -324,7 +324,7 @@ static void CO_EM_receive(void *object, void *msg) {
 
         /* ignore sync messages (necessary if sync object is not used) */
         if (ident != 0x80) {
-            uint8_t *data = CO_CANrxMsg_readData(msg);
+            const uint8_t *data = CO_CANrxMsg_readData(msg);
             uint16_t errorCode;
             uint32_t infoCode;
 

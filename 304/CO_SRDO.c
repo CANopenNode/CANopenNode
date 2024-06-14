@@ -53,7 +53,7 @@ static void
 CO_SRDO_receive_normal(void* object, void* msg) {
     CO_SRDO_t* SRDO = (CO_SRDO_t*)object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t* data = CO_CANrxMsg_readData(msg);
+    const uint8_t* data = CO_CANrxMsg_readData(msg);
 
     if ((SRDO->informationDirection == CO_SRDO_RX) && (DLC >= SRDO->dataLength) && !CO_FLAG_READ(SRDO->CANrxNew[1])) {
         /* copy data into appropriate buffer and set 'new message' flag */
@@ -77,7 +77,7 @@ static void
 CO_SRDO_receive_inverted(void* object, void* msg) {
     CO_SRDO_t* SRDO = (CO_SRDO_t*)object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t* data = CO_CANrxMsg_readData(msg);
+    const uint8_t* data = CO_CANrxMsg_readData(msg);
 
     if ((SRDO->informationDirection == CO_SRDO_RX) && (DLC >= SRDO->dataLength) && CO_FLAG_READ(SRDO->CANrxNew[0])) {
         /* copy data into appropriate buffer and set 'new message' flag */

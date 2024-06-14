@@ -56,7 +56,7 @@
 static void CO_SDO_receive(void *object, void *msg) {
     CO_SDOserver_t *SDO = (CO_SDOserver_t *)object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
 
     /* ignore messages with wrong length */
     if (DLC == 8U) {

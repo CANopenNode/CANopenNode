@@ -245,7 +245,7 @@ static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg) {
  * @param rxMsg Pointer to received message
  * @return pointer to data buffer
  */
-static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
+static inline const uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
     return NULL;
 }
 

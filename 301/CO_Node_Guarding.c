@@ -289,7 +289,7 @@ static void CO_ngm_receive(void *object, void *msg) {
     CO_nodeGuardingMaster_t *ngm = (CO_nodeGuardingMaster_t*)object;
 
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
     uint16_t ident = CO_CANrxMsg_readIdent(msg);
     CO_nodeGuardingMasterNode_t *node = &ngm->nodes[0];
 
