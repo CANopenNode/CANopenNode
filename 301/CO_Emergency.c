@@ -557,6 +557,10 @@ void CO_EM_process(CO_EM_t *em,
                    uint32_t *timerNext_us)
 {
     (void)timerNext_us; /* may be unused */
+    
+    #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) == 0
+    (void)timeDifference_us; /* may be unused */
+    #endif
 
     /* verify errors from driver */
     uint16_t CANerrSt = em->CANdevTx->CANerrorStatus;
