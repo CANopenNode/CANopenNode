@@ -794,7 +794,9 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
                      bool_t syncWas)
 {
     (void) syncWas;
+#if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
     (void) timerNext_us;
+#endif
     
     CO_PDO_common_t *PDO = &RPDO->PDO_common;
 
