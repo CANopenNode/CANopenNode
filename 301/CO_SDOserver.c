@@ -1291,7 +1291,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             if ((SDO->sizeInd > 0U) && (SDO->sizeInd <= 4U)) {
                 /* expedited transfer */
                 SDO->CANtxBuff->data[0] = (uint8_t)(0x43U|((4U-SDO->sizeInd)<<2U));
-                (void)memcpy((void *)(&SDO->CANtxBuff->data[4]), (const void *)(&SDO->buf), SDO->sizeInd);
+                (void)memcpy((void *)(&SDO->CANtxBuff->data[4]), (const void *)(&SDO->buf[0]), SDO->sizeInd);
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
             }
