@@ -478,7 +478,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
     if ((LSSmaster->state==CO_LSSmaster_STATE_CFG_SLECTIVE ||
         /* Let un-config node ID also be run in global mode for unconfiguring all nodes */
         (LSSmaster->state==CO_LSSmaster_STATE_CFG_GLOBAL &&
-         nodeId == CO_LSS_NODE_ID_ASSIGNMENT)) &&
+         nodeId != CO_LSS_NODE_ID_ASSIGNMENT)) &&
          LSSmaster->command==CO_LSSmaster_COMMAND_WAITING) {
 
         LSSmaster->command = CO_LSSmaster_COMMAND_CFG_NODE_ID;
