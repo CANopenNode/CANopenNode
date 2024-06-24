@@ -622,10 +622,9 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 
         /* load data from OD variable into the buffer */
         OD_size_t countRd = 0;
-        uint8_t *bufShifted = SDO->buf + countRemain;
 
         CO_LOCK_OD(SDO->CANdevTx);
-        ODR_t odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, bufShifted,
+        ODR_t odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, &SDO->buf[countRemain],
                                       countRdRequest, &countRd);
         CO_UNLOCK_OD(SDO->CANdevTx);
 
@@ -636,9 +635,10 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
         }
 
         /* if data is string, send only data up to null termination */
+        OD_size_t lastRd = countRd + countRemain;
         if ((countRd > 0U) && ((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)) {
-            bufShifted[countRd] = 0; /* (SDO->buf is one byte larger) */
-            OD_size_t countStr = (OD_size_t)strlen((char *)bufShifted);
+            SDO->buf[lastRd] = 0;   /* (SDO->buf is one byte larger) */
+            OD_size_t countStr = (OD_size_t)strlen((char *)&SDO->buf[countRemain]);
             if (countStr == 0U) { countStr = 1; }/* zero length is not allowed */
             if (countStr < countRd) {
                 /* string terminator found, read is finished, shorten data */
@@ -747,8 +747,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             /* if no error search object dictionary for new SDO request */
             if (abortCode == CO_SDO_AB_NONE) {
                 ODR_t odRet;
-                SDO->index = (((uint16_t)SDO->CANrxData[2]) << 8)
-                             | SDO->CANrxData[1];
+                SDO->index = (uint16_t)((((uint16_t)SDO->CANrxData[2]) << 8)
+                             | SDO->CANrxData[1]);
                 SDO->subIndex = SDO->CANrxData[3];
                 odRet = OD_getSub(OD_find(SDO->OD, SDO->index), SDO->subIndex,
                                   &SDO->OD_IO, false);

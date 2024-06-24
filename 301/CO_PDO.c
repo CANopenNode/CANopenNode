@@ -444,16 +444,17 @@ static ODR_t OD_read_PDO_commParam(OD_stream_t *stream, void *buf,
  ******************************************************************************/
 #if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) != 0
 /*
- * States for RPDO->receiveError indicates received RPDOs with wrong length.
+ * @defgroup CO_PDO_receiveErrors_t States for RPDO->receiveError indicates received RPDOs with wrong length.
+ * @{
+ * 
  */
-typedef enum {
-    CO_RPDO_RX_ACK_NO_ERROR = 0, /* No error */
-    CO_RPDO_RX_ACK_ERROR = 1, /* Error is acknowledged */
-    CO_RPDO_RX_ACK = 10, /* Auxiliary value */
-    CO_RPDO_RX_OK = 11, /* Correct RPDO received, not acknowledged */
-    CO_RPDO_RX_SHORT = 12, /* Too short RPDO received, not acknowledged */
-    CO_RPDO_RX_LONG = 13 /* Too long RPDO received, not acknowledged */
-} CO_PDO_receiveErrors_t;
+#define CO_RPDO_RX_ACK_NO_ERROR 0U  /* No error */
+#define CO_RPDO_RX_ACK_ERROR    1U  /* Error is acknowledged */
+#define CO_RPDO_RX_ACK          10U /* Auxiliary value */
+#define CO_RPDO_RX_OK           11U /* Correct RPDO received, not acknowledged */
+#define CO_RPDO_RX_SHORT        12U /* Too short RPDO received, not acknowledged */
+#define CO_RPDO_RX_LONG         13U /* Too long RPDO received, not acknowledged */
+/** @} */ /* CO_PDO_receiveErrors_t */
 
 /*
  * Read received message from CAN module.
@@ -475,10 +476,10 @@ static void CO_PDO_receive(void *object, void *msg) {
         if (DLC >= PDO->dataLength) {
             /* indicate errors in PDO length */
             if (DLC == PDO->dataLength) {
-                if (err == (uint8_t)CO_RPDO_RX_ACK_ERROR) { err = (uint8_t)(CO_RPDO_RX_OK); }
+                if (err == CO_RPDO_RX_ACK_ERROR) { err = CO_RPDO_RX_OK; }
             }
             else {
-                if (err == (uint8_t)CO_RPDO_RX_ACK_NO_ERROR) { err = (uint8_t)(CO_RPDO_RX_LONG); }
+                if (err == CO_RPDO_RX_ACK_NO_ERROR) { err = CO_RPDO_RX_LONG; }
             }
 
             /* Determine, to which of the two rx buffers copy the message. */
@@ -492,7 +493,7 @@ static void CO_PDO_receive(void *object, void *msg) {
 #endif
 
             /* copy data into appropriate buffer and set 'new message' flag */
-            (void)memcpy(RPDO->CANrxData[bufNo], data,sizeof(RPDO->CANrxData[bufNo]));
+            (void)memcpy(RPDO->CANrxData[bufNo], data, CO_PDO_MAX_SIZE);
             CO_FLAG_SET(RPDO->CANrxNew[bufNo]);
 
 #if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
@@ -503,8 +504,8 @@ static void CO_PDO_receive(void *object, void *msg) {
             }
 #endif
         }
-        else if (err == (uint8_t)CO_RPDO_RX_ACK_NO_ERROR) {
-            err = (uint8_t)(CO_RPDO_RX_SHORT);
+        else if (err == CO_RPDO_RX_ACK_NO_ERROR) {
+            err = CO_RPDO_RX_SHORT;
         }
         else { /* MISRA C 2004 14.10 */ }
     }
@@ -806,14 +807,14 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
 #endif
     ) {
         /* Verify errors in length of received RPDO CAN message */
-        if (RPDO->receiveError > (uint8_t)CO_RPDO_RX_ACK) {
-            bool_t setError = RPDO->receiveError != (uint8_t)CO_RPDO_RX_OK;
-            uint16_t code = (RPDO->receiveError == (uint8_t)CO_RPDO_RX_SHORT)
+        if (RPDO->receiveError > CO_RPDO_RX_ACK) {
+            bool_t setError = RPDO->receiveError != CO_RPDO_RX_OK;
+            uint16_t code = (RPDO->receiveError == CO_RPDO_RX_SHORT)
                           ? CO_EMC_PDO_LENGTH : CO_EMC_PDO_LENGTH_EXC;
             CO_error(PDO->em, setError, CO_EM_RPDO_WRONG_LENGTH,
                      code, PDO->dataLength);
             RPDO->receiveError = setError
-                              ? (uint8_t)(CO_RPDO_RX_ACK_ERROR) : (uint8_t)(CO_RPDO_RX_ACK_NO_ERROR);
+                              ? CO_RPDO_RX_ACK_ERROR : CO_RPDO_RX_ACK_NO_ERROR;
         }
 
         /* Determine, which of the two rx buffers contains relevant message. */

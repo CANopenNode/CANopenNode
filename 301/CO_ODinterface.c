@@ -116,7 +116,12 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
         return ODR_DATA_LONG;
     }
 
-    (void)memcpy((void *)dataOrig, (const void *)buf, dataLenToCopy);
+    if (((dataLenToCopy + stream->dataOffset) <= stream->dataLength) && (dataLenToCopy <= count)) {
+        (void)memcpy((void *)dataOrig, (const void *)buf, dataLenToCopy);
+    }
+    else {
+        return ODR_DEV_INCOMPAT;
+    }
 
     *countWritten = dataLenToCopy;
     return returnCode;
