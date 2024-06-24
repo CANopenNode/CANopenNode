@@ -245,7 +245,7 @@ static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg) {
  * @param rxMsg Pointer to received message
  * @return pointer to data buffer
  */
-static inline uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
+static inline const uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
     return NULL;
 }
 
@@ -469,34 +469,35 @@ typedef struct {
 
 
 /**
- * Default CANopen identifiers.
+ * @defgroup CO_Default_CAN_ID_t Default CANopen identifiers
+ * @{
  *
  * Default CANopen identifiers for CANopen communication objects. Same as
  * 11-bit addresses of CAN messages. These are default identifiers and
  * can be changed in CANopen. Especially PDO identifiers are configured
  * in PDO linking phase of the CANopen network configuration.
  */
-typedef enum {
-    CO_CAN_ID_NMT_SERVICE = 0x000, /**< 0x000, Network management */
-    CO_CAN_ID_GFC = 0x001,         /**< 0x001, Global fail-safe command */
-    CO_CAN_ID_SYNC = 0x080,        /**< 0x080, Synchronous message */
-    CO_CAN_ID_EMERGENCY = 0x080,   /**< 0x080, Emergency messages (+nodeID) */
-    CO_CAN_ID_TIME = 0x100,        /**< 0x100, Time message */
-    CO_CAN_ID_SRDO_1 = 0x0FF,      /**< 0x0FF, Default SRDO1 (+2*nodeID) */
-    CO_CAN_ID_TPDO_1 = 0x180,      /**< 0x180, Default TPDO1 (+nodeID) */
-    CO_CAN_ID_RPDO_1 = 0x200,      /**< 0x200, Default RPDO1 (+nodeID) */
-    CO_CAN_ID_TPDO_2 = 0x280,      /**< 0x280, Default TPDO2 (+nodeID) */
-    CO_CAN_ID_RPDO_2 = 0x300,      /**< 0x300, Default RPDO2 (+nodeID) */
-    CO_CAN_ID_TPDO_3 = 0x380,      /**< 0x380, Default TPDO3 (+nodeID) */
-    CO_CAN_ID_RPDO_3 = 0x400,      /**< 0x400, Default RPDO3 (+nodeID) */
-    CO_CAN_ID_TPDO_4 = 0x480,      /**< 0x480, Default TPDO4 (+nodeID) */
-    CO_CAN_ID_RPDO_4 = 0x500,      /**< 0x500, Default RPDO5 (+nodeID) */
-    CO_CAN_ID_SDO_SRV = 0x580, /**< 0x580, SDO response from server (+nodeID) */
-    CO_CAN_ID_SDO_CLI = 0x600, /**< 0x600, SDO request from client (+nodeID) */
-    CO_CAN_ID_HEARTBEAT = 0x700,   /**< 0x700, Heartbeat message */
-    CO_CAN_ID_LSS_SLV = 0x7E4,     /**< 0x7E4, LSS response from slave */
-    CO_CAN_ID_LSS_MST = 0x7E5      /**< 0x7E5, LSS request from master */
-} CO_Default_CAN_ID_t;
+#define CO_CAN_ID_NMT_SERVICE   0x000U  /**< 0x000 Network management */
+#define CO_CAN_ID_GFC           0x001U  /**< 0x001 Global fail-safe command */
+#define CO_CAN_ID_SYNC          0x080U  /**< 0x080 Synchronous message */
+#define CO_CAN_ID_EMERGENCY     0x080U  /**< 0x080 Emergency messages (+nodeID) */
+#define CO_CAN_ID_TIME          0x100U  /**< 0x100 Time message */
+#define CO_CAN_ID_SRDO_1        0x0FFU  /**< 0x0FF Default SRDO1 (+2*nodeID) */
+#define CO_CAN_ID_TPDO_1        0x180U  /**< 0x180 Default TPDO1 (+nodeID) */
+#define CO_CAN_ID_RPDO_1        0x200U  /**< 0x200 Default RPDO1 (+nodeID) */
+#define CO_CAN_ID_TPDO_2        0x280U  /**< 0x280 Default TPDO2 (+nodeID) */
+#define CO_CAN_ID_RPDO_2        0x300U  /**< 0x300 Default RPDO2 (+nodeID) */
+#define CO_CAN_ID_TPDO_3        0x380U  /**< 0x380 Default TPDO3 (+nodeID) */
+#define CO_CAN_ID_RPDO_3        0x400U  /**< 0x400 Default RPDO3 (+nodeID) */
+#define CO_CAN_ID_TPDO_4        0x480U  /**< 0x480 Default TPDO4 (+nodeID) */
+#define CO_CAN_ID_RPDO_4        0x500U  /**< 0x500 Default RPDO5 (+nodeID) */
+#define CO_CAN_ID_SDO_SRV       0x580U  /**< 0x580 SDO response from server (+nodeID) */
+#define CO_CAN_ID_SDO_CLI       0x600U  /**< 0x600 SDO request from client (+nodeID) */
+#define CO_CAN_ID_HEARTBEAT     0x700U  /**< 0x700 Heartbeat message */
+#define CO_CAN_ID_LSS_SLV       0x7E4U  /**< 0x7E4 LSS response from slave */
+#define CO_CAN_ID_LSS_MST       0x7E5U  /**< 0x7E5 LSS request from master */
+
+/** @} */ /* CO_Default_CAN_ID_t */
 
 
 /**
@@ -506,38 +507,35 @@ typedef enum {
  * They shall not be used for SYNC, TIME, EMCY, PDO and SDO.
  */
 #ifndef CO_IS_RESTRICTED_CAN_ID
-#define CO_IS_RESTRICTED_CAN_ID(CAN_ID) ((CAN_ID) <= 0x7F \
-        || ((CAN_ID) >= 0x101 && (CAN_ID) <= 0x180) \
-        || ((CAN_ID) >= 0x581 && (CAN_ID) <= 0x5FF) \
-        || ((CAN_ID) >= 0x601 && (CAN_ID) <= 0x67F) \
-        || ((CAN_ID) >= 0x6E0 && (CAN_ID) <= 0x6FF) \
-        || (CAN_ID) >= 0x701)
+#define CO_IS_RESTRICTED_CAN_ID(CAN_ID) (((CAN_ID) <= 0x7FU) \
+        || (((CAN_ID) >= 0x101U) && ((CAN_ID) <= 0x180U)) \
+        || (((CAN_ID) >= 0x581U) && ((CAN_ID) <= 0x5FFU)) \
+        || (((CAN_ID) >= 0x601U) && ((CAN_ID) <= 0x67FU)) \
+        || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) \
+        || ((CAN_ID) >= 0x701U))
 #endif
 
 
 /**
- * CAN error status bitmasks.
+ * @defgroup CO_CAN_ERR_status_t CAN error status bitmasks
+ * @{
  *
  * CAN warning level is reached, if CAN transmit or receive error counter is
  * more or equal to 96. CAN passive level is reached, if counters are more or
  * equal to 128. Transmitter goes in error state 'bus off' if transmit error
  * counter is more or equal to 256.
  */
-typedef enum {
-    CO_CAN_ERRTX_WARNING = 0x0001,  /**< 0x0001, CAN transmitter warning */
-    CO_CAN_ERRTX_PASSIVE = 0x0002,  /**< 0x0002, CAN transmitter passive */
-    CO_CAN_ERRTX_BUS_OFF = 0x0004,  /**< 0x0004, CAN transmitter bus off */
-    CO_CAN_ERRTX_OVERFLOW = 0x0008, /**< 0x0008, CAN transmitter overflow */
+#define CO_CAN_ERRTX_WARNING        0x0001U  /**< 0x0001 CAN transmitter warning */
+#define CO_CAN_ERRTX_PASSIVE        0x0002U  /**< 0x0002 CAN transmitter passive */
+#define CO_CAN_ERRTX_BUS_OFF        0x0004U  /**< 0x0004 CAN transmitter bus off */
+#define CO_CAN_ERRTX_OVERFLOW       0x0008U  /**< 0x0008 CAN transmitter overflow */
+#define CO_CAN_ERRTX_PDO_LATE       0x0080U  /**< 0x0080 TPDO is outside sync window */
+#define CO_CAN_ERRRX_WARNING        0x0100U  /**< 0x0100 CAN receiver warning */
+#define CO_CAN_ERRRX_PASSIVE        0x0200U  /**< 0x0200 CAN receiver passive */
+#define CO_CAN_ERRRX_OVERFLOW       0x0800U  /**< 0x0800 CAN receiver overflow */
+#define CO_CAN_ERR_WARN_PASSIVE     0x0303U  /**< 0x0303 combination */
 
-    CO_CAN_ERRTX_PDO_LATE = 0x0080, /**< 0x0080, TPDO is outside sync window */
-
-    CO_CAN_ERRRX_WARNING = 0x0100,  /**< 0x0100, CAN receiver warning */
-    CO_CAN_ERRRX_PASSIVE = 0x0200,  /**< 0x0200, CAN receiver passive */
-    CO_CAN_ERRRX_OVERFLOW = 0x0800, /**< 0x0800, CAN receiver overflow */
-
-    CO_CAN_ERR_WARN_PASSIVE = 0x0303/**< 0x0303, combination */
-} CO_CAN_ERR_status_t;
-
+/** @} */ /* CO_CAN_ERR_status_t */
 
 /**
  * Return values of some CANopen functions. If function was executed
@@ -737,15 +735,15 @@ void CO_CANmodule_process(CO_CANmodule_t *CANmodule);
  * @return Value
  */
 static inline uint8_t CO_getUint8(const void *buf) {
-    uint8_t value; memmove(&value, buf, sizeof(value)); return value;
+    uint8_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
 }
 /** Get uint16_t value from memory buffer, see @ref CO_getUint8 */
 static inline uint16_t CO_getUint16(const void *buf) {
-    uint16_t value; memmove(&value, buf, sizeof(value)); return value;
+    uint16_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
 }
 /** Get uint32_t value from memory buffer, see @ref CO_getUint8 */
 static inline uint32_t CO_getUint32(const void *buf) {
-    uint32_t value; memmove(&value, buf, sizeof(value)); return value;
+    uint32_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
 }
 
 /**
@@ -757,15 +755,15 @@ static inline uint32_t CO_getUint32(const void *buf) {
  * @return number of bytes written.
  */
 static inline uint8_t CO_setUint8(void *buf, uint8_t value) {
-    memmove(buf, &value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
 }
 /** Write uint16_t value into memory buffer, see @ref CO_setUint8 */
 static inline uint8_t CO_setUint16(void *buf, uint16_t value) {
-    memmove(buf, &value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
 }
 /** Write uint32_t value into memory buffer, see @ref CO_setUint8 */
 static inline uint8_t CO_setUint32(void *buf, uint32_t value) {
-    memmove(buf, &value, sizeof(value)); return sizeof(value);
+    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
 }
 
 /** @} */ /* CO_driver */

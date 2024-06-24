@@ -33,7 +33,7 @@
 #define CO_CONFIG_FIFO (0)
 #endif
 
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,11 +68,11 @@ typedef struct {
     size_t writePtr;
     /** Location in the buffer, which will be next read. */
     size_t readPtr;
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) != 0) || defined CO_DOXYGEN
     /** Location in the buffer, which will be next read. */
     size_t altReadPtr;
 #endif
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) != 0) || defined CO_DOXYGEN
     /** helper variable, set to false in CO_fifo_reset(), used in some
      * functions. */
     bool_t started;
@@ -103,7 +103,7 @@ static inline void CO_fifo_reset(CO_fifo_t *fifo) {
     if (fifo != NULL) {
         fifo->readPtr = 0;
         fifo->writePtr = 0;
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) != 0
         fifo->started = false;
 #endif
     }
@@ -267,7 +267,7 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
 size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof);
 
 
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) != 0) || defined CO_DOXYGEN
 /**
  * Initializes alternate read with #CO_fifo_altRead
  *
@@ -326,7 +326,7 @@ size_t CO_fifo_altRead(CO_fifo_t *fifo, uint8_t *buf, size_t count);
 #endif /* #if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ */
 
 
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) != 0) || defined CO_DOXYGEN
 /**
  * Search command inside FIFO
  *
@@ -416,7 +416,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
 
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) != 0) || defined CO_DOXYGEN
 /**
  * Read uint8_t variable from fifo and output as ascii string.
  *

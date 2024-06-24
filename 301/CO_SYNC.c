@@ -25,7 +25,7 @@
 
 #include "301/CO_SYNC.h"
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) != 0
 
 /*
  * Read received message from CAN module.
@@ -39,22 +39,22 @@ static void CO_SYNC_receive(void *object, void *msg) {
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     bool_t syncReceived = false;
 
-    if (SYNC->counterOverflowValue == 0) {
-        if (DLC == 0) {
+    if (SYNC->counterOverflowValue == 0U) {
+        if (DLC == 0U) {
             syncReceived = true;
         }
         else {
-            SYNC->receiveError = DLC | 0x40;
+            SYNC->receiveError = DLC | 0x40U;
         }
     }
     else {
-        if (DLC == 1) {
-            uint8_t *data = CO_CANrxMsg_readData(msg);
+        if (DLC == 1U) {
+            const uint8_t *data = CO_CANrxMsg_readData(msg);
             SYNC->counter = data[0];
             syncReceived = true;
         }
         else {
-            SYNC->receiveError = DLC | 0x80;
+            SYNC->receiveError = DLC | 0x80U;
         }
     }
 
@@ -64,7 +64,7 @@ static void CO_SYNC_receive(void *object, void *msg) {
 
         CO_FLAG_SET(SYNC->CANrxNew);
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
         /* Optional signal to RTOS, which can resume task, which handles SYNC.*/
         if (SYNC->pFunctSignalPre != NULL) {
             SYNC->pFunctSignalPre(SYNC->functSignalObjectPre);
@@ -74,7 +74,7 @@ static void CO_SYNC_receive(void *object, void *msg) {
 }
 
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
 /*
  * Custom function for writing OD object "COB-ID sync message"
  *
@@ -83,18 +83,18 @@ static void CO_SYNC_receive(void *object, void *msg) {
 static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
+        || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
 
     CO_SYNC_t *SYNC = stream->object;
     uint32_t cobIdSync = CO_getUint32(buf);
-    uint16_t CAN_ID = (uint16_t)(cobIdSync & 0x7FF);
+    uint16_t CAN_ID = (uint16_t)(cobIdSync & 0x7FFU);
 
     /* verify written value */
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
     bool_t isProducer = (cobIdSync & 0x40000000) != 0;
     if ((cobIdSync & 0xBFFFF800) != 0 || CO_IS_RESTRICTED_CAN_ID(CAN_ID)
         || (SYNC->isProducer && isProducer && CAN_ID != SYNC->CAN_ID)
@@ -102,7 +102,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
         return ODR_INVALID_VALUE;
     }
 #else
-    if ((cobIdSync & 0xFFFFF800) != 0 || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
+    if (((cobIdSync & 0xFFFFF800U) != 0U) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
 #endif
@@ -114,7 +114,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
             SYNC->CANdevRxIdx,  /* rx buffer index */
             CAN_ID,             /* CAN identifier */
             0x7FF,              /* mask */
-            0,                  /* rtr */
+            false,                  /* rtr */
             (void*)SYNC,        /* object passed to receive function */
             CO_SYNC_receive);   /* this function will process received message*/
 
@@ -122,14 +122,14 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
             return ODR_DEV_INCOMPAT;
         }
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
         SYNC->CANtxBuff = CO_CANtxBufferInit(
             SYNC->CANdevTx,     /* CAN device */
             SYNC->CANdevTxIdx,  /* index of specific buffer inside CAN module */
             CAN_ID,             /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             SYNC->counterOverflowValue != 0 ? 1 : 0, /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
 
         if (SYNC->CANtxBuff == NULL) {
             SYNC->isProducer = false;
@@ -140,7 +140,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
         SYNC->CAN_ID = CAN_ID;
     }
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
     SYNC->isProducer = isProducer;
     if (isProducer) {
         SYNC->counter = 0;
@@ -152,7 +152,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
     return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
 /*
  * Custom function for writing OD object "Synchronous counter overflow value"
  *
@@ -183,9 +183,9 @@ static ODR_t OD_write_1019(OD_stream_t *stream, const void *buf,
         SYNC->CANdevTx,     /* CAN device */
         SYNC->CANdevTxIdx,  /* index of specific buffer inside CAN module */
         SYNC->CAN_ID,       /* CAN identifier */
-        0,                  /* rtr */
+        false,                  /* rtr */
         syncCounterOvf != 0 ? 1 : 0, /* number of data bytes */
-        0);                 /* synchronous message flag bit */
+        false);                 /* synchronous message flag bit */
 
     if (SYNC->CANtxBuff == NULL) {
         SYNC->isProducer = false;
@@ -210,7 +210,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
                               OD_entry_t *OD_1019_syncCounterOvf,
                               CO_CANmodule_t *CANdevRx,
                               uint16_t CANdevRxIdx,
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
                               CO_CANmodule_t *CANdevTx,
                               uint16_t CANdevTxIdx,
 #endif
@@ -219,17 +219,17 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     ODR_t odRet;
 
     /* verify arguments */
-    if (SYNC == NULL || em == NULL || OD_1005_cobIdSync == NULL
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
-        || OD_1006_commCyclePeriod == NULL || CANdevTx == NULL
+    if ((SYNC == NULL) || (em == NULL) || (OD_1005_cobIdSync == NULL)
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
+        || (OD_1006_commCyclePeriod == NULL) || (CANdevTx == NULL)
 #endif
-        || CANdevRx == NULL
+        || (CANdevRx == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* clear object */
-    memset(SYNC, 0, sizeof(CO_SYNC_t));
+    (void)memset(SYNC, 0, sizeof(CO_SYNC_t));
 
     /* get and verify "COB-ID SYNC message" from OD and configure extension */
     uint32_t cobIdSync = 0x00000080;
@@ -239,17 +239,17 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
         if (errInfo != NULL) { *errInfo = OD_getIndex(OD_1005_cobIdSync); }
         return CO_ERROR_OD_PARAMETERS;
     }
-#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
     SYNC->OD_1005_extension.object = SYNC;
     SYNC->OD_1005_extension.read = OD_readOriginal;
     SYNC->OD_1005_extension.write = OD_write_1005;
-    OD_extension_init(OD_1005_cobIdSync, &SYNC->OD_1005_extension);
+    (void)OD_extension_init(OD_1005_cobIdSync, &SYNC->OD_1005_extension);
 #endif
 
     /* get and verify "Communication cycle period" from OD */
     SYNC->OD_1006_period = OD_getPtr(OD_1006_commCyclePeriod, 0,
                                      sizeof(uint32_t), NULL);
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
     if (SYNC->OD_1006_period == NULL) {
         if (errInfo != NULL) { 
             *errInfo = OD_getIndex(OD_1006_commCyclePeriod);
@@ -257,7 +257,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
         return CO_ERROR_OD_PARAMETERS;
     }
 #else
-    if (OD_1006_commCyclePeriod != NULL && SYNC->OD_1006_period == NULL) {
+    if ((OD_1006_commCyclePeriod != NULL) && (SYNC->OD_1006_period == NULL)) {
         if (errInfo != NULL) {
             *errInfo = OD_getIndex(OD_1006_commCyclePeriod);
         }
@@ -268,7 +268,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     /* get "Synchronous window length" from OD (optional parameter) */
     SYNC->OD_1007_window = OD_getPtr(OD_1007_syncWindowLen, 0,
                                      sizeof(uint32_t), NULL);
-    if (OD_1007_syncWindowLen != NULL && SYNC->OD_1007_window == NULL) {
+    if ((OD_1007_syncWindowLen != NULL) && (SYNC->OD_1007_window == NULL)) {
         if (errInfo != NULL) {
             *errInfo = OD_getIndex(OD_1007_syncWindowLen);
         }
@@ -287,16 +287,16 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
             }
             return CO_ERROR_OD_PARAMETERS;
         }
-        if (syncCounterOvf == 1) { syncCounterOvf = 2; }
-        else if (syncCounterOvf > 240) { syncCounterOvf = 240; }
+        if (syncCounterOvf == 1U) { syncCounterOvf = 2; }
+        else if (syncCounterOvf > 240U) { syncCounterOvf = 240; }
         else { /* MISRA C 2004 14.10 */ }
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
         SYNC->OD_1019_extension.object = SYNC;
         SYNC->OD_1019_extension.read = OD_readOriginal;
         SYNC->OD_1019_extension.write = OD_write_1019;
-        OD_extension_init(OD_1019_syncCounterOvf, &SYNC->OD_1019_extension);
+        (void)OD_extension_init(OD_1019_syncCounterOvf, &SYNC->OD_1019_extension);
 #endif
 #endif
     }
@@ -304,14 +304,14 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
 
     /* Configure object variables */
     SYNC->em = em;
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
-    SYNC->isProducer = (cobIdSync & 0x40000000) != 0;
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
+    SYNC->isProducer = (cobIdSync & 0x40000000U) != 0U;
 #endif
-#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC
-    SYNC->CAN_ID = cobIdSync & 0x7FF;
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
+    SYNC->CAN_ID = (uint16_t)(cobIdSync & 0x7FFU);
     SYNC->CANdevRx = CANdevRx;
     SYNC->CANdevRxIdx = CANdevRxIdx;
- #if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+ #if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
     SYNC->CANdevTx = CANdevTx;
     SYNC->CANdevTxIdx = CANdevTxIdx;
  #endif
@@ -321,23 +321,23 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     CO_ReturnError_t ret = CO_CANrxBufferInit(
             CANdevRx,           /* CAN device */
             CANdevRxIdx,        /* rx buffer index */
-            cobIdSync & 0x7FF,  /* CAN identifier */
+            (uint16_t)(cobIdSync & 0x7FFU),  /* CAN identifier */
             0x7FF,              /* mask */
-            0,                  /* rtr */
+            false,                  /* rtr */
             (void*)SYNC,        /* object passed to receive function */
             CO_SYNC_receive);   /* this function will process received message*/
     if (ret != CO_ERROR_NO) {
         return ret;
     }
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
     SYNC->CANtxBuff = CO_CANtxBufferInit(
             CANdevTx,           /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
             cobIdSync & 0x7FF,  /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             syncCounterOvf != 0 ? 1 : 0, /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
 
     if (SYNC->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -348,7 +348,7 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
 }
 
 
-#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 /******************************************************************************/
 void CO_SYNC_initCallbackPre(
         CO_SYNC_t              *SYNC,
@@ -385,17 +385,17 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
             CO_FLAG_CLEAR(SYNC->CANrxNew);
         }
 
-        uint32_t OD_1006_period = SYNC->OD_1006_period != NULL
-                                ? *SYNC->OD_1006_period : 0;
+        uint32_t OD_1006_period = (SYNC->OD_1006_period != NULL)
+                                ? *SYNC->OD_1006_period : 0U;
 
-        if (OD_1006_period > 0) {
-#if (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER
+        if (OD_1006_period > 0U) {
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
             if (SYNC->isProducer) {
                 if (SYNC->timer >= OD_1006_period) {
                     syncStatus = CO_SYNC_RX_TX;
                     CO_SYNCsend(SYNC);
                 }
- #if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
+ #if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT) != 0
                 /* Calculate when next SYNC needs to be sent */
                 if (timerNext_us != NULL) {
                     uint32_t diff = OD_1006_period - SYNC->timer;
@@ -409,11 +409,11 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER */
 
             /* Verify timeout of SYNC */
-            if (SYNC->timeoutError == 1) {
+            if (SYNC->timeoutError == 1U) {
                 /* periodTimeout is 1,5 * OD_1006_period, no overflow */
                 uint32_t periodTimeout = OD_1006_period + (OD_1006_period >> 1);
                 if (periodTimeout < OD_1006_period) {
-                    periodTimeout = 0xFFFFFFFF;
+                    periodTimeout = 0xFFFFFFFFU;
                 }
 
                 if (SYNC->timer > periodTimeout) {
@@ -421,7 +421,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
                                    CO_EMC_COMMUNICATION, SYNC->timer);
                     SYNC->timeoutError = 2;
                 }
-#if (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT) != 0
                 else if (timerNext_us != NULL) {
                     uint32_t diff = periodTimeout - SYNC->timer;
                     if (*timerNext_us > diff) {
@@ -434,8 +434,8 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         } /* if (OD_1006_period > 0) */
 
         /* Synchronous PDOs are allowed only inside time window */
-        if (SYNC->OD_1007_window != NULL && *SYNC->OD_1007_window > 0
-            && SYNC->timer > *SYNC->OD_1007_window
+        if ((SYNC->OD_1007_window != NULL) && (*SYNC->OD_1007_window > 0U)
+            && (SYNC->timer > *SYNC->OD_1007_window)
         ) {
             if (!SYNC->syncIsOutsideWindow) {
                 syncStatus = CO_SYNC_PASSED_WINDOW;
@@ -447,7 +447,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
         }
 
         /* verify error from receive function */
-        if (SYNC->receiveError != 0) {
+        if (SYNC->receiveError != 0U) {
             CO_errorReport(SYNC->em, CO_EM_SYNC_LENGTH,
                            CO_EMC_SYNC_DATA_LENGTH, SYNC->receiveError);
             SYNC->receiveError = 0;
@@ -461,7 +461,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
     }
 
     if (syncStatus == CO_SYNC_RX_TX) {
-        if (SYNC->timeoutError == 2) {
+        if (SYNC->timeoutError == 2U) {
             CO_errorReset(SYNC->em, CO_EM_SYNC_TIME_OUT, 0);
         }
         SYNC->timeoutError = 1;

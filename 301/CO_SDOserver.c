@@ -29,16 +29,16 @@
 #include "301/crc16-ccitt.h"
 
 /* verify configuration */
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
  #if CO_CONFIG_SDO_SRV_BUFFER_SIZE < 20
   #error CO_CONFIG_SDO_SRV_BUFFER_SIZE must be greater or equal than 20.
  #endif
 #endif
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
- #if !((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED)
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+ #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) == 0
   #error CO_CONFIG_SDO_SRV_SEGMENTED must be enabled.
  #endif
- #if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE)
+ #if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE) == 0
   #error CO_CONFIG_CRC16_ENABLE must be enabled.
  #endif
  #if CO_CONFIG_SDO_SRV_BUFFER_SIZE < 900
@@ -56,18 +56,18 @@
 static void CO_SDO_receive(void *object, void *msg) {
     CO_SDOserver_t *SDO = (CO_SDOserver_t *)object;
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
 
     /* ignore messages with wrong length */
-    if (DLC == 8) {
-        if (data[0] == 0x80) {
+    if (DLC == 8U) {
+        if (data[0] == 0x80U) {
             /* abort from client, just make idle */
             SDO->state = CO_SDO_ST_IDLE;
         }
         else if (CO_FLAG_READ(SDO->CANrxNew)) {
             /* ignore message if previous message was not processed yet */
         }
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
         else if (SDO->state == CO_SDO_ST_UPLOAD_BLK_END_CRSP && data[0]==0xA1) {
             /*  SDO block download successfully transferred, just make idle */
             SDO->state = CO_SDO_ST_IDLE;
@@ -89,7 +89,7 @@ static void CO_SDO_receive(void *object, void *msg) {
 
                     /* Copy data. There is always enough space in buffer,
                     * because block_blksize was calculated before */
-                    memcpy(SDO->buf + SDO->bufOffsetWr, &data[1], 7);
+                    (void)memcpy(SDO->buf + SDO->bufOffsetWr, &data[1], 7);
                     SDO->bufOffsetWr += 7;
                     SDO->sizeTran += 7;
 
@@ -132,7 +132,7 @@ static void CO_SDO_receive(void *object, void *msg) {
                      * CO_FLAG_CLEAR() call. */
                     CO_FLAG_CLEAR(SDO->CANrxNew);
                     SDO->state = state;
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
                     /* Optional signal to RTOS, which can resume task, which
                      * handles SDO server processing. */
                     if (SDO->pFunctSignalPre != NULL) {
@@ -149,9 +149,9 @@ static void CO_SDO_receive(void *object, void *msg) {
         else {
             /* copy data and set 'new message' flag, data will be processed in
              * CO_SDOserver_process() */
-            memcpy(SDO->CANrxData, data, DLC);
+            (void)memcpy(SDO->CANrxData, data, DLC);
             CO_FLAG_SET(SDO->CANrxNew);
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
             /* Optional signal to RTOS, which can resume task, which handles
             * SDO server processing. */
             if (SDO->pFunctSignalPre != NULL) {
@@ -171,10 +171,10 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
                                                   uint32_t COB_IDClientToServer,
                                                   uint32_t COB_IDServerToClient)
 {
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
     /* proceed only, if parameters change */
-    if (COB_IDClientToServer == SDO->COB_IDClientToServer
-        && COB_IDServerToClient == SDO->COB_IDServerToClient
+    if ((COB_IDClientToServer == SDO->COB_IDClientToServer)
+        && (COB_IDServerToClient == SDO->COB_IDServerToClient)
     ) {
         return CO_ERROR_NO;
     }
@@ -184,11 +184,11 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
 #endif
 
     /* verify valid bit */
-    uint16_t idC2S = ((COB_IDClientToServer & 0x80000000L) == 0) ?
-                     (uint16_t)COB_IDClientToServer : 0;
-    uint16_t idS2C = ((COB_IDServerToClient & 0x80000000L) == 0) ?
-                     (uint16_t)COB_IDServerToClient : 0;
-    if (idC2S != 0 && idS2C != 0) {
+    uint16_t idC2S = ((COB_IDClientToServer & 0x80000000UL) == 0U) ?
+                     (uint16_t)COB_IDClientToServer : 0U;
+    uint16_t idS2C = ((COB_IDServerToClient & 0x80000000UL) == 0U) ?
+                     (uint16_t)COB_IDServerToClient : 0U;
+    if ((idC2S != 0U) && (idS2C != 0U)) {
         SDO->valid = true;
     }
     else {
@@ -203,7 +203,7 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
             CANdevRxIdx,            /* rx buffer index */
             idC2S,                  /* CAN identifier */
             0x7FF,                  /* mask */
-            0,                      /* rtr */
+            false,                      /* rtr */
             (void*)SDO,             /* object passed to receive function */
             CO_SDO_receive);        /* this function will process rx msg */
 
@@ -212,9 +212,9 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
             SDO->CANdevTx,          /* CAN device */
             CANdevTxIdx,            /* index of buffer inside CAN module */
             idS2C,                  /* CAN identifier */
-            0,                      /* rtr */
+            false,                      /* rtr */
             8,                      /* number of data bytes */
-            0);                     /* synchronous message flag bit */
+            false);                     /* synchronous message flag bit */
 
     if (SDO->CANtxBuff == NULL) {
         ret = CO_ERROR_ILLEGAL_ARGUMENT;
@@ -225,7 +225,7 @@ static CO_ReturnError_t CO_SDOserver_init_canRxTx(CO_SDOserver_t *SDO,
 }
 
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
 /*
  * Custom function for writing OD object _SDO server parameter_, additional
  * channels
@@ -236,7 +236,7 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
                                       OD_size_t count, OD_size_t *countWritten)
 {
     /* "count" is already verified in *_init() function */
-    if (stream == NULL || buf == NULL || countWritten == NULL) {
+    if ((stream == NULL) || (buf == NULL) || (countWritten == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
@@ -249,18 +249,18 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
 
         case 1: { /* COB-ID client -> server */
             uint32_t COB_ID = CO_getUint32(buf);
-            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FF);
-            uint16_t CAN_ID_cur = (uint16_t)(SDO->COB_IDClientToServer & 0x7FF);
-            bool_t valid = (COB_ID & 0x80000000) == 0;
+            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
+            uint16_t CAN_ID_cur = (uint16_t)(SDO->COB_IDClientToServer & 0x7FFU);
+            bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
             /* SDO client must not be valid when changing COB_ID */
-            if ((COB_ID & 0x3FFFF800) != 0
-                || (valid && SDO->valid && CAN_ID != CAN_ID_cur)
+            if (((COB_ID & 0x3FFFF800U) != 0U)
+                || ((valid && SDO->valid) && (CAN_ID != CAN_ID_cur))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
             ) {
                 return ODR_INVALID_VALUE;
             }
-            CO_SDOserver_init_canRxTx(SDO,
+            (void)CO_SDOserver_init_canRxTx(SDO,
                                       SDO->CANdevRx,
                                       SDO->CANdevRxIdx,
                                       SDO->CANdevTxIdx,
@@ -271,18 +271,18 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
 
         case 2: { /* COB-ID server -> client */
             uint32_t COB_ID = CO_getUint32(buf);
-            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FF);
-            uint16_t CAN_ID_cur = (uint16_t)(SDO->COB_IDServerToClient & 0x7FF);
-            bool_t valid = (COB_ID & 0x80000000) == 0;
+            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
+            uint16_t CAN_ID_cur = (uint16_t)(SDO->COB_IDServerToClient & 0x7FFU);
+            bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
             /* SDO client must not be valid when changing COB_ID */
-            if ((COB_ID & 0x3FFFF800) != 0
-                || (valid && SDO->valid && CAN_ID != CAN_ID_cur)
+            if (((COB_ID & 0x3FFFF800U) != 0U)
+                || (valid && (SDO->valid && (CAN_ID != CAN_ID_cur)))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))
             ) {
                 return ODR_INVALID_VALUE;
             }
-            CO_SDOserver_init_canRxTx(SDO,
+            (void)CO_SDOserver_init_canRxTx(SDO,
                                       SDO->CANdevRx,
                                       SDO->CANdevRxIdx,
                                       SDO->CANdevTxIdx,
@@ -292,11 +292,11 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
         }
 
         case 3: { /* Node-ID of the SDO server */
-            if (count != 1) {
+            if (count != 1U) {
                 return ODR_TYPE_MISMATCH;
             }
             uint8_t nodeId = CO_getUint8(buf);
-            if (nodeId < 1 || nodeId > 127) {
+            if ((nodeId < 1U) || (nodeId > 127U)) {
                 return ODR_INVALID_VALUE;
             }
             break;
@@ -304,6 +304,7 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
 
         default:
             return ODR_SUB_NOT_EXIST;
+            break;
     }
 
     /* write value to the original location in the Object Dictionary */
@@ -325,22 +326,22 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                                    uint32_t *errInfo)
 {
     /* verify arguments */
-    if (SDO == NULL || OD == NULL || CANdevRx == NULL || CANdevTx == NULL) {
+    if ((SDO == NULL) || (OD == NULL) || (CANdevRx == NULL) || (CANdevTx == NULL)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* Configure object variables */
     SDO->OD = OD;
     SDO->nodeId = nodeId;
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED)
-    SDO->SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 1000;
+#if (((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED)) != 0
+    SDO->SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 1000U;
 #endif
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
     SDO->block_SDOtimeoutTime_us = (uint32_t)SDOtimeoutTime_ms * 700;
 #endif
     SDO->state = CO_SDO_ST_IDLE;
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
     SDO->pFunctSignalPre = NULL;
     SDO->functSignalObjectPre = NULL;
 #endif
@@ -350,7 +351,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
 
     if (OD_1200_SDOsrvPar == NULL) {
         /* configure default SDO channel */
-        if (nodeId < 1 || nodeId > 127) { return CO_ERROR_ILLEGAL_ARGUMENT; }
+        if ((nodeId < 1U) || (nodeId > 127U)) { return CO_ERROR_ILLEGAL_ARGUMENT; }
 
         CanId_ClientToServer = CO_CAN_ID_SDO_CLI + nodeId;
         CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
@@ -359,9 +360,9 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
     else {
         uint16_t OD_SDOsrvParIdx = OD_getIndex(OD_1200_SDOsrvPar);
 
-        if (OD_SDOsrvParIdx == OD_H1200_SDO_SERVER_1_PARAM) {
+        if (OD_SDOsrvParIdx == (uint16_t)OD_H1200_SDO_SERVER_1_PARAM) {
             /* configure default SDO channel and SDO server parameters for it */
-            if (nodeId < 1 || nodeId > 127) {
+            if ((nodeId < 1U) || (nodeId > 127U)) {
                 return CO_ERROR_ILLEGAL_ARGUMENT;
             }
 
@@ -369,11 +370,11 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
             CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
             SDO->valid = true;
 
-            OD_set_u32(OD_1200_SDOsrvPar, 1, CanId_ClientToServer, true);
-            OD_set_u32(OD_1200_SDOsrvPar, 2, CanId_ServerToClient, true);
+            (void)OD_set_u32(OD_1200_SDOsrvPar, 1, CanId_ClientToServer, true);
+            (void)OD_set_u32(OD_1200_SDOsrvPar, 2, CanId_ServerToClient, true);
         }
-        else if (OD_SDOsrvParIdx > OD_H1200_SDO_SERVER_1_PARAM
-                && OD_SDOsrvParIdx <= (OD_H1200_SDO_SERVER_1_PARAM + 0x7F)
+        else if ((OD_SDOsrvParIdx > (uint16_t)OD_H1200_SDO_SERVER_1_PARAM)
+                && (OD_SDOsrvParIdx <= ((uint16_t)OD_H1200_SDO_SERVER_1_PARAM + 0x7FU))
         ) {
             /* configure additional SDO channel and SDO server parameters for it */
             uint8_t maxSubIndex;
@@ -386,20 +387,20 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
             ODR_t odRet2 = OD_get_u32(OD_1200_SDOsrvPar, 2,
                                     &COB_IDServerToClient32, true);
 
-            if (odRet0 != ODR_OK || (maxSubIndex != 2 && maxSubIndex != 3)
-                || odRet1 != ODR_OK || odRet2 != ODR_OK
+            if ((odRet0 != ODR_OK) || ((maxSubIndex != 2U) && (maxSubIndex != 3U))
+                || (odRet1 != ODR_OK) || (odRet2 != ODR_OK)
             ) {
                 if (errInfo != NULL) { *errInfo = OD_SDOsrvParIdx; }
                 return CO_ERROR_OD_PARAMETERS;
             }
 
 
-            CanId_ClientToServer = ((COB_IDClientToServer32 & 0x80000000) == 0)
-                                ? (uint16_t)(COB_IDClientToServer32 & 0x7FF) : 0;
-            CanId_ServerToClient = ((COB_IDServerToClient32 & 0x80000000) == 0)
-                                ? (uint16_t)(COB_IDServerToClient32 & 0x7FF) : 0;
+            CanId_ClientToServer = ((COB_IDClientToServer32 & 0x80000000U) == 0U)
+                                ? (uint16_t)(COB_IDClientToServer32 & 0x7FFU) : 0U;
+            CanId_ServerToClient = ((COB_IDServerToClient32 & 0x80000000U) == 0U)
+                                ? (uint16_t)(COB_IDServerToClient32 & 0x7FFU) : 0U;
 
-    #if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC
+    #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
             SDO->OD_1200_extension.object = SDO;
             SDO->OD_1200_extension.read = OD_readOriginal;
             SDO->OD_1200_extension.write = OD_write_1201_additional;
@@ -418,7 +419,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
     CO_FLAG_CLEAR(SDO->CANrxNew);
 
     /* store the parameters and configure CANrx and CANtx */
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0
     SDO->CANdevRx = CANdevRx;
     SDO->CANdevRxIdx = CANdevRxIdx;
     SDO->CANdevTxIdx = CANdevTxIdx;
@@ -437,7 +438,7 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
 }
 
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 /******************************************************************************/
 void CO_SDOserver_initCallbackPre(CO_SDOserver_t *SDO,
                                   void *object,
@@ -464,7 +465,7 @@ static inline void reverseBytes(void *start, OD_size_t size) {
 #endif
 
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
 /** Helper function for writing data to Object dictionary. Function swaps data
  * if necessary, calcualtes (and verifies CRC) writes data to OD and verifies
  * data lengths.
@@ -485,7 +486,7 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
 
     if (SDO->finished) {
         /* Verify if size of data downloaded matches size indicated. */
-        if (SDO->sizeInd > 0 && SDO->sizeTran != SDO->sizeInd) {
+        if ((SDO->sizeInd > 0U) && (SDO->sizeTran != SDO->sizeInd)) {
             *abortCode = (SDO->sizeTran > SDO->sizeInd) ?
                          CO_SDO_AB_DATA_LONG : CO_SDO_AB_DATA_SHORT;
             SDO->state = CO_SDO_ST_ABORT;
@@ -505,20 +506,22 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
          * shorter than size of OD data buffer. If so, add two zero bytes
          * to terminate (unicode) string. Shorten also OD data size,
          * (temporary, send information about EOF into OD_IO.write) */
-        if ((SDO->OD_IO.stream.attribute & ODA_STR) != 0
-            && (sizeInOd == 0 || SDO->sizeTran < sizeInOd)
-            && (SDO->bufOffsetWr + 2) <= CO_CONFIG_SDO_SRV_BUFFER_SIZE
+        if (((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)
+            && ((sizeInOd == 0U) || (SDO->sizeTran < sizeInOd))
+            && ((SDO->bufOffsetWr + 2U) <= CO_CONFIG_SDO_SRV_BUFFER_SIZE)
         ) {
-            SDO->buf[SDO->bufOffsetWr++] = 0;
+            SDO->buf[SDO->bufOffsetWr] = 0;
+            SDO->bufOffsetWr++;
             SDO->sizeTran++;
-            if (sizeInOd == 0 || SDO->sizeTran < sizeInOd) {
-                SDO->buf[SDO->bufOffsetWr++] = 0;
+            if ((sizeInOd == 0U) || (SDO->sizeTran < sizeInOd)) {
+                SDO->buf[SDO->bufOffsetWr] = 0;
+                SDO->bufOffsetWr++;
                 SDO->sizeTran++;
             }
             SDO->OD_IO.stream.dataLength = SDO->sizeTran;
         }
         /* Indicate OD data size, if not indicated. Can be used for EOF check.*/
-        else if (sizeInOd == 0) {
+        else if (sizeInOd == 0U) {
             SDO->OD_IO.stream.dataLength = SDO->sizeTran;
         }
         /* Verify if size of data downloaded matches data size in OD. */
@@ -532,14 +535,14 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
     }
     else {
         /* Verify if size of data downloaded is not too large. */
-        if (SDO->sizeInd > 0 && SDO->sizeTran > SDO->sizeInd) {
+        if ((SDO->sizeInd > 0U) && (SDO->sizeTran > SDO->sizeInd)) {
             *abortCode = CO_SDO_AB_DATA_LONG;
             SDO->state = CO_SDO_ST_ABORT;
             return false;
         }
     }
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
     /* calculate crc on current data */
     if (SDO->block_crcEnabled && crcOperation > 0) {
         SDO->block_crc = crc16_ccitt(SDO->buf, bufOffsetWrOrig, SDO->block_crc);
@@ -564,18 +567,18 @@ static bool_t validateAndWriteToOD(CO_SDOserver_t *SDO,
     SDO->bufOffsetWr = 0;
 
     /* verify write error value */
-    if (odRet != ODR_OK && odRet != ODR_PARTIAL) {
+    if ((odRet != ODR_OK) && (odRet != ODR_PARTIAL)) {
         *abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
         SDO->state = CO_SDO_ST_ABORT;
         return false;
     }
-    else if (SDO->finished && odRet == ODR_PARTIAL) {
+    else if (SDO->finished && (odRet == ODR_PARTIAL)) {
         /* OD variable was not written completely, but SDO download finished */
         *abortCode = CO_SDO_AB_DATA_SHORT;
         SDO->state = CO_SDO_ST_ABORT;
         return false;
     }
-    else if (!SDO->finished && odRet == ODR_OK) {
+    else if (!SDO->finished && (odRet == ODR_OK)) {
         /* OD variable was written completely, but SDO download still has data*/
         *abortCode = CO_SDO_AB_DATA_LONG;
         SDO->state = CO_SDO_ST_ABORT;
@@ -603,11 +606,14 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
                          OD_size_t countMinimum,
                          bool_t calculateCrc)
 {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) == 0
+    (void)calculateCrc;  /* may be unused */
+#endif
     OD_size_t countRemain = SDO->bufOffsetWr - SDO->bufOffsetRd;
 
-    if (!SDO->finished && countRemain < countMinimum) {
+    if (!SDO->finished && (countRemain < countMinimum)) {
         /* first move remaining data to the start of the buffer */
-        memmove(SDO->buf, SDO->buf + SDO->bufOffsetRd, countRemain);
+        (void)memmove(SDO->buf, SDO->buf + SDO->bufOffsetRd, countRemain);
         SDO->bufOffsetRd = 0;
         SDO->bufOffsetWr = countRemain;
 
@@ -616,24 +622,24 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 
         /* load data from OD variable into the buffer */
         OD_size_t countRd = 0;
-        uint8_t *bufShifted = SDO->buf + countRemain;
 
         CO_LOCK_OD(SDO->CANdevTx);
-        ODR_t odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, bufShifted,
+        ODR_t odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, &SDO->buf[countRemain],
                                       countRdRequest, &countRd);
         CO_UNLOCK_OD(SDO->CANdevTx);
 
-        if (odRet != ODR_OK && odRet != ODR_PARTIAL) {
+        if ((odRet != ODR_OK) && (odRet != ODR_PARTIAL)) {
             *abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
             SDO->state = CO_SDO_ST_ABORT;
             return false;
         }
 
         /* if data is string, send only data up to null termination */
-        if (countRd > 0 && (SDO->OD_IO.stream.attribute & ODA_STR) != 0) {
-            bufShifted[countRd] = 0; /* (SDO->buf is one byte larger) */
-            OD_size_t countStr = (OD_size_t)strlen((char *)bufShifted);
-            if (countStr == 0) { countStr = 1; }/* zero length is not allowed */
+        OD_size_t lastRd = countRd + countRemain;
+        if ((countRd > 0U) && ((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)) {
+            SDO->buf[lastRd] = 0;   /* (SDO->buf is one byte larger) */
+            OD_size_t countStr = (OD_size_t)strlen((char *)&SDO->buf[countRemain]);
+            if (countStr == 0U) { countStr = 1; }/* zero length is not allowed */
             if (countStr < countRd) {
                 /* string terminator found, read is finished, shorten data */
                 countRd = countStr;
@@ -644,7 +650,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 
         /* partial or finished read */
         SDO->bufOffsetWr = countRemain + countRd;
-        if (SDO->bufOffsetWr == 0 || odRet == ODR_PARTIAL) {
+        if ((SDO->bufOffsetWr == 0U) || (odRet == ODR_PARTIAL)) {
             SDO->finished = false;
             if (SDO->bufOffsetWr < countMinimum) {
                 *abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
@@ -671,7 +677,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
         }
 #endif
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
         /* update the crc */
         if (calculateCrc && SDO->block_crcEnabled) {
             SDO->block_crc = crc16_ccitt(bufShifted, countRd, SDO->block_crc);
@@ -701,7 +707,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
     bool_t isNew = CO_FLAG_READ(SDO->CANrxNew);
 
 
-    if (SDO->valid && SDO->state == CO_SDO_ST_IDLE && !isNew) {
+    if ((SDO->state == CO_SDO_ST_IDLE) && SDO->valid && !isNew) {
         /* Idle and nothing new */
         ret = CO_SDO_RT_ok_communicationEnd;
     }
@@ -717,14 +723,14 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
         if (SDO->state == CO_SDO_ST_IDLE) { /* new SDO communication? */
             bool_t upload = false;
 
-            if ((SDO->CANrxData[0] & 0xF0) == 0x20) {
+            if ((SDO->CANrxData[0] & 0xF0U) == 0x20U) {
                 SDO->state = CO_SDO_ST_DOWNLOAD_INITIATE_REQ;
             }
-            else if (SDO->CANrxData[0] == 0x40) {
+            else if (SDO->CANrxData[0] == 0x40U) {
                 upload = true;
                 SDO->state = CO_SDO_ST_UPLOAD_INITIATE_REQ;
             }
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             else if ((SDO->CANrxData[0] & 0xF9) == 0xC0) {
                 SDO->state = CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ;
             }
@@ -741,8 +747,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             /* if no error search object dictionary for new SDO request */
             if (abortCode == CO_SDO_AB_NONE) {
                 ODR_t odRet;
-                SDO->index = ((uint16_t)SDO->CANrxData[2]) << 8
-                             | SDO->CANrxData[1];
+                SDO->index = (uint16_t)((((uint16_t)SDO->CANrxData[2]) << 8)
+                             | SDO->CANrxData[1]);
                 SDO->subIndex = SDO->CANrxData[3];
                 odRet = OD_getSub(OD_find(SDO->OD, SDO->index), SDO->subIndex,
                                   &SDO->OD_IO, false);
@@ -752,18 +758,18 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 }
                 else {
                     /* verify read/write attributes */
-                    if ((SDO->OD_IO.stream.attribute & ODA_SDO_RW) == 0) {
+                    if ((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_SDO_RW) == 0U) {
                         abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
                         SDO->state = CO_SDO_ST_ABORT;
                     }
                     else if (upload
-                             && (SDO->OD_IO.stream.attribute & ODA_SDO_R) == 0
+                             && ((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_SDO_R) == 0U)
                     ) {
                         abortCode = CO_SDO_AB_WRITEONLY;
                         SDO->state = CO_SDO_ST_ABORT;
                     }
                     else if (!upload
-                             && (SDO->OD_IO.stream.attribute & ODA_SDO_W) == 0
+                             && ((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_SDO_W) == 0U)
                     ) {
                         abortCode = CO_SDO_AB_READONLY;
                         SDO->state = CO_SDO_ST_ABORT;
@@ -772,10 +778,11 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 }
             }
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
             /* load data from object dictionary, if upload and no error */
-            if (upload && abortCode == CO_SDO_AB_NONE) {
-                SDO->bufOffsetRd = SDO->bufOffsetWr = 0;
+            if (upload && (abortCode == CO_SDO_AB_NONE)) {
+                SDO->bufOffsetRd = 0;
+                SDO->bufOffsetWr = 0;
                 SDO->sizeTran = 0;
                 SDO->finished = false;
 
@@ -786,7 +793,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
                         SDO->sizeInd = SDO->OD_IO.stream.dataLength;
 
-                        if (SDO->sizeInd == 0) {
+                        if (SDO->sizeInd == 0U) {
                             SDO->sizeInd = SDO->bufOffsetWr;
                         }
                         else if (SDO->sizeInd != SDO->bufOffsetWr) {
@@ -797,94 +804,211 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     }
                     else {
                         /* If data type is string, size is not known */
-                        SDO->sizeInd = (SDO->OD_IO.stream.attribute&ODA_STR)==0
+                        SDO->sizeInd = ((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR)==0U)
                                      ? SDO->OD_IO.stream.dataLength
-                                     : 0;
+                                     : 0U;
                     }
                 }
             }
 #endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
         } /* (SDO->state == CO_SDO_ST_IDLE) */
 
-        if (SDO->state != CO_SDO_ST_IDLE && SDO->state != CO_SDO_ST_ABORT) {
-        switch (SDO->state) {
-        case CO_SDO_ST_DOWNLOAD_INITIATE_REQ: {
-            if (SDO->CANrxData[0] & 0x02) {
-                /* Expedited transfer, max 4 bytes of data */
+        bool isOKstate = (SDO->state != CO_SDO_ST_IDLE);
+        isOKstate = (SDO->state != CO_SDO_ST_ABORT) && isOKstate;
+        if (isOKstate) {
+            switch (SDO->state) {
+            case CO_SDO_ST_DOWNLOAD_INITIATE_REQ: {
+                if ((SDO->CANrxData[0] & 0x02U) != 0U) {
+                    /* Expedited transfer, max 4 bytes of data */
 
-                /* Size of OD variable (>0 if indicated) */
-                OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
+                    /* Size of OD variable (>0 if indicated) */
+                    OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
 
-                /* Get SDO data size (indicated by SDO client or get from OD) */
-                OD_size_t dataSizeToWrite = 4;
-                if (SDO->CANrxData[0] & 0x01) {
-                    dataSizeToWrite -= (SDO->CANrxData[0] >> 2) & 0x03;
-                }
-                else if (sizeInOd > 0 && sizeInOd < 4) {
-                    dataSizeToWrite = sizeInOd;
-                }
-                else { /* MISRA C 2004 14.10 */ }
+                    /* Get SDO data size (indicated by SDO client or get from OD) */
+                    OD_size_t dataSizeToWrite = 4;
+                    if ((SDO->CANrxData[0] & 0x01U) != 0U) {
+                        dataSizeToWrite -= ((OD_size_t)(SDO->CANrxData[0]) >> 2) & 0x03U;
+                    }
+                    else if ((sizeInOd > 0U) && (sizeInOd < 4U)) {
+                        dataSizeToWrite = sizeInOd;
+                    }
+                    else { /* MISRA C 2004 14.10 */ }
 
-                /* copy data to the temp buffer, swap data if necessary */
-                uint8_t buf[6] = {0};
-                memcpy(buf, &SDO->CANrxData[4], dataSizeToWrite);
-#ifdef CO_BIG_ENDIAN
-                if ((SDO->OD_IO.stream.attribute & ODA_MB) != 0) {
-                    reverseBytes(buf, dataSizeToWrite);
-                }
-#endif
+                    /* copy data to the temp buffer, swap data if necessary */
+                    uint8_t buf[6] = {0};
+                    (void)memcpy(buf, &SDO->CANrxData[4], dataSizeToWrite);
+    #ifdef CO_BIG_ENDIAN
+                    if ((SDO->OD_IO.stream.attribute & ODA_MB) != 0) {
+                        reverseBytes(buf, dataSizeToWrite);
+                    }
+    #endif
 
-                /* If dataType is string, then size of data downloaded may be
-                 * shorter as size of OD data buffer. If so, add two zero bytes
-                 * to terminate (unicode) string. Shorten also OD data size,
-                 * (temporary, send information about EOF into OD_IO.write) */
-                if ((SDO->OD_IO.stream.attribute & ODA_STR) != 0
-                    && (sizeInOd == 0 || dataSizeToWrite < sizeInOd)
-                ) {
-                    OD_size_t delta = sizeInOd - dataSizeToWrite;
-                    dataSizeToWrite += delta == 1 ? 1 : 2;
-                    SDO->OD_IO.stream.dataLength = dataSizeToWrite;
-                }
-                else if (sizeInOd == 0) {
-                    SDO->OD_IO.stream.dataLength = dataSizeToWrite;
-                }
-                /* Verify if size of data downloaded matches data size in OD. */
-                else if (dataSizeToWrite != sizeInOd) {
-                    abortCode = (dataSizeToWrite > sizeInOd) ?
-                                CO_SDO_AB_DATA_LONG : CO_SDO_AB_DATA_SHORT;
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
-                }
-                else { /* MISRA C 2004 14.10 */ }
+                    /* If dataType is string, then size of data downloaded may be
+                     * shorter as size of OD data buffer. If so, add two zero bytes
+                     * to terminate (unicode) string. Shorten also OD data size,
+                     * (temporary, send information about EOF into OD_IO.write) */
+                    if (((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)
+                        && ((sizeInOd == 0U) || (dataSizeToWrite < sizeInOd))
+                    ) {
+                        OD_size_t delta = sizeInOd - dataSizeToWrite;
+                        dataSizeToWrite += (delta == 1U) ? 1U : 2U;
+                        SDO->OD_IO.stream.dataLength = dataSizeToWrite;
+                    }
+                    else if (sizeInOd == 0U) {
+                        SDO->OD_IO.stream.dataLength = dataSizeToWrite;
+                    }
+                    /* Verify if size of data downloaded matches data size in OD. */
+                    else if (dataSizeToWrite != sizeInOd) {
+                        abortCode = (dataSizeToWrite > sizeInOd) ?
+                                    CO_SDO_AB_DATA_LONG : CO_SDO_AB_DATA_SHORT;
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+                    else { /* MISRA C 2004 14.10 */ }
 
-                /* Copy data */
-                OD_size_t countWritten = 0;
+                    /* Copy data */
+                    OD_size_t countWritten = 0;
 
-                CO_LOCK_OD(SDO->CANdevTx);
-                ODR_t odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, buf,
-                                               dataSizeToWrite, &countWritten);
-                CO_UNLOCK_OD(SDO->CANdevTx);
+                    CO_LOCK_OD(SDO->CANdevTx);
+                    ODR_t odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, buf,
+                                                   dataSizeToWrite, &countWritten);
+                    CO_UNLOCK_OD(SDO->CANdevTx);
 
-                if (odRet != ODR_OK) {
-                    abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
+                    if (odRet != ODR_OK) {
+                        abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+                    else {
+                        SDO->state = CO_SDO_ST_DOWNLOAD_INITIATE_RSP;
+    #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+                        SDO->finished = true;
+    #endif
+                    }
                 }
                 else {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+                    /* segmented transfer, is size indicated? */
+                    if ((SDO->CANrxData[0] & 0x01U) != 0U) {
+                        uint32_t size;
+                        OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
+
+                        (void)memcpy((void *)(&size), (const void *)(&SDO->CANrxData[4]), sizeof(size));
+                        SDO->sizeInd = CO_SWAP_32(size);
+
+                        /* Indicated size of SDO matches sizeof OD variable? */
+                        if (sizeInOd > 0U) {
+                            if (SDO->sizeInd > sizeInOd) {
+                                abortCode = CO_SDO_AB_DATA_LONG;
+                                SDO->state = CO_SDO_ST_ABORT;
+                                break;
+                            }
+                            /* strings are allowed to be shorter */
+                            else if ((SDO->sizeInd < sizeInOd)
+                                     && ((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) == 0U)
+                            ) {
+                                abortCode = CO_SDO_AB_DATA_SHORT;
+                                SDO->state = CO_SDO_ST_ABORT;
+                                break;
+                            }
+                            else { /* MISRA C 2004 14.10 */ }
+                         }
+                    }
+                    else {
+                        SDO->sizeInd = 0;
+                    }
                     SDO->state = CO_SDO_ST_DOWNLOAD_INITIATE_RSP;
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
-                    SDO->finished = true;
+                    SDO->finished = false;
+#else
+                    abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
+                    SDO->state = CO_SDO_ST_ABORT;
 #endif
                 }
+                break;
             }
-            else {
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
-                /* segmented transfer, is size indicated? */
-                if (SDO->CANrxData[0] & 0x01) {
+
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+                if ((SDO->CANrxData[0] & 0xE0U) == 0x00U) {
+                    SDO->finished = (SDO->CANrxData[0] & 0x01U) != 0U;
+
+                    /* verify and alternate toggle bit */
+                    uint8_t toggle = SDO->CANrxData[0] & 0x10U;
+                    if (toggle != SDO->toggle) {
+                        abortCode = CO_SDO_AB_TOGGLE_BIT;
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+
+                    /* get data size and write data to the buffer */
+                    OD_size_t count = (OD_size_t)(7U - (((OD_size_t)(SDO->CANrxData[0]) >> 1) & 0x07U));
+                    (void)memcpy(SDO->buf + SDO->bufOffsetWr, &SDO->CANrxData[1], count);
+                    SDO->bufOffsetWr += count;
+                    SDO->sizeTran += count;
+
+                    /* if data size exceeds variable size, abort */
+                    if ((SDO->OD_IO.stream.dataLength > 0U)
+                        && (SDO->sizeTran > SDO->OD_IO.stream.dataLength)
+                    ) {
+                        abortCode = CO_SDO_AB_DATA_LONG;
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+
+                    /* if necessary, empty the buffer */
+                    if (SDO->finished
+                        || ((CO_CONFIG_SDO_SRV_BUFFER_SIZE - SDO->bufOffsetWr)<(7U+2U))
+                    ) {
+                        if (!validateAndWriteToOD(SDO, &abortCode, 0, 0)) {
+                            break;
+                        }
+                    }
+
+                    SDO->state = CO_SDO_ST_DOWNLOAD_SEGMENT_RSP;
+                }
+                else {
+                    abortCode = CO_SDO_AB_CMD;
+                    SDO->state = CO_SDO_ST_ABORT;
+                }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
+                break;
+            }
+
+            case CO_SDO_ST_UPLOAD_INITIATE_REQ: {
+                SDO->state = CO_SDO_ST_UPLOAD_INITIATE_RSP;
+                break;
+            }
+
+            case CO_SDO_ST_UPLOAD_SEGMENT_REQ: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+                if ((SDO->CANrxData[0] & 0xEFU) == 0x60U) {
+                    /* verify and alternate toggle bit */
+                    uint8_t toggle = SDO->CANrxData[0] & 0x10U;
+                    if (toggle != SDO->toggle) {
+                        abortCode = CO_SDO_AB_TOGGLE_BIT;
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+                    SDO->state = CO_SDO_ST_UPLOAD_SEGMENT_RSP;
+                }
+                else {
+                    abortCode = CO_SDO_AB_CMD;
+                    SDO->state = CO_SDO_ST_ABORT;
+                }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
+                break;
+            }
+
+            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+                SDO->block_crcEnabled = (SDO->CANrxData[0] & 0x04) != 0;
+
+                /* is size indicated? */
+                if ((SDO->CANrxData[0] & 0x02) != 0) {
                     uint32_t size;
                     OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
 
-                    memcpy(&size, &SDO->CANrxData[4], sizeof(size));
+                    (void)memcpy(&size, &SDO->CANrxData[4], sizeof(size));
                     SDO->sizeInd = CO_SWAP_32(size);
 
                     /* Indicated size of SDO matches sizeof OD variable? */
@@ -902,273 +1026,182 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                             SDO->state = CO_SDO_ST_ABORT;
                             break;
                         }
-                        else { /* MISRA C 2004 14.10 */ }
-                     }
+                    }
                 }
                 else {
                     SDO->sizeInd = 0;
                 }
-                SDO->state = CO_SDO_ST_DOWNLOAD_INITIATE_RSP;
+                SDO->state = CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP;
                 SDO->finished = false;
-#else
-                abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
-                SDO->state = CO_SDO_ST_ABORT;
-#endif
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
+                break;
             }
-            break;
-        }
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
-        case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: {
-            if ((SDO->CANrxData[0] & 0xE0) == 0x00) {
-                SDO->finished = (SDO->CANrxData[0] & 0x01) != 0;
-
-                /* verify and alternate toggle bit */
-                uint8_t toggle = SDO->CANrxData[0] & 0x10;
-                if (toggle != SDO->toggle) {
-                    abortCode = CO_SDO_AB_TOGGLE_BIT;
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
-                }
-
-                /* get data size and write data to the buffer */
-                OD_size_t count = 7 - ((SDO->CANrxData[0] >> 1) & 0x07);
-                memcpy(SDO->buf + SDO->bufOffsetWr, &SDO->CANrxData[1], count);
-                SDO->bufOffsetWr += count;
-                SDO->sizeTran += count;
-
-                /* if data size exceeds variable size, abort */
-                if (SDO->OD_IO.stream.dataLength > 0
-                    && SDO->sizeTran > SDO->OD_IO.stream.dataLength
-                ) {
-                    abortCode = CO_SDO_AB_DATA_LONG;
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
-                }
-
-                /* if necessary, empty the buffer */
-                if (SDO->finished
-                    || (CO_CONFIG_SDO_SRV_BUFFER_SIZE - SDO->bufOffsetWr)<(7+2)
-                ) {
-                    if (!validateAndWriteToOD(SDO, &abortCode, 0, 0)) {
-                        break;
-                    }
-                }
-
-                SDO->state = CO_SDO_ST_DOWNLOAD_SEGMENT_RSP;
+            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+                /* data are copied directly in the receive function */
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
+                break;
             }
-            else {
-                abortCode = CO_SDO_AB_CMD;
-                SDO->state = CO_SDO_ST_ABORT;
-            }
-            break;
-        }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
 
-        case CO_SDO_ST_UPLOAD_INITIATE_REQ: {
-            SDO->state = CO_SDO_ST_UPLOAD_INITIATE_RSP;
-            break;
-        }
-
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
-        case CO_SDO_ST_UPLOAD_SEGMENT_REQ: {
-            if ((SDO->CANrxData[0] & 0xEF) == 0x60) {
-                /* verify and alternate toggle bit */
-                uint8_t toggle = SDO->CANrxData[0] & 0x10;
-                if (toggle != SDO->toggle) {
-                    abortCode = CO_SDO_AB_TOGGLE_BIT;
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
-                }
-                SDO->state = CO_SDO_ST_UPLOAD_SEGMENT_RSP;
-            }
-            else {
-                abortCode = CO_SDO_AB_CMD;
-                SDO->state = CO_SDO_ST_ABORT;
-            }
-            break;
-        }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
-
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
-        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ: {
-            SDO->block_crcEnabled = (SDO->CANrxData[0] & 0x04) != 0;
-
-            /* is size indicated? */
-            if ((SDO->CANrxData[0] & 0x02) != 0) {
-                uint32_t size;
-                OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
-
-                memcpy(&size, &SDO->CANrxData[4], sizeof(size));
-                SDO->sizeInd = CO_SWAP_32(size);
-
-                /* Indicated size of SDO matches sizeof OD variable? */
-                if (sizeInOd > 0) {
-                    if (SDO->sizeInd > sizeInOd) {
-                        abortCode = CO_SDO_AB_DATA_LONG;
+            case CO_SDO_ST_DOWNLOAD_BLK_END_REQ: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+                if ((SDO->CANrxData[0] & 0xE3) == 0xC1) {
+                    /* Get number of data bytes in last segment, that do not
+                        * contain data. Then reduce buffer. */
+                    uint8_t noData = ((SDO->CANrxData[0] >> 2) & 0x07);
+                    if (SDO->bufOffsetWr <= noData) {
+                        /* just in case, should never happen */
+                        abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                         SDO->state = CO_SDO_ST_ABORT;
                         break;
                     }
-                    /* strings are allowed to be shorter */
-                    else if (SDO->sizeInd < sizeInOd
-                             && (SDO->OD_IO.stream.attribute & ODA_STR) == 0
-                    ) {
-                        abortCode = CO_SDO_AB_DATA_SHORT;
-                        SDO->state = CO_SDO_ST_ABORT;
-                        break;
+                    SDO->sizeTran -= noData;
+                    SDO->bufOffsetWr -= noData;
+
+                    uint16_t crcClient = 0;
+                    if (SDO->block_crcEnabled) {
+                        crcClient = ((uint16_t) SDO->CANrxData[2]) << 8;
+                        crcClient |= SDO->CANrxData[1];
                     }
-                }
-            }
-            else {
-                SDO->sizeInd = 0;
-            }
-            SDO->state = CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP;
-            SDO->finished = false;
-            break;
-        }
 
-        case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ: {
-            /* data are copied directly in the receive function */
-            break;
-        }
+                    if (!validateAndWriteToOD(SDO, &abortCode, 2, crcClient))
+                        break;
 
-        case CO_SDO_ST_DOWNLOAD_BLK_END_REQ: {
-            if ((SDO->CANrxData[0] & 0xE3) == 0xC1) {
-                /* Get number of data bytes in last segment, that do not
-                    * contain data. Then reduce buffer. */
-                uint8_t noData = ((SDO->CANrxData[0] >> 2) & 0x07);
-                if (SDO->bufOffsetWr <= noData) {
-                    /* just in case, should never happen */
-                    abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
-                }
-                SDO->sizeTran -= noData;
-                SDO->bufOffsetWr -= noData;
-
-                uint16_t crcClient = 0;
-                if (SDO->block_crcEnabled) {
-                    crcClient = ((uint16_t) SDO->CANrxData[2]) << 8;
-                    crcClient |= SDO->CANrxData[1];
-                }
-
-                if (!validateAndWriteToOD(SDO, &abortCode, 2, crcClient))
-                    break;
-
-                SDO->state = CO_SDO_ST_DOWNLOAD_BLK_END_RSP;
-            }
-            else {
-                abortCode = CO_SDO_AB_CMD;
-                SDO->state = CO_SDO_ST_ABORT;
-            }
-            break;
-        }
-
-        case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ: {
-            /* if pst (protocol switch threshold, byte5) is larger than data
-             * size of OD variable, then switch to segmented transfer */
-            if (SDO->sizeInd > 0 && SDO->CANrxData[5] > 0
-                && SDO->CANrxData[5] >= SDO->sizeInd)
-            {
-                SDO->state = CO_SDO_ST_UPLOAD_INITIATE_RSP;
-            }
-            else {
-                /* data were already loaded from OD variable, verify crc */
-                if ((SDO->CANrxData[0] & 0x04) != 0) {
-                    SDO->block_crcEnabled = true;
-                    SDO->block_crc = crc16_ccitt(SDO->buf, SDO->bufOffsetWr, 0);
+                    SDO->state = CO_SDO_ST_DOWNLOAD_BLK_END_RSP;
                 }
                 else {
-                    SDO->block_crcEnabled = false;
-                }
-
-                /* get blksize and verify it */
-                SDO->block_blksize = SDO->CANrxData[4];
-                if (SDO->block_blksize < 1 || SDO->block_blksize > 127) {
-                    abortCode = CO_SDO_AB_BLOCK_SIZE;
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
-                }
-
-                /* verify, if there is enough data */
-                if (!SDO->finished && SDO->bufOffsetWr < SDO->block_blksize*7U){
-                    abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
-                }
-                SDO->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP;
-            }
-            break;
-        }
-
-        case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2: {
-            if (SDO->CANrxData[0] == 0xA3) {
-                SDO->block_seqno = 0;
-                SDO->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ;
-            }
-            else {
-                abortCode = CO_SDO_AB_CMD;
-                SDO->state = CO_SDO_ST_ABORT;
-            }
-            break;
-        }
-
-        case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
-        case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP: {
-            if (SDO->CANrxData[0] == 0xA2) {
-                SDO->block_blksize = SDO->CANrxData[2];
-                if (SDO->block_blksize < 1 || SDO->block_blksize > 127) {
-                    abortCode = CO_SDO_AB_BLOCK_SIZE;
-                    SDO->state = CO_SDO_ST_ABORT;
-                    break;
-                }
-
-                /* check number of segments */
-                if (SDO->CANrxData[1] < SDO->block_seqno) {
-                    /* NOT all segments transferred successfully.
-                     * Re-transmit data after erroneous segment. */
-                    OD_size_t cntFailed = SDO->block_seqno - SDO->CANrxData[1];
-                    cntFailed = cntFailed * 7 - SDO->block_noData;
-                    SDO->bufOffsetRd -= cntFailed;
-                    SDO->sizeTran -= cntFailed;
-                }
-                else if (SDO->CANrxData[1] > SDO->block_seqno) {
-                    /* something strange from server, break transmission */
                     abortCode = CO_SDO_AB_CMD;
                     SDO->state = CO_SDO_ST_ABORT;
-                    break;
                 }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
+                break;
+            }
 
-                /* refill data buffer if necessary */
-                if (!readFromOd(SDO, &abortCode, SDO->block_blksize * 7, true))
-                    break;
-
-
-                if (SDO->bufOffsetWr == SDO->bufOffsetRd) {
-                    SDO->state = CO_SDO_ST_UPLOAD_BLK_END_SREQ;
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+                /* if pst (protocol switch threshold, byte5) is larger than data
+                 * size of OD variable, then switch to segmented transfer */
+                if (SDO->sizeInd > 0 && SDO->CANrxData[5] > 0
+                    && SDO->CANrxData[5] >= SDO->sizeInd)
+                {
+                    SDO->state = CO_SDO_ST_UPLOAD_INITIATE_RSP;
                 }
                 else {
+                    /* data were already loaded from OD variable, verify crc */
+                    if ((SDO->CANrxData[0] & 0x04) != 0) {
+                        SDO->block_crcEnabled = true;
+                        SDO->block_crc = crc16_ccitt(SDO->buf, SDO->bufOffsetWr, 0);
+                    }
+                    else {
+                        SDO->block_crcEnabled = false;
+                    }
+
+                    /* get blksize and verify it */
+                    SDO->block_blksize = SDO->CANrxData[4];
+                    if (SDO->block_blksize < 1 || SDO->block_blksize > 127) {
+                        abortCode = CO_SDO_AB_BLOCK_SIZE;
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+
+                    /* verify, if there is enough data */
+                    if (!SDO->finished && SDO->bufOffsetWr < SDO->block_blksize*7U){
+                        abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+                    SDO->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP;
+                }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
+                break;
+            }
+
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+                if (SDO->CANrxData[0] == 0xA3) {
                     SDO->block_seqno = 0;
                     SDO->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ;
                 }
+                else {
+                    abortCode = CO_SDO_AB_CMD;
+                    SDO->state = CO_SDO_ST_ABORT;
+                }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
+                break;
             }
-            else {
+
+            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
+            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+                if (SDO->CANrxData[0] == 0xA2) {
+                    SDO->block_blksize = SDO->CANrxData[2];
+                    if (SDO->block_blksize < 1 || SDO->block_blksize > 127) {
+                        abortCode = CO_SDO_AB_BLOCK_SIZE;
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+
+                    /* check number of segments */
+                    if (SDO->CANrxData[1] < SDO->block_seqno) {
+                        /* NOT all segments transferred successfully.
+                         * Re-transmit data after erroneous segment. */
+                        OD_size_t cntFailed = SDO->block_seqno - SDO->CANrxData[1];
+                        cntFailed = cntFailed * 7 - SDO->block_noData;
+                        SDO->bufOffsetRd -= cntFailed;
+                        SDO->sizeTran -= cntFailed;
+                    }
+                    else if (SDO->CANrxData[1] > SDO->block_seqno) {
+                        /* something strange from server, break transmission */
+                        abortCode = CO_SDO_AB_CMD;
+                        SDO->state = CO_SDO_ST_ABORT;
+                        break;
+                    }
+
+                    /* refill data buffer if necessary */
+                    if (!readFromOd(SDO, &abortCode, SDO->block_blksize * 7, true))
+                        break;
+
+
+                    if (SDO->bufOffsetWr == SDO->bufOffsetRd) {
+                        SDO->state = CO_SDO_ST_UPLOAD_BLK_END_SREQ;
+                    }
+                    else {
+                        SDO->block_seqno = 0;
+                        SDO->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ;
+                    }
+                }
+                else {
+                    abortCode = CO_SDO_AB_CMD;
+                    SDO->state = CO_SDO_ST_ABORT;
+                }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
+                break;
+            }
+
+            case CO_SDO_ST_IDLE:
+            case CO_SDO_ST_ABORT:
+            case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
+            case CO_SDO_ST_DOWNLOAD_INITIATE_RSP:
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP:
+            case CO_SDO_ST_UPLOAD_LOCAL_TRANSFER:
+            case CO_SDO_ST_UPLOAD_INITIATE_RSP:
+            case CO_SDO_ST_UPLOAD_SEGMENT_RSP:
+            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP:
+            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP:
+            case CO_SDO_ST_DOWNLOAD_BLK_END_RSP:
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
+            case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
+            case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
+            default: {
+                /* unknown message received */
                 abortCode = CO_SDO_AB_CMD;
                 SDO->state = CO_SDO_ST_ABORT;
+                break;
             }
-            break;
-        }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
-
-        default: {
-            /* unknown message received */
-            abortCode = CO_SDO_AB_CMD;
-            SDO->state = CO_SDO_ST_ABORT;
-            break;
-        }
-        } /* switch (SDO->state) */
+            } /* switch (SDO->state) */
         } /* if (SDO->state != CO_SDO_ST_IDLE && SDO->state != CO_SDO_ST_ABORT) */
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
         SDO->timeoutTimer = 0;
 #endif
         timeDifference_us = 0;
@@ -1177,7 +1210,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
     else { /* MISRA C 2004 14.10 */ }
 
     /* Timeout timers and transmit bufferFull flag ****************************/
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
     if (ret == CO_SDO_RT_waitingResponse) {
         if (SDO->timeoutTimer < SDO->SDOtimeoutTime_us) {
             SDO->timeoutTimer += timeDifference_us;
@@ -1186,7 +1219,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             abortCode = CO_SDO_AB_TIMEOUT;
             SDO->state = CO_SDO_ST_ABORT;
         }
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_TIMERNEXT) != 0
         else if (timerNext_us != NULL) {
             /* check again after timeout time elapsed */
             uint32_t diff = SDO->SDOtimeoutTime_us - SDO->timeoutTimer;
@@ -1196,7 +1229,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
         }
 #endif
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
         /* Timeout for sub-block transmission */
         if (SDO->state == CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ) {
             if (SDO->block_timeoutTimer < SDO->block_SDOtimeoutTime_us) {
@@ -1208,7 +1241,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 SDO->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP;
                 CO_FLAG_CLEAR(SDO->CANrxNew);
             }
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             else if (timerNext_us != NULL) {
                 /* check again after timeout time elapsed */
                 uint32_t diff = SDO->block_SDOtimeoutTime_us -
@@ -1230,7 +1263,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
     /* Transmit CAN data ******************************************************/
     if (ret == CO_SDO_RT_waitingResponse) {
         /* clear response buffer */
-        memset(SDO->CANtxBuff->data, 0, sizeof(SDO->CANtxBuff->data));
+        (void)memset(SDO->CANtxBuff->data, 0, sizeof(SDO->CANtxBuff->data));
 
         switch (SDO->state) {
         case CO_SDO_ST_DOWNLOAD_INITIATE_RSP: {
@@ -1240,11 +1273,11 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->CANtxBuff->data[3] = SDO->subIndex;
 
             /* reset timeout timer and send message */
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
             SDO->timeoutTimer = 0;
 #endif
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
             if (SDO->finished) {
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
@@ -1263,14 +1296,14 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             break;
         }
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
         case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP: {
-            SDO->CANtxBuff->data[0] = 0x20 | SDO->toggle;
-            SDO->toggle = (SDO->toggle == 0x00) ? 0x10 : 0x00;
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+            SDO->CANtxBuff->data[0] = 0x20U | SDO->toggle;
+            SDO->toggle = (SDO->toggle == 0x00U) ? 0x10U : 0x00U;
 
             /* reset timeout timer and send message */
             SDO->timeoutTimer = 0;
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             if (SDO->finished) {
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
@@ -1278,29 +1311,29 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             else {
                 SDO->state = CO_SDO_ST_DOWNLOAD_SEGMENT_REQ;
             }
+#endif
             break;
         }
-#endif
 
         case CO_SDO_ST_UPLOAD_INITIATE_RSP: {
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
             /* data were already loaded from OD variable */
-            if (SDO->sizeInd > 0 && SDO->sizeInd <= 4) {
+            if ((SDO->sizeInd > 0U) && (SDO->sizeInd <= 4U)) {
                 /* expedited transfer */
-                SDO->CANtxBuff->data[0] = (uint8_t)(0x43|((4-SDO->sizeInd)<<2));
-                memcpy(&SDO->CANtxBuff->data[4], &SDO->buf, SDO->sizeInd);
+                SDO->CANtxBuff->data[0] = (uint8_t)(0x43U|((4U-SDO->sizeInd)<<2U));
+                (void)memcpy((void *)(&SDO->CANtxBuff->data[4]), (const void *)(&SDO->buf[0]), SDO->sizeInd);
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
             }
             else {
                 /* data will be transferred with segmented transfer */
-                if (SDO->sizeInd > 0) {
+                if (SDO->sizeInd > 0U) {
                     /* indicate data size, if known */
                     uint32_t sizeInd = SDO->sizeInd;
                     uint32_t sizeIndSw = CO_SWAP_32(sizeInd);
                     SDO->CANtxBuff->data[0] = 0x41;
-                    memcpy(&SDO->CANtxBuff->data[4],
-                           &sizeIndSw, sizeof(sizeIndSw));
+                    (void)memcpy((void *)(&SDO->CANtxBuff->data[4]),
+                           (const void *)(&sizeIndSw), sizeof(sizeIndSw));
                 }
                 else {
                     SDO->CANtxBuff->data[0] = 0x40;
@@ -1347,12 +1380,12 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->CANtxBuff->data[1] = (uint8_t)SDO->index;
             SDO->CANtxBuff->data[2] = (uint8_t)(SDO->index >> 8);
             SDO->CANtxBuff->data[3] = SDO->subIndex;
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             break;
         }
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED
         case CO_SDO_ST_UPLOAD_SEGMENT_RSP: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
             /* refill the data buffer if necessary */
             if (!readFromOd(SDO, &abortCode, 7, false)) {
                 break;
@@ -1360,13 +1393,13 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
             /* SDO command specifier with toggle bit */
             SDO->CANtxBuff->data[0] = SDO->toggle;
-            SDO->toggle = (SDO->toggle == 0x00) ? 0x10 : 0x00;
+            SDO->toggle = (SDO->toggle == 0x00U) ? 0x10U : 0x00U;
 
             OD_size_t count = SDO->bufOffsetWr - SDO->bufOffsetRd;
             /* verify, if this is the last segment */
-            if (count < 7 || (SDO->finished && count == 7)) {
+            if ((count < 7U) || (SDO->finished && (count == 7U))) {
                 /* indicate last segment and nnn */
-                SDO->CANtxBuff->data[0] |= ((7 - count) << 1) | 0x01;
+                SDO->CANtxBuff->data[0] |= (uint8_t)(((7U - count) << 1U) | 0x01U);
                 SDO->state = CO_SDO_ST_IDLE;
                 ret = CO_SDO_RT_ok_communicationEnd;
             }
@@ -1377,20 +1410,20 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             }
 
             /* copy data segment to CAN message */
-            memcpy(&SDO->CANtxBuff->data[1], SDO->buf + SDO->bufOffsetRd,
+            (void)memcpy(&SDO->CANtxBuff->data[1], SDO->buf + SDO->bufOffsetRd,
                    count);
             SDO->bufOffsetRd += count;
             SDO->sizeTran += count;
 
             /* verify if sizeTran is too large or too short if last segment */
-            if (SDO->sizeInd > 0) {
+            if (SDO->sizeInd > 0U) {
                 if (SDO->sizeTran > SDO->sizeInd) {
                     abortCode = CO_SDO_AB_DATA_LONG;
                     SDO->state = CO_SDO_ST_ABORT;
                     break;
                 }
-                else if (ret == CO_SDO_RT_ok_communicationEnd
-                         && SDO->sizeTran < SDO->sizeInd
+                else if ((ret == CO_SDO_RT_ok_communicationEnd)
+                         && (SDO->sizeTran < SDO->sizeInd)
                 ) {
                     abortCode = CO_SDO_AB_DATA_SHORT;
                     ret = CO_SDO_RT_waitingResponse;
@@ -1401,13 +1434,13 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             }
 
             /* send message */
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
             break;
         }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
 
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
         case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xA4;
             SDO->CANtxBuff->data[1] = (uint8_t)SDO->index;
             SDO->CANtxBuff->data[2] = (uint8_t)(SDO->index >> 8);
@@ -1435,11 +1468,13 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
              * barrier here with CO_FLAG_CLEAR() call. */
             SDO->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ;
             CO_FLAG_CLEAR(SDO->CANrxNew);
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xA2;
             SDO->CANtxBuff->data[1] = SDO->block_seqno;
 #ifdef CO_DEBUG_SDO_SERVER
@@ -1481,7 +1516,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
             /* reset block_timeoutTimer, but not SDO->timeoutTimer */
             SDO->block_timeoutTimer = 0;
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
 #ifdef CO_DEBUG_SDO_SERVER
             if (transferShort && !SDO->finished) {
                 char msg[80];
@@ -1491,19 +1526,23 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 CO_DEBUG_SDO_SERVER(msg);
             }
 #endif
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_DOWNLOAD_BLK_END_RSP: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xA1;
 
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_ok_communicationEnd;
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xC4;
             SDO->CANtxBuff->data[1] = (uint8_t)SDO->index;
             SDO->CANtxBuff->data[2] = (uint8_t)(SDO->index >> 8);
@@ -1513,17 +1552,19 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             if (SDO->sizeInd > 0) {
                 uint32_t size = CO_SWAP_32(SDO->sizeInd);
                 SDO->CANtxBuff->data[0] |= 0x02;
-                memcpy(&SDO->CANtxBuff->data[4], &size, sizeof(size));
+                (void)memcpy(&SDO->CANtxBuff->data[4], &size, sizeof(size));
             }
 
             /* reset timeout timer and send message */
             SDO->timeoutTimer = 0;
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2;
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             /* write header and get current count */
             SDO->CANtxBuff->data[0] = ++SDO->block_seqno;
             OD_size_t count = SDO->bufOffsetWr - SDO->bufOffsetRd;
@@ -1536,7 +1577,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             }
 
             /* copy data segment to CAN message */
-            memcpy(&SDO->CANtxBuff->data[1], SDO->buf + SDO->bufOffsetRd,
+            (void)memcpy(&SDO->CANtxBuff->data[1], SDO->buf + SDO->bufOffsetRd,
                    count);
             SDO->bufOffsetRd += count;
             SDO->block_noData = (uint8_t)(7 - count);
@@ -1564,7 +1605,7 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             ) {
                 SDO->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP;
             }
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             else {
                 /* Inform OS to call this function again without delay. */
                 if (timerNext_us != NULL) {
@@ -1574,24 +1615,43 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 #endif
             /* reset timeout timer and send message */
             SDO->timeoutTimer = 0;
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_UPLOAD_BLK_END_SREQ: {
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xC1 | (SDO->block_noData << 2);
             SDO->CANtxBuff->data[1] = (uint8_t) SDO->block_crc;
             SDO->CANtxBuff->data[2] = (uint8_t) (SDO->block_crc >> 8);
 
             /* reset timeout timer and send message */
             SDO->timeoutTimer = 0;
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_UPLOAD_BLK_END_CRSP;
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
 
+        
+        case CO_SDO_ST_IDLE:
+        case CO_SDO_ST_ABORT:
+        case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
+        case CO_SDO_ST_DOWNLOAD_INITIATE_REQ:
+        case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ:
+        case CO_SDO_ST_UPLOAD_LOCAL_TRANSFER:
+        case CO_SDO_ST_UPLOAD_INITIATE_REQ:
+        case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
+        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ:
+        case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ:
+        case CO_SDO_ST_DOWNLOAD_BLK_END_REQ:
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ:
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2:
+        case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP:
+        case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
         default: {
+            /* none */
             break;
         }
         } /* switch (SDO->state) */
@@ -1606,12 +1666,12 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->CANtxBuff->data[2] = (uint8_t)(SDO->index >> 8);
             SDO->CANtxBuff->data[3] = SDO->subIndex;
 
-            memcpy(&SDO->CANtxBuff->data[4], &code, sizeof(code));
-            CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
+            (void)memcpy((void *)(&SDO->CANtxBuff->data[4]), (const void *)(&code), sizeof(code));
+            (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;
         }
-#if (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
         else if (SDO->state == CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ) {
             ret = CO_SDO_RT_blockDownldInProgress;
         }

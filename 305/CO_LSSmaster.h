@@ -29,7 +29,7 @@
 
 #include "305/CO_LSS.h"
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,7 +117,7 @@ typedef struct{
 
     volatile void   *CANrxNew;         /**< Indication if new LSS message is received from CAN bus. It needs to be cleared when received message is completely processed. */
     uint8_t          CANrxData[8];     /**< 8 data bytes of the received message */
-#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     void           (*pFunctSignal)(void *object); /**< From CO_LSSmaster_initCallbackPre() or NULL */
     void            *functSignalObject;/**< Pointer to object */
 #endif
@@ -185,7 +185,7 @@ void CO_LSSmaster_changeTimeout(
         uint16_t                timeout_ms);
 
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize LSSmasterRx callback function.
  *
@@ -386,7 +386,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
 CO_LSSmaster_return_t CO_LSSmaster_Inquire(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
-        CO_LSS_cs_t             lssInquireCs,
+        uint8_t                 lssInquireCs,
         uint32_t               *value);
 
 

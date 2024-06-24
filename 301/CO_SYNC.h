@@ -40,7 +40,7 @@
                         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,7 +106,7 @@ typedef struct {
     /** Pointer to variable in OD, "Synchronous window length" in microseconds*/
     uint32_t *OD_1007_window;
 
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
     /** True, if device is SYNC producer. Calculated from _COB ID SYNC Message_
     variable from Object dictionary (index 0x1005). */
     bool_t isProducer;
@@ -124,7 +124,7 @@ typedef struct {
     /** CAN ID of the SYNC message. Calculated from _COB ID SYNC Message_
     variable from Object dictionary (index 0x1005). */
     uint16_t CAN_ID;
- #if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) || defined CO_DOXYGEN
+ #if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
     /** From CO_SYNC_init() */
     CO_CANmodule_t *CANdevTx;
     /** From CO_SYNC_init() */
@@ -134,7 +134,7 @@ typedef struct {
  #endif
 #endif
 
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_SYNC_initCallbackPre() or NULL */
     void (*pFunctSignalPre)(void *object);
     /** From CO_SYNC_initCallbackPre() or NULL */
@@ -185,14 +185,14 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
                               OD_entry_t *OD_1019_syncCounterOvf,
                               CO_CANmodule_t *CANdevRx,
                               uint16_t CANdevRxIdx,
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
                               CO_CANmodule_t *CANdevTx,
                               uint16_t CANdevTxIdx,
 #endif
                               uint32_t *errInfo);
 
 
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize SYNC callback function.
  *
@@ -210,7 +210,7 @@ void CO_SYNC_initCallbackPre(CO_SYNC_t *SYNC,
 #endif
 
 
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
 /**
  * Send SYNC message.
  *
