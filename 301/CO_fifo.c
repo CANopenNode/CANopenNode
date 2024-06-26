@@ -147,7 +147,8 @@ size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof) {
             break;
         }
 
-        *(buf++) = c;
+        *buf = c;
+        buf++;
 
         /* increment variables */
         if (++fifo->readPtr == fifo->bufSize) {
@@ -237,7 +238,8 @@ size_t CO_fifo_altRead(CO_fifo_t *fifo, uint8_t *buf, size_t count) {
             break;
         }
 
-        *(buf++) = c;
+        *buf = c;
+        buf++;
 
         /* increment variables */
         if (++fifo->altReadPtr == fifo->bufSize) {
@@ -362,7 +364,8 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                     if (*c == DELIM_COMMENT) {
                         delimCommentFound = true;
                     } else {
-                        buf[tokenSize++] = (char)*c;
+                        buf[tokenSize] = (char)*c;
+                        tokenSize++;
                         step++;
                     }
                 }
@@ -375,7 +378,8 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                     if (*c == DELIM_COMMENT) {
                         delimCommentFound = true;
                     } else if (tokenSize < count) {
-                        buf[tokenSize++] = (char)*c;
+                        buf[tokenSize] = (char)*c;
+                        tokenSize++;
                     }
                 }
                 else {
@@ -744,7 +748,8 @@ size_t CO_fifo_readVs2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
     if ((fifo != NULL) && (count > 3U)) {
         /* Start with '"' */
         if (!fifo->started) {
-            buf[len++] = '"';
+            buf[len] = '"';
+            len++;
             fifo->started = true;
         }
 
@@ -752,15 +757,18 @@ size_t CO_fifo_readVs2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
             uint8_t c;
             if(!CO_fifo_getc(fifo, &c)) {
                 if (end) {
-                    buf[len++] = '"';
+                    buf[len] = '"';
+                    len++;
                 }
                 break;
             }
             else if ((c != 0U) && (c != (uint8_t)'\r')) {
                 /* skip null and CR inside string */
-                buf[len++] = (char)c;
+                buf[len] = (char)c;
+                len++;
                 if (c == DELIM_DQUOTE) {
-                    buf[len++] = '"';
+                    buf[len] = '"';
+                    len++;
                 }
             }
         }
@@ -798,13 +806,18 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
                     /* add padding if necessary */
                     switch (step) {
                         case 1:
-                            buf[len++] = base64EncTable[(word >> 4) & 0x3FU];
-                            buf[len++] = '=';
-                            buf[len++] = '=';
+                            buf[len] = base64EncTable[(word >> 4) & 0x3FU];
+                            len++;
+                            buf[len] = '=';
+                            len++;
+                            buf[len] = '=';
+                            len++;
                             break;
                         case 2:
-                            buf[len++] = base64EncTable[(word >> 6) & 0x3FU];
-                            buf[len++] = '=';
+                            buf[len] = base64EncTable[(word >> 6) & 0x3FU];
+                            len++;
+                            buf[len] = '=';
+                            len++;
                             break;
                         default:
                             /* MISRA C 2004 15.3 */
@@ -818,14 +831,18 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 
             switch (step++) {
                 case 0:
-                    buf[len++] = base64EncTable[(word >> 2) & 0x3FU];
+                    buf[len] = base64EncTable[(word >> 2) & 0x3FU];
+                    len++;
                     break;
                 case 1:
-                    buf[len++] = base64EncTable[(word >> 4) & 0x3FU];
+                    buf[len] = base64EncTable[(word >> 4) & 0x3FU];
+                    len++;
                     break;
                 default:
-                    buf[len++] = base64EncTable[(word >> 6) & 0x3FU];
-                    buf[len++] = base64EncTable[word & 0x3FU];
+                    buf[len] = base64EncTable[(word >> 6) & 0x3FU];
+                    len++;
+                    buf[len] = base64EncTable[word & 0x3FU];
+                    len++;
                     step = 0;
                     break;
             }
