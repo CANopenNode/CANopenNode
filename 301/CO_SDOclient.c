@@ -49,7 +49,7 @@
 
 /* default 'protocol switch threshold' size for block transfer */
 #ifndef CO_CONFIG_SDO_CLI_PST
-#define CO_CONFIG_SDO_CLI_PST 21
+#define CO_CONFIG_SDO_CLI_PST 21U
 #endif
 
 
@@ -264,8 +264,8 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
 {
     /* verify arguments */
     if ((SDO_C == NULL) || (OD_1280_SDOcliPar == NULL)
-        || (OD_getIndex(OD_1280_SDOcliPar) < OD_H1280_SDO_CLIENT_1_PARAM)
-        || (OD_getIndex(OD_1280_SDOcliPar) > (OD_H1280_SDO_CLIENT_1_PARAM + 0x7FU))
+        || (OD_getIndex(OD_1280_SDOcliPar) < (uint16_t)(OD_H1280_SDO_CLIENT_1_PARAM))
+        || (OD_getIndex(OD_1280_SDOcliPar) > ((uint16_t)(OD_H1280_SDO_CLIENT_1_PARAM) + 0x7FU))
         || (CANdevRx==NULL) || (CANdevTx==NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -469,7 +469,7 @@ CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
 #endif
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
     if (blockEnable && ((sizeIndicated == 0U) ||
-                        (sizeIndicated > CO_CONFIG_SDO_CLI_PST))
+                        (sizeIndicated > (size_t)(CO_CONFIG_SDO_CLI_PST)))
     ) {
         SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ;
     }
@@ -492,7 +492,7 @@ void CO_SDOclientDownloadInitiateSize(CO_SDOclient_t *SDO_C,
         SDO_C->sizeInd = sizeIndicated;
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
         if ((SDO_C->state == CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ)
-            && (sizeIndicated > 0U) && (sizeIndicated <= CO_CONFIG_SDO_CLI_PST)
+            && (sizeIndicated > 0U) && (sizeIndicated <= (size_t)(CO_CONFIG_SDO_CLI_PST))
         ) {
             SDO_C->state = CO_SDO_ST_DOWNLOAD_INITIATE_REQ;
         }
@@ -549,11 +549,11 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if ((SDO_C->OD_IO.stream.attribute & ODA_SDO_RW) == 0) {
+            else if ((SDO_C->OD_IO.stream.attribute & (OD_attr_t)ODA_SDO_RW) == 0U) {
                 abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if ((SDO_C->OD_IO.stream.attribute & ODA_SDO_W) == 0) {
+            else if ((SDO_C->OD_IO.stream.attribute & (OD_attr_t)ODA_SDO_W) == 0U) {
                 abortCode = CO_SDO_AB_READONLY;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
@@ -603,7 +603,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                  * shorter than size of OD data buffer. If so, add two zero
                  * bytes to terminate (unicode) string. Shorten also OD data
                  * size, (temporary, send info about EOF into OD_IO.write) */
-                if (((SDO_C->OD_IO.stream.attribute & ODA_STR) != 0)
+                if (((SDO_C->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)
                     && ((sizeInOd == 0U) || (SDO_C->sizeTran < sizeInOd))
                 ) {
                     buf[count] = 0;
@@ -1259,11 +1259,11 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if ((SDO_C->OD_IO.stream.attribute & ODA_SDO_RW) == 0) {
+            else if ((SDO_C->OD_IO.stream.attribute & (OD_attr_t)ODA_SDO_RW) == 0U) {
                 abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
-            else if ((SDO_C->OD_IO.stream.attribute & ODA_SDO_R) == 0) {
+            else if ((SDO_C->OD_IO.stream.attribute & (OD_attr_t)ODA_SDO_R) == 0U) {
                 abortCode = CO_SDO_AB_WRITEONLY;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
@@ -1303,7 +1303,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             else {
                 /* if data is string, send only data up to null termination */
                 if ((countRd > 0U)
-                    && ((SDO_C->OD_IO.stream.attribute & ODA_STR) != 0)
+                    && ((SDO_C->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)
                 ) {
                     buf[countRd] = 0; /* (buf is one byte larger) */
                     OD_size_t countStr = (OD_size_t)strlen((char *)buf);
