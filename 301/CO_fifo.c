@@ -1181,7 +1181,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
         if (step == 6U) {
             /* command is inside comment, waiting for command delimiter */
             bool_t insideComment = true;
-            if ((c == DELIM_COMMAND) || CO_fifo_trimSpaces(src, &insideComment)) {
+            if (CO_fifo_trimSpaces(src, &insideComment) || (c == DELIM_COMMAND)) {
                 st |= CO_fifo_st_closed;
                 finished = true;
             }
@@ -1227,7 +1227,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
                 step = 0;
             }
             bool_t insideComment = false;
-            if ((c == DELIM_COMMAND) || CO_fifo_trimSpaces(src, &insideComment)) {
+            if (CO_fifo_trimSpaces(src, &insideComment) ||(c == DELIM_COMMAND)) {
                 /* newline found, finish */
                 st |= CO_fifo_st_closed;
                 finished = true;
@@ -1312,9 +1312,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
             else if ((isgraph((int)c) == 0) && (step == 2U)) {
                 /* end of single word string */
                 bool_t insideComment = false;
-                if ((c == DELIM_COMMAND)
-                    || CO_fifo_trimSpaces(src, &insideComment)
-                ) {
+                if (CO_fifo_trimSpaces(src, &insideComment) || (c == DELIM_COMMAND)) {
                     st |= CO_fifo_st_closed;
                     finished = true;
                 }
@@ -1351,9 +1349,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
                     if (isgraph((int)c) == 0) {
                         /* end of quoted string */
                         bool_t insideComment = false;
-                        if ((c == DELIM_COMMAND)
-                            || CO_fifo_trimSpaces(src, &insideComment)
-                        ) {
+                        if (CO_fifo_trimSpaces(src, &insideComment) || (c == DELIM_COMMAND)) {
                             st |= CO_fifo_st_closed;
                             finished = true;
                         }
@@ -1371,7 +1367,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
 
         case 5: { /* String token is finished, waiting for command delimiter */
             bool_t insideComment = false;
-            if ((c == DELIM_COMMAND) || CO_fifo_trimSpaces(src, &insideComment)) {
+            if (CO_fifo_trimSpaces(src, &insideComment) || (c == DELIM_COMMAND)) {
                 st |= CO_fifo_st_closed;
                 finished = true;
             }
@@ -1390,7 +1386,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
         }
         case 6: { /* String token is finished, waiting for command delimiter */
             bool_t insideComment = true;
-            if ((c == DELIM_COMMAND) || CO_fifo_trimSpaces(src, &insideComment)) {
+            if (CO_fifo_trimSpaces(src, &insideComment) || (c == DELIM_COMMAND)) {
                 st |= CO_fifo_st_closed;
                 finished = true;
             }
@@ -1459,7 +1455,7 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
         if (step >= 5U) {
             /* String token is finished, waiting for command delimiter */
             bool_t insideComment = step > 5U;
-            if ((c == DELIM_COMMAND) || CO_fifo_trimSpaces(src, &insideComment)) {
+            if (CO_fifo_trimSpaces(src, &insideComment) || (c == DELIM_COMMAND)) {
                 st |= CO_fifo_st_closed;
                 finished = true;
             }
@@ -1500,7 +1496,7 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
             }
 
             bool_t insideComment = false;
-            if ((c == DELIM_COMMAND) || CO_fifo_trimSpaces(src, &insideComment)) {
+            if (CO_fifo_trimSpaces(src, &insideComment) || (c == DELIM_COMMAND)) {
                 st |= CO_fifo_st_closed;
                 finished = true;
             }
