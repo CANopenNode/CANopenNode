@@ -693,7 +693,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         /* is SDO abort */
         if (SDO_C->CANrxData[0] == 0x80U) {
             uint32_t code;
-            (void)memcpy(&code, &SDO_C->CANrxData[4], sizeof(code));
+            (void)memcpy((void *)(&code), (const void *)(&SDO_C->CANrxData[4]), sizeof(code));
             abortCode = (CO_SDO_abortCode_t)CO_SWAP_32(code);
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;
@@ -973,7 +973,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 if (SDO_C->sizeInd > 0U) {
                     uint32_t size = CO_SWAP_32((uint32_t)SDO_C->sizeInd);
                     SDO_C->CANtxBuff->data[0] |= 0x01U;
-                    (void)memcpy(&SDO_C->CANtxBuff->data[4], &size, sizeof(size));
+                    (void)memcpy((void *)(&SDO_C->CANtxBuff->data[4]), (const void *)(&size), sizeof(size));
                 }
 #else
                 SDO_C->state = CO_SDO_ST_IDLE;
@@ -1039,7 +1039,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             if (SDO_C->sizeInd > 0U) {
                 uint32_t size = CO_SWAP_32((uint32_t)SDO_C->sizeInd);
                 SDO_C->CANtxBuff->data[0] |= 0x02U;
-                (void)memcpy(&SDO_C->CANtxBuff->data[4], &size, sizeof(size));
+                (void)memcpy((void *)(&SDO_C->CANtxBuff->data[4]), (const void *)(&size), sizeof(size));
             }
 
             /* reset timeout timer and send message */
@@ -1156,7 +1156,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             SDO_C->CANtxBuff->data[2] = (uint8_t)(SDO_C->index >> 8);
             SDO_C->CANtxBuff->data[3] = SDO_C->subIndex;
 
-            (void)memcpy(&SDO_C->CANtxBuff->data[4], &code, sizeof(code));
+            (void)memcpy((void *)(&SDO_C->CANtxBuff->data[4]), (const void *)(&code), sizeof(code));
             (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithClientAbort;
@@ -1375,7 +1375,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         /* is SDO abort */
         if (SDO_C->CANrxData[0] == 0x80U) {
             uint32_t code;
-            (void)memcpy(&code, &SDO_C->CANrxData[4], sizeof(code));
+            (void)memcpy((void *)(&code), (const void *)(&SDO_C->CANrxData[4]), sizeof(code));
             abortCode = (CO_SDO_abortCode_t)CO_SWAP_32(code);
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;
@@ -1421,7 +1421,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                             /* segmented transfer, is size indicated? */
                             if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
                                 uint32_t size;
-                                (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                                (void)memcpy((void *)(&size), (void *)(&SDO_C->CANrxData[4]), sizeof(size));
                                 SDO_C->sizeInd = CO_SWAP_32(size);
                             }
                             SDO_C->toggle = 0x00;
@@ -1515,7 +1515,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         }
                         if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
                             uint32_t size;
-                            (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                            (void)memcpy((void *)(&size), (const void *)(&SDO_C->CANrxData[4]), sizeof(size));
                             SDO_C->sizeInd = CO_SWAP_32(size);
                         }
 
@@ -1564,7 +1564,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                             /* segmented transfer, is size indicated? */
                             if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
                                 uint32_t size;
-                                (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                                (void)memcpy((void *)(&size), (const void *)(&SDO_C->CANrxData[4]), sizeof(size));
                                 SDO_C->sizeInd = CO_SWAP_32(size);
                             }
                             SDO_C->toggle = 0x00;
@@ -1937,7 +1937,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             SDO_C->CANtxBuff->data[2] = (uint8_t)(SDO_C->index >> 8);
             SDO_C->CANtxBuff->data[3] = SDO_C->subIndex;
 
-            (void)memcpy(&SDO_C->CANtxBuff->data[4], &code, sizeof(code));
+            (void)memcpy((void *)(&SDO_C->CANtxBuff->data[4]), (const void *)(&code), sizeof(code));
             (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithClientAbort;
