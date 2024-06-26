@@ -114,7 +114,7 @@ static void CO_SDOclient_receive(void *object, void *msg) {
                 else {
                     /* Copy data. There is always enough space in fifo buffer,
                      * because block_blksize was calculated before */
-                    CO_fifo_write(&SDO_C->bufFifo,
+                    (void)CO_fifo_write(&SDO_C->bufFifo,
                                   &data[1],
                                   7, &SDO_C->block_crc);
                     SDO_C->sizeTran += 7U;
@@ -203,7 +203,7 @@ static ODR_t OD_write_1280(OD_stream_t *stream, const void *buf,
             ) {
                 return ODR_INVALID_VALUE;
             }
-            CO_SDOclient_setup(SDO_C,
+            (void)CO_SDOclient_setup(SDO_C,
                                COB_ID,
                                SDO_C->COB_IDServerToClient,
                                SDO_C->nodeIDOfTheSDOServer);
@@ -223,7 +223,7 @@ static ODR_t OD_write_1280(OD_stream_t *stream, const void *buf,
             ) {
                 return ODR_INVALID_VALUE;
             }
-            CO_SDOclient_setup(SDO_C,
+            (void)CO_SDOclient_setup(SDO_C,
                                SDO_C->COB_IDClientToServer,
                                COB_ID,
                                SDO_C->nodeIDOfTheSDOServer);
@@ -566,7 +566,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             size_t count = CO_fifo_getOccupied(&SDO_C->bufFifo);
             uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 2];
 
-            CO_fifo_read(&SDO_C->bufFifo, buf, count, NULL);
+            (void)CO_fifo_read(&SDO_C->bufFifo, buf, count, NULL);
             SDO_C->sizeTran += count;
 
             /* error: no data */
@@ -780,7 +780,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                     if ((SDO_C->block_blksize < 1U) || (SDO_C->block_blksize > 127U))
                         SDO_C->block_blksize = 127;
                     SDO_C->block_seqno = 0;
-                    CO_fifo_altBegin(&SDO_C->bufFifo, 0);
+                    (void)CO_fifo_altBegin(&SDO_C->bufFifo, 0);
                     SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ;
                 }
                 else {
@@ -801,7 +801,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                                             - SDO_C->CANrxData[1];
                         cntFailed = (cntFailed * 7U) - SDO_C->block_noData;
                         SDO_C->sizeTran -= cntFailed;
-                        CO_fifo_altBegin(&SDO_C->bufFifo,
+                        (void)CO_fifo_altBegin(&SDO_C->bufFifo,
                                          (size_t)SDO_C->CANrxData[1] * 7U);
                         SDO_C->finished = false;
                     }
@@ -821,7 +821,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                     } else {
                         SDO_C->block_blksize = SDO_C->CANrxData[2];
                         SDO_C->block_seqno = 0;
-                        CO_fifo_altBegin(&SDO_C->bufFifo, 0);
+                        (void)CO_fifo_altBegin(&SDO_C->bufFifo, 0);
                         SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ;
                     }
                 }
@@ -949,7 +949,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 }
 
                 /* copy data */
-                CO_fifo_read(&SDO_C->bufFifo,
+                (void)CO_fifo_read(&SDO_C->bufFifo,
                              &SDO_C->CANtxBuff->data[4], count, NULL);
                 SDO_C->sizeTran = count;
                 SDO_C->finished = true;
@@ -1312,7 +1312,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     }
                 }
 
-                CO_fifo_write(&SDO_C->bufFifo, buf, countRd, NULL);
+                (void)CO_fifo_write(&SDO_C->bufFifo, buf, countRd, NULL);
                 SDO_C->sizeTran += countRd;
 
                 /* verify if size of data uploaded is too large */
@@ -1391,7 +1391,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                             count -= (SDO_C->CANrxData[0] >> 2) & 0x03U;
                         }
                         /* copy data, indicate size and finish */
-                        CO_fifo_write(&SDO_C->bufFifo,
+                        (void)CO_fifo_write(&SDO_C->bufFifo,
                                       &SDO_C->CANrxData[4],
                                       count, NULL);
                         SDO_C->sizeTran = count;
@@ -1535,7 +1535,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                             count -= (SDO_C->CANrxData[0] >> 2) & 0x03U;
                         }
                         /* copy data, indicate size and finish */
-                        CO_fifo_write(&SDO_C->bufFifo,
+                        (void)CO_fifo_write(&SDO_C->bufFifo,
                                       &SDO_C->CANrxData[4],
                                       count, NULL);
                         SDO_C->sizeTran = count;
@@ -1570,7 +1570,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     /* Get number of data bytes in last segment, that do not
                      * contain data. Then copy remaining data into fifo */
                     uint8_t noData = ((SDO_C->CANrxData[0] >> 2) & 0x07U);
-                    CO_fifo_write(&SDO_C->bufFifo,
+                    (void)CO_fifo_write(&SDO_C->bufFifo,
                                   &SDO_C->block_dataUploadLast[0],
                                   7U - noData,
                                   &SDO_C->block_crc);
