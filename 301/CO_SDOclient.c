@@ -958,7 +958,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                     break;
                 }
                 if (SDO_C->sizeInd > 0U) {
-                    SDO_C->CANtxBuff->data[0] |= 0x01U | ((4U - count) << 2);
+                    SDO_C->CANtxBuff->data[0] |= (uint8_t)(0x01U | ((4U - count) << 2));
                 }
 
                 /* copy data */
@@ -1101,7 +1101,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         }
 
         case CO_SDO_ST_DOWNLOAD_BLK_END_REQ: {
-            SDO_C->CANtxBuff->data[0] = 0xC1U | (SDO_C->block_noData << 2);
+            SDO_C->CANtxBuff->data[0] = (uint8_t)(0xC1U | (SDO_C->block_noData << 2));
             SDO_C->CANtxBuff->data[1] = (uint8_t) SDO_C->block_crc;
             SDO_C->CANtxBuff->data[2] = (uint8_t) (SDO_C->block_crc >> 8);
 
