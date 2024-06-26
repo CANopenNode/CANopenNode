@@ -1394,7 +1394,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         size_t count = 4;
                         /* is size indicated? */
                         if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
-                            count -= (SDO_C->CANrxData[0] >> 2) & 0x03U;
+                            count -= (((size_t)SDO_C->CANrxData[0]) >> 2) & 0x03U;
                         }
                         /* copy data, indicate size and finish */
                         (void)CO_fifo_write(&SDO_C->bufFifo,
@@ -1538,7 +1538,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         size_t count = 4;
                         /* is size indicated? */
                         if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
-                            count -= (SDO_C->CANrxData[0] >> 2) & 0x03U;
+                            count -= ((size_t)(SDO_C->CANrxData[0]) >> 2) & 0x03U;
                         }
                         /* copy data, indicate size and finish */
                         (void)CO_fifo_write(&SDO_C->bufFifo,
@@ -1578,9 +1578,9 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     uint8_t noData = ((SDO_C->CANrxData[0] >> 2) & 0x07U);
                     (void)CO_fifo_write(&SDO_C->bufFifo,
                                   &SDO_C->block_dataUploadLast[0],
-                                  7U - noData,
+                                  (size_t)(7U) - noData,
                                   &SDO_C->block_crc);
-                    SDO_C->sizeTran += 7U - noData;
+                    SDO_C->sizeTran += (size_t)(7U) - noData;
 
                     /* verify length */
                     if ((SDO_C->sizeInd > 0U)
