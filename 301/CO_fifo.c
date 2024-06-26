@@ -1168,7 +1168,8 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     }
 
     /* get free space of the dest fifo */
-    destSpaceStart = destSpace = CO_fifo_getSpace(dest);
+    destSpaceStart = CO_fifo_getSpace(dest);
+    destSpace = destSpaceStart;
 
     /* is this the first write into dest? */
     if (!dest->started) {
@@ -1279,7 +1280,8 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     }
 
     /* get free space of the dest fifo */
-    destSpaceStart = destSpace = CO_fifo_getSpace(dest);
+    destSpaceStart = CO_fifo_getSpace(dest);
+    destSpace = destSpaceStart;
 
     /* is this the first write into dest? */
     if (!dest->started) {
@@ -1442,7 +1444,8 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     }
 
     /* get free space of the dest fifo */
-    destSpaceStart = destSpace = CO_fifo_getSpace(dest);
+    destSpaceStart = CO_fifo_getSpace(dest);
+    destSpace = destSpaceStart;
 
     /* is this the first write into dest? */
     if (!dest->started) {
