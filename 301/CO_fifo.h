@@ -411,7 +411,7 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment);
 size_t CO_fifo_readToken(CO_fifo_t *fifo,
                          char *buf,
                          size_t count,
-                         int8_t *closed,
+                         uint8_t *closed,
                          bool_t *err);
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
