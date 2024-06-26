@@ -1132,6 +1132,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
         case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
         default: {
+            /* none */
             break;
         }
         }
@@ -1908,6 +1909,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
         case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
         default: {
+            /* none */
             break;
         }
         }
