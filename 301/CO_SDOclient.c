@@ -1389,11 +1389,11 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         break;
                     }
 
-                    if (SDO_C->CANrxData[0] & 0x02U) {
+                    if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
                         /* Expedited transfer */
                         size_t count = 4;
                         /* is size indicated? */
-                        if (SDO_C->CANrxData[0] & 0x01U) {
+                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
                             count -= (SDO_C->CANrxData[0] >> 2) & 0x03U;
                         }
                         /* copy data, indicate size and finish */
@@ -1407,7 +1407,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     else {
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
                         /* segmented transfer, is size indicated? */
-                        if (SDO_C->CANrxData[0] & 0x01U) {
+                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
                             uint32_t size;
                             (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
                             SDO_C->sizeInd = CO_SWAP_32(size);
@@ -1465,7 +1465,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     }
 
                     /* If no more segments to be upload, finish */
-                    if (SDO_C->CANrxData[0] & 0x01U) {
+                    if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
                         /* verify size of data uploaded */
                         if ((SDO_C->sizeInd > 0U)
                             && (SDO_C->sizeTran < SDO_C->sizeInd)
@@ -1501,7 +1501,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     } else {
                         SDO_C->block_crcEnabled = false;
                     }
-                    if (SDO_C->CANrxData[0] & 0x02U) {
+                    if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
                         uint32_t size;
                         (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
                         SDO_C->sizeInd = CO_SWAP_32(size);
@@ -1533,11 +1533,11 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         break;
                     }
 
-                    if (SDO_C->CANrxData[0] & 0x02U) {
+                    if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
                         /* Expedited transfer */
                         size_t count = 4;
                         /* is size indicated? */
-                        if (SDO_C->CANrxData[0] & 0x01U) {
+                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
                             count -= (SDO_C->CANrxData[0] >> 2) & 0x03U;
                         }
                         /* copy data, indicate size and finish */
@@ -1550,7 +1550,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     }
                     else {
                         /* segmented transfer, is size indicated? */
-                        if (SDO_C->CANrxData[0] & 0x01U) {
+                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
                             uint32_t size;
                             (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
                             SDO_C->sizeInd = CO_SWAP_32(size);
