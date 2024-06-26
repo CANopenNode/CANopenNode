@@ -80,6 +80,7 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
     }
 
     OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
+    OD_size_t dataLenRemain = dataLenToCopy;      /* remaining length of dataOrig buffer */
     uint8_t *dataOrig = stream->dataOrig;
 
     if (dataOrig == NULL) {
@@ -97,6 +98,7 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
         }
         /* reduce for already copied data */
         dataLenToCopy -= stream->dataOffset;
+        dataLenRemain = dataLenToCopy;
         dataOrig += stream->dataOffset;
 
         if (dataLenToCopy > count) {
@@ -116,7 +118,8 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
         return ODR_DATA_LONG;
     }
 
-    if (((dataLenToCopy + stream->dataOffset) <= stream->dataLength) && (dataLenToCopy <= count)) {
+    /* additional check for Misra c compliance */
+    if ((dataLenToCopy <= dataLenRemain) && (dataLenToCopy <= count)) {
         (void)memcpy((void *)dataOrig, (const void *)buf, dataLenToCopy);
     }
     else {
