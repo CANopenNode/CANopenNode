@@ -606,10 +606,12 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 if (((SDO_C->OD_IO.stream.attribute & ODA_STR) != 0)
                     && ((sizeInOd == 0U) || (SDO_C->sizeTran < sizeInOd))
                 ) {
-                    buf[count++] = 0;
+                    buf[count] = 0;
+                    count++;
                     SDO_C->sizeTran++;
                     if ((sizeInOd == 0U) || (sizeInOd > SDO_C->sizeTran)) {
-                        buf[count++] = 0;
+                        buf[count] = 0;
+                        count++;
                         SDO_C->sizeTran++;
                     }
                     SDO_C->OD_IO.stream.dataLength = (OD_size_t)SDO_C->sizeTran;
@@ -1043,7 +1045,8 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 /* wait until data are refilled */
                 break;
             }
-            SDO_C->CANtxBuff->data[0] = ++SDO_C->block_seqno;
+            SDO_C->block_seqno++;
+            SDO_C->CANtxBuff->data[0] = SDO_C->block_seqno;
 
             /* get up to 7 data bytes */
             count = CO_fifo_altRead(&SDO_C->bufFifo,
