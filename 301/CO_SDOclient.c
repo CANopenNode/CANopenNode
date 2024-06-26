@@ -1245,7 +1245,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
     else if (SDO_C->state == CO_SDO_ST_IDLE) {
         ret = CO_SDO_RT_ok_communicationEnd;
     }
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL)
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0
     /* Transfer data locally **************************************************/
     else if ((SDO_C->state == CO_SDO_ST_UPLOAD_LOCAL_TRANSFER) && !send_abort) {
         /* search object dictionary in first pass */
