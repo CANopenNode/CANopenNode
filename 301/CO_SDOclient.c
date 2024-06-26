@@ -801,8 +801,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                     if (SDO_C->CANrxData[1] < SDO_C->block_seqno) {
                         /* NOT all segments transferred successfully.
                          * Re-transmit data after erroneous segment. */
-                        size_t cntFailed = SDO_C->block_seqno
-                                            - SDO_C->CANrxData[1];
+                        size_t cntFailed = (size_t)(SDO_C->block_seqno) - (size_t)(SDO_C->CANrxData[1]);
                         cntFailed = (cntFailed * 7U) - SDO_C->block_noData;
                         SDO_C->sizeTran -= cntFailed;
                         (void)CO_fifo_altBegin(&SDO_C->bufFifo,
@@ -1442,7 +1441,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     SDO_C->toggle = (toggle == 0x00U) ? 0x10U : 0x00U;
 
                     /* get data size and write data to the buffer */
-                    count = 7U - ((SDO_C->CANrxData[0] >> 1) & 0x07U);
+                    count = (size_t)(7U) - (((size_t)(SDO_C->CANrxData[0]) >> 1) & 0x07U);
                     countWr = CO_fifo_write(&SDO_C->bufFifo,
                                             &SDO_C->CANrxData[1],
                                             count, NULL);
