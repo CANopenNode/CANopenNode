@@ -427,7 +427,7 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  * @param SDO_C This object.
  * @param timeDifference_us Time difference from previous function call in
  * [microseconds].
- * @param abort If true, SDO client will send abort message from SDOabortCode
+ * @param send_abort If true, SDO client will send abort message from SDOabortCode
  * and transmission will be aborted.
  * @param bufferPartial True indicates, not all data were copied to internal
  * buffer yet. Buffer will be refilled later with #CO_SDOclientDownloadBufWrite.
@@ -443,7 +443,7 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  */
 CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                                      uint32_t timeDifference_us,
-                                     bool_t abort,
+                                     bool_t send_abort,
                                      bool_t bufferPartial,
                                      CO_SDO_abortCode_t *SDOabortCode,
                                      size_t *sizeTransferred,
@@ -488,7 +488,7 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  * @param SDO_C This object.
  * @param timeDifference_us Time difference from previous function call in
  * [microseconds].
- * @param abort If true, SDO client will send abort message from SDOabortCode
+ * @param send_abort If true, SDO client will send abort message from SDOabortCode
  * and reception will be aborted.
  * @param [out] SDOabortCode In case of error in communication, SDO abort code
  * contains reason of error. Ignored if NULL.
@@ -504,7 +504,7 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  */
 CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                                    uint32_t timeDifference_us,
-                                   bool_t abort,
+                                   bool_t send_abort,
                                    CO_SDO_abortCode_t *SDOabortCode,
                                    size_t *sizeIndicated,
                                    size_t *sizeTransferred,

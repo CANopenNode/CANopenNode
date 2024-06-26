@@ -517,7 +517,7 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
 /******************************************************************************/
 CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                                      uint32_t timeDifference_us,
-                                     bool_t abort,
+                                     bool_t send_abort,
                                      bool_t bufferPartial,
                                      CO_SDO_abortCode_t *SDOabortCode,
                                      size_t *sizeTransferred,
@@ -537,7 +537,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
     }
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0
     /* Transfer data locally **************************************************/
-    else if ((SDO_C->state == CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER) && !abort) {
+    else if ((SDO_C->state == CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER) && !send_abort) {
         /* search object dictionary in first pass */
         if (SDO_C->OD_IO.write == NULL) {
             ODR_t odRet;
@@ -691,7 +691,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;
         }
-        else if (abort) {
+        else if (send_abort) {
             abortCode = (SDOabortCode != NULL)
                       ? *SDOabortCode : CO_SDO_AB_DEVICE_INCOMPAT;
             SDO_C->state = CO_SDO_ST_ABORT;
@@ -887,7 +887,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         timeDifference_us = 0;
         CO_FLAG_CLEAR(SDO_C->CANrxNew);
     }
-    else if (abort) {
+    else if (send_abort) {
         abortCode = (SDOabortCode != NULL)
                   ? *SDOabortCode : CO_SDO_AB_DEVICE_INCOMPAT;
         SDO_C->state = CO_SDO_ST_ABORT;
@@ -1227,7 +1227,7 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
 /******************************************************************************/
 CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                                    uint32_t timeDifference_us,
-                                   bool_t abort,
+                                   bool_t send_abort,
                                    CO_SDO_abortCode_t *SDOabortCode,
                                    size_t *sizeIndicated,
                                    size_t *sizeTransferred,
@@ -1247,7 +1247,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
     }
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL)
     /* Transfer data locally **************************************************/
-    else if ((SDO_C->state == CO_SDO_ST_UPLOAD_LOCAL_TRANSFER) && !abort) {
+    else if ((SDO_C->state == CO_SDO_ST_UPLOAD_LOCAL_TRANSFER) && !send_abort) {
         /* search object dictionary in first pass */
         if (SDO_C->OD_IO.read == NULL) {
             ODR_t odRet;
@@ -1368,7 +1368,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             SDO_C->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_endedWithServerAbort;
         }
-        else if (abort) {
+        else if (send_abort) {
             abortCode = (SDOabortCode != NULL)
                       ? *SDOabortCode : CO_SDO_AB_DEVICE_INCOMPAT;
             SDO_C->state = CO_SDO_ST_ABORT;
@@ -1650,7 +1650,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         timeDifference_us = 0;
         CO_FLAG_CLEAR(SDO_C->CANrxNew);
     }
-    else if (abort) {
+    else if (send_abort) {
         abortCode = (SDOabortCode != NULL)
                   ? *SDOabortCode : CO_SDO_AB_DEVICE_INCOMPAT;
         SDO_C->state = CO_SDO_ST_ABORT;
