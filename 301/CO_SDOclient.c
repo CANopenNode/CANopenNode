@@ -71,9 +71,10 @@ static void CO_SDOclient_receive(void *object, void *msg) {
         && (!CO_FLAG_READ(SDO_C->CANrxNew) || (data[0] == 0x80U))
     ) {
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
+        bool_t state_not_upload_blk_sublock_sreq = (SDO_C->state != CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ);
+        bool_t state_not_upload_blk_sublock_crsp = (SDO_C->state != CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP);
         if ((data[0] == 0x80U) /* abort from server */
-            || ((SDO_C->state != CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ)
-                && (SDO_C->state != CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP))
+            || (state_not_upload_blk_sublock_sreq && state_not_upload_blk_sublock_crsp)
         ) {
 #endif
             /* copy data and set 'new message' flag */
@@ -262,10 +263,12 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
                                    uint16_t CANdevTxIdx,
                                    uint32_t *errInfo)
 {
+    bool_t index_SDOcliPar_min = (OD_getIndex(OD_1280_SDOcliPar) < (uint16_t)(OD_H1280_SDO_CLIENT_1_PARAM));
+    bool_t index_SDOcliPar_max = (OD_getIndex(OD_1280_SDOcliPar) > ((uint16_t)(OD_H1280_SDO_CLIENT_1_PARAM) + 0x7FU));
+
     /* verify arguments */
     if ((SDO_C == NULL) || (OD_1280_SDOcliPar == NULL)
-        || (OD_getIndex(OD_1280_SDOcliPar) < (uint16_t)(OD_H1280_SDO_CLIENT_1_PARAM))
-        || (OD_getIndex(OD_1280_SDOcliPar) > ((uint16_t)(OD_H1280_SDO_CLIENT_1_PARAM) + 0x7FU))
+        || index_SDOcliPar_min || index_SDOcliPar_max
         || (CANdevRx==NULL) || (CANdevTx==NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -1674,9 +1677,9 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             SDO_C->timeoutTimer += timeDifference_us;
         }
         if (SDO_C->timeoutTimer >= SDO_C->SDOtimeoutTime_us) {
-            if ((SDO_C->state == CO_SDO_ST_UPLOAD_SEGMENT_REQ) ||
-                (SDO_C->state == CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP)
-            ) {
+            bool_t state_upload_seg_req = (SDO_C->state == CO_SDO_ST_UPLOAD_SEGMENT_REQ);
+            bool_t state_upload_blk_sublock_crsp = (SDO_C->state == CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP);
+            if (state_upload_seg_req || state_upload_blk_sublock_crsp) {
                 /* application didn't empty buffer */
                 abortCode = CO_SDO_AB_GENERAL;
             } else {
