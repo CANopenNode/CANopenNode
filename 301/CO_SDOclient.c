@@ -845,7 +845,34 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 break;
             }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK */
-
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) == 0
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP:
+#endif
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) == 0
+            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP:
+            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ:
+            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP:
+            case CO_SDO_ST_DOWNLOAD_BLK_END_RSP:
+#endif
+            case CO_SDO_ST_IDLE:
+            case CO_SDO_ST_ABORT:
+            case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
+            case CO_SDO_ST_DOWNLOAD_INITIATE_REQ:
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ:
+            case CO_SDO_ST_UPLOAD_LOCAL_TRANSFER:
+            case CO_SDO_ST_UPLOAD_INITIATE_REQ:
+            case CO_SDO_ST_UPLOAD_INITIATE_RSP:
+            case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
+            case CO_SDO_ST_UPLOAD_SEGMENT_RSP:
+            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ:
+            case CO_SDO_ST_DOWNLOAD_BLK_END_REQ:
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ:
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2:
+            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
+            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP:
+            case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
+            case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
             default: {
                 abortCode = CO_SDO_AB_CMD;
                 SDO_C->state = CO_SDO_ST_ABORT;
@@ -1071,7 +1098,34 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
             break;
         }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK */
-
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) == 0
+        case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ:
+#endif
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) == 0
+        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ:
+        case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ:
+        case CO_SDO_ST_DOWNLOAD_BLK_END_REQ:
+#endif
+        case CO_SDO_ST_IDLE:
+        case CO_SDO_ST_ABORT:
+        case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
+        case CO_SDO_ST_DOWNLOAD_INITIATE_RSP:
+        case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP:
+        case CO_SDO_ST_UPLOAD_LOCAL_TRANSFER:
+        case CO_SDO_ST_UPLOAD_INITIATE_REQ:
+        case CO_SDO_ST_UPLOAD_INITIATE_RSP:
+        case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
+        case CO_SDO_ST_UPLOAD_SEGMENT_RSP:
+        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP:
+        case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP:
+        case CO_SDO_ST_DOWNLOAD_BLK_END_RSP:
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ:
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2:
+        case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
+        case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP:
+        case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
+        case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
         default: {
             break;
         }
@@ -1553,6 +1607,34 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK */
 
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) == 0
+            case CO_SDO_ST_UPLOAD_SEGMENT_RSP:
+#endif
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) == 0
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
+            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
+            case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
+#endif
+            case CO_SDO_ST_IDLE:
+            case CO_SDO_ST_ABORT:
+            case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
+            case CO_SDO_ST_DOWNLOAD_INITIATE_REQ:
+            case CO_SDO_ST_DOWNLOAD_INITIATE_RSP:
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ:
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP:
+            case CO_SDO_ST_UPLOAD_LOCAL_TRANSFER:
+            case CO_SDO_ST_UPLOAD_INITIATE_REQ:
+            case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
+            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ:
+            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP:
+            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ:
+            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP:
+            case CO_SDO_ST_DOWNLOAD_BLK_END_REQ:
+            case CO_SDO_ST_DOWNLOAD_BLK_END_RSP:
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ:
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2:
+            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP:
+            case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
             default: {
                 abortCode = CO_SDO_AB_CMD;
                 SDO_C->state = CO_SDO_ST_ABORT;
@@ -1792,7 +1874,34 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             break;
         }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK */
-
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) == 0
+        case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
+#endif
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) == 0
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ:
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2:
+        case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP:
+        case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
+#endif
+        case CO_SDO_ST_IDLE:
+        case CO_SDO_ST_ABORT:
+        case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
+        case CO_SDO_ST_DOWNLOAD_INITIATE_REQ:
+        case CO_SDO_ST_DOWNLOAD_INITIATE_RSP:
+        case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ:
+        case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP:
+        case CO_SDO_ST_UPLOAD_LOCAL_TRANSFER:
+        case CO_SDO_ST_UPLOAD_INITIATE_RSP:
+        case CO_SDO_ST_UPLOAD_SEGMENT_RSP:
+        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ:
+        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP:
+        case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ:
+        case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP:
+        case CO_SDO_ST_DOWNLOAD_BLK_END_REQ:
+        case CO_SDO_ST_DOWNLOAD_BLK_END_RSP:
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
+        case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
+        case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
         default: {
             break;
         }
