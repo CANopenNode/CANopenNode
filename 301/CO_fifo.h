@@ -477,13 +477,13 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
  * @defgroup uint8_t Bitfields for status argument from CO_fifo_cpyTok2U8 function and similar
  * @{
   */
-#define CO_fifo_st_closed   0x01U  /** Bit is set, if command delimiter is reached in src */
-#define CO_fifo_st_partial  0x02U  /** Bit is set, if copy was partial and more data are available. If unset and no error, then all data was successfully copied. */
-#define CO_fifo_st_errTok   0x10U  /** Bit is set, if no valid token found */
-#define CO_fifo_st_errVal   0x20U  /** Bit is set, if value is not valid or out of limits */
-#define CO_fifo_st_errBuf   0x40U  /** Bit is set, if destination buffer is to small */
-#define CO_fifo_st_errInt   0x80U  /** Bit is set, if internal error */
-#define CO_fifo_st_errMask  0xF0U  /** Bitmask for error bits */
+#define CO_fifo_st_closed   0x01U  /**< Bit is set, if command delimiter is reached in src */
+#define CO_fifo_st_partial  0x02U  /**< Bit is set, if copy was partial and more data are available. If unset and no error, then all data was successfully copied. */
+#define CO_fifo_st_errTok   0x10U  /**< Bit is set, if no valid token found */
+#define CO_fifo_st_errVal   0x20U  /**< Bit is set, if value is not valid or out of limits */
+#define CO_fifo_st_errBuf   0x40U  /**< Bit is set, if destination buffer is to small */
+#define CO_fifo_st_errInt   0x80U  /**< Bit is set, if internal error */
+#define CO_fifo_st_errMask  0xF0U  /**< Bitmask for error bits */
 /** @} */ /* uint8_t */
 
 /**
