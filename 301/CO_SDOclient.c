@@ -1373,277 +1373,279 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                       ? *SDOabortCode : CO_SDO_AB_DEVICE_INCOMPAT;
             SDO_C->state = CO_SDO_ST_ABORT;
         }
-        else switch (SDO_C->state) {
-            case CO_SDO_ST_UPLOAD_INITIATE_RSP: {
-                if ((SDO_C->CANrxData[0] & 0xF0U) == 0x40U) {
-                    /* verify index and subindex */
-                    uint16_t index;
-                    uint8_t subindex;
-                    index = ((uint16_t) SDO_C->CANrxData[2]) << 8;
-                    index |= SDO_C->CANrxData[1];
-                    subindex = SDO_C->CANrxData[3];
-                    if ((index != SDO_C->index) || (subindex != SDO_C->subIndex)) {
-                        abortCode = CO_SDO_AB_PRAM_INCOMPAT;
-                        SDO_C->state = CO_SDO_ST_ABORT;
-                        break;
-                    }
-
-                    if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
-                        /* Expedited transfer */
-                        size_t count = 4;
-                        /* is size indicated? */
-                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
-                            count -= (((size_t)SDO_C->CANrxData[0]) >> 2) & 0x03U;
-                        }
-                        /* copy data, indicate size and finish */
-                        (void)CO_fifo_write(&SDO_C->bufFifo,
-                                      &SDO_C->CANrxData[4],
-                                      count, NULL);
-                        SDO_C->sizeTran = count;
-                        SDO_C->state = CO_SDO_ST_IDLE;
-                        ret = CO_SDO_RT_ok_communicationEnd;
-                    }
-                    else {
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
-                        /* segmented transfer, is size indicated? */
-                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
-                            uint32_t size;
-                            (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
-                            SDO_C->sizeInd = CO_SWAP_32(size);
-                        }
-                        SDO_C->toggle = 0x00;
-                        SDO_C->state = CO_SDO_ST_UPLOAD_SEGMENT_REQ;
-#else
-                        abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
-                        SDO_C->state = CO_SDO_ST_ABORT;
-#endif
-                    }
-                }
-                else {
-                    abortCode = CO_SDO_AB_CMD;
-                    SDO_C->state = CO_SDO_ST_ABORT;
-                }
-                break;
-            }
-
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
-            case CO_SDO_ST_UPLOAD_SEGMENT_RSP: {
-                if ((SDO_C->CANrxData[0] & 0xE0U) == 0x00U) {
-                    size_t count, countWr;
-
-                    /* verify and alternate toggle bit */
-                    uint8_t toggle = SDO_C->CANrxData[0] & 0x10U;
-                    if (toggle != SDO_C->toggle) {
-                        abortCode = CO_SDO_AB_TOGGLE_BIT;
-                        SDO_C->state = CO_SDO_ST_ABORT;
-                        break;
-                    }
-                    SDO_C->toggle = (toggle == 0x00U) ? 0x10U : 0x00U;
-
-                    /* get data size and write data to the buffer */
-                    count = (size_t)(7U) - (((size_t)(SDO_C->CANrxData[0]) >> 1) & 0x07U);
-                    countWr = CO_fifo_write(&SDO_C->bufFifo,
-                                            &SDO_C->CANrxData[1],
-                                            count, NULL);
-                    SDO_C->sizeTran += countWr;
-
-                    /* verify, if there was not enough space in fifo buffer */
-                    if (countWr != count) {
-                        abortCode = CO_SDO_AB_OUT_OF_MEM;
-                        SDO_C->state = CO_SDO_ST_ABORT;
-                        break;
-                    }
-
-                    /* verify if size of data uploaded is too large */
-                    if ((SDO_C->sizeInd > 0U)
-                        && (SDO_C->sizeTran > SDO_C->sizeInd)
-                    ) {
-                        abortCode = CO_SDO_AB_DATA_LONG;
-                        SDO_C->state = CO_SDO_ST_ABORT;
-                        break;
-                    }
-
-                    /* If no more segments to be upload, finish */
-                    if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
-                        /* verify size of data uploaded */
-                        if ((SDO_C->sizeInd > 0U)
-                            && (SDO_C->sizeTran < SDO_C->sizeInd)
-                        ) {
-                            abortCode = CO_SDO_AB_DATA_SHORT;
-                            SDO_C->state = CO_SDO_ST_ABORT;
-                        } else {
-                            SDO_C->state = CO_SDO_ST_IDLE;
-                            ret = CO_SDO_RT_ok_communicationEnd;
-                        }
-                    }
-                    else {
-                        SDO_C->state = CO_SDO_ST_UPLOAD_SEGMENT_REQ;
-                    }
-                }
-                else {
-                    abortCode = CO_SDO_AB_CMD;
-                    SDO_C->state = CO_SDO_ST_ABORT;
-                }
-                break;
-            }
-#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
-
-#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
-            case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP: {
-                if ((SDO_C->CANrxData[0] & 0xF9U) == 0xC0U) {
-                    uint16_t index;
-                    uint8_t subindex;
-
-                    /* get server CRC support info and data size */
-                    if ((SDO_C->CANrxData[0] & 0x04U) != 0U) {
-                        SDO_C->block_crcEnabled = true;
-                    } else {
-                        SDO_C->block_crcEnabled = false;
-                    }
-                    if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
-                        uint32_t size;
-                        (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
-                        SDO_C->sizeInd = CO_SWAP_32(size);
-                    }
-
-                    /* verify index and subindex */
-                    index = ((uint16_t) SDO_C->CANrxData[2]) << 8;
-                    index |= SDO_C->CANrxData[1];
-                    subindex = SDO_C->CANrxData[3];
-                    if ((index != SDO_C->index) || (subindex != SDO_C->subIndex)) {
-                        abortCode = CO_SDO_AB_PRAM_INCOMPAT;
-                        SDO_C->state = CO_SDO_ST_ABORT;
-                    }
-                    else {
-                        SDO_C->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2;
-                    }
-                }
-                /* switch to regular transfer, CO_SDO_ST_UPLOAD_INITIATE_RSP */
-                else if ((SDO_C->CANrxData[0] & 0xF0U) == 0x40U) {
-                    /* verify index and subindex */
-                    uint16_t index;
-                    uint8_t subindex;
-                    index = ((uint16_t) SDO_C->CANrxData[2]) << 8;
-                    index |= SDO_C->CANrxData[1];
-                    subindex = SDO_C->CANrxData[3];
-                    if ((index != SDO_C->index) || (subindex != SDO_C->subIndex)) {
-                        abortCode = CO_SDO_AB_PRAM_INCOMPAT;
-                        SDO_C->state = CO_SDO_ST_ABORT;
-                        break;
-                    }
-
-                    if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
-                        /* Expedited transfer */
-                        size_t count = 4;
-                        /* is size indicated? */
-                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
-                            count -= ((size_t)(SDO_C->CANrxData[0]) >> 2) & 0x03U;
-                        }
-                        /* copy data, indicate size and finish */
-                        (void)CO_fifo_write(&SDO_C->bufFifo,
-                                      &SDO_C->CANrxData[4],
-                                      count, NULL);
-                        SDO_C->sizeTran = count;
-                        SDO_C->state = CO_SDO_ST_IDLE;
-                        ret = CO_SDO_RT_ok_communicationEnd;
-                    }
-                    else {
-                        /* segmented transfer, is size indicated? */
-                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
-                            uint32_t size;
-                            (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
-                            SDO_C->sizeInd = CO_SWAP_32(size);
-                        }
-                        SDO_C->toggle = 0x00;
-                        SDO_C->state = CO_SDO_ST_UPLOAD_SEGMENT_REQ;
-                    }
-                }
-                else {
-                    abortCode = CO_SDO_AB_CMD;
-                    SDO_C->state = CO_SDO_ST_ABORT;
-                }
-                break;
-            }
-
-            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ: {
-                /* data are copied directly in the receive function */
-                break;
-            }
-
-            case CO_SDO_ST_UPLOAD_BLK_END_SREQ: {
-                if ((SDO_C->CANrxData[0] & 0xE3U) == 0xC1U) {
-                    /* Get number of data bytes in last segment, that do not
-                     * contain data. Then copy remaining data into fifo */
-                    uint8_t noData = ((SDO_C->CANrxData[0] >> 2) & 0x07U);
-                    (void)CO_fifo_write(&SDO_C->bufFifo,
-                                  &SDO_C->block_dataUploadLast[0],
-                                  (size_t)(7U) - noData,
-                                  &SDO_C->block_crc);
-                    SDO_C->sizeTran += (size_t)(7U) - noData;
-
-                    /* verify length */
-                    if ((SDO_C->sizeInd > 0U)
-                        && (SDO_C->sizeTran != SDO_C->sizeInd)
-                    ) {
-                        abortCode = (SDO_C->sizeTran > SDO_C->sizeInd) ?
-                                    CO_SDO_AB_DATA_LONG : CO_SDO_AB_DATA_SHORT;
-                        SDO_C->state = CO_SDO_ST_ABORT;
-                        break;
-                    }
-
-                    /* verify CRC */
-                    if (SDO_C->block_crcEnabled) {
-                        uint16_t crcServer;
-                        crcServer = ((uint16_t) SDO_C->CANrxData[2]) << 8;
-                        crcServer |= SDO_C->CANrxData[1];
-                        if (crcServer != SDO_C->block_crc) {
-                            abortCode = CO_SDO_AB_CRC;
+        else { 
+            switch (SDO_C->state) {
+                case CO_SDO_ST_UPLOAD_INITIATE_RSP: {
+                    if ((SDO_C->CANrxData[0] & 0xF0U) == 0x40U) {
+                        /* verify index and subindex */
+                        uint16_t index;
+                        uint8_t subindex;
+                        index = ((uint16_t) SDO_C->CANrxData[2]) << 8;
+                        index |= SDO_C->CANrxData[1];
+                        subindex = SDO_C->CANrxData[3];
+                        if ((index != SDO_C->index) || (subindex != SDO_C->subIndex)) {
+                            abortCode = CO_SDO_AB_PRAM_INCOMPAT;
                             SDO_C->state = CO_SDO_ST_ABORT;
                             break;
                         }
+
+                        if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
+                            /* Expedited transfer */
+                            size_t count = 4;
+                            /* is size indicated? */
+                            if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
+                                count -= (((size_t)SDO_C->CANrxData[0]) >> 2) & 0x03U;
+                            }
+                            /* copy data, indicate size and finish */
+                            (void)CO_fifo_write(&SDO_C->bufFifo,
+                                          &SDO_C->CANrxData[4],
+                                          count, NULL);
+                            SDO_C->sizeTran = count;
+                            SDO_C->state = CO_SDO_ST_IDLE;
+                            ret = CO_SDO_RT_ok_communicationEnd;
+                        }
+                        else {
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
+                            /* segmented transfer, is size indicated? */
+                            if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
+                                uint32_t size;
+                                (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                                SDO_C->sizeInd = CO_SWAP_32(size);
+                            }
+                            SDO_C->toggle = 0x00;
+                            SDO_C->state = CO_SDO_ST_UPLOAD_SEGMENT_REQ;
+#else
+                            abortCode = CO_SDO_AB_UNSUPPORTED_ACCESS;
+                            SDO_C->state = CO_SDO_ST_ABORT;
+#endif
+                        }
                     }
-                    SDO_C->state = CO_SDO_ST_UPLOAD_BLK_END_CRSP;
+                    else {
+                        abortCode = CO_SDO_AB_CMD;
+                        SDO_C->state = CO_SDO_ST_ABORT;
+                    }
+                    break;
                 }
-                else {
-                    abortCode = CO_SDO_AB_CMD;
-                    SDO_C->state = CO_SDO_ST_ABORT;
+
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0
+                case CO_SDO_ST_UPLOAD_SEGMENT_RSP: {
+                    if ((SDO_C->CANrxData[0] & 0xE0U) == 0x00U) {
+                        size_t count, countWr;
+
+                        /* verify and alternate toggle bit */
+                        uint8_t toggle = SDO_C->CANrxData[0] & 0x10U;
+                        if (toggle != SDO_C->toggle) {
+                            abortCode = CO_SDO_AB_TOGGLE_BIT;
+                            SDO_C->state = CO_SDO_ST_ABORT;
+                            break;
+                        }
+                        SDO_C->toggle = (toggle == 0x00U) ? 0x10U : 0x00U;
+
+                        /* get data size and write data to the buffer */
+                        count = (size_t)(7U) - (((size_t)(SDO_C->CANrxData[0]) >> 1) & 0x07U);
+                        countWr = CO_fifo_write(&SDO_C->bufFifo,
+                                                &SDO_C->CANrxData[1],
+                                                count, NULL);
+                        SDO_C->sizeTran += countWr;
+
+                        /* verify, if there was not enough space in fifo buffer */
+                        if (countWr != count) {
+                            abortCode = CO_SDO_AB_OUT_OF_MEM;
+                            SDO_C->state = CO_SDO_ST_ABORT;
+                            break;
+                        }
+
+                        /* verify if size of data uploaded is too large */
+                        if ((SDO_C->sizeInd > 0U)
+                            && (SDO_C->sizeTran > SDO_C->sizeInd)
+                        ) {
+                            abortCode = CO_SDO_AB_DATA_LONG;
+                            SDO_C->state = CO_SDO_ST_ABORT;
+                            break;
+                        }
+
+                        /* If no more segments to be upload, finish */
+                        if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
+                            /* verify size of data uploaded */
+                            if ((SDO_C->sizeInd > 0U)
+                                && (SDO_C->sizeTran < SDO_C->sizeInd)
+                            ) {
+                                abortCode = CO_SDO_AB_DATA_SHORT;
+                                SDO_C->state = CO_SDO_ST_ABORT;
+                            } else {
+                                SDO_C->state = CO_SDO_ST_IDLE;
+                                ret = CO_SDO_RT_ok_communicationEnd;
+                            }
+                        }
+                        else {
+                            SDO_C->state = CO_SDO_ST_UPLOAD_SEGMENT_REQ;
+                        }
+                    }
+                    else {
+                        abortCode = CO_SDO_AB_CMD;
+                        SDO_C->state = CO_SDO_ST_ABORT;
+                    }
+                    break;
                 }
-                break;
-            }
+#endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED */
+
+#if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
+                case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP: {
+                    if ((SDO_C->CANrxData[0] & 0xF9U) == 0xC0U) {
+                        uint16_t index;
+                        uint8_t subindex;
+
+                        /* get server CRC support info and data size */
+                        if ((SDO_C->CANrxData[0] & 0x04U) != 0U) {
+                            SDO_C->block_crcEnabled = true;
+                        } else {
+                            SDO_C->block_crcEnabled = false;
+                        }
+                        if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
+                            uint32_t size;
+                            (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                            SDO_C->sizeInd = CO_SWAP_32(size);
+                        }
+
+                        /* verify index and subindex */
+                        index = ((uint16_t) SDO_C->CANrxData[2]) << 8;
+                        index |= SDO_C->CANrxData[1];
+                        subindex = SDO_C->CANrxData[3];
+                        if ((index != SDO_C->index) || (subindex != SDO_C->subIndex)) {
+                            abortCode = CO_SDO_AB_PRAM_INCOMPAT;
+                            SDO_C->state = CO_SDO_ST_ABORT;
+                        }
+                        else {
+                            SDO_C->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2;
+                        }
+                    }
+                    /* switch to regular transfer, CO_SDO_ST_UPLOAD_INITIATE_RSP */
+                    else if ((SDO_C->CANrxData[0] & 0xF0U) == 0x40U) {
+                        /* verify index and subindex */
+                        uint16_t index;
+                        uint8_t subindex;
+                        index = ((uint16_t) SDO_C->CANrxData[2]) << 8;
+                        index |= SDO_C->CANrxData[1];
+                        subindex = SDO_C->CANrxData[3];
+                        if ((index != SDO_C->index) || (subindex != SDO_C->subIndex)) {
+                            abortCode = CO_SDO_AB_PRAM_INCOMPAT;
+                            SDO_C->state = CO_SDO_ST_ABORT;
+                            break;
+                        }
+
+                        if ((SDO_C->CANrxData[0] & 0x02U) != 0U) {
+                            /* Expedited transfer */
+                            size_t count = 4;
+                            /* is size indicated? */
+                            if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
+                                count -= ((size_t)(SDO_C->CANrxData[0]) >> 2) & 0x03U;
+                            }
+                            /* copy data, indicate size and finish */
+                            (void)CO_fifo_write(&SDO_C->bufFifo,
+                                          &SDO_C->CANrxData[4],
+                                          count, NULL);
+                            SDO_C->sizeTran = count;
+                            SDO_C->state = CO_SDO_ST_IDLE;
+                            ret = CO_SDO_RT_ok_communicationEnd;
+                        }
+                        else {
+                            /* segmented transfer, is size indicated? */
+                            if ((SDO_C->CANrxData[0] & 0x01U) != 0U) {
+                                uint32_t size;
+                                (void)memcpy(&size, &SDO_C->CANrxData[4], sizeof(size));
+                                SDO_C->sizeInd = CO_SWAP_32(size);
+                            }
+                            SDO_C->toggle = 0x00;
+                            SDO_C->state = CO_SDO_ST_UPLOAD_SEGMENT_REQ;
+                        }
+                    }
+                    else {
+                        abortCode = CO_SDO_AB_CMD;
+                        SDO_C->state = CO_SDO_ST_ABORT;
+                    }
+                    break;
+                }
+
+                case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ: {
+                    /* data are copied directly in the receive function */
+                    break;
+                }
+
+                case CO_SDO_ST_UPLOAD_BLK_END_SREQ: {
+                    if ((SDO_C->CANrxData[0] & 0xE3U) == 0xC1U) {
+                        /* Get number of data bytes in last segment, that do not
+                         * contain data. Then copy remaining data into fifo */
+                        uint8_t noData = ((SDO_C->CANrxData[0] >> 2) & 0x07U);
+                        (void)CO_fifo_write(&SDO_C->bufFifo,
+                                      &SDO_C->block_dataUploadLast[0],
+                                      (size_t)(7U) - noData,
+                                      &SDO_C->block_crc);
+                        SDO_C->sizeTran += (size_t)(7U) - noData;
+
+                        /* verify length */
+                        if ((SDO_C->sizeInd > 0U)
+                            && (SDO_C->sizeTran != SDO_C->sizeInd)
+                        ) {
+                            abortCode = (SDO_C->sizeTran > SDO_C->sizeInd) ?
+                                        CO_SDO_AB_DATA_LONG : CO_SDO_AB_DATA_SHORT;
+                            SDO_C->state = CO_SDO_ST_ABORT;
+                            break;
+                        }
+
+                        /* verify CRC */
+                        if (SDO_C->block_crcEnabled) {
+                            uint16_t crcServer;
+                            crcServer = ((uint16_t) SDO_C->CANrxData[2]) << 8;
+                            crcServer |= SDO_C->CANrxData[1];
+                            if (crcServer != SDO_C->block_crc) {
+                                abortCode = CO_SDO_AB_CRC;
+                                SDO_C->state = CO_SDO_ST_ABORT;
+                                break;
+                            }
+                        }
+                        SDO_C->state = CO_SDO_ST_UPLOAD_BLK_END_CRSP;
+                    }
+                    else {
+                        abortCode = CO_SDO_AB_CMD;
+                        SDO_C->state = CO_SDO_ST_ABORT;
+                    }
+                    break;
+                }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK */
 
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) == 0
-            case CO_SDO_ST_UPLOAD_SEGMENT_RSP:
+                case CO_SDO_ST_UPLOAD_SEGMENT_RSP:
 #endif
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) == 0
-            case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
-            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
-            case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
+                case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
+                case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
+                case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
 #endif
-            case CO_SDO_ST_IDLE:
-            case CO_SDO_ST_ABORT:
-            case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
-            case CO_SDO_ST_DOWNLOAD_INITIATE_REQ:
-            case CO_SDO_ST_DOWNLOAD_INITIATE_RSP:
-            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ:
-            case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP:
-            case CO_SDO_ST_UPLOAD_LOCAL_TRANSFER:
-            case CO_SDO_ST_UPLOAD_INITIATE_REQ:
-            case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
-            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ:
-            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP:
-            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ:
-            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP:
-            case CO_SDO_ST_DOWNLOAD_BLK_END_REQ:
-            case CO_SDO_ST_DOWNLOAD_BLK_END_RSP:
-            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ:
-            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2:
-            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP:
-            case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
-            default: {
-                abortCode = CO_SDO_AB_CMD;
-                SDO_C->state = CO_SDO_ST_ABORT;
-                break;
+                case CO_SDO_ST_IDLE:
+                case CO_SDO_ST_ABORT:
+                case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
+                case CO_SDO_ST_DOWNLOAD_INITIATE_REQ:
+                case CO_SDO_ST_DOWNLOAD_INITIATE_RSP:
+                case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ:
+                case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP:
+                case CO_SDO_ST_UPLOAD_LOCAL_TRANSFER:
+                case CO_SDO_ST_UPLOAD_INITIATE_REQ:
+                case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
+                case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ:
+                case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP:
+                case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ:
+                case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP:
+                case CO_SDO_ST_DOWNLOAD_BLK_END_REQ:
+                case CO_SDO_ST_DOWNLOAD_BLK_END_RSP:
+                case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ:
+                case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2:
+                case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP:
+                case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
+                default: {
+                    abortCode = CO_SDO_AB_CMD;
+                    SDO_C->state = CO_SDO_ST_ABORT;
+                    break;
+                }
             }
         }
         SDO_C->timeoutTimer = 0;
