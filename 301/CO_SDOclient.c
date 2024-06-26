@@ -745,7 +745,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                         SDO_C->state = CO_SDO_ST_ABORT;
                         break;
                     }
-                    SDO_C->toggle = (toggle == 0x00U) ? 0x10 : 0x00;
+                    SDO_C->toggle = (toggle == 0x00U) ? 0x10U : 0x00U;
 
                     /* is end of transfer? */
                     if (SDO_C->finished) {
@@ -1439,7 +1439,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                         SDO_C->state = CO_SDO_ST_ABORT;
                         break;
                     }
-                    SDO_C->toggle = (toggle == 0x00U) ? 0x10 : 0x00;
+                    SDO_C->toggle = (toggle == 0x00U) ? 0x10U : 0x00U;
 
                     /* get data size and write data to the buffer */
                     count = 7U - ((SDO_C->CANrxData[0] >> 1) & 0x07U);
