@@ -137,15 +137,16 @@ static void CO_SDOclient_receive(void *object, void *msg) {
                 CO_DEBUG_SDO_CLIENT(msg);
 #endif
             }
-#ifdef CO_DEBUG_SDO_CLIENT
             else {
+                /* MISRA C 2004 14.10 */
+#ifdef CO_DEBUG_SDO_CLIENT
                 char msg[80];
                 sprintf(msg,
                         "sub-block, rx ignored: sequno=%02X, expected=%02X",
                         seqno, SDO_C->block_seqno + 1);
                 CO_DEBUG_SDO_CLIENT(msg);
-            }
 #endif
+            }
 
             /* Is exit from sub-block receive state? */
             if (state != CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ) {
@@ -162,6 +163,8 @@ static void CO_SDOclient_receive(void *object, void *msg) {
 #endif
             }
         }
+        else { /* MISRA C 2004 14.10 */ }
+        
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK */
     }
 }
@@ -556,6 +559,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
+            else { /* MISRA C 2004 14.10 */ }
         }
         /* write data, in several passes if necessary */
         if (SDO_C->OD_IO.write != NULL) {
@@ -618,7 +622,10 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                                 CO_SDO_AB_DATA_LONG : CO_SDO_AB_DATA_SHORT;
                     ret = CO_SDO_RT_endedWithClientAbort;
                 }
+                else { /* MISRA C 2004 14.10 */ }
             }
+            else { /* MISRA C 2004 14.10 */ }
+
             if (abortCode == CO_SDO_AB_NONE) {
                 OD_size_t countWritten = 0;
 
@@ -666,6 +673,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         else if (timerNext_us != NULL) {
             *timerNext_us = 0;
         }
+        else { /* MISRA C 2004 14.10 */ }
 #endif
     }
 #endif /* CO_CONFIG_SDO_CLI_LOCAL */
@@ -803,6 +811,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                         SDO_C->state = CO_SDO_ST_ABORT;
                         break;
                     }
+                    else { /* MISRA C 2004 14.10 */ }
 
                     /* confirm successfully transmitted data */
                     CO_fifo_altFinish(&SDO_C->bufFifo, &SDO_C->block_crc);
@@ -852,6 +861,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                   ? *SDOabortCode : CO_SDO_AB_DEVICE_INCOMPAT;
         SDO_C->state = CO_SDO_ST_ABORT;
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     /* Timeout timers and transmit bufferFull flag ****************************/
     if (ret == CO_SDO_RT_waitingResponse) {
@@ -870,6 +880,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                 *timerNext_us = diff;
             }
         }
+        else { /* MISRA C 2004 14.10 */ }
 #endif
         if (SDO_C->CANtxBuff->bufferFull) {
             ret = CO_SDO_RT_transmittBufferFull;
@@ -1085,6 +1096,7 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         else if (SDO_C->state == CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ) {
             ret = CO_SDO_RT_blockDownldInProgress;
         }
+        else { /* MISRA C 2004 14.10 */ }
 #endif
     }
 
@@ -1200,6 +1212,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
+            else { /* MISRA C 2004 14.10 */ }
         }
 
         size_t countFifo = CO_fifo_getSpace(&SDO_C->bufFifo);
@@ -1270,6 +1283,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 }
             }
         }
+        else { /* MISRA C 2004 14.10 */ }
 
         if ((ret != CO_SDO_RT_uploadDataBufferFull)
             && (ret != CO_SDO_RT_waitingLocalTransfer)
@@ -1281,6 +1295,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         else if (timerNext_us != NULL) {
             *timerNext_us = 0;
         }
+        else { /* MISRA C 2004 14.10 */ }
 #endif
     }
 #endif /* CO_CONFIG_SDO_CLI_LOCAL */
@@ -1553,6 +1568,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                   ? *SDOabortCode : CO_SDO_AB_DEVICE_INCOMPAT;
         SDO_C->state = CO_SDO_ST_ABORT;
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     /* Timeout timers and transmit bufferFull flag ****************************/
     if (ret == CO_SDO_RT_waitingResponse) {
@@ -1578,6 +1594,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 *timerNext_us = diff;
             }
         }
+        else { /* MISRA C 2004 14.10 */ }
 #endif
 
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
@@ -1601,6 +1618,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                     *timerNext_us = diff;
                 }
             }
+            else { /* MISRA C 2004 14.10 */ }
 #endif
         }
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK */
@@ -1665,6 +1683,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                 SDO_C->state = CO_SDO_ST_ABORT;
                 break;
             }
+            else { /* MISRA C 2004 14.10 */ }
             SDO_C->block_blksize = (uint8_t)count;
             SDO_C->CANtxBuff->data[4] = SDO_C->block_blksize;
             SDO_C->CANtxBuff->data[5] = CO_CONFIG_SDO_CLI_PST;
@@ -1737,6 +1756,8 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
 #endif
                     break;
                 }
+                else { /* MISRA C 2004 14.10 */ }
+                
                 SDO_C->block_blksize = (uint8_t)count;
                 SDO_C->block_seqno = 0;
                 /* Block segments will be received in different thread. Make
@@ -1796,6 +1817,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
         else if (SDO_C->state == CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ) {
             ret = CO_SDO_RT_blockUploadInProgress;
         }
+        else { /* MISRA C 2004 14.10 */ }
 #endif
     }
 
