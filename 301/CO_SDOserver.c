@@ -927,8 +927,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 break;
             }
 
-            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: {
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: {
                 if ((SDO->CANrxData[0] & 0xE0U) == 0x00U) {
                     SDO->finished = (SDO->CANrxData[0] & 0x01U) != 0U;
 
@@ -970,17 +970,17 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     abortCode = CO_SDO_AB_CMD;
                     SDO->state = CO_SDO_ST_ABORT;
                 }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
                 break;
             }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
 
             case CO_SDO_ST_UPLOAD_INITIATE_REQ: {
                 SDO->state = CO_SDO_ST_UPLOAD_INITIATE_RSP;
                 break;
             }
 
-            case CO_SDO_ST_UPLOAD_SEGMENT_REQ: {
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+            case CO_SDO_ST_UPLOAD_SEGMENT_REQ: {
                 if ((SDO->CANrxData[0] & 0xEFU) == 0x60U) {
                     /* verify and alternate toggle bit */
                     uint8_t toggle = SDO->CANrxData[0] & 0x10U;
@@ -995,12 +995,12 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     abortCode = CO_SDO_AB_CMD;
                     SDO->state = CO_SDO_ST_ABORT;
                 }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
                 break;
             }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
 
-            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ: {
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ: {
                 SDO->block_crcEnabled = (SDO->CANrxData[0] & 0x04) != 0;
 
                 /* is size indicated? */
@@ -1033,19 +1033,15 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 }
                 SDO->state = CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP;
                 SDO->finished = false;
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
                 break;
             }
 
             case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
                 /* data are copied directly in the receive function */
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
                 break;
             }
 
             case CO_SDO_ST_DOWNLOAD_BLK_END_REQ: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
                 if ((SDO->CANrxData[0] & 0xE3) == 0xC1) {
                     /* Get number of data bytes in last segment, that do not
                         * contain data. Then reduce buffer. */
@@ -1074,12 +1070,10 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     abortCode = CO_SDO_AB_CMD;
                     SDO->state = CO_SDO_ST_ABORT;
                 }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
                 break;
             }
 
             case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
                 /* if pst (protocol switch threshold, byte5) is larger than data
                  * size of OD variable, then switch to segmented transfer */
                 if (SDO->sizeInd > 0 && SDO->CANrxData[5] > 0
@@ -1113,12 +1107,10 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     }
                     SDO->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP;
                 }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
                 break;
             }
 
             case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
                 if (SDO->CANrxData[0] == 0xA3) {
                     SDO->block_seqno = 0;
                     SDO->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ;
@@ -1127,13 +1119,11 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     abortCode = CO_SDO_AB_CMD;
                     SDO->state = CO_SDO_ST_ABORT;
                 }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
                 break;
             }
 
             case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
             case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
                 if (SDO->CANrxData[0] == 0xA2) {
                     SDO->block_blksize = SDO->CANrxData[2];
                     if (SDO->block_blksize < 1 || SDO->block_blksize > 127) {
@@ -1175,9 +1165,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                     abortCode = CO_SDO_AB_CMD;
                     SDO->state = CO_SDO_ST_ABORT;
                 }
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
                 break;
             }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
 
             case CO_SDO_ST_IDLE:
             case CO_SDO_ST_ABORT:
@@ -1193,6 +1183,20 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
             case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
             case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
+                
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) == 0
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: 
+            case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) == 0
+            case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ:
+            case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ:
+            case CO_SDO_ST_DOWNLOAD_BLK_END_REQ:
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ:
+            case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2:
+            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
+            case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP:
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             default: {
                 /* unknown message received */
                 abortCode = CO_SDO_AB_CMD;
@@ -1296,8 +1300,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             break;
         }
 
-        case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP: {
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+        case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP: {
             SDO->CANtxBuff->data[0] = 0x20U | SDO->toggle;
             SDO->toggle = (SDO->toggle == 0x00U) ? 0x10U : 0x00U;
 
@@ -1311,9 +1315,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             else {
                 SDO->state = CO_SDO_ST_DOWNLOAD_SEGMENT_REQ;
             }
-#endif
             break;
         }
+#endif
 
         case CO_SDO_ST_UPLOAD_INITIATE_RSP: {
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
@@ -1384,8 +1388,8 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             break;
         }
 
-        case CO_SDO_ST_UPLOAD_SEGMENT_RSP: {
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) != 0
+        case CO_SDO_ST_UPLOAD_SEGMENT_RSP: {
             /* refill the data buffer if necessary */
             if (!readFromOd(SDO, &abortCode, 7, false)) {
                 break;
@@ -1435,12 +1439,12 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
 
             /* send message */
             (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
             break;
         }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
 
-        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP: {
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
+        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP: {
             SDO->CANtxBuff->data[0] = 0xA4;
             SDO->CANtxBuff->data[1] = (uint8_t)SDO->index;
             SDO->CANtxBuff->data[2] = (uint8_t)(SDO->index >> 8);
@@ -1469,12 +1473,10 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ;
             CO_FLAG_CLEAR(SDO->CANrxNew);
             (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xA2;
             SDO->CANtxBuff->data[1] = SDO->block_seqno;
 #ifdef CO_DEBUG_SDO_SERVER
@@ -1526,23 +1528,19 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                 CO_DEBUG_SDO_SERVER(msg);
             }
 #endif
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_DOWNLOAD_BLK_END_RSP: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xA1;
 
             (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_IDLE;
             ret = CO_SDO_RT_ok_communicationEnd;
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xC4;
             SDO->CANtxBuff->data[1] = (uint8_t)SDO->index;
             SDO->CANtxBuff->data[2] = (uint8_t)(SDO->index >> 8);
@@ -1559,12 +1557,10 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->timeoutTimer = 0;
             (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2;
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             /* write header and get current count */
             SDO->CANtxBuff->data[0] = ++SDO->block_seqno;
             OD_size_t count = SDO->bufOffsetWr - SDO->bufOffsetRd;
@@ -1616,12 +1612,10 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             /* reset timeout timer and send message */
             SDO->timeoutTimer = 0;
             (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
 
         case CO_SDO_ST_UPLOAD_BLK_END_SREQ: {
-#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
             SDO->CANtxBuff->data[0] = 0xC1 | (SDO->block_noData << 2);
             SDO->CANtxBuff->data[1] = (uint8_t) SDO->block_crc;
             SDO->CANtxBuff->data[2] = (uint8_t) (SDO->block_crc >> 8);
@@ -1630,11 +1624,22 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             SDO->timeoutTimer = 0;
             (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
             SDO->state = CO_SDO_ST_UPLOAD_BLK_END_CRSP;
-#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
             break;
         }
+#endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
 
-        
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) == 0
+        case CO_SDO_ST_DOWNLOAD_SEGMENT_RSP:
+        case CO_SDO_ST_UPLOAD_SEGMENT_RSP:
+#endif
+#if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) == 0
+        case CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP:
+        case CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP:
+        case CO_SDO_ST_DOWNLOAD_BLK_END_RSP:
+        case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
+        case CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ:
+        case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
+#endif
         case CO_SDO_ST_IDLE:
         case CO_SDO_ST_ABORT:
         case CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER:
