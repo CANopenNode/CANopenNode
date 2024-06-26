@@ -293,6 +293,7 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
         /* buffer full */
         newCommand = true;
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     /* Clear buffer if set so */
     if (clear) {
@@ -325,6 +326,8 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment) {
             else if ((isgraph((int)c) != 0) && !(*insideComment)) {
                 break;
             }
+            else { /* MISRA C 2004 14.10 */ }
+
             if (++fifo->readPtr == fifo->bufSize) {
                 fifo->readPtr = 0;
             }
@@ -372,6 +375,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                 else if (*c == DELIM_COMMAND) {
                     delimCommandFound = true;
                 }
+                else { /* MISRA C 2004 14.10 */ }
                 break;
             case 1: /* search for end of the token */
                 if (isgraph((int)*c) != 0) {
@@ -381,6 +385,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                         buf[tokenSize] = (char)*c;
                         tokenSize++;
                     }
+                    else { /* MISRA C 2004 14.10 */ }
                 }
                 else {
                     if (*c == DELIM_COMMAND) {
@@ -401,6 +406,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                 else if (*c == DELIM_COMMAND) {
                     delimCommandFound = true;
                 }
+                else { /* MISRA C 2004 14.10 */ }
                 break;
             default:
                 /* MISRA C 2004 15.3 */
@@ -440,6 +446,7 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
                     finished = true;
                 }
             }
+            else { /* MISRA C 2004 14.10 */ }
         } while (!finished);
     }
 
@@ -771,6 +778,7 @@ size_t CO_fifo_readVs2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
                     len++;
                 }
             }
+            else { /* MISRA C 2004 14.10 */ }
         }
     }
 
@@ -1253,6 +1261,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
             else if (insideComment) {
                 step = 6;
             }
+            else { /* MISRA C 2004 14.10 */ }
         }
     } /* while ... */
 
@@ -1401,6 +1410,7 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
                     st |= CO_fifo_st_errTok;
                 }
             }
+            else { /* MISRA C 2004 14.10 */ }
             break;
         }
         case 6: { /* String token is finished, waiting for command delimiter */
@@ -1490,6 +1500,7 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
                     st |= CO_fifo_st_errTok;
                 }
             }
+            else { /* MISRA C 2004 14.10 */ }
             continue;
         }
 
