@@ -23,11 +23,12 @@
  * limitations under the License.
  */
 
+#include <string.h>
+
 #include "301/CO_fifo.h"
 
 #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) != 0
 
-#include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include "crc16-ccitt.h"
