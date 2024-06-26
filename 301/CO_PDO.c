@@ -740,13 +740,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     /* Configure communication parameter - event-timer (optional) */
 #if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
     uint16_t eventTime = 0;
-    odRet = OD_get_u16(OD_14xx_RPDOCommPar, 5, &eventTime, true);
-    if (odRet != ODR_OK) {
-        if (errInfo != NULL) {
-            *errInfo = (((uint32_t)OD_getIndex(OD_14xx_RPDOCommPar)) << 8) | 5U;
-        }
-        return CO_ERROR_OD_PARAMETERS;
-    }
+    (void)OD_get_u16(OD_14xx_RPDOCommPar, 5, &eventTime, true);
     RPDO->timeoutTime_us = (uint32_t)eventTime * 1000U;
 #endif
 
@@ -1200,20 +1194,8 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
 #if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) != 0
     uint16_t inhibitTime = 0;
     uint16_t eventTime = 0;
-    odRet = OD_get_u16(OD_18xx_TPDOCommPar, 3, &inhibitTime, true);
-    if (odRet != ODR_OK) {
-        if (errInfo != NULL) {
-            *errInfo = (((uint32_t)OD_getIndex(OD_18xx_TPDOCommPar)) << 8) | 3U;
-        }
-        return CO_ERROR_OD_PARAMETERS;
-    }
-    odRet = OD_get_u16(OD_18xx_TPDOCommPar, 5, &eventTime, true);
-    if (odRet != ODR_OK) {
-        if (errInfo != NULL) {
-            *errInfo = (((uint32_t)OD_getIndex(OD_18xx_TPDOCommPar)) << 8) | 5U;
-        }
-        return CO_ERROR_OD_PARAMETERS;
-    }
+    (void)OD_get_u16(OD_18xx_TPDOCommPar, 3, &inhibitTime, true);
+    (void)OD_get_u16(OD_18xx_TPDOCommPar, 5, &eventTime, true);
     TPDO->inhibitTime_us = (uint32_t)inhibitTime * 100U;
     TPDO->eventTime_us = (uint32_t)eventTime * 1000U;
 #endif
@@ -1222,13 +1204,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     /* Configure communication parameter - SYNC start value (optional) */
 #if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) != 0
     TPDO->syncStartValue = 0;
-    odRet = OD_get_u8(OD_18xx_TPDOCommPar, 6, &TPDO->syncStartValue, true);
-    if (odRet != ODR_OK) {
-        if (errInfo != NULL) {
-            *errInfo = (((uint32_t)OD_getIndex(OD_18xx_TPDOCommPar)) << 8) | 6U;
-        }
-        return CO_ERROR_OD_PARAMETERS;
-    }
+    (void)OD_get_u8(OD_18xx_TPDOCommPar, 6, &TPDO->syncStartValue, true);
     TPDO->SYNC = SYNC;
     TPDO->syncCounter = 255;
 #endif
