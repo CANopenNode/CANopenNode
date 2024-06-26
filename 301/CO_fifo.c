@@ -298,7 +298,7 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
     /* Clear buffer if set so */
     if (clear) {
         if (commandEnd != NULL) {
-            fifo->readPtr = (size_t)(commandEnd - fifo->buf) + 1U;
+            fifo->readPtr = ((size_t)commandEnd - (size_t)fifo->buf) + 1U;
             if (fifo->readPtr == fifo->bufSize) {
                 fifo->readPtr = 0;
             }
