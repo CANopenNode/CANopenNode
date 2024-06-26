@@ -189,6 +189,7 @@ static ODR_t OD_write_1280(OD_stream_t *stream, const void *buf,
     switch (stream->subIndex) {
         case 0: /* Highest sub-index supported */
             return ODR_READONLY;
+            break;
 
         case 1: { /* COB-ID client -> server */
             uint32_t COB_ID = CO_getUint32(buf);
@@ -241,6 +242,7 @@ static ODR_t OD_write_1280(OD_stream_t *stream, const void *buf,
 
         default:
             return ODR_SUB_NOT_EXIST;
+            break;
     }
 
     /* write value to the original location in the Object Dictionary */
