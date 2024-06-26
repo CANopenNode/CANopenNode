@@ -286,7 +286,7 @@ typedef struct {
      * description of parameters see #CO_fifo_cpyTok2U8 */
     size_t (*dataTypeScan)(CO_fifo_t *dest,
                            CO_fifo_t *src,
-                           CO_fifo_st *status);
+                           uint8_t *status);
 } CO_GTWA_dataType_t;
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 

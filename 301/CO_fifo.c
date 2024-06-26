@@ -783,13 +783,13 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 
 
 /******************************************************************************/
-size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[15];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -805,13 +805,13 @@ size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[15];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -827,13 +827,13 @@ size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[15];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -849,13 +849,13 @@ size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[25];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -871,13 +871,13 @@ size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2I8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2I8(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[15];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -894,13 +894,13 @@ size_t CO_fifo_cpyTok2I8(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[15];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -917,13 +917,13 @@ size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[15];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -939,13 +939,13 @@ size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[25];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -961,13 +961,13 @@ size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[30];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -983,13 +983,13 @@ size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[40];
     int8_t closed = -1;
     bool_t err = 0;
     size_t nWr = 0;
     size_t nRd = CO_fifo_readToken(src, buf, sizeof(buf), &closed, &err);
-    CO_fifo_st st = (uint8_t)closed;
+    uint8_t st = closed;
     if ((nRd == 0U) || err) st |= CO_fifo_st_errTok;
     else {
         char *sRet;
@@ -1005,12 +1005,12 @@ size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return nWr;
 }
 
-size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     size_t destSpace, destSpaceStart;
     bool_t finished = false;
     uint8_t step;
     uint8_t firstChar;
-    CO_fifo_st st = 0;
+    uint8_t st = 0;
 
     if ((dest == NULL) || (src == NULL)) {
         return 0;
@@ -1113,11 +1113,11 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return destSpaceStart - destSpace;
 }
 
-size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     size_t destSpace, destSpaceStart;
     bool_t finished = false;
     uint8_t step;
-    CO_fifo_st st = 0;
+    uint8_t st = 0;
 
     if ((dest == NULL) || (src == NULL)) {
         return 0;
@@ -1273,14 +1273,14 @@ size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
     return destSpaceStart - destSpace;
 }
 
-size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status) {
+size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     /* mime-base64 decoding, see description above base64EncTable */
 
     size_t destSpace, destSpaceStart;
     bool_t finished = false;
     uint8_t step;
     uint32_t dword;
-    CO_fifo_st st = 0;
+    uint8_t st = 0;
 
     if ((dest == NULL) || (src == NULL)) {
         return 0;

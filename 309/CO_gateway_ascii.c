@@ -927,7 +927,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         else if ((strcmp(tok, "w") == 0) || (strcmp(tok, "write") == 0)) {
             uint16_t idx;
             uint8_t subidx;
-            CO_fifo_st status;
+            uint8_t status;
             CO_SDO_return_t SDO_ret;
             size_t size;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 1, &respErrorCode);
@@ -1631,7 +1631,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
         /* copy data to the SDO buffer if previous dataTypeScan was partial */
         if (gtwa->SDOdataCopyStatus) {
-            CO_fifo_st status;
+            uint8_t status;
             gtwa->SDOdataType->dataTypeScan(&gtwa->SDO_C->bufFifo,
                                             &gtwa->commFifo,
                                             &status);
