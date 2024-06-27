@@ -922,8 +922,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* setup client */
             SDO_ret = CO_SDOclient_setup(gtwa->SDO_C,
-                                         CO_CAN_ID_SDO_CLI + gtwa->node,
-                                         CO_CAN_ID_SDO_SRV + gtwa->node,
+                                         (uint32_t)CO_CAN_ID_SDO_CLI + gtwa->node,
+                                         (uint32_t)CO_CAN_ID_SDO_SRV + gtwa->node,
                                          gtwa->node);
             if (SDO_ret != CO_SDO_RT_ok_communicationEnd) {
                 respErrorCode = CO_GTWA_respErrorInternalState;
@@ -991,8 +991,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* setup client */
             SDO_ret = CO_SDOclient_setup(gtwa->SDO_C,
-                                         CO_CAN_ID_SDO_CLI + gtwa->node,
-                                         CO_CAN_ID_SDO_SRV + gtwa->node,
+                                         (uint32_t)CO_CAN_ID_SDO_CLI + gtwa->node,
+                                         (uint32_t)CO_CAN_ID_SDO_SRV + gtwa->node,
                                          gtwa->node);
             if (SDO_ret != CO_SDO_RT_ok_communicationEnd) {
                 respErrorCode = CO_GTWA_respErrorInternalState;
