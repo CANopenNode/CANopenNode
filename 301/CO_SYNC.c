@@ -95,8 +95,8 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
 
     /* verify written value */
 #if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
-    bool_t isProducer = (cobIdSync & 0x40000000) != 0;
-    if (((cobIdSync & 0xBFFFF800) != 0) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)
+    bool_t isProducer = (cobIdSync & 0x40000000U) != 0U;
+    if (((cobIdSync & 0xBFFFF800U) != 0U) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)
         || (SYNC->isProducer && isProducer && (CAN_ID != SYNC->CAN_ID))
     ) {
         return ODR_INVALID_VALUE;
@@ -128,7 +128,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
             SYNC->CANdevTxIdx,  /* index of specific buffer inside CAN module */
             CAN_ID,             /* CAN identifier */
             false,                  /* rtr */
-            (SYNC->counterOverflowValue != 0) ? 1 : 0, /* number of data bytes */
+            (SYNC->counterOverflowValue != 0U) ? 1U : 0U, /* number of data bytes */
             false);                 /* synchronous message flag bit */
 
         if (SYNC->CANtxBuff == NULL) {
@@ -161,7 +161,7 @@ static ODR_t OD_write_1005(OD_stream_t *stream, const void *buf,
 static ODR_t OD_write_1019(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count != sizeof(uint8_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -171,10 +171,10 @@ static ODR_t OD_write_1019(OD_stream_t *stream, const void *buf,
     uint8_t syncCounterOvf = CO_getUint8(buf);
 
     /* verify written value */
-    if ((syncCounterOvf == 1) || (syncCounterOvf > 240)) {
+    if ((syncCounterOvf == 1U) || (syncCounterOvf > 240U)) {
         return ODR_INVALID_VALUE;
     }
-    if (*SYNC->OD_1006_period != 0) {
+    if (*SYNC->OD_1006_period != 0U) {
         return ODR_DATA_DEV_STATE;
     }
 
@@ -184,7 +184,7 @@ static ODR_t OD_write_1019(OD_stream_t *stream, const void *buf,
         SYNC->CANdevTxIdx,  /* index of specific buffer inside CAN module */
         SYNC->CAN_ID,       /* CAN identifier */
         false,                  /* rtr */
-        (syncCounterOvf != 0) ? 1 : 0, /* number of data bytes */
+        (syncCounterOvf != 0U) ? 1U : 0U, /* number of data bytes */
         false);                 /* synchronous message flag bit */
 
     if (SYNC->CANtxBuff == NULL) {
@@ -334,9 +334,9 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
     SYNC->CANtxBuff = CO_CANtxBufferInit(
             CANdevTx,           /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
-            cobIdSync & 0x7FF,  /* CAN identifier */
+            (uint16_t)(cobIdSync & 0x7FFU),  /* CAN identifier */
             false,                  /* rtr */
-            (syncCounterOvf != 0) ? 1 : 0, /* number of data bytes */
+            (syncCounterOvf != 0U) ? 1U : 0U, /* number of data bytes */
             false);                 /* synchronous message flag bit */
 
     if (SYNC->CANtxBuff == NULL) {
