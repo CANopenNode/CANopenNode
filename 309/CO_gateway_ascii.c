@@ -763,8 +763,43 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         /* command is case insensitive */
         convertToLower(tok, sizeof(tok));
 
+        bool_t tok_is_set = strcmp(tok, "set") == 0;
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
+        bool_t tok_is_read = strcmp(tok, "r") == 0;
+        tok_is_read = (strcmp(tok, "read") == 0) || tok_is_read;
+        bool_t tok_is_write = strcmp(tok, "w") == 0;
+        tok_is_write = (strcmp(tok, "write") == 0) || tok_is_write;
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0
+        bool_t tok_is_start = strcmp(tok, "start") == 0;
+        bool_t tok_is_stop = strcmp(tok, "stop") == 0;
+        bool_t tok_is_preop = strcmp(tok, "preop") == 0;
+        tok_is_preop = (strcmp(tok, "preoperational") == 0) || tok_is_preop;
+        bool_t tok_is_reset = strcmp(tok, "reset") == 0;
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
+        bool_t tok_is_lss_switch_glob = strcmp(tok, "lss_switch_glob") == 0;
+        bool_t tok_is_lss_switch_sel = strcmp(tok, "lss_switch_sel") == 0;
+        bool_t tok_is_lss_set_node = strcmp(tok, "lss_set_node") == 0;
+        bool_t tok_is_lss_conf_bitrate = strcmp(tok, "lss_conf_bitrate") == 0;
+        bool_t tok_is_lss_activate_bitrate = strcmp(tok, "lss_activate_bitrate") == 0;
+        bool_t tok_is_lss_store = strcmp(tok, "lss_store") == 0;
+        bool_t tok_is_lss_inquire_addr= strcmp(tok, "lss_inquire_addr") == 0;
+        bool_t tok_is_lss_get_node = strcmp(tok, "lss_get_node") == 0;
+        bool_t tok_is__lss_fastscan = strcmp(tok, "_lss_fastscan") == 0;
+        bool_t tok_is_lss_allnodes = strcmp(tok, "lss_allnodes") == 0;
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0
+        bool_t tok_is_log = strcmp(tok, "log") == 0;
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) != 0
+        bool_t tok_is_help = strcmp(tok, "help") == 0;
+#endif
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
+        bool_t tok_is_led = strcmp(tok, "led") == 0;
+#endif
         /* set command - multiple sub commands */
-        if (strcmp(tok, "set") == 0) {
+        if (tok_is_set) {
             if (closed != 0U) {
                 err = true;
                 break;
@@ -877,7 +912,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
         /* Upload SDO command - 'r[ead] <index> <subindex> <datatype>' */
-        else if ((strcmp(tok, "r") == 0) || (strcmp(tok, "read") == 0)) {
+        else if (tok_is_read) {
             uint16_t idx;
             uint8_t subidx;
             CO_SDO_return_t SDO_ret;
@@ -950,7 +985,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 
         /* Download SDO comm. - w[rite] <index> <subindex> <datatype> <value> */
-        else if ((strcmp(tok, "w") == 0) || (strcmp(tok, "write") == 0)) {
+        else if (tok_is_write) {
             uint16_t idx;
             uint8_t subidx;
             uint8_t status;
@@ -1045,7 +1080,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0
         /* NMT start node - 'start' */
-        else if (strcmp(tok, "start") == 0) {
+        else if (tok_is_start) {
             CO_ReturnError_t ret;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
             CO_NMT_command_t command2 = CO_NMT_ENTER_OPERATIONAL;
@@ -1067,7 +1102,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 
         /* NMT stop node - 'stop' */
-        else if (strcmp(tok, "stop") == 0) {
+        else if (tok_is_stop) {
             CO_ReturnError_t ret;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
             CO_NMT_command_t command2 = CO_NMT_ENTER_STOPPED;
@@ -1089,9 +1124,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 
         /* NMT Set node to pre-operational - 'preop[erational]' */
-        else if ((strcmp(tok, "preop") == 0) ||
-                 (strcmp(tok, "preoperational") == 0)
-        ) {
+        else if (tok_is_preop) {
             CO_ReturnError_t ret;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
             CO_NMT_command_t command2 = CO_NMT_ENTER_PRE_OPERATIONAL;
@@ -1113,7 +1146,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 
         /* NMT reset (node or communication) - 'reset <node|comm[unication]>'*/
-        else if (strcmp(tok, "reset") == 0) {
+        else if (tok_is_reset) {
             CO_ReturnError_t ret;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
             CO_NMT_command_t command2;
@@ -1133,9 +1166,9 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             convertToLower(tok, sizeof(tok));
             if (strcmp(tok, "node") == 0) {
                 command2 = CO_NMT_RESET_NODE;
-            } else if ((strcmp(tok, "comm") == 0) ||
-                       (strcmp(tok, "communication") == 0)
-            ) {
+            } else if (strcmp(tok, "comm") == 0) {
+                command2 = CO_NMT_RESET_COMMUNICATION;
+            } else if (strcmp(tok, "communication") == 0) {
                 command2 = CO_NMT_RESET_COMMUNICATION;
             } else {
                 err = true;
@@ -1157,7 +1190,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
         /* Switch state global command - 'lss_switch_glob <0|1>' */
-        else if (strcmp(tok, "lss_switch_glob") == 0) {
+        else if (tok_is_lss_switch_glob) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint8_t select;
 
@@ -1194,7 +1227,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
         /* Switch state selective command -
          * 'lss_switch_sel <vendorID> <product code> <revisionNo> <serialNo>' */
-        else if (strcmp(tok, "lss_switch_sel") == 0) {
+        else if (tok_is_lss_switch_sel) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             CO_LSS_address_t *addr = &gtwa->lssAddress;
 
@@ -1234,7 +1267,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             gtwa->state = CO_GTWA_ST_LSS_SWITCH_SEL;
         }
         /* LSS configure node-ID command - 'lss_set_node <node>' */
-        else if (strcmp(tok, "lss_set_node") == 0) {
+        else if (tok_is_lss_set_node) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
 
             if ((closed != 0U) || NodeErr) {
@@ -1260,7 +1293,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
          * 'lss_conf_bitrate <table_selector=0> <table_index>'
          * table_index: 0=1000 kbit/s, 1=800 kbit/s, 2=500 kbit/s, 3=250 kbit/s,
          *   4=125 kbit/s, 6=50 kbit/s, 7=20 kbit/s, 8=10 kbit/s, 9=auto */
-        else if (strcmp(tok, "lss_conf_bitrate") == 0) {
+        else if (tok_is_lss_conf_bitrate) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint8_t tableIndex;
             uint32_t maxIndex = (sizeof(CO_LSS_bitTimingTableLookup) /
@@ -1294,7 +1327,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
         /* LSS activate new bit-rate command -
          * 'lss_activate_bitrate <switch_delay_ms>' */
-        else if (strcmp(tok, "lss_activate_bitrate") == 0) {
+        else if (tok_is_lss_activate_bitrate) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint16_t switchDelay;
             CO_LSSmaster_return_t ret;
@@ -1324,7 +1357,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
         }
         /* LSS store configuration command - 'lss_store' */
-        else if (strcmp(tok, "lss_store") == 0) {
+        else if (tok_is_lss_store) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
 
             if ((closed != 1U) || NodeErr) {
@@ -1336,7 +1369,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             gtwa->state = CO_GTWA_ST_LSS_STORE;
         }
         /* Inquire LSS address command - 'lss_inquire_addr [<LSSSUB=0..3>]' */
-        else if (strcmp(tok, "lss_inquire_addr") == 0) {
+        else if (tok_is_lss_inquire_addr) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
 
             if (NodeErr) {
@@ -1369,7 +1402,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
         }
         /* LSS inquire node-ID command - 'lss_get_node'*/
-        else if (strcmp(tok, "lss_get_node") == 0) {
+        else if (tok_is_lss_get_node) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
 
             if ((closed != 1U) || NodeErr) {
@@ -1383,7 +1416,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
         /* LSS identify fastscan. This is a manufacturer specific command as
          * the one in DSP309 is quite useless - '_lss_fastscan [<timeout_ms>]'*/
-        else if (strcmp(tok, "_lss_fastscan") == 0) {
+        else if (tok_is__lss_fastscan) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint16_t timeout_ms = 0;
 
@@ -1418,7 +1451,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
          * [<timeout_ms> [<nodeStart=1..127> <store=0|1>
          * <scanType0=0..2> <vendorId> <scanType1=0..2> <productCode>
          * <scanType2=0..2> <revisionNo> <scanType3=0..2> <serialNo>]]' */
-        else if (strcmp(tok, "lss_allnodes") == 0) {
+        else if (tok_is_lss_allnodes) {
             /* Request node enumeration by LSS identify fastscan.
              * This initiates node enumeration by the means of LSS fastscan
              * mechanism. When this function is finished:
@@ -1545,7 +1578,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0
         /* Print message log */
-        else if (strcmp(tok, "log") == 0) {
+        else if (tok_is_log) {
             if (closed == 0U) {
                 err = true;
                 break;
@@ -1556,7 +1589,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) != 0
         /* Print help */
-        else if (strcmp(tok, "help") == 0) {
+        else if (tok_is_help) {
             if (closed == 1U) {
                 gtwa->helpString = CO_GTWA_helpString;
             }
@@ -1588,7 +1621,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
         /* Print status led diodes */
-        else if (strcmp(tok, "led") == 0) {
+        else if (tok_is_led) {
             if (closed == 0U) {
                 err = true;
                 break;
