@@ -69,7 +69,7 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
     /* verify arguments */
     if ((gtwa == NULL)
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
-        || (SDO_C == NULL) || (SDOclientTimeoutTime_ms == 0)
+        || (SDO_C == NULL) || (SDOclientTimeoutTime_ms == 0U)
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0
         || (NMT == NULL)
@@ -142,7 +142,7 @@ void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
     if ((gtwa != NULL) && (message != NULL)) {
         const char *c;
 
-        for (c = &message[0]; *c != 0; c++) {
+        for (c = &message[0]; *c != '\0'; c++) {
             CO_fifo_putc_ov(&gtwa->logFifo, (const uint8_t)*c);
         }
     }
@@ -225,7 +225,7 @@ static const char CO_GTWA_helpStringLss[] =
 #endif
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
-#define CO_GTWA_LED_PRINTOUTS_SIZE 5
+#define CO_GTWA_LED_PRINTOUTS_SIZE 5U
 static const char *CO_GTWA_LED_PRINTOUTS[CO_GTWA_LED_PRINTOUTS_SIZE] = {
     " CANopen status LEDs: R  G         \r",
     " CANopen status LEDs: R  G*        \r",
@@ -262,7 +262,7 @@ static bool_t checkNetNode(CO_GTWA_t *gtwa,
         eCode = CO_GTWA_respErrorNoDefaultNodeSet;
         e = true;
     }
-    else if ((node < NodeMin) || (node > 127)) {
+    else if ((node < (int16_t)NodeMin) || (node > (int16_t)127)) {
         eCode = CO_GTWA_respErrorUnsupportedNode;
         e = true;
     }
@@ -397,7 +397,7 @@ static bool_t respBufTransfer(CO_GTWA_t *gtwa) {
             gtwa->respHold = false;
         }
     }
-    return connectionOK != 0;
+    return connectionOK != 0U;
 }
 
 
@@ -602,7 +602,7 @@ static inline void convertToLower(char *token, size_t maxCount) {
     char *c = &token[0];
 
     for (i = 0; i < maxCount; i++) {
-        if (*c == 0) {
+        if (*c == '\0') {
             break;
         } else {
             *c = (char)tolower((int)*c);
@@ -671,22 +671,22 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
         /* Break if error in token or token was found, but closed with
          * command delimiter. */
-        if (err || ((n > 0) && (closed != 0U))) {
+        if (err || ((n > 0U) && (closed != 0U))) {
             err = true;
             break;
         }
         /* If empty line or just comment, continue with next command */
-        else if ((n == 0) && (closed != 0U)) {
+        else if ((n == 0U) && (closed != 0U)) {
             responseWithEmpty(gtwa);
             continue;
         }
         else { /* MISRA C 2004 14.10 */ }
 
-        if ((tok[0] != '[') || (tok[strlen(tok)-1] != ']')) {
+        if ((tok[0] != '[') || (tok[strlen(tok)-1U] != ']')) {
             err = true;
             break;
         }
-        tok[strlen(tok)-1] = '\0';
+        tok[strlen(tok)-1U] = '\0';
         gtwa->sequence = getU32(tok + 1, 0, 0xFFFFFFFFU, &err);
         if (err) {
             break;
@@ -699,11 +699,11 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             closed = 0xFFU;
             n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok),
                                   &closed, &err);
-            if (err || (n == 0)) {
+            if (err || (n == 0U)) {
                 /* empty token, break on error */
                 err = true;
                 break;
-            } else if (isdigit((int)tok[0]) == 0) {
+            } else if ((int)isdigit((int)tok[0]) == (int)0) {
                 /* <command> found */
                 break;
             } else if (closed != 0U) {
@@ -726,7 +726,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         case 0: /* only <command> (pointed by token) */
             break;
         case 1: /* <node> and <command> tokens */
-            if (ui[0] > 127) {
+            if (ui[0] > 127U) {
                 err = true;
                 respErrorCode = CO_GTWA_respErrorUnsupportedNode;
             }
@@ -735,11 +735,11 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
             break;
         case 2: /* <net>, <node> and <command> tokens */
-            if (ui[0] > 0xFFFF) {
+            if (ui[0] > 0xFFFFU) {
                 err = true;
                 respErrorCode = CO_GTWA_respErrorUnsupportedNet;
             }
-            else if (ui[1] > 127) {
+            else if (ui[1] > 127U) {
                 err = true;
                 respErrorCode = CO_GTWA_respErrorUnsupportedNode;
             }
@@ -863,7 +863,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     break;
                 }
 
-                gtwa->SDOblockTransferEnable = (value==1) ? true : false;
+                gtwa->SDOblockTransferEnable = (value==1U) ? true : false;
                 responseWithOK(gtwa);
             }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
@@ -900,7 +900,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok),
                                   &closed, &err);
             subidx = (uint8_t)getU32(tok, 0, 0xFF, &err);
-            if (err || (n == 0)) {
+            if (err || (n == 0U)) {
                 err = true;
                 break;
             }
@@ -1017,13 +1017,13 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                                                    &gtwa->commFifo,
                                                    &status);
             /* set to true, if command delimiter was found */
-            closed = ((status & CO_fifo_st_closed) == 0) ? 0U : 1U;
+            closed = ((status & CO_fifo_st_closed) == 0U) ? 0U : 1U;
             /* set to true, if data are copied only partially */
-            gtwa->SDOdataCopyStatus = (status & CO_fifo_st_partial) != 0;
+            gtwa->SDOdataCopyStatus = (status & CO_fifo_st_partial) != 0U;
 
             /* is syntax error in command or size is zero or not the last token
              * in command */
-            if (((status & CO_fifo_st_errMask) != 0) || (size == 0)
+            if (((status & CO_fifo_st_errMask) != 0U) || (size == 0U)
                 || ((gtwa->SDOdataCopyStatus == false) && (closed != 1U))
             ) {
                 err = true;
@@ -1031,7 +1031,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
 
             /* if data size was not known before and is known now, update SDO */
-            if ((gtwa->SDOdataType->length == 0) && !gtwa->SDOdataCopyStatus) {
+            if ((gtwa->SDOdataType->length == 0U) && !gtwa->SDOdataCopyStatus) {
                 CO_SDOclientDownloadInitiateSize(gtwa->SDO_C, size);
             }
 
@@ -1173,7 +1173,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 break;
             }
 
-            if (select == 0) {
+            if (select == 0U) {
                 /* send non-confirmed message */
                 CO_LSSmaster_return_t ret;
                 ret = CO_LSSmaster_switchStateDeselect(gtwa->LSSmaster);
@@ -1245,7 +1245,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             closed = 1U;
             CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
             gtwa->lssNID = (uint8_t)getU32(tok, 0, 0xFF, &err);
-            if ((gtwa->lssNID > 0x7F) && (gtwa->lssNID < 0xFF)) {
+            if ((gtwa->lssNID > 0x7FU) && (gtwa->lssNID < 0xFFU)) {
                 err = true;
             }
             if (err) {
@@ -1263,7 +1263,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint8_t tableIndex;
             uint32_t maxIndex = (sizeof(CO_LSS_bitTimingTableLookup) /
-                            sizeof(CO_LSS_bitTimingTableLookup[0])) - 1;
+                            sizeof(CO_LSS_bitTimingTableLookup[0])) - 1U;
 
             if ((closed != 0U)|| NodeErr) {
                 err = true;
@@ -1280,7 +1280,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             closed = 1U;
             CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
             tableIndex = (uint8_t)getU32(tok, 0, maxIndex, &err);
-            if (tableIndex == 5) {
+            if (tableIndex == 5U) {
                 err = true;
             }
             if (err) {
@@ -1402,7 +1402,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
 
             /* If timeout not specified, use 100ms. Should work in most cases */
-            if (timeout_ms == 0) {
+            if (timeout_ms == 0U) {
                 timeout_ms = 100;
             }
             CO_LSSmaster_changeTimeout(gtwa->LSSmaster, timeout_ms);
@@ -1646,7 +1646,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                                  &sizeTransferred,
                                  timerNext_us);
 
-        if (ret < 0) {
+        if (ret < CO_SDO_RT_ok_communicationEnd) {
             responseWithErrorSDO(gtwa, abortCode, gtwa->SDOdataCopyStatus);
             gtwa->state = CO_GTWA_ST_IDLE;
         }
@@ -1659,7 +1659,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             /* write response head first */
             if (!gtwa->SDOdataCopyStatus) {
                 gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf,
-                                              CO_GTWA_RESP_BUF_SIZE - 2,
+                                              CO_GTWA_RESP_BUF_SIZE - 2U,
                                               "[%"PRId32"] ",
                                               gtwa->sequence);
                 gtwa->SDOdataCopyStatus = true;
@@ -1673,14 +1673,14 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 gtwa->respBufCount += gtwa->SDOdataType->dataTypePrint(
                     &gtwa->SDO_C->bufFifo,
                     &gtwa->respBuf[gtwa->respBufCount],
-                    CO_GTWA_RESP_BUF_SIZE - 2 - gtwa->respBufCount,
+                    CO_GTWA_RESP_BUF_SIZE - 2U - gtwa->respBufCount,
                     ret == CO_SDO_RT_ok_communicationEnd);
                 fifoRemain = CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo);
 
                 /* end of communication, print newline and enter idle state */
-                if ((ret == CO_SDO_RT_ok_communicationEnd) && (fifoRemain == 0)) {
+                if ((ret == CO_SDO_RT_ok_communicationEnd) && (fifoRemain == 0U)) {
                     gtwa->respBufCount +=
-                        sprintf(&gtwa->respBuf[gtwa->respBufCount], "\r\n");
+                        (size_t)sprintf(&gtwa->respBuf[gtwa->respBufCount], "\r\n");
                     gtwa->state = CO_GTWA_ST_IDLE;
                 }
 
@@ -1698,7 +1698,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     gtwa->state = CO_GTWA_ST_IDLE;
                     break;
                 }
-            } while ((gtwa->respHold == false) && (fifoRemain > 0));
+            } while ((gtwa->respHold == false) && (fifoRemain > 0U));
         }
         else { /* MISRA C 2004 14.10 */ }
         break;
@@ -1720,12 +1720,12 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                                             &gtwa->commFifo,
                                             &status);
             /* set to true, if command delimiter was found */
-            closed = ((status & CO_fifo_st_closed) == 0) ? 0U : 1U;
+            closed = ((status & CO_fifo_st_closed) == 0U) ? 0U : 1U;
             /* set to true, if data are copied only partially */
-            gtwa->SDOdataCopyStatus = (status & CO_fifo_st_partial) != 0;
+            gtwa->SDOdataCopyStatus = (status & CO_fifo_st_partial) != 0U;
 
             /* is syntax error in command or not the last token in command */
-            if (((status & CO_fifo_st_errMask) != 0)
+            if (((status & CO_fifo_st_errMask) != 0U)
                 || ((gtwa->SDOdataCopyStatus == false) && (closed != 1U))
             ) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
@@ -1749,7 +1749,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
          * timeout */
         if (gtwa->SDOdataCopyStatus
             && (CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo) <
-               (CO_CONFIG_GTW_BLOCK_DL_LOOP * 7))
+               (CO_CONFIG_GTW_BLOCK_DL_LOOP * 7U))
         ) {
             if (gtwa->stateTimeoutTmr > CO_GTWA_STATE_TIMEOUT_TIME_US) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
@@ -1762,7 +1762,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
         if (!hold || abort_comm) {
             /* if OS has CANtx queue, speedup block transfer */
-            int loop = 0;
+            uint32_t loop = 0;
             do {
                 ret = CO_SDOclientDownload(gtwa->SDO_C,
                                            timeDifference_us,
@@ -1777,7 +1777,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             } while (ret == CO_SDO_RT_blockDownldInProgress);
 
             /* send response in case of error or finish */
-            if (ret < 0) {
+            if (ret < CO_SDO_RT_ok_communicationEnd) {
                 responseWithErrorSDO(gtwa, abortCode, false);
                 /* purge remaining data if necessary */
                 gtwa->state = gtwa->SDOdataCopyStatus
@@ -1879,7 +1879,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     gtwa->respBufCount =
                         (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                  "[%"PRId32"] 0x%02"PRIX32"\r\n",
-                                 gtwa->sequence, value & 0xFF);
+                                 gtwa->sequence, value & 0xFFU);
                 } else {
                     gtwa->respBufCount =
                         (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
@@ -1949,7 +1949,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     }
     case CO_GTWA_ST_LSS_ALLNODES: {
         CO_LSSmaster_return_t ret;
-        if (gtwa->lssSubState == 0) { /* _lss_fastscan */
+        if (gtwa->lssSubState == 0U) { /* _lss_fastscan */
             ret = CO_LSSmaster_IdentifyFastscan(gtwa->LSSmaster,
                                                 timeDifference_us,
                                                 &gtwa->lssFastscan);
@@ -1979,14 +1979,14 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
             }
         }
-        if (gtwa->lssSubState == 1) { /* lss_set_node */
+        if (gtwa->lssSubState == 1U) { /* lss_set_node */
             ret = CO_LSSmaster_configureNodeId(gtwa->LSSmaster,
                                                timeDifference_us,
                                                gtwa->lssNID);
             if (ret != CO_LSSmaster_WAIT_SLAVE) {
                 if (ret == CO_LSSmaster_OK) {
                     /* next sub-step */
-                    gtwa->lssSubState += gtwa->lssStore ? 1 : 2;
+                    gtwa->lssSubState += gtwa->lssStore ? 1U : 2U;
                 }
                 else {
                     /* error occurred */
@@ -2001,7 +2001,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
             }
         }
-        if (gtwa->lssSubState == 2) { /* lss_store */
+        if (gtwa->lssSubState == 2U) { /* lss_store */
             ret = CO_LSSmaster_configureStore(gtwa->LSSmaster,
                                               timeDifference_us);
             if (ret != CO_LSSmaster_WAIT_SLAVE) {
@@ -2023,7 +2023,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
             }
         }
-        if (gtwa->lssSubState >= 3) { /* lss_switch_glob 0 */
+        if (gtwa->lssSubState >= 3U) { /* lss_switch_glob 0 */
             /* send non-confirmed message */
             ret = CO_LSSmaster_switchStateDeselect(gtwa->LSSmaster);
             if (ret != CO_LSSmaster_OK) {
@@ -2036,11 +2036,11 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 uint8_t lssNidAssigned = gtwa->lssNID;
                 const char msg2Fmt[] = "# Not all nodes scanned!\n" \
                                        "[%"PRId32"] OK\r\n";
-                char msg2[sizeof(msg2Fmt)+10] = {0};
+                char msg2[sizeof(msg2Fmt)+10U] = {0};
 
                 /* increment variables, check end-of-nodeId */
                 gtwa->lssNodeCount++;
-                if (gtwa->lssNID < 127) {
+                if (gtwa->lssNID < 127U) {
                     /* repeat cycle with next node-id */
                     gtwa->lssNID++;
                     CO_LSSmaster_changeTimeout(gtwa->LSSmaster,
@@ -2080,7 +2080,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                                               CO_GTWA_RESP_BUF_SIZE, NULL);
             respBufTransfer(gtwa);
 
-            if (CO_fifo_getOccupied(&gtwa->logFifo) == 0) {
+            if (CO_fifo_getOccupied(&gtwa->logFifo) == 0U) {
                 gtwa->state = CO_GTWA_ST_IDLE;
                 break;
             }
@@ -2129,8 +2129,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             i = (CO_LED_RED(gtwa->LEDs, CO_LED_CANopen) * 2U) +
                 CO_LED_GREEN(gtwa->LEDs, CO_LED_CANopen);
         }
-        if (i > (CO_GTWA_LED_PRINTOUTS_SIZE - 1)) {
-            i = CO_GTWA_LED_PRINTOUTS_SIZE - 1;
+        if (i > (CO_GTWA_LED_PRINTOUTS_SIZE - 1U)) {
+            i = CO_GTWA_LED_PRINTOUTS_SIZE - 1U;
         }
 
         if (i != gtwa->ledStringPreviousIndex) {

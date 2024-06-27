@@ -149,13 +149,13 @@ lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\
 /** Size of response string buffer. This is intermediate buffer. If there is
  * larger amount of data to transfer, then multiple transfers will occur. */
 #ifndef CO_GTWA_RESP_BUF_SIZE
-#define CO_GTWA_RESP_BUF_SIZE 200
+#define CO_GTWA_RESP_BUF_SIZE 200U
 #endif
 
 
 /** Timeout time in microseconds for some internal states. */
 #ifndef CO_GTWA_STATE_TIMEOUT_TIME_US
-#define CO_GTWA_STATE_TIMEOUT_TIME_US 1200000
+#define CO_GTWA_STATE_TIMEOUT_TIME_US 1200000U
 #endif
 
 
