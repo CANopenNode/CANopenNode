@@ -375,7 +375,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #endif
 
         /* CANopen object */
-        CO_alloc_break_on_fail(co, 1, sizeof(*co));
+        CO_alloc_break_on_fail(co, 1U, sizeof(*co));
 
 #ifdef CO_MULTIPLE_OD
         co->config = config;
@@ -385,7 +385,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         ON_MULTI_OD(uint8_t RX_CNT_NMT_SLV = 0);
         ON_MULTI_OD(uint8_t TX_CNT_NMT_MST = 0);
         ON_MULTI_OD(uint8_t TX_CNT_HB_PROD = 0);
-        if (CO_GET_CNT(NMT) == 1) {
+        if (CO_GET_CNT(NMT) == 1U) {
             CO_alloc_break_on_fail(co->NMT, CO_GET_CNT(NMT), sizeof(*co->NMT));
             ON_MULTI_OD(RX_CNT_NMT_SLV = 1);
  #if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0
@@ -396,7 +396,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) != 0
         ON_MULTI_OD(uint8_t RX_CNT_HB_CONS = 0);
-        if (CO_GET_CNT(HB_CONS) == 1) {
+        if (CO_GET_CNT(HB_CONS) == 1U) {
             uint8_t countOfMonitoredNodes = CO_GET_CNT(ARR_1016);
             CO_alloc_break_on_fail(co->HBcons, CO_GET_CNT(HB_CONS), sizeof(*co->HBcons));
             CO_alloc_break_on_fail(co->HBconsMonitoredNodes, countOfMonitoredNodes, sizeof(*co->HBconsMonitoredNodes));
@@ -415,7 +415,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         /* Emergency */
         ON_MULTI_OD(uint8_t RX_CNT_EM_CONS = 0);
         ON_MULTI_OD(uint8_t TX_CNT_EM_PROD = 0);
-        if (CO_GET_CNT(EM) == 1) {
+        if (CO_GET_CNT(EM) == 1U) {
             CO_alloc_break_on_fail(co->em, CO_GET_CNT(EM), sizeof(*co->em));
  #if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
             ON_MULTI_OD(RX_CNT_EM_CONS = 1);
@@ -424,8 +424,8 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
             ON_MULTI_OD(TX_CNT_EM_PROD = 1);
  #endif
  #if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
-            uint8_t fifoSize = CO_GET_CNT(ARR_1003) + 1;
-            if (fifoSize >= 2) {
+            uint8_t fifoSize = CO_GET_CNT(ARR_1003) + 1U;
+            if (fifoSize >= 2U) {
                 CO_alloc_break_on_fail(co->em_fifo, fifoSize, sizeof(*co->em_fifo));
             }
  #endif
@@ -434,7 +434,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         /* SDOserver */
         ON_MULTI_OD(uint8_t RX_CNT_SDO_SRV = 0);
         ON_MULTI_OD(uint8_t TX_CNT_SDO_SRV = 0);
-        if (CO_GET_CNT(SDO_SRV) > 0) {
+        if (CO_GET_CNT(SDO_SRV) > 0U) {
             CO_alloc_break_on_fail(co->SDOserver, CO_GET_CNT(SDO_SRV), sizeof(*co->SDOserver));
             ON_MULTI_OD(RX_CNT_SDO_SRV = config->CNT_SDO_SRV);
             ON_MULTI_OD(TX_CNT_SDO_SRV = config->CNT_SDO_SRV);
@@ -443,7 +443,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) != 0
         ON_MULTI_OD(uint8_t RX_CNT_SDO_CLI = 0);
         ON_MULTI_OD(uint8_t TX_CNT_SDO_CLI = 0);
-        if (CO_GET_CNT(SDO_CLI) > 0) {
+        if (CO_GET_CNT(SDO_CLI) > 0U) {
             CO_alloc_break_on_fail(co->SDOclient, CO_GET_CNT(SDO_CLI), sizeof(*co->SDOclient));
             ON_MULTI_OD(RX_CNT_SDO_CLI = config->CNT_SDO_CLI);
             ON_MULTI_OD(TX_CNT_SDO_CLI = config->CNT_SDO_CLI);
@@ -453,7 +453,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) != 0
         ON_MULTI_OD(uint8_t RX_CNT_TIME = 0);
         ON_MULTI_OD(uint8_t TX_CNT_TIME = 0);
-        if (CO_GET_CNT(TIME) == 1) {
+        if (CO_GET_CNT(TIME) == 1U) {
             CO_alloc_break_on_fail(co->TIME, CO_GET_CNT(TIME), sizeof(*co->TIME));
             ON_MULTI_OD(RX_CNT_TIME = 1);
  #if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0
@@ -465,7 +465,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) != 0
         ON_MULTI_OD(uint8_t RX_CNT_SYNC = 0);
         ON_MULTI_OD(uint8_t TX_CNT_SYNC = 0);
-        if (CO_GET_CNT(SYNC) == 1) {
+        if (CO_GET_CNT(SYNC) == 1U) {
             CO_alloc_break_on_fail(co->SYNC, CO_GET_CNT(SYNC), sizeof(*co->SYNC));
             ON_MULTI_OD(RX_CNT_SYNC = 1);
  #if ((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0
@@ -476,7 +476,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 
 #if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) != 0
         ON_MULTI_OD(uint16_t RX_CNT_RPDO = 0);
-        if (CO_GET_CNT(RPDO) > 0) {
+        if (CO_GET_CNT(RPDO) > 0U) {
             CO_alloc_break_on_fail(co->RPDO, CO_GET_CNT(RPDO), sizeof(*co->RPDO));
             ON_MULTI_OD(RX_CNT_RPDO = config->CNT_RPDO);
         }
@@ -484,14 +484,14 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 
 #if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) != 0
         ON_MULTI_OD(uint16_t TX_CNT_TPDO = 0);
-        if (CO_GET_CNT(TPDO) > 0) {
+        if (CO_GET_CNT(TPDO) > 0U) {
             CO_alloc_break_on_fail(co->TPDO, CO_GET_CNT(TPDO), sizeof(*co->TPDO));
             ON_MULTI_OD(TX_CNT_TPDO = config->CNT_TPDO);
         }
 #endif
 
 #if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0
-        if (CO_GET_CNT(LEDS) == 1) {
+        if (CO_GET_CNT(LEDS) == 1U) {
             CO_alloc_break_on_fail(co->LEDs, CO_GET_CNT(LEDS), sizeof(*co->LEDs));
         }
 #endif
@@ -509,8 +509,8 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0
         ON_MULTI_OD(uint8_t RX_CNT_SRDO = 0);
         ON_MULTI_OD(uint8_t TX_CNT_SRDO = 0);
-        if (CO_GET_CNT(SRDO) > 0) {
-            CO_alloc_break_on_fail(co->SRDOGuard, 1, sizeof(*co->SRDOGuard));
+        if (CO_GET_CNT(SRDO) > 0U) {
+            CO_alloc_break_on_fail(co->SRDOGuard, 1U, sizeof(*co->SRDOGuard));
             CO_alloc_break_on_fail(co->SRDO, CO_GET_CNT(SRDO), sizeof(*co->SRDO));
             ON_MULTI_OD(RX_CNT_SRDO = config->CNT_SRDO * 2);
             ON_MULTI_OD(TX_CNT_SRDO = config->CNT_SRDO * 2);
@@ -520,7 +520,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0
         ON_MULTI_OD(uint8_t RX_CNT_LSS_SLV = 0);
         ON_MULTI_OD(uint8_t TX_CNT_LSS_SLV = 0);
-        if (CO_GET_CNT(LSS_SLV) == 1) {
+        if (CO_GET_CNT(LSS_SLV) == 1U) {
             CO_alloc_break_on_fail(co->LSSslave, CO_GET_CNT(LSS_SLV), sizeof(*co->LSSslave));
             ON_MULTI_OD(RX_CNT_LSS_SLV = 1);
             ON_MULTI_OD(TX_CNT_LSS_SLV = 1);
@@ -530,7 +530,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0
         ON_MULTI_OD(uint8_t RX_CNT_LSS_MST = 0);
         ON_MULTI_OD(uint8_t TX_CNT_LSS_MST = 0);
-        if (CO_GET_CNT(LSS_MST) == 1) {
+        if (CO_GET_CNT(LSS_MST) == 1U) {
             CO_alloc_break_on_fail(co->LSSmaster, CO_GET_CNT(LSS_MST), sizeof(*co->LSSmaster));
             ON_MULTI_OD(RX_CNT_LSS_MST = 1);
             ON_MULTI_OD(TX_CNT_LSS_MST = 1);
@@ -538,7 +538,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #endif
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
-        if (CO_GET_CNT(GTWA) == 1) {
+        if (CO_GET_CNT(GTWA) == 1U) {
             CO_alloc_break_on_fail(co->gtwa, CO_GET_CNT(GTWA), sizeof(*co->gtwa));
         }
 #endif
@@ -631,7 +631,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 #endif /* #ifdef CO_MULTIPLE_OD */
 
         /* CANmodule */
-        CO_alloc_break_on_fail(co->CANmodule, 1, sizeof(*co->CANmodule));
+        CO_alloc_break_on_fail(co->CANmodule, 1U, sizeof(*co->CANmodule));
 
         /* CAN RX blocks */
         CO_alloc_break_on_fail(co->CANrx, CO_GET_CO(CNT_ALL_RX_MSGS), sizeof(*co->CANrx));
