@@ -661,7 +661,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         char tok[20];
         size_t n;
         uint32_t ui[3];
-        int i;
+        int32_t i;
         int32_t net = gtwa->net_default;
         int16_t node = gtwa->node_default;
 
