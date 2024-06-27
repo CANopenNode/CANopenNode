@@ -30,6 +30,12 @@ ref.: MISRA C 2012 Rule 11.5
 -efile( 9079, CANopenNode* )
 ```
 
+### Inhibits: C comment contains C++ comment
+ref.: MISRA C 2012 Rule 3.1
+```
+-efile( 9059, CANopenNode* )
+```
+
 ### Inhibits: complete definition of symbol is unnecessary in this translation unit
 ref.: MISRA C 2012 Dir 4.8
 ```
@@ -117,12 +123,7 @@ ref.:  MISRA C 2012 Rule 2.5
 -efile( 750, CANopenNode* )
 ```
 
-
 ### Inhibits: constant value used in Boolean context (string)
 ```
 -efile( 506, CANopenNode* )
 ```
-
-
-
-
