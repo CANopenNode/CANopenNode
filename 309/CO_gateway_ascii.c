@@ -243,7 +243,7 @@ static inline uint32_t getU32(char *token, uint32_t min,
     char *sRet;
     uint32_t num = strtoul(token, &sRet, 0);
 
-    if ((sRet != strchr(token, '\0')) || (num < min) || (num > max)) {
+    if ((sRet != strchr(token, (int)'\0')) || (num < min) || (num > max)) {
         *err = true;
     }
 
@@ -350,8 +350,8 @@ static const CO_GTWA_dataType_t dataTypes[] = {
 /* get data type from token */
 static const CO_GTWA_dataType_t *CO_GTWA_getDataType(char *token, bool_t *err) {
     if ((token != NULL) && (*err == false)) {
-        int i;
-        int len = sizeof(dataTypes) / sizeof(CO_GTWA_dataType_t);
+        uint32_t i;
+        uint32_t len = sizeof(dataTypes) / sizeof(CO_GTWA_dataType_t);
 
         for (i = 0; i < len; i++) {
             const CO_GTWA_dataType_t *dt = &dataTypes[i];
@@ -479,8 +479,8 @@ static const errorDescs_t errorDescsSDO[] = {
 static void responseWithError(CO_GTWA_t *gtwa,
                               CO_GTWA_respErrorCode_t respErrorCode)
 {
-    int i;
-    int len = sizeof(errorDescs) / sizeof(errorDescs_t);
+    uint32_t i;
+    uint32_t len = sizeof(errorDescs) / sizeof(errorDescs_t);
     const char *desc = "-";
 
     for (i = 0; i < len; i++) {
@@ -490,7 +490,7 @@ static void responseWithError(CO_GTWA_t *gtwa,
         }
     }
 
-    gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+    gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                   "[%"PRId32"] ERROR:%d #%s\r\n",
                                   gtwa->sequence, respErrorCode, desc);
     respBufTransfer(gtwa);
@@ -501,8 +501,8 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                  CO_SDO_abortCode_t abortCode,
                                  bool_t postponed)
 {
-    int i;
-    int len = sizeof(errorDescsSDO) / sizeof(errorDescs_t);
+    uint32_t i;
+    uint32_t len = sizeof(errorDescsSDO) / sizeof(errorDescs_t);
     const char *desc = "-";
 
     for (i = 0; i < len; i++) {
@@ -513,12 +513,12 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
     }
 
     if (!postponed) {
-        gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                       "[%"PRId32"] ERROR:0x%08X #%s\r\n",
                                       gtwa->sequence, abortCode, desc);
     }
     else {
-        gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                       "\n...ERROR:0x%08X #%s\r\n",
                                       abortCode, desc);
     }
@@ -531,7 +531,7 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
 static inline void responseWithError(CO_GTWA_t *gtwa,
                                      CO_GTWA_respErrorCode_t respErrorCode)
 {
-    gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+    gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                   "[%"PRId32"] ERROR:%d\r\n",
                                   gtwa->sequence, respErrorCode);
     respBufTransfer(gtwa);
@@ -543,12 +543,12 @@ static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
                                         bool_t postponed)
 {
     if (!postponed) {
-        gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                       "[%"PRId32"] ERROR:0x%08X\r\n",
                                       gtwa->sequence, abortCode);
     }
     else {
-        gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                       "\n...ERROR:0x%08X\r\n",
                                       abortCode);
     }
@@ -560,7 +560,7 @@ static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
 
 
 static inline void responseWithOK(CO_GTWA_t *gtwa) {
-    gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+    gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                   "[%"PRId32"] OK\r\n",
                                   gtwa->sequence);
     respBufTransfer(gtwa);
@@ -568,7 +568,7 @@ static inline void responseWithOK(CO_GTWA_t *gtwa) {
 
 
 static inline void responseWithEmpty(CO_GTWA_t *gtwa) {
-    gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+    gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                   "\r\n");
     respBufTransfer(gtwa);
 }
@@ -796,7 +796,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     break;
                 }
 
-                gtwa->net_default = value;
+                gtwa->net_default = (int32_t)value;
                 responseWithOK(gtwa);
             }
             /* 'set node <value>' */
@@ -818,7 +818,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     break;
                 }
 
-                gtwa->node_default = value;
+                gtwa->node_default = (int16_t)value;
                 responseWithOK(gtwa);
             }
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
@@ -1262,7 +1262,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         else if (strcmp(tok, "lss_conf_bitrate") == 0) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint8_t tableIndex;
-            int maxIndex = (sizeof(CO_LSS_bitTimingTableLookup) /
+            uint32_t maxIndex = (sizeof(CO_LSS_bitTimingTableLookup) /
                             sizeof(CO_LSS_bitTimingTableLookup[0])) - 1;
 
             if ((closed != 0U)|| NodeErr) {
@@ -1448,7 +1448,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             }
             /* If timeout not specified, use 100ms. Should work in most cases */
-            gtwa->lssTimeout_ms = (timeout_ms == 0) ? 100 : timeout_ms;
+            gtwa->lssTimeout_ms = (timeout_ms == 0U) ? 100U : timeout_ms;
             CO_LSSmaster_changeTimeout(gtwa->LSSmaster, gtwa->lssTimeout_ms);
             gtwa->lssNodeCount = 0;
             gtwa->lssSubState = 0;
@@ -1488,7 +1488,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 CO_LSSmaster_fastscan_t *fs = &gtwa->lssFastscan;
 
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                fs->scan[CO_LSS_FASTSCAN_VENDOR_ID] = getU32(tok, 0, 2, &err);
+                fs->scan[CO_LSS_FASTSCAN_VENDOR_ID] = (CO_LSSmaster_scantype_t)getU32(tok, 0, 2, &err);
                 if (err) {
                     break;
                 }
@@ -1500,7 +1500,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
 
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                fs->scan[CO_LSS_FASTSCAN_PRODUCT] = getU32(tok, 0, 2, &err);
+                fs->scan[CO_LSS_FASTSCAN_PRODUCT] = (CO_LSSmaster_scantype_t)getU32(tok, 0, 2, &err);
                 if (err) {
                     break;
                 }
@@ -1512,7 +1512,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
 
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                fs->scan[CO_LSS_FASTSCAN_REV] = getU32(tok, 0, 2, &err);
+                fs->scan[CO_LSS_FASTSCAN_REV] = (CO_LSSmaster_scantype_t)getU32(tok, 0, 2, &err);
                 if (err) {
                     break;
                 }
@@ -1524,7 +1524,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
 
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                fs->scan[CO_LSS_FASTSCAN_SERIAL] = getU32(tok, 0, 2, &err);
+                fs->scan[CO_LSS_FASTSCAN_SERIAL] = (CO_LSSmaster_scantype_t)getU32(tok, 0, 2, &err);
                 if (err) {
                     break;
                 }
@@ -1658,7 +1658,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* write response head first */
             if (!gtwa->SDOdataCopyStatus) {
-                gtwa->respBufCount = snprintf(gtwa->respBuf,
+                gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf,
                                               CO_GTWA_RESP_BUF_SIZE - 2,
                                               "[%"PRId32"] ",
                                               gtwa->sequence);
@@ -1877,12 +1877,12 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             if (ret == CO_LSSmaster_OK) {
                 if (gtwa->lssInquireCs == CO_LSS_INQUIRE_NODE_ID) {
                     gtwa->respBufCount =
-                        snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                        (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                  "[%"PRId32"] 0x%02"PRIX32"\r\n",
                                  gtwa->sequence, value & 0xFF);
                 } else {
                     gtwa->respBufCount =
-                        snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                        (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                  "[%"PRId32"] 0x%08"PRIX32"\r\n",
                                  gtwa->sequence, value);
                 }
@@ -1903,7 +1903,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         if (ret != CO_LSSmaster_WAIT_SLAVE) {
             if (ret == CO_LSSmaster_OK) {
                 gtwa->respBufCount =
-                    snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                    (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                              "[%"PRId32"] 0x%08"PRIX32" 0x%08"PRIX32 \
                              " 0x%08"PRIX32" 0x%08"PRIX32"\r\n",
                              gtwa->sequence,
@@ -1928,7 +1928,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         if (ret != CO_LSSmaster_WAIT_SLAVE) {
             if ((ret == CO_LSSmaster_OK) || (ret == CO_LSSmaster_SCAN_FINISHED)) {
                 gtwa->respBufCount =
-                    snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                    (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                              "[%"PRId32"] 0x%08"PRIX32" 0x%08"PRIX32 \
                              " 0x%08"PRIX32" 0x%08"PRIX32"\r\n",
                              gtwa->sequence,
@@ -1960,7 +1960,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 if ((ret == CO_LSSmaster_OK) || (ret == CO_LSSmaster_SCAN_NOACK)) {
                     /* no (more) nodes found, send report sum and finish */
                     gtwa->respBufCount =
-                        snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                        (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                  "# Found %d nodes, search finished.\n" \
                                  "[%"PRId32"] OK\r\n",
                                  gtwa->lssNodeCount,
@@ -2055,7 +2055,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
                 /* send report */
                 gtwa->respBufCount =
-                    snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                    (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                              "# Node-ID %d assigned to: 0x%08"PRIX32" 0x%08" \
                              PRIX32" 0x%08"PRIX32" 0x%08"PRIX32"\n%s",
                              lssNidAssigned,
@@ -2126,7 +2126,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             i = 4;
         }
         else {
-            i = (CO_LED_RED(gtwa->LEDs, CO_LED_CANopen) * 2) +
+            i = (CO_LED_RED(gtwa->LEDs, CO_LED_CANopen) * 2U) +
                 CO_LED_GREEN(gtwa->LEDs, CO_LED_CANopen);
         }
         if (i > (CO_GTWA_LED_PRINTOUTS_SIZE - 1)) {
@@ -2134,7 +2134,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
 
         if (i != gtwa->ledStringPreviousIndex) {
-            gtwa->respBufCount = snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+            gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                           "%s", CO_GTWA_LED_PRINTOUTS[i]);
             respBufTransfer(gtwa);
             gtwa->ledStringPreviousIndex = i;
