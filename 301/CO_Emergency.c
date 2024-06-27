@@ -430,7 +430,9 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->OD_1014_extension.write = OD_write_1014;
     odRet = OD_extension_init(OD_1014_cobIdEm, &em->OD_1014_extension);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_1014_cobIdEm);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_1014_cobIdEm);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
     /* following two variables are used inside OD_read_1014 and OD_write_1014 */
@@ -439,7 +441,9 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     /* if default producerCanId is used, then value of CO_CAN_ID_EMERGENCY
      * (0x80) is stored into non-volatile memory. In that case it is necessary
      * to add nodeId of this node to the stored value. */
-    if (producerCanId == CO_CAN_ID_EMERGENCY) producerCanId += nodeId;
+    if (producerCanId == CO_CAN_ID_EMERGENCY) {
+        producerCanId += nodeId;
+    }
  #else
     uint16_t producerCanId = CO_CAN_ID_EMERGENCY + (uint16_t)nodeId;
     em->producerEnabled = (COB_IDEmergency32 & 0x80000000U) == 0U;
