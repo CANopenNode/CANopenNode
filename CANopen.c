@@ -496,7 +496,7 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
         }
 #endif
 
-#if (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) != 0
+#if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) != 0
         ON_MULTI_OD(uint8_t RX_CNT_GFC = 0);
         ON_MULTI_OD(uint8_t TX_CNT_GFC = 0);
         if (CO_GET_CNT(GFC) == 1) {
@@ -730,7 +730,7 @@ void CO_delete(CO_t *co) {
     CO_free(co->NGmaster);
 #endif
 
-#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) != 0)
+#if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_ENABLE) != 0
     CO_free(co->HBconsMonitoredNodes);
     CO_free(co->HBcons);
 #endif
