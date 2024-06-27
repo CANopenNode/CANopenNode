@@ -1674,7 +1674,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 gtwa->respBufCount += gtwa->SDOdataType->dataTypePrint(
                     &gtwa->SDO_C->bufFifo,
                     &gtwa->respBuf[gtwa->respBufCount],
-                    CO_GTWA_RESP_BUF_SIZE - 2U - gtwa->respBufCount,
+                    (CO_GTWA_RESP_BUF_SIZE - 2U) - gtwa->respBufCount,
                     ret == CO_SDO_RT_ok_communicationEnd);
                 fifoRemain = CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo);
 
