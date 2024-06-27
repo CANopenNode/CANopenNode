@@ -577,7 +577,7 @@ size_t CO_fifo_readX82a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 
     if ((CO_fifo_getOccupied(fifo) == sizeof(n)) && (count >= 6U)) {
         (void)CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
-        return (size_t)sprintf(buf, "0x%02"PRIX8, n);
+        return (size_t)sprintf(buf, "0x%02"PRIX8, (uint32_t)n);
     }
     else {
         return CO_fifo_readHex2a(fifo, buf, count, end);
@@ -593,7 +593,7 @@ size_t CO_fifo_readX162a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 
     if ((CO_fifo_getOccupied(fifo) == sizeof(n)) && (count >= 8U)) {
         (void)CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
-        return (size_t)sprintf(buf, "0x%04"PRIX16, CO_SWAP_16(n));
+        return (size_t)sprintf(buf, "0x%04"PRIX16, (uint32_t)CO_SWAP_16(n));
     }
     else {
         return CO_fifo_readHex2a(fifo, buf, count, end);
@@ -738,7 +738,7 @@ size_t CO_fifo_readHex2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
         if (!fifo->started) {
             uint8_t c;
             if(CO_fifo_getc(fifo, &c)) {
-                len = (size_t)sprintf(&buf[0], "%02"PRIX8, c);
+                len = (size_t)sprintf(&buf[0], "%02"PRIX8, (uint32_t)c);
                 fifo->started = true;
             }
         }
@@ -748,7 +748,7 @@ size_t CO_fifo_readHex2a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
             if(!CO_fifo_getc(fifo, &c)) {
                 break;
             }
-            len += (size_t)sprintf(&buf[len], " %02"PRIX8, c);
+            len += (size_t)sprintf(&buf[len], " %02"PRIX8, (uint32_t)c);
         }
     }
 
