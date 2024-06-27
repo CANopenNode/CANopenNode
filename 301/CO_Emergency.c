@@ -650,7 +650,7 @@ void CO_EM_process(CO_EM_t *em,
             em->inhibitEmTimer += timeDifference_us;
         }
 
-        if ((fifoPpPtr != em->fifoWrPtr) && !em->CANtxBuff->bufferFull
+        if (!em->CANtxBuff->bufferFull && (fifoPpPtr != em->fifoWrPtr) 
             && (em->inhibitEmTimer >= em->inhibitEmTime_us)
         ) {
             em->inhibitEmTimer = 0;
