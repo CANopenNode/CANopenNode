@@ -1549,6 +1549,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     else switch (gtwa->state) {
     case CO_GTWA_ST_IDLE: {
         return; /* skip timerNext_us calculation */
+        break;
     }
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
