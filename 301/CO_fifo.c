@@ -131,6 +131,7 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
 size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof) {
     size_t i;
     const uint8_t *bufSrc;
+    bool_t alive_cycle = true;
 
     if (eof != NULL) {
         *eof = false;
@@ -140,34 +141,35 @@ size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof) {
     }
 
     bufSrc = &fifo->buf[fifo->readPtr];
-    for (i = count; i > 0U; ) {
+    for (i = count; (i > 0U) && alive_cycle; ) {
         const uint8_t c = *bufSrc;
 
         /* is circular buffer empty */
         if (fifo->readPtr == fifo->writePtr) {
-            break;
-        }
-
-        *buf = c;
-        buf++;
-
-        /* increment variables */
-        if (++fifo->readPtr == fifo->bufSize) {
-            fifo->readPtr = 0;
-            bufSrc = &fifo->buf[0];
+            alive_cycle = false;
         }
         else {
-            bufSrc++;
-        }
-        i--;
+            *buf = c;
+            buf++;
+
+            /* increment variables */
+            if (++fifo->readPtr == fifo->bufSize) {
+                fifo->readPtr = 0;
+                bufSrc = &fifo->buf[0];
+            }
+            else {
+                bufSrc++;
+            }
+            i--;
 
 #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) != 0
-        /* is delimiter? */
-        if ((eof != NULL) && (c == DELIM_COMMAND)) {
-            *eof = true;
-            break;
-        }
+            /* is delimiter? */
+            if ((eof != NULL) && (c == DELIM_COMMAND)) {
+                *eof = true;
+                alive_cycle = false;
+            }
 #endif
+        }
     }
 
     return count - i;
@@ -316,26 +318,29 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
 /******************************************************************************/
 bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment) {
     bool_t delimCommandFound = false;
+    bool_t alive_cycle = true;
 
     if ((fifo != NULL) && (insideComment != NULL)) {
-        while (fifo->readPtr != fifo->writePtr) {
+        while ((fifo->readPtr != fifo->writePtr) && alive_cycle) {
             uint8_t c = fifo->buf[fifo->readPtr];
 
             if (c == DELIM_COMMENT) {
                 *insideComment = true;
             }
             else if ((isgraph((int)c) != 0) && !(*insideComment)) {
-                break;
+                alive_cycle = false;
             }
             else { /* MISRA C 2004 14.10 */ }
 
-            if (++fifo->readPtr == fifo->bufSize) {
-                fifo->readPtr = 0;
-            }
-            if (c == DELIM_COMMAND) {
-                delimCommandFound = true;
-                *insideComment = false;
-                break;
+            if( alive_cycle ) {
+                if (++fifo->readPtr == fifo->bufSize) {
+                    fifo->readPtr = 0;
+                }
+                if (c == DELIM_COMMAND) {
+                    delimCommandFound = true;
+                    *insideComment = false;
+                    alive_cycle = false;
+                }
             }
         }
     }
