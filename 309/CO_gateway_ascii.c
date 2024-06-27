@@ -687,7 +687,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             break;
         }
         tok[strlen(tok)-1] = '\0';
-        gtwa->sequence = getU32(tok + 1, 0, 0xFFFFFFFF, &err);
+        gtwa->sequence = getU32(tok + 1, 0, 0xFFFFFFFFU, &err);
         if (err) {
             break;
         }
@@ -713,7 +713,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             }
             else { /* MISRA C 2004 14.10 */ }
 
-            ui[i] = getU32(tok, 0, 0xFFFFFFFF, &err);
+            ui[i] = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
             }
@@ -1205,26 +1205,26 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             /* get values */
             closed = 0U;
             CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
-            addr->identity.vendorID = getU32(tok, 0, 0xFFFFFFFF, &err);
+            addr->identity.vendorID = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
             }
 
             CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
-            addr->identity.productCode = getU32(tok, 0, 0xFFFFFFFF, &err);
+            addr->identity.productCode = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
             }
 
             CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
-            addr->identity.revisionNumber = getU32(tok, 0, 0xFFFFFFFF, &err);
+            addr->identity.revisionNumber = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
             }
 
             closed = 1U;
             CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
-            addr->identity.serialNumber = getU32(tok, 0, 0xFFFFFFFF, &err);
+            addr->identity.serialNumber = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
             }
@@ -1494,7 +1494,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
 
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                fs->match.identity.vendorID = getU32(tok, 0, 0xFFFFFFFF, &err);
+                fs->match.identity.vendorID = getU32(tok, 0, 0xFFFFFFFFU, &err);
                 if (err) {
                     break;
                 }
@@ -1506,7 +1506,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
 
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                fs->match.identity.productCode = getU32(tok,0,0xFFFFFFFF, &err);
+                fs->match.identity.productCode = getU32(tok,0,0xFFFFFFFFU, &err);
                 if (err) {
                     break;
                 }
@@ -1518,7 +1518,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
 
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                fs->match.identity.revisionNumber=getU32(tok,0,0xFFFFFFFF,&err);
+                fs->match.identity.revisionNumber=getU32(tok,0,0xFFFFFFFFU,&err);
                 if (err) {
                     break;
                 }
@@ -1531,7 +1531,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
                 closed = 1U;
                 CO_fifo_readToken(&gtwa->commFifo,tok,sizeof(tok),&closed,&err);
-                fs->match.identity.serialNumber = getU32(tok,0,0xFFFFFFFF,&err);
+                fs->match.identity.serialNumber = getU32(tok,0,0xFFFFFFFFU,&err);
                 if (err) {
                     break;
                 }
