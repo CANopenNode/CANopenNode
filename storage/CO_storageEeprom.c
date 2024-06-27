@@ -118,7 +118,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
 
     /* verify arguments */
     if ((storage == NULL) || (entries == NULL) || (entriesCount == 0U)
-        || (storageInitError == NULL)
+        || (entriesCount > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT) || (storageInitError == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -145,7 +145,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
     }
 
     /* Read entry signatures from the eeprom */
-    uint32_t signatures[entriesCount];
+    uint32_t signatures[CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT];
     size_t signaturesAddress = CO_eeprom_getAddr(storageModule,
                                                  false,
                                                  sizeof(signatures),
