@@ -244,7 +244,7 @@ static inline uint32_t getU32(char *token, uint32_t min,
     char *sRet;
     uint32_t num = strtoul(token, &sRet, 0);
 
-    if ((sRet != strchr(token, (int)'\0')) || (num < min) || (num > max)) {
+    if ((sRet != strchr(token, (int32_t)'\0')) || (num < min) || (num > max)) {
         *err = true;
     }
 
@@ -493,7 +493,7 @@ static void responseWithError(CO_GTWA_t *gtwa,
 
     gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                   "[%"PRId32"] ERROR:%d #%s\r\n",
-                                  gtwa->sequence, respErrorCode, desc);
+                                  (int32_t)gtwa->sequence, (int32_t)respErrorCode, desc);
     (void)respBufTransfer(gtwa);
 }
 
@@ -516,12 +516,12 @@ static void responseWithErrorSDO(CO_GTWA_t *gtwa,
     if (!postponed) {
         gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                       "[%"PRId32"] ERROR:0x%08X #%s\r\n",
-                                      gtwa->sequence, abortCode, desc);
+                                      (int32_t)gtwa->sequence, (uint32_t)abortCode, desc);
     }
     else {
         gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                       "\n...ERROR:0x%08X #%s\r\n",
-                                      abortCode, desc);
+                                      (uint32_t)abortCode, desc);
     }
 
     (void)respBufTransfer(gtwa);
@@ -563,7 +563,7 @@ static inline void responseWithErrorSDO(CO_GTWA_t *gtwa,
 static inline void responseWithOK(CO_GTWA_t *gtwa) {
     gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                   "[%"PRId32"] OK\r\n",
-                                  gtwa->sequence);
+                                  (int32_t)gtwa->sequence);
     (void)respBufTransfer(gtwa);
 }
 
@@ -606,7 +606,7 @@ static inline void convertToLower(char *token, size_t maxCount) {
         if (*c == '\0') {
             break;
         } else {
-            *c = (char)tolower((int)*c);
+            *c = (char)tolower((int32_t)*c);
         }
         c++;
     }
@@ -708,7 +708,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 /* empty token, break on error */
                 err = true;
                 break;
-            } else if ((int)isdigit((int)tok[0]) == (int)0) {
+            } else if ((int32_t)isdigit((int)tok[0]) == 0) {
                 /* <command> found */
                 break;
             } else if (closed != 0U) {
@@ -1699,7 +1699,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf,
                                               CO_GTWA_RESP_BUF_SIZE - 2U,
                                               "[%"PRId32"] ",
-                                              gtwa->sequence);
+                                              (int32_t)gtwa->sequence);
                 gtwa->SDOdataCopyStatus = true;
             }
 
@@ -1916,12 +1916,12 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     gtwa->respBufCount =
                         (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                  "[%"PRId32"] 0x%02"PRIX32"\r\n",
-                                 gtwa->sequence, value & 0xFFU);
+                                 (int32_t)gtwa->sequence, value & 0xFFU);
                 } else {
                     gtwa->respBufCount =
                         (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                  "[%"PRId32"] 0x%08"PRIX32"\r\n",
-                                 gtwa->sequence, value);
+                                 (int32_t)gtwa->sequence, value);
                 }
                 (void)respBufTransfer(gtwa);
             }
@@ -1943,7 +1943,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                              "[%"PRId32"] 0x%08"PRIX32" 0x%08"PRIX32 \
                              " 0x%08"PRIX32" 0x%08"PRIX32"\r\n",
-                             gtwa->sequence,
+                             (int32_t)gtwa->sequence,
                              gtwa->lssAddress.identity.vendorID,
                              gtwa->lssAddress.identity.productCode,
                              gtwa->lssAddress.identity.revisionNumber,
@@ -1968,7 +1968,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                     (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                              "[%"PRId32"] 0x%08"PRIX32" 0x%08"PRIX32 \
                              " 0x%08"PRIX32" 0x%08"PRIX32"\r\n",
-                             gtwa->sequence,
+                             (int32_t)gtwa->sequence,
                              gtwa->lssFastscan.found.identity.vendorID,
                              gtwa->lssFastscan.found.identity.productCode,
                              gtwa->lssFastscan.found.identity.revisionNumber,
@@ -2001,7 +2001,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                                  "# Found %d nodes, search finished.\n" \
                                  "[%"PRId32"] OK\r\n",
                                  gtwa->lssNodeCount,
-                                 gtwa->sequence);
+                                 (int32_t)gtwa->sequence);
                     (void)respBufTransfer(gtwa);
                     gtwa->state = CO_GTWA_ST_IDLE;
                 }
@@ -2086,7 +2086,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
                 else {
                     /* If we can't assign more node IDs, quit scanning */
-                    sprintf(msg2, msg2Fmt, gtwa->sequence);
+                    sprintf(msg2, msg2Fmt, (int32_t)gtwa->sequence);
                     gtwa->state = CO_GTWA_ST_IDLE;
                 }
 
