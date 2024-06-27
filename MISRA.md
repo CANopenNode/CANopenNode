@@ -12,6 +12,14 @@ guidelines, with some noted exceptions. Compliance is checked with [PC Lint Plus
 -efile( *, CANopenNode\OD.h )
 ```
 
+### Inhibits: Excluded the CO_gateway_ascii and CO_fifo (currently static analysis not completed)
+```
+-efile( *, CANopenNode\309\CO_gateway_ascii.c )
+-efile( *, CANopenNode\309\CO_gateway_ascii.h )
+-efile( *, CANopenNode\301\CO_fifo.c )
+-efile( *, CANopenNode\301\CO_fifo.h )
+```
+
 ### Inhibits: C comment contains '://' sequence
 ref.: MISRA C 2012 Rule 3.1
 ```
