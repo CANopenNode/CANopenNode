@@ -656,8 +656,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     * COMMAND PARSER
     ***************************************************************************/
     /* if idle, search for new command, skip comments or empty lines */
-    while ((gtwa->state == CO_GTWA_ST_IDLE)
-           && CO_fifo_CommSearch(&gtwa->commFifo, false)
+    while (CO_fifo_CommSearch(&gtwa->commFifo, false) && 
+        (gtwa->state == CO_GTWA_ST_IDLE)
     ) {
         char tok[20];
         size_t n;
@@ -683,7 +683,11 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
         else { /* MISRA C 2004 14.10 */ }
 
-        if ((tok[0] != '[') || (tok[strlen(tok)-1U] != ']')) {
+        if (tok[0] != '[') {
+            err = true;
+            break;
+        }
+        if (tok[strlen(tok)-1U] != ']') {
             err = true;
             break;
         }
@@ -1781,17 +1785,16 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         /* If not all data were transferred, make sure, there is enough data in
          * SDO buffer, to continue communication. Otherwise wait and check for
          * timeout */
-        if (gtwa->SDOdataCopyStatus
-            && (CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo) <
-               (CO_CONFIG_GTW_BLOCK_DL_LOOP * 7U))
-        ) {
-            if (gtwa->stateTimeoutTmr > CO_GTWA_STATE_TIMEOUT_TIME_US) {
-                abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
-                abort_comm = true;
-            }
-            else {
-                gtwa->stateTimeoutTmr += timeDifference_us;
-                hold = true;
+        if (gtwa->SDOdataCopyStatus) {
+            if( CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo) < (CO_CONFIG_GTW_BLOCK_DL_LOOP * 7U)) {
+                if (gtwa->stateTimeoutTmr > CO_GTWA_STATE_TIMEOUT_TIME_US) {
+                    abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
+                    abort_comm = true;
+                }
+                else {
+                    gtwa->stateTimeoutTmr += timeDifference_us;
+                    hold = true;
+                }
             }
         }
         if (!hold || abort_comm) {
@@ -2189,10 +2192,10 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
     /* execute next CANopen processing immediately, if idle and more commands
      * available */
-    if ((timerNext_us != NULL) && (gtwa->state == CO_GTWA_ST_IDLE)
-        && CO_fifo_CommSearch(&gtwa->commFifo, false)
-    ) {
-        *timerNext_us = 0;
+    if ((timerNext_us != NULL) && (gtwa->state == CO_GTWA_ST_IDLE)) {
+        if(CO_fifo_CommSearch(&gtwa->commFifo, false)) {
+            *timerNext_us = 0;
+        }
     }
 }
 
