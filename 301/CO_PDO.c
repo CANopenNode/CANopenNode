@@ -912,8 +912,8 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
             }
             else { /* MISRA C 2004 14.10 */ }
  #if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_TIMERNEXT) != 0
-            if (timerNext_us != NULL
-                && RPDO->timeoutTimer < RPDO->timeoutTime_us
+            if ((timerNext_us != NULL)
+                && (RPDO->timeoutTimer < RPDO->timeoutTime_us)
             ) {
                 uint32_t diff = RPDO->timeoutTime_us - RPDO->timeoutTimer;
                 if (*timerNext_us > diff) {
@@ -1363,7 +1363,7 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
                     TPDO->sendRequest = true;
                 }
    #if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_TIMERNEXT) != 0
-                if (timerNext_us != NULL && *timerNext_us > TPDO->eventTimer) {
+                if ((timerNext_us != NULL) && (*timerNext_us > TPDO->eventTimer)) {
                     /* Schedule for next event time */
                     *timerNext_us = TPDO->eventTimer;
                 }
@@ -1401,7 +1401,7 @@ void CO_TPDO_process(CO_TPDO_t *TPDO,
 
  #if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             if (TPDO->sendRequest
-                && timerNext_us != NULL && *timerNext_us > TPDO->inhibitTimer
+                && (timerNext_us != NULL) && (*timerNext_us > TPDO->inhibitTimer)
             ) {
                 /* Schedule for just beyond inhibit window */
                 *timerNext_us = TPDO->inhibitTimer;
