@@ -38,9 +38,9 @@
 #endif
 #ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
  #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
-  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000
+  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000U
  #else
-  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32
+  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32U
  #endif
 #endif
 
@@ -228,7 +228,7 @@ typedef struct {
     CO_fifo_t bufFifo;
     /** Data buffer of usable size @ref CO_CONFIG_SDO_CLI_BUFFER_SIZE, used
      * inside bufFifo. Must be one byte larger for fifo usage. */
-    uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1];
+    uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1U];
     /** Indicates, if new SDO message received from CAN bus. It is not cleared,
      * until received message is completely processed. */
     volatile void *CANrxNew;

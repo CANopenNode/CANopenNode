@@ -29,7 +29,7 @@
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) != 0
 
 /* verify configuration */
-#if CO_CONFIG_SDO_CLI_BUFFER_SIZE < 7
+#if CO_CONFIG_SDO_CLI_BUFFER_SIZE < 7U
  #error CO_CONFIG_SDO_CLI_BUFFER_SIZE must be set to 7 or more.
 #endif
 #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) == 0
@@ -290,7 +290,7 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
 
     /* prepare circular fifo buffer */
     CO_fifo_init(&SDO_C->bufFifo, SDO_C->buf,
-                 CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1);
+                 CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1U);
 
     /* Get parameters from Object Dictionary (initial values) */
     uint8_t maxSubIndex, nodeIDOfTheSDOServer;
@@ -573,13 +573,13 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
         /* write data, in several passes if necessary */
         if (SDO_C->OD_IO.write != NULL) {
             size_t count = CO_fifo_getOccupied(&SDO_C->bufFifo);
-            uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 2];
+            uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 2U];
 
             (void)CO_fifo_read(&SDO_C->bufFifo, buf, count, NULL);
             SDO_C->sizeTran += count;
 
             /* error: no data */
-            if (count == 0U) {
+            if ((count == 0U) || (count > CO_CONFIG_SDO_CLI_BUFFER_SIZE)){
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
                 ret = CO_SDO_RT_endedWithClientAbort;
             }
@@ -1298,7 +1298,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             OD_size_t countBuf = ((countData > 0U) && (countData <= countFifo))
                                  ? countData : (OD_size_t)countFifo;
             OD_size_t countRd = 0;
-            uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1];
+            uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1U];
 
             /* load data from OD variable into the buffer */
             CO_LOCK_OD(SDO_C->CANdevTx);
@@ -1312,7 +1312,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
             }
             else {
                 /* if data is string, send only data up to null termination */
-                if ((countRd > 0U)
+                if ((countRd > 0U) && (countRd <= CO_CONFIG_SDO_CLI_BUFFER_SIZE)
                     && ((SDO_C->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)
                 ) {
                     buf[countRd] = 0; /* (buf is one byte larger) */
