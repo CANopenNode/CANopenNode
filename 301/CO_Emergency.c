@@ -173,7 +173,7 @@ static ODR_t OD_write_1015(OD_stream_t *stream, const void *buf,
  #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT */
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER */
 
-#if (CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY
+#if ((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0
 /*
  * Custom functions for read/write OD object _OD_statusBits_, optional
  *
