@@ -45,7 +45,7 @@ static ODR_t storeEeprom(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
     /* Verify, if data in eeprom are equal */
     uint16_t crc_read = CO_eeprom_getCrcBlock(entry->storageModule,
                                               entry->eepromAddr, entry->len);
-    if (entry->crc != crc_read || !writeOk) {
+    if ((entry->crc != crc_read) || !writeOk) {
         return ODR_HW;
     }
 
@@ -168,7 +168,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
         }
 
         /* calculate addresses inside eeprom */
-        entry->eepromAddrSignature = signaturesAddress + sizeof(uint32_t) * i;
+        entry->eepromAddrSignature = signaturesAddress + (sizeof(uint32_t) * i);
         entry->eepromAddr = CO_eeprom_getAddr(storageModule,
                                               isAuto,
                                               entry->len,
