@@ -232,8 +232,8 @@ void CO_storageEeprom_auto_process(CO_storage_t *storage, bool_t saveAll) {
     }
 
     /* loop through entries */
-    for (uint8_t i = 0; i < storage->entriesCount; i++) {
-        CO_storage_entry_t *entry = &storage->entries[i];
+    for (uint8_t n = 0; n < storage->entriesCount; n++) {
+        CO_storage_entry_t *entry = &storage->entries[n];
 
         if ((entry->attr & (uint8_t)CO_storage_auto) == 0U) {
             continue;
