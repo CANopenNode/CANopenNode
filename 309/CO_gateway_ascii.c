@@ -680,6 +680,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             responseWithEmpty(gtwa);
             continue;
         }
+        else { /* MISRA C 2004 14.10 */ }
+
         if ((tok[0] != '[') || (tok[strlen(tok)-1] != ']')) {
             err = true;
             break;
@@ -707,6 +709,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 err = true;
                 break;
             }
+            else { /* MISRA C 2004 14.10 */ }
 
             ui[i] = getU32(tok, 0, 0xFFFFFFFF, &err);
             if (err) break;
@@ -1617,6 +1620,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 }
             } while ((gtwa->respHold == false) && (fifoRemain > 0));
         }
+        else { /* MISRA C 2004 14.10 */ }
         break;
     }
 
@@ -1703,6 +1707,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 responseWithOK(gtwa);
                 gtwa->state = CO_GTWA_ST_IDLE;
             }
+            else { /* MISRA C 2004 14.10 */ }
         }
         break;
     }
