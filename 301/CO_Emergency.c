@@ -58,16 +58,16 @@
 static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
                           OD_size_t count, OD_size_t *countRead)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count < sizeof(uint32_t) || countRead == NULL
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+        || (count < sizeof(uint32_t)) || (countRead == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
-    uint16_t canId = em->producerCanId == CO_CAN_ID_EMERGENCY ?
-                     CO_CAN_ID_EMERGENCY + em->nodeId : em->producerCanId;
+    uint16_t canId = (em->producerCanId == CO_CAN_ID_EMERGENCY) ?
+                     (CO_CAN_ID_EMERGENCY + em->nodeId) : em->producerCanId;
     uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000;
     COB_IDEmergency32 |= canId;
     (void)CO_setUint32(buf, COB_IDEmergency32);
@@ -80,8 +80,8 @@ static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
 static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint32_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+        || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -91,11 +91,11 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
     /* Verify written value. COB ID must not change, if emergency is enabled */
     uint32_t COB_IDEmergency32 = CO_getUint32(buf);
     uint16_t newCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
-    uint16_t curCanId = em->producerCanId == CO_CAN_ID_EMERGENCY ?
-                        CO_CAN_ID_EMERGENCY + em->nodeId : em->producerCanId;
-    bool_t newEnabled = (COB_IDEmergency32 & 0x80000000) == 0 && newCanId != 0;
-    if ((COB_IDEmergency32 & 0x7FFFF800)!=0 || CO_IS_RESTRICTED_CAN_ID(newCanId)
-        || (em->producerEnabled && newEnabled && newCanId != curCanId)
+    uint16_t curCanId = (em->producerCanId == CO_CAN_ID_EMERGENCY) ?
+                        (CO_CAN_ID_EMERGENCY + em->nodeId) : em->producerCanId;
+    bool_t newEnabled = ((COB_IDEmergency32 & 0x80000000) == 0) && (newCanId != 0);
+    if (((COB_IDEmergency32 & 0x7FFFF800)!=0) || CO_IS_RESTRICTED_CAN_ID(newCanId)
+        || ((em->producerEnabled && newEnabled) && (newCanId != curCanId))
     ) {
         return ODR_INVALID_VALUE;
     }
@@ -103,7 +103,7 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
     /* store values. If default CAN-ID is used, then store only value of
      * CO_CAN_ID_EMERGENCY without node id. */
     em->producerEnabled = newEnabled;
-    em->producerCanId = newCanId == (CO_CAN_ID_EMERGENCY + em->nodeId) ?
+    em->producerCanId = (newCanId == (CO_CAN_ID_EMERGENCY + em->nodeId)) ?
                         CO_CAN_ID_EMERGENCY : newCanId;
 
     /* configure emergency message CAN transmission */
@@ -155,8 +155,8 @@ static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
 static ODR_t OD_write_1015(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint16_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+        || (count != sizeof(uint16_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -182,8 +182,8 @@ static ODR_t OD_write_1015(OD_stream_t *stream, const void *buf,
 static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
                           OD_size_t count, OD_size_t *countRead)
 {
-    if (stream == NULL || buf == NULL || countRead == NULL
-        || (count < 4 && stream->subIndex > 0) || count < 1
+    if ((stream == NULL) || (buf == NULL) || (countRead == NULL)
+        || ((count < 4) && (stream->subIndex > 0)) || (count < 1)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -223,8 +223,8 @@ static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
 static ODR_t OD_write_1003(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL || count != 1
-        || countWritten == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL) || (count != 1)
+        || (countWritten == NULL))
     {
         return ODR_DEV_INCOMPAT;
     }
@@ -252,8 +252,8 @@ static ODR_t OD_write_1003(OD_stream_t *stream, const void *buf,
 static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
                                 OD_size_t count, OD_size_t *countRead)
 {
-    if (stream == NULL || stream->subIndex != 0
-        || buf == NULL || countRead == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0)
+        || (buf == NULL) || (countRead == NULL))
     {
         return ODR_DEV_INCOMPAT;
     }
@@ -265,7 +265,7 @@ static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
     if (countReadLocal > count) {
         countReadLocal = count;
     }
-    if (stream->dataLength != 0 && countReadLocal > stream->dataLength) {
+    if ((stream->dataLength != 0) && (countReadLocal > stream->dataLength)) {
         countReadLocal = stream->dataLength;
     }
     else {
@@ -281,8 +281,8 @@ static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
 static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
                                  OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0
-        || buf == NULL || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0)
+        || (buf == NULL) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -294,7 +294,7 @@ static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
     if (countWrite > count) {
         countWrite = count;
     }
-    if (stream->dataLength != 0 && countWrite > stream->dataLength) {
+    if ((stream->dataLength != 0) && (countWrite > stream->dataLength)) {
         countWrite = stream->dataLength;
     }
     else {
@@ -319,7 +319,7 @@ static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
 static void CO_EM_receive(void *object, void *msg) {
     CO_EM_t *em = (CO_EM_t*)object;
 
-    if (em != NULL && em->pFunctSignalRx != NULL) {
+    if ((em != NULL) && (em->pFunctSignalRx != NULL)) {
         uint16_t ident = CO_CANrxMsg_readIdent(msg);
 
         /* ignore sync messages (necessary if sync object is not used) */
@@ -382,10 +382,10 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
         || (nodeId < 1U) || (nodeId > 127U)
 #endif
 #if ((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0
-       || OD_1003_preDefErr == NULL
+       || (OD_1003_preDefErr == NULL)
 #endif
 #if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
-       || CANdevRx == NULL
+       || (CANdevRx == NULL)
 #endif
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -422,8 +422,8 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
  #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE) != 0
     uint16_t producerCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
-    em->producerEnabled = (COB_IDEmergency32 & 0x80000000) == 0
-                          && producerCanId != 0;
+    em->producerEnabled = ((COB_IDEmergency32 & 0x80000000) == 0)
+                          && (producerCanId != 0);
 
     em->OD_1014_extension.object = em;
     em->OD_1014_extension.read = OD_read_1014;
@@ -646,8 +646,8 @@ void CO_EM_process(CO_EM_t *em,
             em->inhibitEmTimer += timeDifference_us;
         }
 
-        if (fifoPpPtr != em->fifoWrPtr && !em->CANtxBuff->bufferFull
-            && em->inhibitEmTimer >= em->inhibitEmTime_us
+        if ((fifoPpPtr != em->fifoWrPtr) && !em->CANtxBuff->bufferFull
+            && (em->inhibitEmTimer >= em->inhibitEmTime_us)
         ) {
             em->inhibitEmTimer = 0;
  #else
@@ -692,8 +692,8 @@ void CO_EM_process(CO_EM_t *em,
         }
  #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0
   #if ((CO_CONFIG_EM) & CO_CONFIG_FLAG_TIMERNEXT) != 0
-        else if (timerNext_us != NULL
-                 && em->inhibitEmTimer < em->inhibitEmTime_us)
+        else if ((timerNext_us != NULL)
+                 && (em->inhibitEmTimer < em->inhibitEmTime_us))
         {
             /* check again after inhibit time elapsed */
             uint32_t diff = em->inhibitEmTime_us - em->inhibitEmTimer;
@@ -798,7 +798,7 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
  #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0
     /* Optional signal to RTOS, which can resume task, which handles
      * CO_EM_process */
-    if (em->pFunctSignalPre != NULL && em->producerEnabled) {
+    if ((em->pFunctSignalPre != NULL) && em->producerEnabled) {
         em->pFunctSignalPre(em->functSignalObjectPre);
     }
  #endif
