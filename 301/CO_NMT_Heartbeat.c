@@ -307,7 +307,7 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
 
 #if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) != 0
     /* Notify operating state change */
-    if (NMT->operatingStatePrev != NMTstateCpy || NNTinit) {
+    if ((NMT->operatingStatePrev != NMTstateCpy) || NNTinit) {
         if (NMT->pFunctNMT != NULL) {
             NMT->pFunctNMT(NMTstateCpy);
         }
@@ -316,13 +316,14 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
 
 #if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT) != 0
     /* Calculate, when next Heartbeat needs to be send */
-    if (NMT->HBproducerTime_us != 0 && timerNext_us != NULL) {
+    if ((NMT->HBproducerTime_us != 0U) && (timerNext_us != NULL)) {
         if (NMT->operatingStatePrev != NMTstateCpy) {
             *timerNext_us = 0;
         }
         else if (*timerNext_us > NMT->HBproducerTimer) {
             *timerNext_us = NMT->HBproducerTimer;
         }
+        else { /* MISRA C 2004 14.10 */ }
     }
 #endif
 
@@ -345,12 +346,12 @@ CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
     }
 
     /* Apply NMT command also to this node, if set so. */
-    if (nodeID == 0 || nodeID == NMT->nodeId) {
+    if ((nodeID == 0U) || (nodeID == NMT->nodeId)) {
         NMT->internalCommand = command;
     }
 
     /* Send NMT master message. */
-    NMT->NMT_TXbuff->data[0] = command;
+    NMT->NMT_TXbuff->data[0] = (uint8_t)command;
     NMT->NMT_TXbuff->data[1] = nodeID;
     return CO_CANsend(NMT->NMT_CANdevTx, NMT->NMT_TXbuff);
 }
