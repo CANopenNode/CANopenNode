@@ -68,7 +68,7 @@ static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
 
     uint16_t canId = (em->producerCanId == CO_CAN_ID_EMERGENCY) ?
                      (CO_CAN_ID_EMERGENCY + em->nodeId) : em->producerCanId;
-    uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000;
+    uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000U;
     COB_IDEmergency32 |= canId;
     (void)CO_setUint32(buf, COB_IDEmergency32);
 
@@ -93,7 +93,7 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
     uint16_t newCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
     uint16_t curCanId = (em->producerCanId == CO_CAN_ID_EMERGENCY) ?
                         (CO_CAN_ID_EMERGENCY + em->nodeId) : em->producerCanId;
-    bool_t newEnabled = ((COB_IDEmergency32 & 0x80000000) == 0) && (newCanId != 0);
+    bool_t newEnabled = ((COB_IDEmergency32 & 0x80000000U) == 0) && (newCanId != 0);
     if (((COB_IDEmergency32 & 0x7FFFF800)!=0) || CO_IS_RESTRICTED_CAN_ID(newCanId)
         || ((em->producerEnabled && newEnabled) && (newCanId != curCanId))
     ) {
@@ -422,7 +422,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 
  #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE) != 0
     uint16_t producerCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
-    em->producerEnabled = ((COB_IDEmergency32 & 0x80000000) == 0)
+    em->producerEnabled = ((COB_IDEmergency32 & 0x80000000U) == 0)
                           && (producerCanId != 0);
 
     em->OD_1014_extension.object = em;
