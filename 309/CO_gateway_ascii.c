@@ -67,18 +67,18 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 {
     (void)dummy;
     /* verify arguments */
-    if (gtwa == NULL
+    if ((gtwa == NULL)
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
-        || SDO_C == NULL || SDOclientTimeoutTime_ms == 0
+        || (SDO_C == NULL) || (SDOclientTimeoutTime_ms == 0)
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0
-        || NMT == NULL
+        || (NMT == NULL)
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
-        || LSSmaster == NULL
+        || (LSSmaster == NULL)
 #endif
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0
-        || LEDs == NULL
+        || (LEDs == NULL)
 #endif
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -272,7 +272,7 @@ static bool_t checkNetNode(CO_GTWA_t *gtwa,
         e = true;
     }
     /* not implemented */
-    else if (net < CO_CONFIG_GTW_NET_MIN || net > CO_CONFIG_GTW_NET_MAX) {
+    else if ((net < CO_CONFIG_GTW_NET_MIN) || (net > CO_CONFIG_GTW_NET_MAX)) {
         eCode = CO_GTWA_respErrorUnsupportedNet;
         e = true;
     }
@@ -300,7 +300,7 @@ static bool_t checkNet(CO_GTWA_t *gtwa, int32_t net,
         e = true;
     }
     /* not implemented */
-    else if (net < CO_CONFIG_GTW_NET_MIN || net > CO_CONFIG_GTW_NET_MAX) {
+    else if ((net < CO_CONFIG_GTW_NET_MIN) || (net > CO_CONFIG_GTW_NET_MAX)) {
         eCode = CO_GTWA_respErrorUnsupportedNet;
         e = true;
     }
@@ -582,7 +582,7 @@ static void responseLSS(CO_GTWA_t *gtwa, CO_LSSmaster_return_t lss_ret) {
     else {
         CO_GTWA_respErrorCode_t respErrorCode;
 
-        if (lss_ret==CO_LSSmaster_TIMEOUT || lss_ret==CO_LSSmaster_SCAN_NOACK) {
+        if ((lss_ret==CO_LSSmaster_TIMEOUT) || (lss_ret==CO_LSSmaster_SCAN_NOACK)) {
             respErrorCode = CO_GTWA_respErrorTimeOut;
         }
         else if (lss_ret == CO_LSSmaster_OK_MANUFACTURER) {
@@ -1738,7 +1738,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             if (gtwa->state == CO_GTWA_ST_WRITE_ABORTED) {
                 /* Stay in this state, until all data transferred via commFifo
                  * will be purged. */
-                if (!CO_fifo_purge(&gtwa->SDO_C->bufFifo) || closed == 1U) {
+                if (!CO_fifo_purge(&gtwa->SDO_C->bufFifo) || (closed == 1U)) {
                     gtwa->state = CO_GTWA_ST_IDLE;
                 }
                 break;
@@ -1748,8 +1748,8 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
          * SDO buffer, to continue communication. Otherwise wait and check for
          * timeout */
         if (gtwa->SDOdataCopyStatus
-            && CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo) <
-               (CO_CONFIG_GTW_BLOCK_DL_LOOP * 7)
+            && (CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo) <
+               (CO_CONFIG_GTW_BLOCK_DL_LOOP * 7))
         ) {
             if (gtwa->stateTimeoutTmr > CO_GTWA_STATE_TIMEOUT_TIME_US) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
@@ -1926,7 +1926,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         ret = CO_LSSmaster_IdentifyFastscan(gtwa->LSSmaster, timeDifference_us,
                                             &gtwa->lssFastscan);
         if (ret != CO_LSSmaster_WAIT_SLAVE) {
-            if (ret == CO_LSSmaster_OK || ret == CO_LSSmaster_SCAN_FINISHED) {
+            if ((ret == CO_LSSmaster_OK) || (ret == CO_LSSmaster_SCAN_FINISHED)) {
                 gtwa->respBufCount =
                     snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                              "[%"PRId32"] 0x%08"PRIX32" 0x%08"PRIX32 \
@@ -1957,7 +1957,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 CO_LSSmaster_changeTimeout(gtwa->LSSmaster,
                                            CO_LSSmaster_DEFAULT_TIMEOUT);
 
-                if (ret == CO_LSSmaster_OK || ret == CO_LSSmaster_SCAN_NOACK) {
+                if ((ret == CO_LSSmaster_OK) || (ret == CO_LSSmaster_SCAN_NOACK)) {
                     /* no (more) nodes found, send report sum and finish */
                     gtwa->respBufCount =
                         snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
