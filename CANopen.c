@@ -1177,7 +1177,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #endif
 
 #if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0
-    if (CO_GET_CNT(LSS_MST) == 1) {
+    if (CO_GET_CNT(LSS_MST) == 1U) {
         err = CO_LSSmaster_init(co->LSSmaster,
                                 CO_LSSmaster_DEFAULT_TIMEOUT,
                                 co->CANmodule,
@@ -1191,7 +1191,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
 #endif
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
-    if (CO_GET_CNT(GTWA) == 1) {
+    if (CO_GET_CNT(GTWA) == 1U) {
         err = CO_GTWA_init(co->gtwa,
  #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
                            &co->SDOclient[0],
@@ -1529,7 +1529,7 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
 #endif
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
-    if (CO_GET_CNT(GTWA) == 1) {
+    if (CO_GET_CNT(GTWA) == 1U) {
         CO_GTWA_process(co->gtwa,
                         enableGateway,
                         timeDifference_us,
