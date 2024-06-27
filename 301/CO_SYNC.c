@@ -393,7 +393,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
             if (SYNC->isProducer) {
                 if (SYNC->timer >= OD_1006_period) {
                     syncStatus = CO_SYNC_RX_TX;
-                    CO_SYNCsend(SYNC);
+                    (void)CO_SYNCsend(SYNC);
                 }
  #if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_TIMERNEXT) != 0
                 /* Calculate when next SYNC needs to be sent */
