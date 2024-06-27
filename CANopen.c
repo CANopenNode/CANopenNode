@@ -1124,7 +1124,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
     }
 
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) != 0
-    if (CO_GET_CNT(SDO_CLI) > 0) {
+    if (CO_GET_CNT(SDO_CLI) > 0U) {
         OD_entry_t *SDOcliPar = OD_GET(H1280, OD_H1280_SDO_CLIENT_1_PARAM);
         for (uint16_t i = 0; i < CO_GET_CNT(SDO_CLI); i++) {
             err = CO_SDOclient_init(&co->SDOclient[i],
