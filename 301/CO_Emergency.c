@@ -701,6 +701,7 @@ void CO_EM_process(CO_EM_t *em,
                 *timerNext_us = diff;
             }
         }
+        else { /* MISRA C 2004 14.10 */ }
   #endif
  #endif
     }
