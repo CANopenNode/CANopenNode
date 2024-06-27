@@ -1129,13 +1129,14 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
         for (uint16_t i = 0; i < CO_GET_CNT(SDO_CLI); i++) {
             err = CO_SDOclient_init(&co->SDOclient[i],
                                     od,
-                                    SDOcliPar++,
+                                    SDOcliPar,
                                     nodeId,
                                     co->CANmodule,
                                     CO_GET_CO(RX_IDX_SDO_CLI) + i,
                                     co->CANmodule,
                                     CO_GET_CO(TX_IDX_SDO_CLI) + i,
                                     errInfo);
+            SDOcliPar++;
             if (err) { return err; }
         }
     }
