@@ -58,7 +58,7 @@
 static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
                           OD_size_t count, OD_size_t *countRead)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count < sizeof(uint32_t)) || (countRead == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -68,7 +68,7 @@ static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
 
     uint16_t canId = (em->producerCanId == CO_CAN_ID_EMERGENCY) ?
                      (CO_CAN_ID_EMERGENCY + em->nodeId) : em->producerCanId;
-    uint32_t COB_IDEmergency32 = em->producerEnabled ? 0 : 0x80000000U;
+    uint32_t COB_IDEmergency32 = em->producerEnabled ? 0U : 0x80000000U;
     COB_IDEmergency32 |= canId;
     (void)CO_setUint32(buf, COB_IDEmergency32);
 
@@ -80,7 +80,7 @@ static ODR_t OD_read_1014(OD_stream_t *stream, void *buf,
 static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count != sizeof(uint32_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -90,11 +90,11 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
 
     /* Verify written value. COB ID must not change, if emergency is enabled */
     uint32_t COB_IDEmergency32 = CO_getUint32(buf);
-    uint16_t newCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
+    uint16_t newCanId = (uint16_t)(COB_IDEmergency32 & 0x7FFU);
     uint16_t curCanId = (em->producerCanId == CO_CAN_ID_EMERGENCY) ?
                         (CO_CAN_ID_EMERGENCY + em->nodeId) : em->producerCanId;
-    bool_t newEnabled = ((COB_IDEmergency32 & 0x80000000U) == 0) && (newCanId != 0);
-    if (((COB_IDEmergency32 & 0x7FFFF800)!=0) || CO_IS_RESTRICTED_CAN_ID(newCanId)
+    bool_t newEnabled = ((COB_IDEmergency32 & 0x80000000U) == 0U) && (newCanId != 0U);
+    if (((COB_IDEmergency32 & 0x7FFFF800U)!=0U) || CO_IS_RESTRICTED_CAN_ID(newCanId)
         || ((em->producerEnabled && newEnabled) && (newCanId != curCanId))
     ) {
         return ODR_INVALID_VALUE;
@@ -155,7 +155,7 @@ static ODR_t OD_read_1014_default(OD_stream_t *stream, void *buf,
 static ODR_t OD_write_1015(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
         || (count != sizeof(uint16_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -164,7 +164,7 @@ static ODR_t OD_write_1015(OD_stream_t *stream, const void *buf,
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
     /* update object */
-    em->inhibitEmTime_us = (uint32_t)CO_getUint16(buf) * 100;
+    em->inhibitEmTime_us = (uint32_t)CO_getUint16(buf) * 100U;
     em->inhibitEmTimer = 0;
 
     /* write value to the original location in the Object Dictionary */
@@ -183,17 +183,17 @@ static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
                           OD_size_t count, OD_size_t *countRead)
 {
     if ((stream == NULL) || (buf == NULL) || (countRead == NULL)
-        || ((count < 4) && (stream->subIndex > 0)) || (count < 1)
+        || ((count < 4U) && (stream->subIndex > 0U)) || (count < 1U)
     ) {
         return ODR_DEV_INCOMPAT;
     }
 
     CO_EM_t *em = (CO_EM_t *)stream->object;
 
-    if (em->fifoSize < 2) {
+    if (em->fifoSize < 2U) {
         return ODR_DEV_INCOMPAT;
     }
-    if (stream->subIndex == 0) {
+    if (stream->subIndex == 0U) {
         (void)CO_setUint8(buf, em->fifoCount);
 
         *countRead = sizeof(uint8_t);
@@ -202,11 +202,11 @@ static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
     else if (stream->subIndex <= em->fifoCount) {
         /* newest error is reported on subIndex 1 and is stored just behind
          * fifoWrPtr. Get correct index in FIFO buffer. */
-        int16_t index = (int16_t)em->fifoWrPtr - stream->subIndex;
+        int16_t index = (int16_t)em->fifoWrPtr - (int16_t)stream->subIndex;
         if (index < 0) {
-            index += em->fifoSize;
+            index += (int16_t)em->fifoSize;
         }
-        else if (index >= (em->fifoSize)) {
+        else if (index >= (int16_t)(em->fifoSize)) {
             return ODR_DEV_INCOMPAT;
         }
         else { /* MISRA C 2004 14.10 */ }
@@ -223,13 +223,13 @@ static ODR_t OD_read_1003(OD_stream_t *stream, void *buf,
 static ODR_t OD_write_1003(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0) || (buf == NULL) || (count != 1)
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL) || (count != 1U)
         || (countWritten == NULL))
     {
         return ODR_DEV_INCOMPAT;
     }
 
-    if (CO_getUint8(buf) != 0) {
+    if (CO_getUint8(buf) != 0U) {
         return ODR_INVALID_VALUE;
     }
 
@@ -252,7 +252,7 @@ static ODR_t OD_write_1003(OD_stream_t *stream, const void *buf,
 static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
                                 OD_size_t count, OD_size_t *countRead)
 {
-    if ((stream == NULL) || (stream->subIndex != 0)
+    if ((stream == NULL) || (stream->subIndex != 0U)
         || (buf == NULL) || (countRead == NULL))
     {
         return ODR_DEV_INCOMPAT;
@@ -265,7 +265,7 @@ static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
     if (countReadLocal > count) {
         countReadLocal = count;
     }
-    if ((stream->dataLength != 0) && (countReadLocal > stream->dataLength)) {
+    if ((stream->dataLength != 0U) && (countReadLocal > stream->dataLength)) {
         countReadLocal = stream->dataLength;
     }
     else {
@@ -281,7 +281,7 @@ static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
 static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
                                  OD_size_t count, OD_size_t *countWritten)
 {
-    if ((stream == NULL) || (stream->subIndex != 0)
+    if ((stream == NULL) || (stream->subIndex != 0U)
         || (buf == NULL) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
@@ -294,7 +294,7 @@ static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
     if (countWrite > count) {
         countWrite = count;
     }
-    if ((stream->dataLength != 0) && (countWrite > stream->dataLength)) {
+    if ((stream->dataLength != 0U) && (countWrite > stream->dataLength)) {
         countWrite = stream->dataLength;
     }
     else {
@@ -323,7 +323,7 @@ static void CO_EM_receive(void *object, void *msg) {
         uint16_t ident = CO_CANrxMsg_readIdent(msg);
 
         /* ignore sync messages (necessary if sync object is not used) */
-        if (ident != 0x80) {
+        if (ident != 0x80U) {
             const uint8_t *data = CO_CANrxMsg_readData(msg);
             uint16_t errorCode;
             uint32_t infoCode;
@@ -421,9 +421,9 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     }
 
  #if ((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE) != 0
-    uint16_t producerCanId = (uint16_t)(COB_IDEmergency32 & 0x7FF);
-    em->producerEnabled = ((COB_IDEmergency32 & 0x80000000U) == 0)
-                          && (producerCanId != 0);
+    uint16_t producerCanId = (uint16_t)(COB_IDEmergency32 & 0x7FFU);
+    em->producerEnabled = ((COB_IDEmergency32 & 0x80000000U) == 0U)
+                          && (producerCanId != 0U);
 
     em->OD_1014_extension.object = em;
     em->OD_1014_extension.read = OD_read_1014;
@@ -480,7 +480,7 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     uint16_t inhibitTime_100us;
     odRet = OD_get_u16(OD_1015_InhTime, 0, &inhibitTime_100us, true);
     if (odRet == ODR_OK) {
-        em->inhibitEmTime_us = (uint32_t)inhibitTime_100us * 100;
+        em->inhibitEmTime_us = (uint32_t)inhibitTime_100us * 100U;
 
         em->OD_1015_extension.object = em;
         em->OD_1015_extension.read = OD_readOriginal;
