@@ -272,7 +272,7 @@ static ODR_t OD_read_statusBits(OD_stream_t *stream, void *buf,
         stream->dataLength = countReadLocal;
     }
 
-    (void)memcpy (buf, &em->errorStatusBits[0], countReadLocal);
+    (void)memcpy ((void *)(buf), (const void *)(&em->errorStatusBits[0]), countReadLocal);
 
     *countRead = countReadLocal;
     return ODR_OK;
@@ -301,7 +301,7 @@ static ODR_t OD_write_statusBits(OD_stream_t *stream, const void *buf,
         stream->dataLength = countWrite;
     }
 
-    (void)memcpy (&em->errorStatusBits[0], buf, countWrite);
+    (void)memcpy ((void *)(&em->errorStatusBits[0]), (const void *)(buf), countWrite);
 
     *countWritten = countWrite;
     return ODR_OK;
@@ -328,8 +328,8 @@ static void CO_EM_receive(void *object, void *msg) {
             uint16_t errorCode;
             uint32_t infoCode;
 
-            (void)memcpy(&errorCode, &data[0], sizeof(errorCode));
-            (void)memcpy(&infoCode, &data[4], sizeof(infoCode));
+            (void)memcpy((void *)(&errorCode), (const void *)(&data[0]), sizeof(errorCode));
+            (void)memcpy((void *)(&infoCode), (const void *)(&data[4]), sizeof(infoCode));
             em->pFunctSignalRx(ident,
                                CO_SWAP_16(errorCode),
                                data[2],
