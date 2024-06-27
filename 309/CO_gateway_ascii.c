@@ -24,12 +24,13 @@
  * limitations under the License.
  */
 
+#include <string.h>
+
 #include "309/CO_gateway_ascii.h"
 
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
 
 #include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
