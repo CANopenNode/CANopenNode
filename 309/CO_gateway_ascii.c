@@ -1709,7 +1709,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     case CO_GTWA_ST_WRITE_ABORTED: {
         CO_SDO_abortCode_t abortCode;
         size_t sizeTransferred;
-        bool_t abort = false;
+        bool_t abort_comm = false;
         bool_t hold = false;
         CO_SDO_return_t ret;
 
@@ -1729,7 +1729,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
                 || ((gtwa->SDOdataCopyStatus == false) && (closed != 1U))
             ) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
-                abort = true; /* abort SDO communication */
+                abort_comm = true; /* abort SDO communication */
                 /* clear the rest of the command, if necessary */
                 if (closed != 1U) {
                     CO_fifo_CommSearch(&gtwa->commFifo, true);
@@ -1753,20 +1753,20 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         ) {
             if (gtwa->stateTimeoutTmr > CO_GTWA_STATE_TIMEOUT_TIME_US) {
                 abortCode = CO_SDO_AB_DEVICE_INCOMPAT;
-                abort = true;
+                abort_comm = true;
             }
             else {
                 gtwa->stateTimeoutTmr += timeDifference_us;
                 hold = true;
             }
         }
-        if (!hold || abort) {
+        if (!hold || abort_comm) {
             /* if OS has CANtx queue, speedup block transfer */
             int loop = 0;
             do {
                 ret = CO_SDOclientDownload(gtwa->SDO_C,
                                            timeDifference_us,
-                                           abort,
+                                           abort_comm,
                                            gtwa->SDOdataCopyStatus,
                                            &abortCode,
                                            &sizeTransferred,
