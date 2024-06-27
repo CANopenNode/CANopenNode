@@ -277,7 +277,7 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
         count = fifo->bufSize - fifo->readPtr;
     }
     commandEnd = (uint8_t *)memchr((const void *)&fifo->buf[fifo->readPtr],
-                                   (int)DELIM_COMMAND,
+                                   (int32_t)DELIM_COMMAND,
                                    count);
     if (commandEnd != NULL) {
         newCommand = true;
@@ -285,7 +285,7 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
     else if (fifo->readPtr > fifo->writePtr) {
         /* not found, search in the beginning of the circular buffer */
         commandEnd = (uint8_t *)memchr((const void *)&fifo->buf[0],
-                                       (int)DELIM_COMMAND,
+                                       (int32_t)DELIM_COMMAND,
                                        fifo->writePtr);
         if ((commandEnd != NULL) || (fifo->readPtr == (fifo->writePtr + 1U))) {
             /* command delimiter found or buffer full */
@@ -705,7 +705,7 @@ size_t CO_fifo_readR322a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 
     if ((CO_fifo_getOccupied(fifo) == sizeof(n)) && (count >= 20U)) {
         (void)CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
-        return (size_t)sprintf(buf, "%g", (double)CO_SWAP_32(n));
+        return (size_t)sprintf(buf, "%g", (float32_t)CO_SWAP_32(n));
     }
     else {
         return CO_fifo_readHex2a(fifo, buf, count, end);
@@ -721,7 +721,7 @@ size_t CO_fifo_readR642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 
     if ((CO_fifo_getOccupied(fifo) == sizeof(n)) && (count >= 30U)) {
         (void)CO_fifo_read(fifo, (uint8_t *)&n, sizeof(n), NULL);
-        return (size_t)sprintf(buf, "%g", (double)CO_SWAP_64(n));
+        return (size_t)sprintf(buf, "%g", (float64_t)CO_SWAP_64(n));
     }
     else {
         return CO_fifo_readHex2a(fifo, buf, count, end);
@@ -885,7 +885,7 @@ size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         uint32_t u32 = strtoul(buf, &sRet, 0);
-        if ((sRet != strchr(buf, (int)('\0'))) || (u32 > (uint32_t)UINT8_MAX)) {
+        if ((sRet != strchr(buf, (int32_t)('\0'))) || (u32 > (uint32_t)UINT8_MAX)) {
             st |= CO_fifo_st_errVal;
         }
         else {
@@ -915,7 +915,7 @@ size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         uint32_t u32 = strtoul(buf, &sRet, 0);
-        if ((sRet != strchr(buf, (int)('\0'))) || (u32 > (uint32_t)UINT16_MAX)) {
+        if ((sRet != strchr(buf, (int32_t)('\0'))) || (u32 > (uint32_t)UINT16_MAX)) {
             st |= CO_fifo_st_errVal;
         }
         else {
@@ -945,7 +945,7 @@ size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         uint32_t u32 = strtoul(buf, &sRet, 0);
-        if (sRet != strchr(buf, (int)('\0'))) {
+        if (sRet != strchr(buf, (int32_t)('\0'))) {
             st |= CO_fifo_st_errVal;
         }
         else {
@@ -975,7 +975,7 @@ size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         uint64_t u64 = strtoull(buf, &sRet, 0);
-        if (sRet != strchr(buf, (int)('\0'))) {
+        if (sRet != strchr(buf, (int32_t)('\0'))) {
             st |= CO_fifo_st_errVal;
         }
         else {
@@ -1005,7 +1005,7 @@ size_t CO_fifo_cpyTok2I8(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         int32_t i32 = strtol(buf, &sRet, 0);
-        if ((sRet != strchr(buf, (int)('\0'))) || (i32 < INT8_MIN) || (i32 > INT8_MAX)) {
+        if ((sRet != strchr(buf, (int32_t)('\0'))) || (i32 < INT8_MIN) || (i32 > INT8_MAX)) {
             st |= CO_fifo_st_errVal;
         } else {
             int8_t num = (int8_t) i32;
@@ -1034,7 +1034,7 @@ size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         int32_t i32 = strtol(buf, &sRet, 0);
-        if ((sRet != strchr(buf, (int)('\0'))) || (i32 < INT16_MIN) || (i32 > INT16_MAX)) {
+        if ((sRet != strchr(buf, (int32_t)('\0'))) || (i32 < INT16_MIN) || (i32 > INT16_MAX)) {
             st |= CO_fifo_st_errVal;
         } else {
             int16_t num = CO_SWAP_16((int16_t) i32);
@@ -1063,7 +1063,7 @@ size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         int32_t i32 = strtol(buf, &sRet, 0);
-        if (sRet != strchr(buf, (int)('\0'))) {
+        if (sRet != strchr(buf, (int32_t)('\0'))) {
             st |= CO_fifo_st_errVal;
         }
         else {
@@ -1093,7 +1093,7 @@ size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         int64_t i64 = strtoll(buf, &sRet, 0);
-        if (sRet != strchr(buf, (int)('\0'))) {
+        if (sRet != strchr(buf, (int32_t)('\0'))) {
             st |= CO_fifo_st_errVal;
         }
         else {
@@ -1123,7 +1123,7 @@ size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         float32_t f32 = strtof(buf, &sRet);
-        if (sRet != strchr(buf, (int)('\0'))) {
+        if (sRet != strchr(buf, (int32_t)('\0'))) {
             st |= CO_fifo_st_errVal;
         }
         else {
@@ -1153,7 +1153,7 @@ size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     else {
         char *sRet;
         float64_t f64 = strtof(buf, &sRet);
-        if (sRet != strchr(buf, (int)('\0'))) {
+        if (sRet != strchr(buf, (int32_t)('\0'))) {
             st |= CO_fifo_st_errVal;
         }
         else {
@@ -1220,7 +1220,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
             continue;
         }
 
-        if ((int)(isxdigit((int)c)) != (int)(0)) {
+        if ((int32_t)(isxdigit((int32_t)c)) != 0) {
             /* first or second hex digit */
             if (step == 0U) {
                 firstChar = c;
@@ -1237,7 +1237,7 @@ size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
                 step = 0;
             }
         }
-        else if ((int)(isgraph((int)c)) != (int)(0)) {
+        else if ((int32_t)(isgraph((int32_t)c)) != 0) {
             /* printable character, not hex digit */
             if (c == DELIM_COMMENT) { /* comment start */
                 step = 6;
