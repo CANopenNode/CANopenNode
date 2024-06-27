@@ -103,7 +103,7 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
     /* store values. If default CAN-ID is used, then store only value of
      * CO_CAN_ID_EMERGENCY without node id. */
     em->producerEnabled = newEnabled;
-    em->producerCanId = (newCanId == (CO_CAN_ID_EMERGENCY + em->nodeId)) ?
+    em->producerCanId = (newCanId == ((uint16_t)CO_CAN_ID_EMERGENCY + em->nodeId)) ?
                         CO_CAN_ID_EMERGENCY : newCanId;
 
     /* configure emergency message CAN transmission */
