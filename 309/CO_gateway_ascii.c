@@ -324,26 +324,26 @@ static bool_t checkNet(CO_GTWA_t *gtwa, int32_t net,
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0
 /* data types for SDO read or write */
 static const CO_GTWA_dataType_t dataTypes[] = {
-    {"hex", 0, CO_fifo_readHex2a, CO_fifo_cpyTok2Hex},  /* hex, non-standard */
-    {"b",   1, CO_fifo_readU82a,  CO_fifo_cpyTok2U8},   /* BOOLEAN */
-    {"i8",  1, CO_fifo_readI82a,  CO_fifo_cpyTok2I8},   /* INTEGER8 */
-    {"i16", 2, CO_fifo_readI162a, CO_fifo_cpyTok2I16},  /* INTEGER16 */
-    {"i32", 4, CO_fifo_readI322a, CO_fifo_cpyTok2I32},  /* INTEGER32 */
-    {"i64", 8, CO_fifo_readI642a, CO_fifo_cpyTok2I64},  /* INTEGER64 */
-    {"u8",  1, CO_fifo_readU82a,  CO_fifo_cpyTok2U8},   /* UNSIGNED8 */
-    {"u16", 2, CO_fifo_readU162a, CO_fifo_cpyTok2U16},  /* UNSIGNED16 */
-    {"u32", 4, CO_fifo_readU322a, CO_fifo_cpyTok2U32},  /* UNSIGNED32 */
-    {"u64", 8, CO_fifo_readU642a, CO_fifo_cpyTok2U64},  /* UNSIGNED64 */
-    {"x8",  1, CO_fifo_readX82a,  CO_fifo_cpyTok2U8},   /* UNSIGNED8 */
-    {"x16", 2, CO_fifo_readX162a, CO_fifo_cpyTok2U16},  /* UNSIGNED16 */
-    {"x32", 4, CO_fifo_readX322a, CO_fifo_cpyTok2U32},  /* UNSIGNED32 */
-    {"x64", 8, CO_fifo_readX642a, CO_fifo_cpyTok2U64},  /* UNSIGNED64 */
-    {"r32", 4, CO_fifo_readR322a, CO_fifo_cpyTok2R32},  /* REAL32 */
-    {"r64", 8, CO_fifo_readR642a, CO_fifo_cpyTok2R64},  /* REAL64 */
-    {"vs",  0, CO_fifo_readVs2a,  CO_fifo_cpyTok2Vs},   /* VISIBLE_STRING */
-    {"os",  0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},  /* OCTET_STRING base64*/
-    {"us",  0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},/* UNICODE_STRING base64*/
-    {"d",   0, CO_fifo_readB642a, CO_fifo_cpyTok2B64}   /* DOMAIN - base64 */
+    {(char *)"hex", 0, CO_fifo_readHex2a, CO_fifo_cpyTok2Hex},  /* hex, non-standard */
+    {(char *)"b",   1, CO_fifo_readU82a,  CO_fifo_cpyTok2U8},   /* BOOLEAN */
+    {(char *)"i8",  1, CO_fifo_readI82a,  CO_fifo_cpyTok2I8},   /* INTEGER8 */
+    {(char *)"i16", 2, CO_fifo_readI162a, CO_fifo_cpyTok2I16},  /* INTEGER16 */
+    {(char *)"i32", 4, CO_fifo_readI322a, CO_fifo_cpyTok2I32},  /* INTEGER32 */
+    {(char *)"i64", 8, CO_fifo_readI642a, CO_fifo_cpyTok2I64},  /* INTEGER64 */
+    {(char *)"u8",  1, CO_fifo_readU82a,  CO_fifo_cpyTok2U8},   /* UNSIGNED8 */
+    {(char *)"u16", 2, CO_fifo_readU162a, CO_fifo_cpyTok2U16},  /* UNSIGNED16 */
+    {(char *)"u32", 4, CO_fifo_readU322a, CO_fifo_cpyTok2U32},  /* UNSIGNED32 */
+    {(char *)"u64", 8, CO_fifo_readU642a, CO_fifo_cpyTok2U64},  /* UNSIGNED64 */
+    {(char *)"x8",  1, CO_fifo_readX82a,  CO_fifo_cpyTok2U8},   /* UNSIGNED8 */
+    {(char *)"x16", 2, CO_fifo_readX162a, CO_fifo_cpyTok2U16},  /* UNSIGNED16 */
+    {(char *)"x32", 4, CO_fifo_readX322a, CO_fifo_cpyTok2U32},  /* UNSIGNED32 */
+    {(char *)"x64", 8, CO_fifo_readX642a, CO_fifo_cpyTok2U64},  /* UNSIGNED64 */
+    {(char *)"r32", 4, CO_fifo_readR322a, CO_fifo_cpyTok2R32},  /* REAL32 */
+    {(char *)"r64", 8, CO_fifo_readR642a, CO_fifo_cpyTok2R64},  /* REAL64 */
+    {(char *)"vs",  0, CO_fifo_readVs2a,  CO_fifo_cpyTok2Vs},   /* VISIBLE_STRING */
+    {(char *)"os",  0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},  /* OCTET_STRING base64*/
+    {(char *)"us",  0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},/* UNICODE_STRING base64*/
+    {(char *)"d",   0, CO_fifo_readB642a, CO_fifo_cpyTok2B64}   /* DOMAIN - base64 */
 };
 
 
