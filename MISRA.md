@@ -3,6 +3,9 @@
 The CANopenNode files conform to the [MISRA C:2012](https://www.misra.org.uk)
 guidelines, with some noted exceptions. Compliance is checked with [PC Lint Plus](https://pclintplus.com/).
 
+A recommendation for MISRA: memory allocation and deallocation functions should not be used.
+You must define the macro CO_USE_GLOBALS in your driver configuration.
+
 
 ## Configuration Inhibits Control
 
