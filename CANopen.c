@@ -1137,7 +1137,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                     CO_GET_CO(TX_IDX_SDO_CLI) + i,
                                     errInfo);
             SDOcliPar++;
-            if (err) { return err; }
+            if (err != CO_ERROR_NO) { return err; }
         }
     }
 #endif
@@ -1186,7 +1186,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                                 co->CANmodule,
                                 CO_GET_CO(TX_IDX_LSS_MST),
                                 CO_CAN_ID_LSS_MST);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
     }
 #endif
 
@@ -1208,7 +1208,7 @@ CO_ReturnError_t CO_CANopenInit(CO_t *co,
                            co->LEDs,
  #endif
                            0);
-        if (err) { return err; }
+        if (err != CO_ERROR_NO) { return err; }
     }
 #endif
 
