@@ -428,6 +428,7 @@ CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
                         *timerNext_us = diff;
                     }
                 }
+                else { /* MISRA C 2004 14.10 */ }
 #endif
             }
             else { /* MISRA C 2004 14.10 */ }
