@@ -1072,7 +1072,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 
             /* if data size was not known before and is known now, update SDO */
             if ((gtwa->SDOdataType->length == 0U) && !gtwa->SDOdataCopyStatus) {
-                CO_SDOclientDownloadInitiateSize(gtwa->SDO_C, size);
+                CO_SDOclientDownloadInitSize(gtwa->SDO_C, size);
             }
 
             /* continue with state machine */
@@ -1214,7 +1214,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
             if (select == 0U) {
                 /* send non-confirmed message */
                 CO_LSSmaster_return_t ret;
-                ret = CO_LSSmaster_switchStateDeselect(gtwa->LSSmaster);
+                ret = CO_LSSmaster_swStateDeselect(gtwa->LSSmaster);
                 if (ret == CO_LSSmaster_OK) {
                     responseWithOK(gtwa);
                 }
@@ -1834,7 +1834,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0
     case CO_GTWA_ST_LSS_SWITCH_GLOB: {
         CO_LSSmaster_return_t ret;
-        ret = CO_LSSmaster_switchStateSelect(gtwa->LSSmaster,
+        ret = CO_LSSmaster_swStateSelect(gtwa->LSSmaster,
                                              timeDifference_us,
                                              NULL);
         if (ret != CO_LSSmaster_WAIT_SLAVE) {
@@ -1845,7 +1845,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
     }
     case CO_GTWA_ST_LSS_SWITCH_SEL: {
         CO_LSSmaster_return_t ret;
-        ret = CO_LSSmaster_switchStateSelect(gtwa->LSSmaster,
+        ret = CO_LSSmaster_swStateSelect(gtwa->LSSmaster,
                                              timeDifference_us,
                                              &gtwa->lssAddress);
         if (ret != CO_LSSmaster_WAIT_SLAVE) {
@@ -2062,7 +2062,7 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
         }
         if (gtwa->lssSubState >= 3U) { /* lss_switch_glob 0 */
             /* send non-confirmed message */
-            ret = CO_LSSmaster_switchStateDeselect(gtwa->LSSmaster);
+            ret = CO_LSSmaster_swStateDeselect(gtwa->LSSmaster);
             if (ret != CO_LSSmaster_OK) {
                 /* error occurred */
                 responseLSS(gtwa, ret);

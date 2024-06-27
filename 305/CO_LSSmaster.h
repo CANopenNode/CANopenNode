@@ -222,7 +222,7 @@ void CO_LSSmaster_initCallbackPre(
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
-CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
+CO_LSSmaster_return_t CO_LSSmaster_swStateSelect(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
         CO_LSS_address_t       *lssAddress);
@@ -240,7 +240,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_OK
  */
-CO_LSSmaster_return_t CO_LSSmaster_switchStateDeselect(
+CO_LSSmaster_return_t CO_LSSmaster_swStateDeselect(
         CO_LSSmaster_t         *LSSmaster);
 
 

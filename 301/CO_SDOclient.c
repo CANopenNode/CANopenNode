@@ -492,7 +492,7 @@ CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
 }
 
 
-void CO_SDOclientDownloadInitiateSize(CO_SDOclient_t *SDO_C,
+void CO_SDOclientDownloadInitSize(CO_SDOclient_t *SDO_C,
                                       size_t sizeIndicated)
 {
     if (SDO_C != NULL) {

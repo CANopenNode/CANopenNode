@@ -385,7 +385,7 @@ CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
  * @param SDO_C This object.
  * @param sizeIndicated Same as in CO_SDOclientDownloadInitiate().
  */
-void CO_SDOclientDownloadInitiateSize(CO_SDOclient_t *SDO_C,
+void CO_SDOclientDownloadInitSize(CO_SDOclient_t *SDO_C,
                                       size_t sizeIndicated);
 
 

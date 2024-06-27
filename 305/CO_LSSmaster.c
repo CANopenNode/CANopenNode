@@ -286,7 +286,7 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectWait(
 }
 
 /******************************************************************************/
-CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
+CO_LSSmaster_return_t CO_LSSmaster_swStateSelect(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
         CO_LSS_address_t       *lssAddress)
@@ -323,7 +323,7 @@ CO_LSSmaster_return_t CO_LSSmaster_switchStateSelect(
 
 
 /******************************************************************************/
-CO_LSSmaster_return_t CO_LSSmaster_switchStateDeselect(
+CO_LSSmaster_return_t CO_LSSmaster_swStateDeselect(
         CO_LSSmaster_t         *LSSmaster)
 {
     CO_LSSmaster_return_t ret = CO_LSSmaster_INVALID_STATE;
