@@ -158,6 +158,8 @@ typedef struct {
     uint32_t validationTime_us;
     /** cycle timer variable in microseconds */
     uint32_t cycleTimer;
+    /** inverted delay timer variable in microseconds */
+    uint32_t invertedDelay;
     /** validation timer variable in microseconds */
     uint32_t validationTimer;
     /** Data length of the received SRDO message. Calculated from mapping */
