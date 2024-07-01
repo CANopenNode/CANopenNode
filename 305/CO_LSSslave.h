@@ -30,7 +30,7 @@
 
 #include "305/CO_LSS.h"
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,9 +78,9 @@ extern "C" {
  * also be checked with CO->nodeIdUnconfigured variable.
  *
  * Some callback functions may be initialized by application with
- * CO_LSSslave_initCheckBitRateCallback(),
- * CO_LSSslave_initActivateBitRateCallback() and
- * CO_LSSslave_initCfgStoreCallback().
+ * CO_LSSslave_initCkBitRateCall(),
+ * CO_LSSslave_initActBitRateCall() and
+ * CO_LSSslave_initCfgStoreCall().
  */
 
 /**
@@ -88,7 +88,7 @@ extern "C" {
  */
 typedef struct{
     CO_LSS_address_t        lssAddress;       /**< From #CO_LSSslave_init */
-    CO_LSS_state_t          lssState;         /**< #CO_LSS_state_t */
+    uint8_t                 lssState;         /**< #CO_LSS_state_t */
     CO_LSS_address_t        lssSelect;        /**< Received LSS Address by select */
 
     CO_LSS_address_t        lssFastscan;      /**< Received LSS Address by fastscan */
@@ -99,18 +99,18 @@ typedef struct{
     uint8_t                 activeNodeID;     /**< Node ID used at the CAN interface */
 
     volatile void          *sendResponse;     /**< Variable indicates, if LSS response has to be sent by mainline processing function */
-    CO_LSS_cs_t             service;          /**< Service, which will have to be processed by mainline processing function */
+    uint8_t                 service;          /**< Service, which will have to be processed by mainline processing function */
     uint8_t                 CANdata[8];       /**< Received CAN data, which will be processed by mainline processing function */
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     void                  (*pFunctSignalPre)(void *object); /**< From CO_LSSslave_initCallbackPre() or NULL */
     void                   *functSignalObjectPre;/**< Pointer to object */
 #endif
-    bool_t                (*pFunctLSScheckBitRate)(void *object, uint16_t bitRate); /**< From CO_LSSslave_initCheckBitRateCallback() or NULL */
+    bool_t                (*pFunctLSScheckBitRate)(void *object, uint16_t bitRate); /**< From CO_LSSslave_initCkBitRateCall() or NULL */
     void                   *functLSScheckBitRateObject; /** Pointer to object */
-    void                  (*pFunctLSSactivateBitRate)(void *object, uint16_t delay); /**< From CO_LSSslave_initActivateBitRateCallback() or NULL. Delay is in ms */
+    void                  (*pFunctLSSactivateBitRate)(void *object, uint16_t delay); /**< From CO_LSSslave_initActBitRateCall() or NULL. Delay is in ms */
     void                   *functLSSactivateBitRateObject; /** Pointer to object */
-    bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate); /**< From CO_LSSslave_initCfgStoreCallback() or NULL */
+    bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate); /**< From CO_LSSslave_initCfgStoreCall() or NULL */
     void                   *functLSScfgStoreObject; /** Pointer to object */
 
     CO_CANmodule_t         *CANdevTx;         /**< From #CO_LSSslave_init() */
@@ -189,12 +189,12 @@ bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave);
  * @param LSSslave This object.
  * @return #CO_LSS_state_t
  */
-static inline CO_LSS_state_t CO_LSSslave_getState(CO_LSSslave_t *LSSslave) {
+static inline uint8_t CO_LSSslave_getState(CO_LSSslave_t *LSSslave) {
     return (LSSslave == NULL) ? CO_LSS_STATE_WAITING : LSSslave->lssState;
 }
 
 
-#if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize LSSslaveRx callback function.
  *
@@ -227,7 +227,7 @@ void CO_LSSslave_initCallbackPre(
  * @param object Pointer to object, which will be passed to pFunctLSScheckBitRate(). Can be NULL
  * @param pFunctLSScheckBitRate Pointer to the callback function. Not called if NULL.
  */
-void CO_LSSslave_initCheckBitRateCallback(
+void CO_LSSslave_initCkBitRateCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         bool_t                (*pFunctLSScheckBitRate)(void *object, uint16_t bitRate));
@@ -246,7 +246,7 @@ void CO_LSSslave_initCheckBitRateCallback(
  * @param object Pointer to object, which will be passed to pFunctLSSactivateBitRate(). Can be NULL
  * @param pFunctLSSactivateBitRate Pointer to the callback function. Not called if NULL.
  */
-void CO_LSSslave_initActivateBitRateCallback(
+void CO_LSSslave_initActBitRateCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         void                  (*pFunctLSSactivateBitRate)(void *object, uint16_t delay));
@@ -265,7 +265,7 @@ void CO_LSSslave_initActivateBitRateCallback(
  * @param object Pointer to object, which will be passed to pFunctLSScfgStore(). Can be NULL
  * @param pFunctLSScfgStore Pointer to the callback function. Not called if NULL.
  */
-void CO_LSSslave_initCfgStoreCallback(
+void CO_LSSslave_initCfgStoreCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
         bool_t                (*pFunctLSScfgStore)(void *object, uint8_t id, uint16_t bitRate));

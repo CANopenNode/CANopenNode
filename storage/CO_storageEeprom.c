@@ -26,7 +26,7 @@
 #include "storage/CO_eeprom.h"
 #include "301/crc16-ccitt.h"
 
-#if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
 
 /*
  * Function for writing data on "Store parameters" command - OD object 1010
@@ -45,7 +45,7 @@ static ODR_t storeEeprom(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
     /* Verify, if data in eeprom are equal */
     uint16_t crc_read = CO_eeprom_getCrcBlock(entry->storageModule,
                                               entry->eepromAddr, entry->len);
-    if (entry->crc != crc_read || !writeOk) {
+    if ((entry->crc != crc_read) || !writeOk) {
         return ODR_HW;
     }
 
@@ -63,7 +63,7 @@ static ODR_t storeEeprom(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule) {
                         (uint8_t *)&signatureRead,
                         entry->eepromAddrSignature,
                         sizeof(signatureRead));
-    if(signature != signatureRead || !writeOk) {
+    if((signature != signatureRead) || !writeOk) {
         return ODR_HW;
     }
 
@@ -83,7 +83,7 @@ static ODR_t restoreEeprom(CO_storage_entry_t *entry,
     bool_t writeOk;
 
     /* Write empty signature */
-    uint32_t signature = 0xFFFFFFFF;
+    uint32_t signature = 0xFFFFFFFFU;
     writeOk = CO_eeprom_writeBlock(entry->storageModule,
                                    (uint8_t *)&signature,
                                    entry->eepromAddrSignature,
@@ -95,7 +95,7 @@ static ODR_t restoreEeprom(CO_storage_entry_t *entry,
                         (uint8_t *)&signatureRead,
                         entry->eepromAddrSignature,
                         sizeof(signatureRead));
-    if(signature != signatureRead || !writeOk) {
+    if((signature != signatureRead) || !writeOk) {
         return ODR_HW;
     }
 
@@ -117,8 +117,8 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
     bool_t eepromOvf = false;
 
     /* verify arguments */
-    if (storage == NULL || entries == NULL || entriesCount == 0
-        || storageInitError == NULL
+    if ((storage == NULL) || (entries == NULL) || (entriesCount == 0U)
+        || (entriesCount > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT) || (storageInitError == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -127,7 +127,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
 
     /* Initialize storage hardware */
     if (!CO_eeprom_init(storageModule)) {
-        *storageInitError = 0xFFFFFFFF;
+        *storageInitError = 0xFFFFFFFFU;
         return CO_ERROR_DATA_CORRUPT;
     }
 
@@ -145,7 +145,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
     }
 
     /* Read entry signatures from the eeprom */
-    uint32_t signatures[entriesCount];
+    uint32_t signatures[CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT];
     size_t signaturesAddress = CO_eeprom_getAddr(storageModule,
                                                  false,
                                                  sizeof(signatures),
@@ -159,16 +159,16 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
     *storageInitError = 0;
     for (uint8_t i = 0; i < entriesCount; i++) {
         CO_storage_entry_t *entry = &entries[i];
-        bool_t isAuto = (entry->attr & CO_storage_auto) != 0;
+        bool_t isAuto = (entry->attr & (uint8_t)CO_storage_auto) != 0U;
 
         /* verify arguments */
-        if (entry->addr == NULL || entry->len == 0 || entry->subIndexOD < 2) {
+        if ((entry->addr == NULL) || (entry->len == 0U) || (entry->subIndexOD < 2U)) {
             *storageInitError = i;
             return CO_ERROR_ILLEGAL_ARGUMENT;
         }
 
         /* calculate addresses inside eeprom */
-        entry->eepromAddrSignature = signaturesAddress + sizeof(uint32_t) * i;
+        entry->eepromAddrSignature = signaturesAddress + (sizeof(uint32_t) * i);
         entry->eepromAddr = CO_eeprom_getAddr(storageModule,
                                               isAuto,
                                               entry->len,
@@ -211,7 +211,9 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
         /* additional info in case of error */
         if (dataCorrupt) {
             uint32_t errorBit = entry->subIndexOD;
-            if (errorBit > 31) errorBit = 31;
+            if (errorBit > 31U) {
+                errorBit = 31;
+            }
             *storageInitError |= ((uint32_t) 1) << errorBit;
             ret = CO_ERROR_DATA_CORRUPT;
         }
@@ -225,16 +227,17 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
 /******************************************************************************/
 void CO_storageEeprom_auto_process(CO_storage_t *storage, bool_t saveAll) {
     /* verify arguments */
-    if (storage == NULL || !storage->enabled) {
+    if ((storage == NULL) || !storage->enabled) {
         return;
     }
 
     /* loop through entries */
-    for (uint8_t i = 0; i < storage->entriesCount; i++) {
-        CO_storage_entry_t *entry = &storage->entries[i];
+    for (uint8_t n = 0; n < storage->entriesCount; n++) {
+        CO_storage_entry_t *entry = &storage->entries[n];
 
-        if ((entry->attr & CO_storage_auto) == 0)
+        if ((entry->attr & (uint8_t)CO_storage_auto) == 0U) {
             continue;
+        }
 
         if (saveAll) {
             /* update all bytes */

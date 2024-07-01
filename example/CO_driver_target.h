@@ -62,7 +62,7 @@ typedef double                  float64_t;
 /* Access to received CAN message */
 #define CO_CANrxMsg_readIdent(msg) ((uint16_t)0)
 #define CO_CANrxMsg_readDLC(msg)   ((uint8_t)0)
-#define CO_CANrxMsg_readData(msg)  ((uint8_t *)NULL)
+#define CO_CANrxMsg_readData(msg)  ((const uint8_t *)NULL)
 
 /* Received message object */
 typedef struct {

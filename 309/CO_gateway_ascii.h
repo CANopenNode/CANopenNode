@@ -39,7 +39,7 @@
 #define CO_CONFIG_GTW (0)
 #endif
 
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -149,13 +149,13 @@ lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\
 /** Size of response string buffer. This is intermediate buffer. If there is
  * larger amount of data to transfer, then multiple transfers will occur. */
 #ifndef CO_GTWA_RESP_BUF_SIZE
-#define CO_GTWA_RESP_BUF_SIZE 200
+#define CO_GTWA_RESP_BUF_SIZE 200U
 #endif
 
 
 /** Timeout time in microseconds for some internal states. */
 #ifndef CO_GTWA_STATE_TIMEOUT_TIME_US
-#define CO_GTWA_STATE_TIMEOUT_TIME_US 1200000
+#define CO_GTWA_STATE_TIMEOUT_TIME_US 1200000U
 #endif
 
 
@@ -263,7 +263,7 @@ typedef enum {
 } CO_GTWA_state_t;
 
 
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
 /*
  * CANopen Gateway-ascii data types structure
  */
@@ -286,7 +286,7 @@ typedef struct {
      * description of parameters see #CO_fifo_cpyTok2U8 */
     size_t (*dataTypeScan)(CO_fifo_t *dest,
                            CO_fifo_t *src,
-                           CO_fifo_st *status);
+                           uint8_t *status);
 } CO_GTWA_dataType_t;
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
 
@@ -343,7 +343,7 @@ typedef struct {
     CO_GTWA_state_t state;
     /** Timeout timer for the current state */
     uint32_t stateTimeoutTmr;
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
     /** SDO client object from CO_GTWA_init() */
     CO_SDOclient_t *SDO_C;
     /** Timeout time for SDO transfer in milliseconds, if no response */
@@ -357,11 +357,11 @@ typedef struct {
     /** Data type of variable in current SDO communication */
     const CO_GTWA_dataType_t *SDOdataType;
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0) || defined CO_DOXYGEN
     /** NMT object from CO_GTWA_init() */
     CO_NMT_t *NMT;
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0) || defined CO_DOXYGEN
     /** LSSmaster object from CO_GTWA_init() */
     CO_LSSmaster_t *LSSmaster;
     /** 128 bit number, uniquely identifying each node */
@@ -371,7 +371,7 @@ typedef struct {
     /** LSS bitrate parameter */
     uint16_t lssBitrate;
     /** LSS inquire parameter */
-    CO_LSS_cs_t lssInquireCs;
+    uint8_t lssInquireCs;
     /** LSS fastscan parameter */
     CO_LSSmaster_fastscan_t lssFastscan;
     /** LSS allnodes sub state parameter */
@@ -383,18 +383,18 @@ typedef struct {
     /** LSS allnodes timeout parameter */
     uint16_t lssTimeout_ms;
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0) || defined CO_DOXYGEN
     /** Message log buffer of usable size @ref CO_CONFIG_GTWA_LOG_BUF_SIZE */
     uint8_t logBuf[CO_CONFIG_GTWA_LOG_BUF_SIZE + 1];
     /** CO_fifo_t object for message log (not pointer) */
     CO_fifo_t logFifo;
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) != 0) || defined CO_DOXYGEN
     /** Offset, when printing help text */
     const char *helpString;
     size_t helpStringOffset;
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0) || defined CO_DOXYGEN
     /** CO_LEDs_t object for CANopen status LEDs imitation from CO_GTWA_init()*/
     CO_LEDs_t *LEDs;
     uint8_t ledStringPreviousIndex;
@@ -417,18 +417,18 @@ typedef struct {
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT
  */
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
                               CO_SDOclient_t* SDO_C,
                               uint16_t SDOclientTimeoutTime_ms,
                               bool_t SDOclientBlockTransfer,
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0) || defined CO_DOXYGEN
                               CO_NMT_t *NMT,
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0) || defined CO_DOXYGEN
                               CO_LSSmaster_t *LSSmaster,
 #endif
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0) || defined CO_DOXYGEN
                               CO_LEDs_t *LEDs,
 #endif
                               uint8_t dummy);
@@ -491,7 +491,7 @@ static inline size_t CO_GTWA_write(CO_GTWA_t* gtwa,
 }
 
 
-#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0) || defined CO_DOXYGEN
 /**
  * Print message log string into fifo buffer
  *
