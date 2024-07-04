@@ -106,7 +106,6 @@ configurationValidUnset(CO_SRDOGuard_t* SRDOGuard) {
         OD_size_t dummy;
 
         SRDOGuard->configurationValid = false;
-        SRDOGuard->privateConfigValid = false;
 
         OD_IO->write(&OD_IO->stream, &val, sizeof(val), &dummy);
     }
@@ -316,6 +315,13 @@ OD_write_13FE(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
         /* Data cannot be transferred or stored to the application because of the present device state. */
         return ODR_DATA_DEV_STATE;
     }
+    
+    uint8_t configurationValid = CO_getUint8(buf);
+    if( configurationValid == CO_SRDO_VALID_MAGIC ) {
+        SRDOGuard->configurationValid = true;
+    } else {
+        SRDOGuard->configurationValid = false;
+    }
 
     /* write value to the original location in the Object Dictionary */
     return OD_writeOriginal(stream, buf, count, countWritten);
@@ -352,7 +358,7 @@ CO_SRDO_initCallbackPre(CO_SRDO_t* SRDO, void* object, void (*pFunctSignalPre)(v
 #endif
 
 CO_ReturnError_t
-CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationValid,
+CO_SRDOGuard_init(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationValid,
                    OD_entry_t* OD_13FF_safetyConfigurationSignature, uint32_t* errInfo) {
     ODR_t odRet;
     uint8_t configurationValid;
@@ -364,6 +370,9 @@ CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationV
 
     /* clear object */
     (void)memset(SRDOGuard, 0, sizeof(CO_SRDOGuard_t));
+    
+    SRDOGuard->OD_13FE_entry = OD_13FE_configurationValid;
+    SRDOGuard->OD_13FF_entry = OD_13FF_safetyConfigurationSignature;
 
     /* Configure Object dictionary extensions */
     SRDOGuard->OD_13FE_extension.object = SRDOGuard;
@@ -385,28 +394,22 @@ CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationV
         }
         return CO_ERROR_OD_PARAMETERS;
     }
-    
+
     if (OD_get_u8(OD_13FE_configurationValid, 0, &configurationValid, true) != ODR_OK) {
         *errInfo = (((uint32_t)OD_getIndex(OD_13FE_configurationValid)) << 8) | 1U;
         return CO_ERROR_OD_PARAMETERS;
     }
-    
-    if (configurationValid == CO_SRDO_VALID_MAGIC) {
-        /* Private variable, erroneous SRDO initialization will clear this. */
-        SRDOGuard->privateConfigValid = true;
+    if( configurationValid == CO_SRDO_VALID_MAGIC ) {
+        SRDOGuard->configurationValid = true;
+    } else {
+        SRDOGuard->configurationValid = false;
     }
 
     return CO_ERROR_NO;
 }
 
 CO_ReturnError_t
-CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_t* OD, CO_EM_t* em, uint8_t nodeId,
-             uint16_t defaultCOB_ID, OD_entry_t* OD_130x_SRDOCommPar, OD_entry_t* OD_138x_SRDOMapPar,
-             OD_entry_t* OD_13FE_configurationValid, OD_entry_t* OD_13FF_safetyConfigurationSignature,
-             CO_CANmodule_t* CANdevRxNormal, CO_CANmodule_t* CANdevRxInverted, uint16_t CANdevRxIdxNormal,
-             uint16_t CANdevRxIdxInverted, CO_CANmodule_t* CANdevTxNormal, CO_CANmodule_t* CANdevTxInverted,
-             uint16_t CANdevTxIdxNormal, uint16_t CANdevTxIdxInverted, uint32_t* errInfo) {
-
+CO_SRDO_config( CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, uint32_t* errInfo) {
     CO_ReturnError_t ret = CO_ERROR_NO;
     uint32_t err = 0;
     bool_t configurationInProgress = false;
@@ -424,73 +427,41 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     uint8_t mappedObjectsCount = 0;
     uint32_t mapping[CO_SRDO_MAX_MAPPED_ENTRIES];
 
-    /* verify arguments */
-    if ((SRDO == NULL) || (SRDOGuard == NULL) || (OD == NULL) || (em == NULL) || (OD_130x_SRDOCommPar == NULL)
-        || (OD_138x_SRDOMapPar == NULL) || (OD_13FE_configurationValid == NULL) || (OD_13FF_safetyConfigurationSignature == NULL)
-        || (CANdevRxNormal == NULL) || (CANdevRxInverted == NULL) || (CANdevTxNormal == NULL) || (CANdevTxInverted == NULL)) {
-        ret = CO_ERROR_ILLEGAL_ARGUMENT;
-        err = 1;
-    }
-
-    /* clear object and configure some object variables */
-    if (err == 0U) {
-        (void)memset(SRDO, 0, sizeof(CO_SRDO_t));
-
-        SRDO->SRDOGuard = SRDOGuard;
-        SRDO->em = em;
-        SRDO->defaultCOB_ID = defaultCOB_ID;
-        SRDO->nodeId = nodeId;
-        SRDO->CANdevTx[0] = CANdevTxNormal;
-        SRDO->CANdevTx[1] = CANdevTxInverted;
-
-        /* Configure Object dictionary entry at index 0x1301+ */
-        SRDO->OD_communicationParam_ext.object = SRDO;
-        SRDO->OD_communicationParam_ext.read = OD_read_SRDO_communicationParam;
-        SRDO->OD_communicationParam_ext.write = OD_write_SRDO_communicationParam;
-        (void)OD_extension_init(OD_130x_SRDOCommPar, &SRDO->OD_communicationParam_ext);
-
-        /* Configure Object dictionary entry at index 0x1381+ */
-        SRDO->OD_mappingParam_extension.object = SRDO;
-        SRDO->OD_mappingParam_extension.read = OD_readOriginal;
-        SRDO->OD_mappingParam_extension.write = OD_write_SRDO_mappingParam;
-        (void)OD_extension_init(OD_138x_SRDOMapPar, &SRDO->OD_mappingParam_extension);
-    }
-
     /* Get variables from object Dictionary and verify it's structure. */
     if (err == 0U) {
-        if (OD_get_u8(OD_130x_SRDOCommPar, 0, &cp_highestSubindexSupported, true) != ODR_OK) {
-            err = ERR_INFO(0x1301UL + SRDO_Index, 0, 1);
-        }
-        else if (OD_get_u8(OD_130x_SRDOCommPar, 1, &informationDirection, true) != ODR_OK) {
-            err = ERR_INFO(0x1301UL + SRDO_Index, 1, 1);
-        }
-        else if (OD_get_u16(OD_130x_SRDOCommPar, 2, &safetyCycleTime, true) != ODR_OK) {
-            err = ERR_INFO(0x1301UL + SRDO_Index, 2, 1);
-        }
-        else if (OD_get_u8(OD_130x_SRDOCommPar, 3, &safetyRelatedValidationTime, true) != ODR_OK) {
-            err = ERR_INFO(0x1301UL + SRDO_Index, 3, 1);
-        }
-        else if (OD_get_u8(OD_130x_SRDOCommPar, 4, &transmissionType, true) != ODR_OK) {
-            err = ERR_INFO(0x1301UL + SRDO_Index, 4, 1);
-        }
-        else if (OD_get_u32(OD_130x_SRDOCommPar, 5, &COB_ID1_normal, true) != ODR_OK) {
-            err = ERR_INFO(0x1301UL + SRDO_Index, 5, 1);
-        }
-        else if (OD_get_u32(OD_130x_SRDOCommPar, 6, &COB_ID2_inverted, true) != ODR_OK) {
-            err = ERR_INFO(0x1301UL + SRDO_Index, 6, 1);
-        }
-        else if (OD_get_u8(OD_13FE_configurationValid, 0, &configurationValid, true) != ODR_OK) {
+        if (OD_get_u8(SRDOGuard->OD_13FE_entry, 0, &configurationValid, true) != ODR_OK) {
             err = ERR_INFO(0x13FEUL, 0, 1);
         }
-        else if (OD_get_u16(OD_13FF_safetyConfigurationSignature, SRDO_Index + 1U, &crcSignatureFromOD, true) != ODR_OK) {
+        else if (OD_get_u16(SRDOGuard->OD_13FF_entry, SRDO_Index + 1U, &crcSignatureFromOD, true) != ODR_OK) {
             err = ERR_INFO(0x13FFUL, SRDO_Index + 1UL, 1);
         }
-        else if (OD_get_u8(OD_138x_SRDOMapPar, 0, &mappedObjectsCount, true) != ODR_OK) {
+        else if (OD_get_u8(SRDO->OD_communicationParam_entry, 0, &cp_highestSubindexSupported, true) != ODR_OK) {
+            err = ERR_INFO(0x1301UL + SRDO_Index, 0, 1);
+        }
+        else if (OD_get_u8(SRDO->OD_communicationParam_entry, 1, &informationDirection, true) != ODR_OK) {
+            err = ERR_INFO(0x1301UL + SRDO_Index, 1, 1);
+        }
+        else if (OD_get_u16(SRDO->OD_communicationParam_entry, 2, &safetyCycleTime, true) != ODR_OK) {
+            err = ERR_INFO(0x1301UL + SRDO_Index, 2, 1);
+        }
+        else if (OD_get_u8(SRDO->OD_communicationParam_entry, 3, &safetyRelatedValidationTime, true) != ODR_OK) {
+            err = ERR_INFO(0x1301UL + SRDO_Index, 3, 1);
+        }
+        else if (OD_get_u8(SRDO->OD_communicationParam_entry, 4, &transmissionType, true) != ODR_OK) {
+            err = ERR_INFO(0x1301UL + SRDO_Index, 4, 1);
+        }
+        else if (OD_get_u32(SRDO->OD_communicationParam_entry, 5, &COB_ID1_normal, true) != ODR_OK) {
+            err = ERR_INFO(0x1301UL + SRDO_Index, 5, 1);
+        }
+        else if (OD_get_u32(SRDO->OD_communicationParam_entry, 6, &COB_ID2_inverted, true) != ODR_OK) {
+            err = ERR_INFO(0x1301UL + SRDO_Index, 6, 1);
+        }
+        else if (OD_get_u8(SRDO->OD_mappingParam_entry, 0, &mappedObjectsCount, true) != ODR_OK) {
             err = ERR_INFO(0x1381UL + SRDO_Index, 0, 1);
         }
         else {
             for (uint8_t i = 0; i < mappedObjectsCount; i++) {
-                if (OD_get_u32(OD_138x_SRDOMapPar, i+1U, &mapping[i], true) != ODR_OK) {
+                if (OD_get_u32(SRDO->OD_mappingParam_entry, i+1U, &mapping[i], true) != ODR_OK) {
                     err = ERR_INFO(0x1381UL + SRDO_Index, i+1UL, 1);
                     break;
                 }
@@ -498,7 +469,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
         }
 
         /* if OD contains default COB_IDs, add node-id */
-        if ((COB_ID1_normal == defaultCOB_ID) && (COB_ID2_inverted == ((uint32_t)defaultCOB_ID + 1UL)) && (nodeId <= 64U)) {
+        if ((COB_ID1_normal == SRDO->defaultCOB_ID) && (COB_ID2_inverted == ((uint32_t)SRDO->defaultCOB_ID + 1UL)) && (SRDO->nodeId <= 64U)) {
             uint32_t add = (uint32_t)SRDO->nodeId * 2U;
             COB_ID1_normal += add;
             COB_ID2_inverted += add;
@@ -602,7 +573,7 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
             /* find entry in the Object Dictionary */
             else {
                 OD_IO_t OD_IOcopy;
-                OD_entry_t *entry = OD_find(OD, index);
+                OD_entry_t *entry = OD_find(SRDO->OD, index);
                 ODR_t odRet = OD_getSub(entry, subIndex, &OD_IOcopy, false);
                 if (odRet != ODR_OK) {
                     err = ERR_INFO(0x1381UL + SRDO_Index, i + 1UL, 5);
@@ -644,9 +615,9 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
     /* Configure CAN tx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_TX)) {
-
-        SRDO->CANtxBuff[0] = CO_CANtxBufferInit(CANdevTxNormal, /* CAN device */
-                                                CANdevTxIdxNormal, /* index of specific buffer inside CAN module */
+        /* Normal Configuration */
+        SRDO->CANtxBuff[0] = CO_CANtxBufferInit(SRDO->CANdevTx[0], /* CAN device */
+                                                SRDO->CANdevTxIdx[0], /* index of specific buffer inside CAN module */
                                                 (uint16_t)COB_ID1_normal, /* CAN identifier */
                                                 false, /* rtr */
                                                 SRDO->dataLength, /* number of data bytes */
@@ -656,8 +627,9 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
             err = ERR_INFO(0x1301UL + SRDO_Index, 5, 10);
         }
 
-        SRDO->CANtxBuff[1] = CO_CANtxBufferInit(CANdevTxInverted, /* CAN device */
-                                                CANdevTxIdxInverted, /* index of specific buffer inside CAN module */
+        /* Inverted Configuration */
+        SRDO->CANtxBuff[1] = CO_CANtxBufferInit(SRDO->CANdevTx[1], /* CAN device */
+                                                SRDO->CANdevTxIdx[1], /* index of specific buffer inside CAN module */
                                                 (uint16_t)COB_ID2_inverted, /* CAN identifier */
                                                 false, /* rtr */
                                                 SRDO->dataLength, /* number of data bytes */
@@ -670,9 +642,9 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
 
     /* Configure CAN rx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_RX)) {
-
-        ret = CO_CANrxBufferInit(CANdevRxNormal, /* CAN device */
-                                 CANdevRxIdxNormal, /* rx buffer index */
+        /* Normal Configuration */
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0], /* CAN device */
+                                 SRDO->CANdevRxIdx[0], /* rx buffer index */
                                  (uint16_t)COB_ID1_normal, /* CAN identifier */
                                  0x7FF, /* mask */
                                  false, /* rtr */
@@ -683,8 +655,9 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
             err = ERR_INFO(0x1301UL + SRDO_Index, 5, 11);
         }
 
-        ret = CO_CANrxBufferInit(CANdevRxInverted, /* CAN device */
-                                 CANdevRxIdxInverted, /* rx buffer index */
+        /* Inverted Configuration */
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[1], /* CAN device */
+                                 SRDO->CANdevRxIdx[1], /* rx buffer index */
                                  (uint16_t)COB_ID2_inverted, /* CAN identifier */
                                  0x7FF, /* mask */
                                  false, /* rtr */
@@ -704,13 +677,70 @@ CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_
     }
     else {
         if (ret == CO_ERROR_NO) {
-            CO_errorReport(em, CO_EM_SRDO_CONFIGURATION, CO_EMC_DATA_SET, err);
+            CO_errorReport(SRDO->em, CO_EM_SRDO_CONFIGURATION, CO_EMC_DATA_SET, err);
             configurationValidUnset(SRDO->SRDOGuard);
         }
     }
 
+
     if (errInfo != NULL) {
         *errInfo = err;
+    }
+
+    return ret;
+}
+
+CO_ReturnError_t
+CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_t* OD, CO_EM_t* em, uint8_t nodeId,
+             uint16_t defaultCOB_ID, OD_entry_t* OD_130x_SRDOCommPar, OD_entry_t* OD_138x_SRDOMapPar,
+             CO_CANmodule_t* CANdevRxNormal, CO_CANmodule_t* CANdevRxInverted, uint16_t CANdevRxIdxNormal,
+             uint16_t CANdevRxIdxInverted, CO_CANmodule_t* CANdevTxNormal, CO_CANmodule_t* CANdevTxInverted,
+             uint16_t CANdevTxIdxNormal, uint16_t CANdevTxIdxInverted, uint32_t* errInfo) {
+
+    CO_ReturnError_t ret = CO_ERROR_NO;
+
+    /* verify arguments */
+    if ((SRDO == NULL) || (SRDOGuard == NULL) || (OD == NULL) || (em == NULL) 
+        || (OD_130x_SRDOCommPar == NULL) || (OD_138x_SRDOMapPar == NULL) 
+        || (CANdevRxNormal == NULL) || (CANdevRxInverted == NULL)
+        || (CANdevTxNormal == NULL) || (CANdevTxInverted == NULL)) {
+        ret = CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+    /* clear object and configure some object variables */
+    else {
+        (void)memset(SRDO, 0, sizeof(CO_SRDO_t));
+
+        SRDO->SRDOGuard = SRDOGuard;
+        SRDO->OD = OD;
+        SRDO->em = em;
+        SRDO->defaultCOB_ID = defaultCOB_ID;
+        SRDO->nodeId = nodeId;
+        SRDO->CANdevTx[0] = CANdevTxNormal;
+        SRDO->CANdevTx[1] = CANdevTxInverted;
+        SRDO->CANdevRx[0] = CANdevRxNormal;
+        SRDO->CANdevRx[1] = CANdevRxInverted;
+        
+        SRDO->CANdevTxIdx[0] = CANdevTxIdxNormal;
+        SRDO->CANdevTxIdx[1] = CANdevTxIdxInverted;
+        SRDO->CANdevRxIdx[0] = CANdevRxIdxNormal;
+        SRDO->CANdevRxIdx[1] = CANdevRxIdxInverted;
+        
+        SRDO->OD_communicationParam_entry = OD_130x_SRDOCommPar;
+        SRDO->OD_mappingParam_entry = OD_138x_SRDOMapPar;
+
+        /* Configure Object dictionary entry at index 0x1301+ */
+        SRDO->OD_communicationParam_ext.object = SRDO;
+        SRDO->OD_communicationParam_ext.read = OD_read_SRDO_communicationParam;
+        SRDO->OD_communicationParam_ext.write = OD_write_SRDO_communicationParam;
+        (void)OD_extension_init(OD_130x_SRDOCommPar, &SRDO->OD_communicationParam_ext);
+
+        /* Configure Object dictionary entry at index 0x1381+ */
+        SRDO->OD_mappingParam_extension.object = SRDO;
+        SRDO->OD_mappingParam_extension.read = OD_readOriginal;
+        SRDO->OD_mappingParam_extension.write = OD_write_SRDO_mappingParam;
+        (void)OD_extension_init(OD_138x_SRDOMapPar, &SRDO->OD_mappingParam_extension);
+
+        ret = CO_SRDO_config(SRDO, SRDO_Index, SRDOGuard, errInfo);
     }
 
     return ret;
