@@ -723,6 +723,7 @@ void CO_delete(CO_t *co) {
     CO_free(co->em_fifo);
 #endif
 
+
 #if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0
     CO_free(co->NGslave);
 #endif
@@ -1366,7 +1367,7 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0
     if (CO_GET_CNT(SRDO) > 0U) {
         CO_ReturnError_t err;
-        err = CO_SRDO_init_start(co->SRDOGuard,
+        err = CO_SRDOGuard_init(co->SRDOGuard,
                                  OD_GET(H13FE, OD_H13FE_SRDO_VALID),
                                  OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
                                  errInfo);
@@ -1387,8 +1388,6 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
                                ((i == 0U) ? CO_CAN_ID_SRDO_1 : 0U),
                                SRDOcomm,
                                SRDOmap,
-                               OD_GET(H13FE, OD_H13FE_SRDO_VALID),
-                               OD_GET(H13FF, OD_H13FF_SRDO_CHECKSUM),
                                co->CANmodule,
                                co->CANmodule,
                                CANdevRxIdx,
@@ -1402,8 +1401,6 @@ CO_ReturnError_t CO_CANopenInitSRDO(CO_t *co,
             SRDOcomm++;
             SRDOmap++;
         }
-
-        CO_SRDO_init_end(co->SRDOGuard);
     }
 #endif
 
@@ -1641,6 +1638,10 @@ CO_SRDO_state_t CO_process_SRDO(CO_t *co,
                                 uint32_t timeDifference_us,
                                 uint32_t *timerNext_us)
 {
+    static bool_t NMTisOperationalPrevius = false;
+    uint8_t i;
+    CO_ReturnError_t err;
+    
     if (co->nodeIdUnconfigured) {
         return CO_SRDO_state_unknown;
     }
@@ -1649,9 +1650,22 @@ CO_SRDO_state_t CO_process_SRDO(CO_t *co,
         CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
 
 
+    if( NMTisOperationalPrevius != NMTisOperational ) {
+        NMTisOperationalPrevius = NMTisOperational;
+        if( NMTisOperational ) {
+            for (i = 0; i < CO_GET_CNT(SRDO); i++) {
+                err = CO_SRDO_config(   &co->SRDO[i],
+                                        i,
+                                        co->SRDOGuard, NULL );
+                
+                if (err != CO_ERROR_NO) { return CO_SRDO_state_error_internal; }
+            }
+        }
+    }
+
     CO_SRDO_state_t lowestState = CO_SRDO_state_deleted;
 
-    for (uint16_t i = 0; i < CO_GET_CNT(SRDO); i++) {
+    for (i = 0; i < CO_GET_CNT(SRDO); i++) {
         CO_SRDO_state_t state = CO_SRDO_process(&co->SRDO[i],
                                                 timeDifference_us,
                                                 timerNext_us,
