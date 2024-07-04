@@ -743,6 +743,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
     if (NMTisOperational && (SRDO->informationDirection != CO_SRDO_INVALID) && SRDO->SRDOGuard->configurationValid
         && (SRDO->internalState >= CO_SRDO_state_unknown)) {
         SRDO->cycleTimer = (SRDO->cycleTimer > timeDifference_us) ? (SRDO->cycleTimer - timeDifference_us) : 0U;
+        SRDO->invertedDelay = (SRDO->invertedDelay > timeDifference_us) ? (SRDO->invertedDelay - timeDifference_us) : 0U;
         SRDO->validationTimer = (SRDO->validationTimer > timeDifference_us) ? (SRDO->validationTimer - timeDifference_us) : 0U;
 
         /* Detect transition to NMT operational */
@@ -759,8 +760,8 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
             SRDO->internalState = CO_SRDO_state_error_internal; /* should not happen */
         }
         else if (SRDO->informationDirection == CO_SRDO_TX) {
-            if (SRDO->cycleTimer == 0U) {
-                if (SRDO->nextIsNormal) {
+            if (SRDO->nextIsNormal) {
+                if (SRDO->cycleTimer == 0U) {
                     uint8_t *dataSRDO[2] = {&SRDO->CANtxBuff[0]->data[0], &SRDO->CANtxBuff[1]->data[0]};
                     size_t verifyLength[2] = { 0, 0 };
 
@@ -840,7 +841,9 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
 #endif
                         if (data_ok) {
                             if (CO_CANsend(SRDO->CANdevTx[0], SRDO->CANtxBuff[0]) == CO_ERROR_NO) {
-                                SRDO->cycleTimer = CO_CONFIG_SRDO_MINIMUM_DELAY;
+                                SRDO->cycleTimer = SRDO->cycleTime_us;   /* cycleTime_us is verified, result can't be <0 */
+                                SRDO->invertedDelay = CO_CONFIG_SRDO_MINIMUM_DELAY;
+                                SRDO->nextIsNormal = false;
                                 SRDO->internalState = CO_SRDO_state_communicationEstablished;
                             }
                             else {
@@ -848,16 +851,18 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                             }
                         }
                     }
-                } else {
+                }
+            } else {
+                if (SRDO->invertedDelay == 0U) {
                     if (CO_CANsend(SRDO->CANdevTx[1], SRDO->CANtxBuff[1]) == CO_ERROR_NO) {
-                        SRDO->cycleTimer = SRDO->cycleTime_us - CO_CONFIG_SRDO_MINIMUM_DELAY; /* cycleTime_us is verified, result can't be <0 */
+                        SRDO->nextIsNormal = true;
                     }
                     else {
                         SRDO->internalState = CO_SRDO_state_error_txFail;
                     }
                 }
-                SRDO->nextIsNormal = !SRDO->nextIsNormal;
             }
+
 #if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             if (timerNext_us != NULL) {
                 if (*timerNext_us > SRDO->cycleTimer) {
