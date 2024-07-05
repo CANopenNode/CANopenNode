@@ -326,7 +326,7 @@
  * Allocated memory must be reset to all zeros
  */
 #define CO_alloc(num, size)             calloc((num), (size))
-#define CO_free(ptr)                    free((ptr))
+#define CO_free(ptr)                    if(ptr) free((ptr))
 
 #endif
 
@@ -655,11 +655,13 @@ CO_t *CO_new(CO_config_t *config, uint32_t *heapMemoryUsed) {
 
 void CO_delete(CO_t *co) {
     if (co == NULL) {
+        DEBUG_PRINTF(NOTICE, "CO_delete: CO is NULL???!\r\n");
         return;
     }
-
+    DEBUG_PRINTF(NOTICE, "CO_delete: CAN module disable!\r\n");
     CO_CANmodule_disable(co->CANmodule);
 
+#if 0
     /* CANmodule */
     CO_free(co->CANtx);
     CO_free(co->CANrx);
@@ -741,6 +743,8 @@ void CO_delete(CO_t *co) {
 
     /* CANopen object */
     CO_free(co);
+#endif
+
 }
 #endif /* #ifndef CO_USE_GLOBALS */
 
@@ -1533,7 +1537,6 @@ CO_NMT_reset_cmd_t CO_process(CO_t *co,
                         timerNext_us);
     }
 #endif
-
     return reset;
 }
 
