@@ -616,24 +616,24 @@ CO_SRDO_config( CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, 
     /* Configure CAN tx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_TX)) {
         /* Normal Configuration */
-        SRDO->CANtxBuff[0] = CO_CANtxBufferInit(SRDO->CANdevTx[0], /* CAN device */
-                                                SRDO->CANdevTxIdx[0], /* index of specific buffer inside CAN module */
-                                                (uint16_t)COB_ID1_normal, /* CAN identifier */
-                                                false, /* rtr */
-                                                SRDO->dataLength, /* number of data bytes */
-                                                false); /* synchronous message flag bit */
+        SRDO->CANtxBuff[0] = CO_CANtxBufferInit(SRDO->CANdevTx[0],
+                                                SRDO->CANdevTxIdx[0],
+                                                (uint16_t)COB_ID1_normal,
+                                                false,
+                                                SRDO->dataLength,
+                                                false);
 
         if (SRDO->CANtxBuff[0] == NULL) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 5, 10);
         }
 
         /* Inverted Configuration */
-        SRDO->CANtxBuff[1] = CO_CANtxBufferInit(SRDO->CANdevTx[1], /* CAN device */
-                                                SRDO->CANdevTxIdx[1], /* index of specific buffer inside CAN module */
-                                                (uint16_t)COB_ID2_inverted, /* CAN identifier */
-                                                false, /* rtr */
-                                                SRDO->dataLength, /* number of data bytes */
-                                                false); /* synchronous message flag bit */
+        SRDO->CANtxBuff[1] = CO_CANtxBufferInit(SRDO->CANdevTx[1],
+                                                SRDO->CANdevTxIdx[1],
+                                                (uint16_t)COB_ID2_inverted,
+                                                false,
+                                                SRDO->dataLength,
+                                                false);
 
         if (SRDO->CANtxBuff[1] == NULL) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 6, 10);
@@ -643,26 +643,26 @@ CO_SRDO_config( CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, 
     /* Configure CAN rx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_RX)) {
         /* Normal Configuration */
-        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0], /* CAN device */
-                                 SRDO->CANdevRxIdx[0], /* rx buffer index */
-                                 (uint16_t)COB_ID1_normal, /* CAN identifier */
-                                 0x7FF, /* mask */
-                                 false, /* rtr */
-                                 (void*)SRDO, /* object passed to the receive function */
-                                 CO_SRDO_receive_normal); /* this function will process received message */
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0],
+                                 SRDO->CANdevRxIdx[0],
+                                 (uint16_t)COB_ID1_normal,
+                                 0x7FF,
+                                 false,
+                                 (void*)SRDO,
+                                 CO_SRDO_receive_normal);
 
         if (ret != CO_ERROR_NO) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 5, 11);
         }
 
         /* Inverted Configuration */
-        ret = CO_CANrxBufferInit(SRDO->CANdevRx[1], /* CAN device */
-                                 SRDO->CANdevRxIdx[1], /* rx buffer index */
-                                 (uint16_t)COB_ID2_inverted, /* CAN identifier */
-                                 0x7FF, /* mask */
-                                 false, /* rtr */
-                                 (void*)SRDO, /* object passed to the receive function */
-                                 CO_SRDO_receive_inverted); /* this function will process received message */
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[1],
+                                 SRDO->CANdevRxIdx[1],
+                                 (uint16_t)COB_ID2_inverted,
+                                 0x7FF,
+                                 false,
+                                 (void*)SRDO,
+                                 CO_SRDO_receive_inverted);
 
         if (ret != CO_ERROR_NO) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 6, 11);

@@ -411,22 +411,22 @@ CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
 
     /* configure SDO client CAN reception */
     CO_ReturnError_t ret = CO_CANrxBufferInit(
-            SDO_C->CANdevRx,        /* CAN device */
-            SDO_C->CANdevRxIdx,     /* rx buffer index */
-            CanIdS2C,               /* CAN identifier */
-            0x7FF,                  /* mask */
-            false,                      /* rtr */
-            (void*)SDO_C,           /* object passed to receive function */
-            CO_SDOclient_receive);  /* this function will process rx msg */
+            SDO_C->CANdevRx,
+            SDO_C->CANdevRxIdx,
+            CanIdS2C,
+            0x7FF,
+            false,
+            (void*)SDO_C,
+            CO_SDOclient_receive);
 
     /* configure SDO client CAN transmission */
     SDO_C->CANtxBuff = CO_CANtxBufferInit(
-            SDO_C->CANdevTx,        /* CAN device */
-            SDO_C->CANdevTxIdx,     /* index of buffer inside CAN module */
-            CanIdC2S,               /* CAN identifier */
-            false,                      /* rtr */
-            8,                      /* number of data bytes */
-            false);                     /* synchronous message flag bit */
+            SDO_C->CANdevTx,
+            SDO_C->CANdevTxIdx,
+            CanIdC2S,
+            false,
+            8,
+            false);
 
 
     if ((ret != CO_ERROR_NO) || (SDO_C->CANtxBuff == NULL)) {

@@ -146,13 +146,13 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
 
     /* configure NMT CAN reception */
     ret = CO_CANrxBufferInit(
-            NMT_CANdevRx,       /* CAN device */
-            NMT_rxIdx,          /* rx buffer index */
-            CANidRxNMT,         /* CAN identifier */
-            0x7FF,              /* mask */
-            false,                  /* rtr */
-            (void*)NMT,         /* object passed to receive function */
-            CO_NMT_receive);    /* this function will process received message*/
+            NMT_CANdevRx,
+            NMT_rxIdx,
+            CANidRxNMT,
+            0x7FF,
+            false,
+            (void*)NMT,
+            CO_NMT_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
@@ -161,12 +161,12 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     /* configure NMT CAN transmission */
     NMT->NMT_CANdevTx = NMT_CANdevTx;
     NMT->NMT_TXbuff = CO_CANtxBufferInit(
-            NMT_CANdevTx,       /* CAN device */
-            NMT_txIdx,          /* index of specific buffer inside CAN module */
-            CANidTxNMT,         /* CAN identifier */
-            false,                  /* rtr */
-            2,                  /* number of data bytes */
-            false);                 /* synchronous message flag bit */
+            NMT_CANdevTx,
+            NMT_txIdx,
+            CANidTxNMT,
+            false,
+            2,
+            false);
     if (NMT->NMT_TXbuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -175,12 +175,12 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
     /* configure HB CAN transmission */
     NMT->HB_CANdevTx = HB_CANdevTx;
     NMT->HB_TXbuff = CO_CANtxBufferInit(
-            HB_CANdevTx,        /* CAN device */
-            HB_txIdx,           /* index of specific buffer inside CAN module */
-            CANidTxHB,          /* CAN identifier */
-            false,                  /* rtr */
-            1,                  /* number of data bytes */
-            false);                 /* synchronous message flag bit */
+            HB_CANdevTx,
+            HB_txIdx,
+            CANidTxHB,
+            false,
+            1,
+            false);
     if (NMT->HB_TXbuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }

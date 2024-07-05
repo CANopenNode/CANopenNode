@@ -561,13 +561,13 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
             }
 
             CO_ReturnError_t ret = CO_CANrxBufferInit(
-                    PDO->CANdev,        /* CAN device */
-                    PDO->CANdevIdx,     /* rx buffer index */
-                    CAN_ID,             /* CAN identifier */
-                    0x7FF,              /* mask */
-                    false,                  /* rtr */
-                    (void*)RPDO,        /* object passed to receive function */
-                    CO_PDO_receive);    /* this function will process rx msg */
+                    PDO->CANdev,
+                    PDO->CANdevIdx,
+                    CAN_ID,
+                    0x7FF,
+                    false,
+                    (void*)RPDO,
+                    CO_PDO_receive);
 
             if (valid && (ret == CO_ERROR_NO)) {
                 PDO->valid = true;
@@ -707,13 +707,13 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
     }
 
     ret = CO_CANrxBufferInit(
-            CANdevRx,           /* CAN device */
-            CANdevRxIdx,        /* rx buffer index */
-            CAN_ID,             /* CAN identifier */
-            0x7FF,              /* mask */
-            false,                  /* rtr */
-            (void*)RPDO,        /* object passed to receive function */
-            CO_PDO_receive);    /* this function will process received message*/
+            CANdevRx,
+            CANdevRxIdx,
+            CAN_ID,
+            0x7FF,
+            false,
+            (void*)RPDO,
+            CO_PDO_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
@@ -996,13 +996,12 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
             }
 
             CO_CANtx_t *CANtxBuff = CO_CANtxBufferInit(
-                PDO->CANdev,      /* CAN device */
-                PDO->CANdevIdx,   /* index of specific buffer inside CAN mod. */
-                CAN_ID,           /* CAN identifier */
-                false,                /* rtr */
-                PDO->dataLength,  /* number of data bytes */
+                PDO->CANdev,
+                PDO->CANdevIdx,
+                CAN_ID,
+                false,
+                PDO->dataLength,
                 TPDO->transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240);
-                                  /* synchronous message flag */
 
             if (CANtxBuff == NULL) {
                 return ODR_DEV_INCOMPAT;
@@ -1176,13 +1175,13 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
     }
 
     TPDO->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,           /* CAN device */
-            CANdevTxIdx,        /* index of specific buffer inside CAN module */
-            CAN_ID,             /* CAN identifier */
-            false,                  /* rtr */
-            PDO->dataLength,    /* number of data bytes */
+            CANdevTx,
+            CANdevTxIdx,
+            CAN_ID,
+            false,
+            PDO->dataLength,
             TPDO->transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240);
-                                /* synchronous message flag bit */
+
     if (TPDO->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }

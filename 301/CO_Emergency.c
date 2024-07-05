@@ -109,12 +109,12 @@ static ODR_t OD_write_1014(OD_stream_t *stream, const void *buf,
     /* configure emergency message CAN transmission */
     if (newEnabled) {
         em->CANtxBuff = CO_CANtxBufferInit(
-            em->CANdevTx,       /* CAN device */
-            em->CANdevTxIdx,    /* index of specific buffer inside CAN module */
-            newCanId,           /* CAN identifier */
-            false,                  /* rtr */
-            8U,                 /* number of data bytes */
-            false);                 /* synchronous message flag bit */
+            em->CANdevTx,
+            em->CANdevTxIdx,
+            newCanId,
+            false,
+            8U,
+            false);
     }
 
     /* write value to the original location in the Object Dictionary */
@@ -462,12 +462,12 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->nodeId = nodeId;
 
     em->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,           /* CAN device */
-            CANdevTxIdx,        /* index of specific buffer inside CAN module */
-            producerCanId,      /* CAN identifier */
-            false,                  /* rtr */
-            8U,                 /* number of data bytes */
-            false);                 /* synchronous message flag bit */
+            CANdevTx,
+            CANdevTxIdx,
+            producerCanId,
+            false,
+            8U,
+            false);
 
     if (em->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -513,13 +513,13 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
     em->pFunctSignalRx = NULL;
     /* configure SDO server CAN reception */
     ret = CO_CANrxBufferInit(
-        CANdevRx,               /* CAN device */
-        CANdevRxIdx,            /* rx buffer index */
-        CO_CAN_ID_EMERGENCY,    /* CAN identifier */
-        0x780,                  /* mask */
-        false,                      /* rtr */
-        (void*)em,              /* object passed to receive function */
-        CO_EM_receive);         /* this function will process received message*/
+        CANdevRx,
+        CANdevRxIdx,
+        CO_CAN_ID_EMERGENCY,
+        0x780,
+        false,
+        (void*)em,
+        CO_EM_receive);
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER */
 
     return ret;

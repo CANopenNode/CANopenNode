@@ -133,13 +133,13 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
     /* configure TIME consumer message reception */
     if (TIME->isConsumer) {
         CO_ReturnError_t ret = CO_CANrxBufferInit(
-                CANdevRx,       /* CAN device */
-                CANdevRxIdx,    /* rx buffer index */
-                cobId,          /* CAN identifier */
-                0x7FF,          /* mask */
-                false,              /* rtr */
-                (void*)TIME,    /* object passed to receive function */
-                CO_TIME_receive);/*this function will process received message*/
+                CANdevRx,
+                CANdevRxIdx,
+                cobId,
+                0x7FF,
+                false,
+                (void*)TIME,
+                CO_TIME_receive);
         if (ret != CO_ERROR_NO) {
             return ret;
         }
@@ -149,12 +149,12 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
     /* configure TIME producer message transmission */
     TIME->CANdevTx = CANdevTx;
     TIME->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,           /* CAN device */
-            CANdevTxIdx,        /* index of specific buffer inside CAN module */
-            cobId,              /* CAN identifier */
-            false,                  /* rtr */
-            CO_TIME_MSG_LENGTH, /* number of data bytes */
-            false);                 /* synchronous message flag bit */
+            CANdevTx,
+            CANdevTxIdx,
+            cobId,
+            false,
+            CO_TIME_MSG_LENGTH,
+            false);
 
     if (TIME->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;

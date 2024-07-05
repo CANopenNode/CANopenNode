@@ -157,23 +157,23 @@ CO_ReturnError_t CO_LSSmaster_init(
 
     /* configure LSS CAN Slave response message reception */
     ret = CO_CANrxBufferInit(
-            CANdevRx,             /* CAN device */
-            CANdevRxIdx,          /* rx buffer index */
-            CANidLssSlave,        /* CAN identifier */
-            0x7FF,                /* mask */
-            false,                    /* rtr */
-            (void*)LSSmaster,     /* object passed to receive function */
-            CO_LSSmaster_receive);/* this function will process received message */
+            CANdevRx,
+            CANdevRxIdx,
+            CANidLssSlave,
+            0x7FF,
+            false,
+            (void*)LSSmaster,
+            CO_LSSmaster_receive);
 
     /* configure LSS CAN Master message transmission */
     LSSmaster->CANdevTx = CANdevTx;
     LSSmaster->TXbuff = CO_CANtxBufferInit(
-            CANdevTx,             /* CAN device */
-            CANdevTxIdx,          /* index of specific buffer inside CAN module */
-            CANidLssMaster,       /* CAN identifier */
-            false,                    /* rtr */
-            8,                    /* number of data bytes */
-            false);                   /* synchronous message flag bit */
+            CANdevTx,
+            CANdevTxIdx,
+            CANidLssMaster,
+            false,
+            8,
+            false);
 
     if (LSSmaster->TXbuff == NULL) {
         ret = CO_ERROR_ILLEGAL_ARGUMENT;

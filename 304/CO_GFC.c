@@ -100,12 +100,12 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
 
 #if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_PRODUCER) != 0
     GFC->CANdevTx = GFC_CANdevTx;
-    GFC->CANtxBuff = CO_CANtxBufferInit(GFC->CANdevTx, /* CAN device */
-                                        GFC_txIdx,     /* index of specific buffer inside CAN module */
-                                        CANidTxGFC,    /* CAN identifier */
-                                        false,             /* rtr */
-                                        0,             /* number of data bytes */
-                                        false);            /* synchronous message flag bit */
+    GFC->CANtxBuff = CO_CANtxBufferInit(GFC->CANdevTx,
+                                        GFC_txIdx,
+                                        CANidTxGFC,
+                                        false,
+                                        0,
+                                        false);
 
     if (GFC->CANtxBuff == NULL) {
         return CO_ERROR_TX_UNCONFIGURED;
@@ -118,13 +118,13 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
 #if ((CO_CONFIG_GFC) & CO_CONFIG_GFC_CONSUMER) != 0
     GFC->functSignalObjectSafe = NULL;
     GFC->pFunctSignalSafe = NULL;
-    const CO_ReturnError_t r = CO_CANrxBufferInit(GFC_CANdevRx,    /* CAN device */
-                                                  GFC_rxIdx,       /* rx buffer index */
-                                                  CANidRxGFC,      /* CAN identifier */
-                                                  0x7FF,           /* mask */
-                                                  false,               /* rtr */
-                                                  (void*)GFC,      /* object passed to receive function */
-                                                  CO_GFC_receive); /* this function will process received message */
+    const CO_ReturnError_t r = CO_CANrxBufferInit(GFC_CANdevRx,
+                                                  GFC_rxIdx,
+                                                  CANidRxGFC,
+                                                  0x7FF,
+                                                  false,
+                                                  (void*)GFC,
+                                                  CO_GFC_receive);
     if (r != CO_ERROR_NO) {
         return r;
     }

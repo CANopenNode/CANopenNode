@@ -176,13 +176,13 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
 
     /* configure CAN reception */
     ret = CO_CANrxBufferInit(
-            CANdevRx,           /* CAN device */
-            CANdevRxIdx,        /* rx buffer index */
-            CANidNodeGuarding,  /* CAN identifier */
-            0x7FF,              /* mask */
-            true,               /* rtr */
-            (void*)ngs,         /* object passed to receive function */
-            CO_ngs_receive);    /* this function will process received message*/
+            CANdevRx,
+            CANdevRxIdx,
+            CANidNodeGuarding,
+            0x7FF,
+            true,
+            (void*)ngs,
+            CO_ngs_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
@@ -190,12 +190,12 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     /* configure CAN transmission */
     ngs->CANdevTx = CANdevTx;
     ngs->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,           /* CAN device */
-            CANdevTxIdx,        /* index of specific buffer inside CAN module */
-            CANidNodeGuarding,  /* CAN identifier */
-            false,                  /* rtr */
-            1,                  /* number of data bytes */
-            false);                 /* synchronous message flag bit */
+            CANdevTx,
+            CANdevTxIdx,
+            CANidNodeGuarding,
+            false,
+            1,
+            false);
     if (ngs->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -334,13 +334,13 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
     /* configure CAN reception. One buffer will receive all messages
      * from CAN-id 0x700 to 0x7FF. */
     ret = CO_CANrxBufferInit(
-            CANdevRx,           /* CAN device */
-            CANdevRxIdx,        /* rx buffer index */
-            CO_CAN_ID_HEARTBEAT,/* CAN identifier = 0x700 */
-            0x780,              /* mask - accept any combination of lower 7 bits*/
-            false,              /* rtr */
-            (void*)ngm,         /* object passed to receive function */
-            CO_ngm_receive);    /* this function will process received message*/
+            CANdevRx,
+            CANdevRxIdx,
+            CO_CAN_ID_HEARTBEAT,
+            0x780,
+            false,
+            (void*)ngm,
+            CO_ngm_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
@@ -349,12 +349,12 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
     ngm->CANdevTx = CANdevTx;
     ngm->CANdevTxIdx = CANdevTxIdx;
     ngm->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,           /* CAN device */
-            CANdevTxIdx,        /* index of specific buffer inside CAN module */
-            CO_CAN_ID_HEARTBEAT,/* CAN identifier - will be changed later.*/
-            true,               /* rtr */
-            1,                  /* number of data bytes (rtr indication only) */
-            0);                 /* synchronous message flag bit */
+            CANdevTx,
+            CANdevTxIdx,
+            CO_CAN_ID_HEARTBEAT,
+            true,
+            1,
+            0);
     if (ngm->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }

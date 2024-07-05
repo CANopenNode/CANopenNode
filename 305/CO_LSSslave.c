@@ -241,23 +241,23 @@ CO_ReturnError_t CO_LSSslave_init(
 
     /* configure LSS CAN Master message reception */
     ret = CO_CANrxBufferInit(
-            CANdevRx,             /* CAN device */
-            CANdevRxIdx,          /* rx buffer index */
-            CANidLssMaster,       /* CAN identifier */
-            0x7FF,                /* mask */
-            false,                    /* rtr */
-            (void*)LSSslave,      /* object passed to receive function */
-            CO_LSSslave_receive); /* this function will process received message */
+            CANdevRx,
+            CANdevRxIdx,
+            CANidLssMaster,
+            0x7FF,
+            false,
+            (void*)LSSslave,
+            CO_LSSslave_receive);
 
     /* configure LSS CAN Slave response message transmission */
     LSSslave->CANdevTx = CANdevTx;
     LSSslave->TXbuff = CO_CANtxBufferInit(
-            CANdevTx,             /* CAN device */
-            CANdevTxIdx,          /* index of specific buffer inside CAN module */
-            CANidLssSlave,        /* CAN identifier */
-            false,                    /* rtr */
-            8,                    /* number of data bytes */
-            false);                   /* synchronous message flag bit */
+            CANdevTx,
+            CANdevTxIdx,
+            CANidLssSlave,
+            false,
+            8,
+            false);
 
     if (LSSslave->TXbuff == NULL) {
         ret = CO_ERROR_ILLEGAL_ARGUMENT;
