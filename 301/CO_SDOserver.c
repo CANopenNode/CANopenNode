@@ -667,7 +667,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
         if ((SDO->OD_IO.stream.attribute & ODA_MB) != 0) {
             if (SDO->finished) {
                 /* int16_t .. uint64_t */
-                reverseBytes(bufShifted, countRd);
+                reverseBytes(&SDO->buf[countRemain], countRd);
             }
             else {
                 *abortCode = CO_SDO_AB_PRAM_INCOMPAT;
@@ -680,7 +680,7 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) != 0
         /* update the crc */
         if (calculateCrc && SDO->block_crcEnabled) {
-            SDO->block_crc = crc16_ccitt(bufShifted, countRd, SDO->block_crc);
+            SDO->block_crc = crc16_ccitt(&SDO->buf[countRemain], countRd, SDO->block_crc);
         }
 #endif
 
@@ -1183,9 +1183,9 @@ CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
             case CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP:
             case CO_SDO_ST_UPLOAD_BLK_END_SREQ:
             case CO_SDO_ST_UPLOAD_BLK_END_CRSP:
-                
+
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED) == 0
-            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ: 
+            case CO_SDO_ST_DOWNLOAD_SEGMENT_REQ:
             case CO_SDO_ST_UPLOAD_SEGMENT_REQ:
 #endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_SEGMENTED */
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK) == 0
