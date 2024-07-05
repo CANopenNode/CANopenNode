@@ -25,7 +25,7 @@
 
 #include "301/CO_Node_Guarding.h"
 
-#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE
+#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0
 
 /*
  * Read received message from CAN module.
@@ -50,8 +50,8 @@ static void CO_ngs_receive(void *object, void *msg) {
 static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint16_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
+        || (count != sizeof(uint16_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -59,11 +59,11 @@ static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
     CO_nodeGuardingSlave_t *ngs = (CO_nodeGuardingSlave_t *)stream->object;
 
     /* update objects */
-    ngs->guardTime_us = (uint32_t)CO_getUint16(buf) * 1000;
+    ngs->guardTime_us = (uint32_t)CO_getUint16(buf) * 1000U;
     ngs->lifeTime_us = ngs->guardTime_us * ngs->lifeTimeFactor;
 
     /* reset running timer */
-    if (ngs->lifeTimer > 0) {
+    if (ngs->lifeTimer > 0U) {
         ngs->lifeTimer = ngs->lifeTime_us;
     }
 
@@ -80,8 +80,8 @@ static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
 static ODR_t OD_write_100D(OD_stream_t *stream, const void *buf,
                            OD_size_t count, OD_size_t *countWritten)
 {
-    if (stream == NULL || stream->subIndex != 0 || buf == NULL
-        || count != sizeof(uint8_t) || countWritten == NULL
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
+        || (count != sizeof(uint8_t)) || (countWritten == NULL)
     ) {
         return ODR_DEV_INCOMPAT;
     }
@@ -93,7 +93,7 @@ static ODR_t OD_write_100D(OD_stream_t *stream, const void *buf,
     ngs->lifeTime_us = ngs->guardTime_us * ngs->lifeTimeFactor;
 
     /* reset running timer */
-    if (ngs->lifeTimer > 0) {
+    if (ngs->lifeTimer > 0U) {
         ngs->lifeTimer = ngs->lifeTime_us;
     }
 
@@ -117,14 +117,14 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
-    if (ngs == NULL || em == NULL || CANdevRx == NULL || CANdevTx == NULL
-        || OD_100C_GuardTime == NULL || OD_100D_LifeTimeFactor == NULL
+    if ((ngs == NULL) || (em == NULL) || (CANdevRx == NULL) || (CANdevTx == NULL)
+        || (OD_100C_GuardTime == NULL) || (OD_100D_LifeTimeFactor == NULL)
     ) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     /* clear the object */
-    memset(ngs, 0, sizeof(CO_nodeGuardingSlave_t));
+    (void)memset(ngs, 0, sizeof(CO_nodeGuardingSlave_t));
 
     /* Configure object variables */
     ngs->em = em;
@@ -133,17 +133,21 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     uint16_t guardTime_ms;
     ODR_t odRet = OD_get_u16(OD_100C_GuardTime, 0, &guardTime_ms, true);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_100C_GuardTime);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_100C_GuardTime);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
-    ngs->guardTime_us = (uint32_t)guardTime_ms * 1000;
+    ngs->guardTime_us = (uint32_t)guardTime_ms * 1000U;
 
     ngs->OD_100C_extension.object = ngs;
     ngs->OD_100C_extension.read = OD_readOriginal;
     ngs->OD_100C_extension.write = OD_write_100C;
     odRet = OD_extension_init(OD_100C_GuardTime, &ngs->OD_100C_extension);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_100C_GuardTime);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_100C_GuardTime);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -151,7 +155,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     uint8_t lifeTimeFactor;
     odRet = OD_get_u8(OD_100D_LifeTimeFactor, 0, &lifeTimeFactor, true);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_100D_LifeTimeFactor);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_100D_LifeTimeFactor);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
     ngs->lifeTimeFactor = lifeTimeFactor;
@@ -162,7 +168,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     ngs->OD_100D_extension.write = OD_write_100D;
     odRet = OD_extension_init(OD_100D_LifeTimeFactor, &ngs->OD_100D_extension);
     if (odRet != ODR_OK) {
-        if (errInfo != NULL) *errInfo = OD_getIndex(OD_100D_LifeTimeFactor);
+        if (errInfo != NULL) {
+            *errInfo = OD_getIndex(OD_100D_LifeTimeFactor);
+        }
         return CO_ERROR_OD_PARAMETERS;
     }
 
@@ -185,9 +193,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
             CANdevTx,           /* CAN device */
             CANdevTxIdx,        /* index of specific buffer inside CAN module */
             CANidNodeGuarding,  /* CAN identifier */
-            0,                  /* rtr */
+            false,                  /* rtr */
             1,                  /* number of data bytes */
-            0);                 /* synchronous message flag bit */
+            false);                 /* synchronous message flag bit */
     if (ngs->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -219,13 +227,13 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
         /* send response */
         ngs->CANtxBuff->data[0] = (uint8_t) NMTstate;
         if (ngs->toggle) {
-            ngs->CANtxBuff->data[0] |= 0x80;
+            ngs->CANtxBuff->data[0] |= 0x80U;
             ngs->toggle = false;
         }
         else {
             ngs->toggle = true;
         }
-        CO_CANsend(ngs->CANdevTx, ngs->CANtxBuff);
+        (void)CO_CANsend(ngs->CANdevTx, ngs->CANtxBuff);
 
         if (ngs->lifeTimeTimeout) {
             /* error bit is shared with HB consumer */
@@ -237,10 +245,10 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
     }
 
     /* verify "Life time" timeout and update the timer */
-    else if (ngs->lifeTimer > 0) {
+    else if (ngs->lifeTimer > 0U) {
         if (timeDifference_us < ngs->lifeTimer) {
             ngs->lifeTimer -= timeDifference_us;
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT) != 0
             /* Calculate, when timeout expires */
             if (timerNext_us != NULL && *timerNext_us > ngs->lifeTimer) {
                 *timerNext_us = ngs->lifeTimer;
@@ -256,6 +264,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
                            CO_EMC_HEARTBEAT, 0);
         }
     }
+    else { /* MISRA C 2004 14.10 */ }
 
     return;
 }
@@ -265,7 +274,7 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
 
 
 
-#if (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE
+#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0
 /*
  * Read received message from CAN module.
  *
@@ -280,7 +289,7 @@ static void CO_ngm_receive(void *object, void *msg) {
     CO_nodeGuardingMaster_t *ngm = (CO_nodeGuardingMaster_t*)object;
 
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t *data = CO_CANrxMsg_readData(msg);
     uint16_t ident = CO_CANrxMsg_readIdent(msg);
     CO_nodeGuardingMasterNode_t *node = &ngm->nodes[0];
 
@@ -317,7 +326,7 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
     }
 
     /* clear the object */
-    memset(ngm, 0, sizeof(CO_nodeGuardingMaster_t));
+    (void)memset(ngm, 0, sizeof(CO_nodeGuardingMaster_t));
 
     /* Configure object variables */
     ngm->em = em;
@@ -402,7 +411,7 @@ void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
         if (node->guardTime_us > 0 && node->ident > CO_CAN_ID_HEARTBEAT) {
             if (timeDifference_us < node->guardTimer) {
                 node->guardTimer -= timeDifference_us;
-#if (CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT
+#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT) != 0
                 /* Calculate, when timeout expires */
                 if (timerNext_us != NULL && *timerNext_us > node->guardTimer) {
                     *timerNext_us = node->guardTimer;
@@ -436,7 +445,7 @@ void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
                                                         node->ident,
                                                         true, 1, 0);
 #endif
-                    CO_CANsend(ngm->CANdevTx, ngm->CANtxBuff);
+                    (void)CO_CANsend(ngm->CANdevTx, ngm->CANtxBuff);
                     node->CANtxWasBusy = false;
                     node->responseRecived = false;
                     node->guardTimer = node->guardTime_us;

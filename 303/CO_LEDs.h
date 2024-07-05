@@ -35,7 +35,7 @@
                         CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
-#if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,21 +73,25 @@ extern "C" {
  * available for implementing custom leds.
  */
 
-/** Bitfield for combining with red or green led */
-typedef enum {
-    CO_LED_flicker = 0x01,  /**< LED flickering 10Hz */
-    CO_LED_blink   = 0x02,  /**< LED blinking 2,5Hz */
-    CO_LED_flash_1 = 0x04,  /**< LED single flash */
-    CO_LED_flash_2 = 0x08,  /**< LED double flash */
-    CO_LED_flash_3 = 0x10,  /**< LED triple flash */
-    CO_LED_flash_4 = 0x20,  /**< LED quadruple flash */
-    CO_LED_CANopen = 0x80   /**< LED CANopen according to CiA 303-3 */
-} CO_LED_BITFIELD_t;
+/**
+ * @defgroup CO_LED_BITFIELD_t Bitfield for combining with red or green led
+ * @{
+ * 
+ */
+#define CO_LED_flicker  0x01U  /**< LED flickering 10Hz */
+#define CO_LED_blink    0x02U  /**< LED blinking 2,5Hz */
+#define CO_LED_flash_1  0x04U  /**< LED single flash */
+#define CO_LED_flash_2  0x08U  /**< LED double flash */
+#define CO_LED_flash_3  0x10U  /**< LED triple flash */
+#define CO_LED_flash_4  0x20U  /**< LED quadruple flash */
+#define CO_LED_CANopen  0x80U  /**< LED CANopen according to CiA 303-3 */
+
+/** @} */ /* CO_LED_BITFIELD_t */
 
 /** Get on/off state for green led for specified bitfield */
-#define CO_LED_RED(LEDs, BITFIELD) (((LEDs)->LEDred & BITFIELD) ? 1 : 0)
+#define CO_LED_RED(LEDs, BITFIELD) ((((LEDs)->LEDred & BITFIELD) != 0U) ? 1U : 0U)
 /** Get on/off state for green led for specified bitfield */
-#define CO_LED_GREEN(LEDs, BITFIELD) (((LEDs)->LEDgreen & BITFIELD) ? 1 : 0)
+#define CO_LED_GREEN(LEDs, BITFIELD) ((((LEDs)->LEDgreen & BITFIELD) != 0U) ? 1U : 0U)
 
 
 /**

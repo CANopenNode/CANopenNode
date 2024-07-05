@@ -50,7 +50,7 @@ typedef uint8_t OD_attr_t;
 
 #ifndef OD_FLAGS_PDO_SIZE
 /** Size of of flagsPDO variable inside @ref OD_extension_t, from 0 to 32. */
-#define OD_FLAGS_PDO_SIZE 4
+#define OD_FLAGS_PDO_SIZE 4U
 #endif
 
 #ifndef CO_PROGMEM
@@ -118,17 +118,17 @@ typedef enum {
  * Attributes (bit masks) for OD sub-object.
  */
 typedef enum {
-    ODA_SDO_R = 0x01, /**< SDO server may read from the variable */
-    ODA_SDO_W = 0x02, /**< SDO server may write to the variable */
-    ODA_SDO_RW = 0x03, /**< SDO server may read from or write to the variable */
-    ODA_TPDO = 0x04, /**< Variable is mappable into TPDO (can be read) */
-    ODA_RPDO = 0x08, /**< Variable is mappable into RPDO (can be written) */
-    ODA_TRPDO = 0x0C, /**< Variable is mappable into TPDO or RPDO */
-    ODA_TSRDO = 0x10, /**< Variable is mappable into transmitting SRDO */
-    ODA_RSRDO = 0x20, /**< Variable is mappable into receiving SRDO */
-    ODA_TRSRDO = 0x30, /**< Variable is mappable into tx or rx SRDO */
-    ODA_MB = 0x40, /**< Variable is multi-byte ((u)int16_t to (u)int64_t) */
-    ODA_STR = 0x80 /**< Shorter value, than specified variable size, may be
+    ODA_SDO_R = 0x01U, /**< SDO server may read from the variable */
+    ODA_SDO_W = 0x02U, /**< SDO server may write to the variable */
+    ODA_SDO_RW = 0x03U, /**< SDO server may read from or write to the variable */
+    ODA_TPDO = 0x04U, /**< Variable is mappable into TPDO (can be read) */
+    ODA_RPDO = 0x08U, /**< Variable is mappable into RPDO (can be written) */
+    ODA_TRPDO = 0x0CU, /**< Variable is mappable into TPDO or RPDO */
+    ODA_TSRDO = 0x10U, /**< Variable is mappable into transmitting SRDO */
+    ODA_RSRDO = 0x20U, /**< Variable is mappable into receiving SRDO */
+    ODA_TRSRDO = 0x30U, /**< Variable is mappable into tx or rx SRDO */
+    ODA_MB = 0x40U, /**< Variable is multi-byte ((u)int16_t to (u)int64_t) */
+    ODA_STR = 0x80U /**< Shorter value, than specified variable size, may be
     written to the variable. SDO write will fill remaining memory with zeroes.
     Attribute is used for VISIBLE_STRING and UNICODE_STRING. */
 } OD_attributes_t;
@@ -437,7 +437,7 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
  * @return OD index
  */
 static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
-    return (entry != NULL) ? entry->index : 0;
+    return (entry != NULL) ? entry->index : 0U;
 }
 
 
@@ -453,7 +453,7 @@ static inline uint16_t OD_getIndex(const OD_entry_t *entry) {
  */
 static inline bool_t OD_mappable(OD_stream_t *stream) {
     return (stream != NULL)
-         ? (stream->attribute & (ODA_TRPDO | ODA_TRSRDO)) != 0 : false;
+         ? ((stream->attribute & ((OD_attr_t)ODA_TRPDO | (OD_attr_t)ODA_TRSRDO)) != 0U) : false;
 }
 
 
@@ -467,7 +467,7 @@ static inline bool_t OD_mappable(OD_stream_t *stream) {
  * @param stream Object Dictionary stream object.
  */
 static inline void OD_rwRestart(OD_stream_t *stream) {
-    if (stream != NULL) { stream->dataOffset = 0; }
+    if (stream != NULL) { stream->dataOffset = 0U; }
 }
 
 
@@ -482,11 +482,11 @@ static inline void OD_rwRestart(OD_stream_t *stream) {
  */
 static inline uint8_t *OD_getFlagsPDO(OD_entry_t *entry) {
 #if OD_FLAGS_PDO_SIZE > 0
-    if (entry != NULL && entry->extension != NULL) {
+    if ((entry != NULL) && (entry->extension != NULL)) {
         return &entry->extension->flagsPDO[0];
     }
 #endif
-    return 0;
+    return NULL;
 }
 
 
@@ -509,9 +509,9 @@ static inline uint8_t *OD_getFlagsPDO(OD_entry_t *entry) {
  */
 static inline void OD_requestTPDO(uint8_t *flagsPDO, uint8_t subIndex) {
 #if OD_FLAGS_PDO_SIZE > 0
-    if (flagsPDO != NULL && subIndex < (OD_FLAGS_PDO_SIZE * 8)) {
+    if ((flagsPDO != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
         /* clear subIndex-th bit */
-        uint8_t mask = ~(1 << (subIndex & 0x07));
+        uint8_t mask = ~(1U << (subIndex & 0x07U));
         flagsPDO[subIndex >> 3] &= mask;
     }
 #endif
@@ -531,10 +531,10 @@ static inline void OD_requestTPDO(uint8_t *flagsPDO, uint8_t subIndex) {
  */
 static inline bool_t OD_TPDOtransmitted(uint8_t *flagsPDO, uint8_t subIndex) {
 #if OD_FLAGS_PDO_SIZE > 0
-    if (flagsPDO != NULL && subIndex < (OD_FLAGS_PDO_SIZE * 8)) {
+    if ((flagsPDO != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
         /* return true, if subIndex-th bit is set */
-        uint8_t mask = 1 << (subIndex & 0x07);
-        if ((flagsPDO[subIndex >> 3] & mask) != 0) {
+        uint8_t mask = 1U << (subIndex & 0x07U);
+        if ((flagsPDO[subIndex >> 3] & mask) != 0U) {
             return true;
         }
     }

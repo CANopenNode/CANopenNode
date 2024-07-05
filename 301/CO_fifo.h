@@ -33,7 +33,7 @@
 #define CO_CONFIG_FIFO (0)
 #endif
 
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,11 +68,11 @@ typedef struct {
     size_t writePtr;
     /** Location in the buffer, which will be next read. */
     size_t readPtr;
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) != 0) || defined CO_DOXYGEN
     /** Location in the buffer, which will be next read. */
     size_t altReadPtr;
 #endif
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) != 0) || defined CO_DOXYGEN
     /** helper variable, set to false in CO_fifo_reset(), used in some
      * functions. */
     bool_t started;
@@ -103,7 +103,7 @@ static inline void CO_fifo_reset(CO_fifo_t *fifo) {
     if (fifo != NULL) {
         fifo->readPtr = 0;
         fifo->writePtr = 0;
-#if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES
+#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) != 0
         fifo->started = false;
 #endif
     }
@@ -267,7 +267,7 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
 size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof);
 
 
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) != 0) || defined CO_DOXYGEN
 /**
  * Initializes alternate read with #CO_fifo_altRead
  *
@@ -326,7 +326,7 @@ size_t CO_fifo_altRead(CO_fifo_t *fifo, uint8_t *buf, size_t count);
 #endif /* #if (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ */
 
 
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) != 0) || defined CO_DOXYGEN
 /**
  * Search command inside FIFO
  *
@@ -411,12 +411,12 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment);
 size_t CO_fifo_readToken(CO_fifo_t *fifo,
                          char *buf,
                          size_t count,
-                         int8_t *closed,
+                         uint8_t *closed,
                          bool_t *err);
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
 
-#if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) || defined CO_DOXYGEN
+#if (((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) != 0) || defined CO_DOXYGEN
 /**
  * Read uint8_t variable from fifo and output as ascii string.
  *
@@ -471,64 +471,61 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end);
 
 
 /** Bitfields for status argument from CO_fifo_cpyTok2U8 function and similar */
-typedef enum {
-    /** Bit is set, if command delimiter is reached in src */
-    CO_fifo_st_closed  = 0x01U,
-    /** Bit is set, if copy was partial and more data are available. If unset
-     * and no error, then all data was successfully copied. */
-    CO_fifo_st_partial = 0x02U,
-    /** Bit is set, if no valid token found */
-    CO_fifo_st_errTok  = 0x10U,
-    /** Bit is set, if value is not valid or out of limits */
-    CO_fifo_st_errVal  = 0x20U,
-    /** Bit is set, if destination buffer is to small */
-    CO_fifo_st_errBuf  = 0x40U,
-    /** Bit is set, if internal error */
-    CO_fifo_st_errInt  = 0x80U,
-    /** Bitmask for error bits */
-    CO_fifo_st_errMask = 0xF0U
-} CO_fifo_st;
+
+
+/**
+ * @defgroup uint8_t Bitfields for status argument from CO_fifo_cpyTok2U8 function and similar
+ * @{
+  */
+#define CO_fifo_st_closed   0x01U  /**< Bit is set, if command delimiter is reached in src */
+#define CO_fifo_st_partial  0x02U  /**< Bit is set, if copy was partial and more data are available. If unset and no error, then all data was successfully copied. */
+#define CO_fifo_st_errTok   0x10U  /**< Bit is set, if no valid token found */
+#define CO_fifo_st_errVal   0x20U  /**< Bit is set, if value is not valid or out of limits */
+#define CO_fifo_st_errBuf   0x40U  /**< Bit is set, if destination buffer is to small */
+#define CO_fifo_st_errInt   0x80U  /**< Bit is set, if internal error */
+#define CO_fifo_st_errMask  0xF0U  /**< Bitmask for error bits */
+/** @} */ /* uint8_t */
 
 /**
  * Read ascii string from src fifo and copy as uint8_t variable to dest fifo.
  *
  * @param dest destination fifo buffer object.
  * @param src source fifo buffer object.
- * @param [out] status bitfield of the CO_fifo_st type.
+ * @param [out] status bitfield of the uint8_t type.
  *
  * @return Number of bytes written into dest.
  */
-size_t CO_fifo_cpyTok2U8 (CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2U8 (CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to uint16_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2U16(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to uint32_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2U32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to uint64_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2U64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to int8_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2I8 (CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2I8 (CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to int16_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2I16(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to int32_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2I32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to int64_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2I64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to float32_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2R32(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy ascii string to float64_t variable, see CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2R64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy bytes written as two hex digits into to data. Bytes may be space
  * separated. See CO_fifo_cpyTok2U8 for parameters. */
-size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2Hex(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Copy visible string to data. A visible string must be enclosed with double
  * quotes, if it contains space. If a double quote is used within the string,
  * the quotes are escaped by a second quotes. Input string can not contain
  * newline characters. See CO_fifo_cpyTok2U8 */
-size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2Vs(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 /** Read ascii mime-base64 encoded string from src fifo and copy as binary data
  * to dest fifo. Encoding is as specified in RFC 2045, without CR-LF, but one
  * long string in single line. See also CO_fifo_readU82a */
-size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, CO_fifo_st *status);
+size_t CO_fifo_cpyTok2B64(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status);
 
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES */
 

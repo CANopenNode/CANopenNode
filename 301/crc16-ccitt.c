@@ -25,8 +25,8 @@
 
 #include "301/crc16-ccitt.h"
 
-#if (CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE
-#if !((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_EXTERNAL)
+#if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE) != 0
+#if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_EXTERNAL) == 0
 
 /*
  * CRC table calculated by the following algorithm:
@@ -84,7 +84,7 @@ static const uint16_t crc16_ccitt_table[256] = {
 /******************************************************************************/
 void crc16_ccitt_single(uint16_t *crc, const uint8_t chr) {
     uint8_t tmp = (uint8_t)(*crc >> 8U) ^ chr;
-    *crc = (*crc << 8U) ^ crc16_ccitt_table[tmp];
+    *crc = (uint16_t)((*crc << 8U) ^ crc16_ccitt_table[tmp]);
 }
 
 
@@ -96,8 +96,8 @@ uint16_t crc16_ccitt(const uint8_t block[],
     size_t i;
 
     for (i = 0U; i < blockLength; i++) {
-        uint8_t tmp = (uint8_t)(crc >> 8U) ^ block[i];
-        crc = (crc << 8U) ^ crc16_ccitt_table[tmp];
+        uint8_t tmp = (uint8_t)((uint8_t)(crc >> 8U) ^ block[i]);
+        crc = (uint16_t)((crc << 8U) ^ crc16_ccitt_table[tmp]);
     }
     return crc;
 }

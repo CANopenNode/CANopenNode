@@ -34,7 +34,7 @@
 #define CO_CONFIG_CRC16 (0)
 #endif
 
-#if ((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {

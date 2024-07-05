@@ -38,7 +38,7 @@
                         CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
-#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,7 +72,7 @@ extern "C" {
 
 
 /** Length of the TIME message */
-#define CO_TIME_MSG_LENGTH 6
+#define CO_TIME_MSG_LENGTH 6U
 
 
 /**
@@ -95,7 +95,7 @@ typedef struct {
     bool_t isProducer;
     /** Variable indicates, if new TIME message received from CAN bus */
     volatile void *CANrxNew;
-#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0) || defined CO_DOXYGEN
     /** Interval for time producer in milli seconds */
     uint32_t producerInterval_ms;
     /** Sync producer timer */
@@ -105,13 +105,13 @@ typedef struct {
     /** CAN transmit buffer */
     CO_CANtx_t *CANtxBuff;
 #endif
-#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_TIME_initCallbackPre() or NULL */
     void (*pFunctSignalPre)(void *object);
     /** From CO_TIME_initCallbackPre() or NULL */
     void *functSignalObjectPre;
 #endif
-#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
     /** Extension for OD object */
     OD_extension_t OD_1012_extension;
 #endif
@@ -138,14 +138,14 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
                               OD_entry_t *OD_1012_cobIdTimeStamp,
                               CO_CANmodule_t *CANdevRx,
                               uint16_t CANdevRxIdx,
-#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0) || defined CO_DOXYGEN
                               CO_CANmodule_t *CANdevTx,
                               uint16_t CANdevTxIdx,
 #endif
                               uint32_t *errInfo);
 
 
-#if ((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize TIME callback function.
  *
@@ -182,7 +182,7 @@ static inline void CO_TIME_set(CO_TIME_t *TIME,
         TIME->residual_us = 0;
         TIME->ms = ms;
         TIME->days = days;
-#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER)
+#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0
         TIME->producerTimer_ms = TIME->producerInterval_ms =producerInterval_ms;
 #endif
     }

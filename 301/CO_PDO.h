@@ -43,7 +43,7 @@
                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
-#if ((CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE)) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE)) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -135,13 +135,13 @@ extern "C" {
 
 /** Maximum size of PDO message, 8 for standard CAN */
 #ifndef CO_PDO_MAX_SIZE
-#define CO_PDO_MAX_SIZE 8
+#define CO_PDO_MAX_SIZE 8U
 #endif
 
 /** Maximum number of entries, which can be mapped to PDO, 8 for standard CAN,
  * may be less to preserve RAM usage */
 #ifndef CO_PDO_MAX_MAPPED_ENTRIES
-#define CO_PDO_MAX_MAPPED_ENTRIES 8
+#define CO_PDO_MAX_MAPPED_ENTRIES 8U
 #endif
 
 /** Number of CANopen RPDO objects, which uses default CAN indentifiers.
@@ -152,7 +152,7 @@ extern "C" {
  * identifiers. In that case RPDO5 has CAN_ID=0x200+NodeId+1, RPDO6 has
  * CAN_ID=0x300+NodeId+1, RPDO9 has CAN_ID=0x200+NodeId+2 and so on. */
 #ifndef CO_RPDO_DEFAULT_CANID_COUNT
-#define CO_RPDO_DEFAULT_CANID_COUNT 4
+#define CO_RPDO_DEFAULT_CANID_COUNT 4U
 #endif
 
 /** Number of CANopen TPDO objects, which uses default CAN indentifiers.
@@ -161,7 +161,7 @@ extern "C" {
  * TPDO9 has CAN_ID=0x180+NodeId+2 and so on.
  * For description see @ref CO_RPDO_DEFAULT_CANID_COUNT. */
 #ifndef CO_TPDO_DEFAULT_CANID_COUNT
-#define CO_TPDO_DEFAULT_CANID_COUNT 4
+#define CO_TPDO_DEFAULT_CANID_COUNT 4U
 #endif
 
 #ifndef CO_PDO_OWN_TYPES
@@ -173,13 +173,13 @@ typedef uint8_t CO_PDO_size_t;
  * PDO transmission Types
  */
 typedef enum {
-    CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC = 0, /**< synchronous (acyclic) */
-    CO_PDO_TRANSM_TYPE_SYNC_1 = 1, /**< synchronous (cyclic every sync) */
-    CO_PDO_TRANSM_TYPE_SYNC_240 = 0xF0, /**< synchronous (cyclic every 240-th
+    CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC = 0U, /**< synchronous (acyclic) */
+    CO_PDO_TRANSM_TYPE_SYNC_1 = 1U, /**< synchronous (cyclic every sync) */
+    CO_PDO_TRANSM_TYPE_SYNC_240 = 0xF0U, /**< synchronous (cyclic every 240-th
     sync) */
-    CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO = 0xFE, /**< event-driven, lower value
+    CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO = 0xFEU, /**< event-driven, lower value
     (manufacturer specific),  */
-    CO_PDO_TRANSM_TYPE_SYNC_EVENT_HI = 0xFF /**< event-driven, higher value
+    CO_PDO_TRANSM_TYPE_SYNC_EVENT_HI = 0xFFU /**< event-driven, higher value
     (device profile and application profile specific) */
 } CO_PDO_transmissionTypes_t;
 
@@ -197,7 +197,7 @@ typedef struct {
     CO_PDO_size_t dataLength;
     /** Number of mapped objects in PDO */
     uint8_t mappedObjectsCount;
-#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS) != 0) || defined CO_DOXYGEN
     /** Object dictionary interface for all mapped entries. OD_IO.dataOffset has
      * special usage with PDO. It stores information about mappedLength of
      * the variable. mappedLength can be less or equal to the OD_IO.dataLength.
@@ -219,7 +219,7 @@ typedef struct {
     uint8_t flagPDObitmask[CO_PDO_MAX_SIZE];
   #endif
 #endif
-#if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
     /** True for RPDO, false for TPDO */
     bool_t isRPDO;
     /** From CO_xPDO_init() */
@@ -241,11 +241,11 @@ typedef struct {
 /*******************************************************************************
  *      R P D O
  ******************************************************************************/
-#if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) != 0) || defined CO_DOXYGEN
 /**
  * Number of buffers for received CAN message for RPDO
  */
-#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
 #define CO_RPDO_CAN_BUFFERS_COUNT 2
 #else
 #define CO_RPDO_CAN_BUFFERS_COUNT 1
@@ -264,20 +264,20 @@ typedef struct {
     uint8_t CANrxData[CO_RPDO_CAN_BUFFERS_COUNT][CO_PDO_MAX_SIZE];
     /** Indication of RPDO length errors, use with CO_PDO_receiveErrors_t */
     uint8_t receiveError;
-#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
     /** From CO_RPDO_init() */
     CO_SYNC_t *SYNC;
     /** True if transmissionType <= 240 */
     bool_t synchronous;
 #endif
-#if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE) != 0) || defined CO_DOXYGEN
     /** Maximum timeout time between received PDOs in microseconds. Configurable
      * by OD variable RPDO communication parameter, event-timer. */
     uint32_t timeoutTime_us;
     /** Timeout timer variable in microseconds */
     uint32_t timeoutTimer;
 #endif
-#if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_RPDO_initCallbackPre() or NULL */
     void (*pFunctSignalPre)(void *object);
     /** From CO_RPDO_initCallbackPre() or NULL */
@@ -312,7 +312,7 @@ typedef struct {
 CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
                               OD_t *OD,
                               CO_EM_t *em,
-#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
                               CO_SYNC_t *SYNC,
 #endif
                               uint16_t preDefinedCanId,
@@ -323,7 +323,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
                               uint32_t *errInfo);
 
 
-#if ((CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize RPDO callback function.
  *
@@ -357,7 +357,7 @@ void CO_RPDO_initCallbackPre(CO_RPDO_t *RPDO,
  * transmitted.
  */
 void CO_RPDO_process(CO_RPDO_t *RPDO,
-#if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE) != 0) || defined CO_DOXYGEN
                      uint32_t timeDifference_us,
                      uint32_t *timerNext_us,
 #endif
@@ -369,7 +369,7 @@ void CO_RPDO_process(CO_RPDO_t *RPDO,
 /*******************************************************************************
  *      T P D O
  ******************************************************************************/
-#if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) != 0) || defined CO_DOXYGEN
 /**
  * TPDO object.
  */
@@ -383,7 +383,7 @@ typedef struct {
     /** If this flag is set and TPDO is event driven (transmission type is 0,
      * 254 or 255), then PDO will be sent by CO_TPDO_process(). */
     bool_t sendRequest;
-#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
     /** From CO_TPDO_init() */
     CO_SYNC_t *SYNC;
     /** Copy of the variable from object dictionary */
@@ -391,7 +391,7 @@ typedef struct {
     /** SYNC counter used for PDO sending */
     uint8_t syncCounter;
 #endif
-#if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) != 0) || defined CO_DOXYGEN
     /** Inhibit time from object dictionary translated to microseconds */
     uint32_t inhibitTime_us;
     /** Event time from object dictionary translated to microseconds */
@@ -430,7 +430,7 @@ typedef struct {
 CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
                               OD_t *OD,
                               CO_EM_t *em,
-#if ((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
                               CO_SYNC_t *SYNC,
 #endif
                               uint16_t preDefinedCanId,
@@ -469,7 +469,7 @@ static inline void CO_TPDOsendRequest(CO_TPDO_t *TPDO) {
  * transmitted.
  */
 void CO_TPDO_process(CO_TPDO_t *TPDO,
-#if ((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) != 0) || defined CO_DOXYGEN
                      uint32_t timeDifference_us,
                      uint32_t *timerNext_us,
 #endif

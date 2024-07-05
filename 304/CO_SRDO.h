@@ -39,7 +39,7 @@
 #define CO_CONFIG_SRDO_MINIMUM_DELAY 0U
 #endif
 
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -126,11 +126,13 @@ typedef struct {
     /** True if all SRDO objects are properly configured. Set after successful
      * finish of all @CO_SRDO_init() functions. Cleared on configuration change. */
     bool_t configurationValid;
-    /** Private helper variable set on the start of SRDO configuration */
-    bool_t _configurationValid;
     /** Object for input / output on the OD variable 13FE:00. Configuration
      * of any of the the SRDO parameters will write 0 to that variable. */
     OD_IO_t OD_IO_configurationValid;
+    
+    OD_entry_t* OD_13FE_entry;
+    OD_entry_t* OD_13FF_entry;
+    
     /** Extension for OD object */
     OD_extension_t OD_13FE_extension;
     /** Extension for OD object */
@@ -141,11 +143,15 @@ typedef struct {
  * SRDO object.
  */
 typedef struct {
-    CO_SRDOGuard_t* SRDOGuard; /**< From CO_SRDO_init() */
-    CO_EM_t* em;               /**< From CO_SRDO_init() */
-    uint16_t defaultCOB_ID;    /**< From CO_SRDO_init() */
-    uint8_t nodeId;            /**< From CO_SRDO_init() */
-    CO_CANmodule_t* CANdevTx[2];/**< From CO_SRDO_init() */
+    CO_SRDOGuard_t* SRDOGuard;      /**< From CO_SRDO_init() */
+    OD_t *OD;                       /**< From CO_SRDO_init() */
+    CO_EM_t* em;                    /**< From CO_SRDO_init() */
+    uint16_t defaultCOB_ID;         /**< From CO_SRDO_init() */
+    uint8_t nodeId;                 /**< From CO_SRDO_init() */
+    CO_CANmodule_t* CANdevTx[2];    /**< From CO_SRDO_init() */
+    uint16_t CANdevTxIdx[2];        /**< From CO_SRDO_init() */
+    CO_CANmodule_t* CANdevRx[2];    /**< From CO_SRDO_init() */
+    uint16_t CANdevRxIdx[2];        /**< From CO_SRDO_init() */
     /** Internal state of this SRDO. */
     CO_SRDO_state_t internalState;
     /** Copy of variable, internal usage. */
@@ -158,6 +164,8 @@ typedef struct {
     uint32_t validationTime_us;
     /** cycle timer variable in microseconds */
     uint32_t cycleTimer;
+    /** inverted delay timer variable in microseconds */
+    uint32_t invertedDelay;
     /** validation timer variable in microseconds */
     uint32_t validationTimer;
     /** Data length of the received SRDO message. Calculated from mapping */
@@ -181,11 +189,15 @@ typedef struct {
     uint8_t CANrxData[2][CO_SRDO_MAX_SIZE];
     /** If true, next processed SRDO message is normal (not inverted) */
     bool_t nextIsNormal;
+
+    OD_entry_t* OD_communicationParam_entry;/**< From CO_SRDO_init() */
+    OD_entry_t* OD_mappingParam_entry;/**< From CO_SRDO_init() */
+
     /** Extension for OD object */
     OD_extension_t OD_communicationParam_ext;
     /** Extension for OD object */
     OD_extension_t OD_mappingParam_extension;
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_SRDO_initCallbackPre() or NULL */
     void (*pFunctSignalPre)(void* object);
     /** From CO_SRDO_initCallbackPre() or NULL */
@@ -207,19 +219,9 @@ typedef struct {
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-CO_ReturnError_t CO_SRDO_init_start(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationValid,
+CO_ReturnError_t CO_SRDOGuard_init(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationValid,
                                     OD_entry_t* OD_13FF_safetyConfigurationSignature, uint32_t* errInfo);
 
-/**
- * Finalize SRDOGuard object.
- *
- * Function must be called in the communication reset section after @CO_SRDO_init functions.
- *
- * @param SRDOGuard This object will be finalized.
- */
-static inline void CO_SRDO_init_end(CO_SRDOGuard_t* SRDOGuard) {
-    SRDOGuard->configurationValid = SRDOGuard->_configurationValid;
-}
 
 /**
  * Initialize SRDO object.
@@ -253,13 +255,12 @@ static inline void CO_SRDO_init_end(CO_SRDOGuard_t* SRDOGuard) {
  */
 CO_ReturnError_t CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_t* OD, CO_EM_t* em,
                               uint8_t nodeId, uint16_t defaultCOB_ID, OD_entry_t* OD_130x_SRDOCommPar,
-                              OD_entry_t* OD_138x_SRDOMapPar, OD_entry_t* OD_13FE_configurationValid,
-                              OD_entry_t* OD_13FF_safetyConfigurationSignature, CO_CANmodule_t* CANdevRxNormal,
+                              OD_entry_t* OD_138x_SRDOMapPar, CO_CANmodule_t* CANdevRxNormal,
                               CO_CANmodule_t* CANdevRxInverted, uint16_t CANdevRxIdxNormal, uint16_t CANdevRxIdxInverted,
                               CO_CANmodule_t* CANdevTxNormal, CO_CANmodule_t* CANdevTxInverted,
                               uint16_t CANdevTxIdxNormal, uint16_t CANdevTxIdxInverted, uint32_t* errInfo);
 
-#if ((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SRDO) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize SRDO callback function.
  *
@@ -285,6 +286,9 @@ void CO_SRDO_initCallbackPre(CO_SRDO_t* SRDO, void* object, void (*pFunctSignalP
  * @return CO_ReturnError_t CO_ERROR_NO if request is granted
  */
 CO_ReturnError_t CO_SRDO_requestSend(CO_SRDO_t* SRDO);
+
+
+CO_ReturnError_t CO_SRDO_config( CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, uint32_t* errInfo);
 
 /**
  * Process transmitting/receiving individual SRDO message.

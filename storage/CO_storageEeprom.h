@@ -28,7 +28,11 @@
 
 #include "storage/CO_storage.h"
 
-#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) || defined CO_DOXYGEN
+#ifndef CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT
+#define CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT 5U
+#endif
+
+#if (((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,7 +95,8 @@ extern "C" {
  * @param OD_1011_RestoreDefaultParam OD entry for 0x1011 -"Restore default
  * parameters". Entry is optional, may be NULL.
  * @param entries Pointer to array of storage entries, see @ref CO_storage_init.
- * @param entriesCount Count of storage entries
+ * @param entriesCount Count of storage entries, must not be larger than
+ * CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT.
  * @param [out] storageInitError If function returns CO_ERROR_DATA_CORRUPT,
  * then this variable contains a bit mask from subIndexOD values, where data
  * was not properly initialized. If other error, then this variable contains
