@@ -430,7 +430,7 @@ CO_fifo_readToken(CO_fifo_t* fifo, char* buf, size_t count, uint8_t* closed, boo
         *closed = delimCommandFound ? 1U : 0U;
     }
 
-    /* token was larger then size of the buffer, all was cleaned, return empty*/
+    /* token was larger then size of the buffer, all was cleaned, return empty */
     if (tokenSize == count) {
         tokenSize = 0;
     }
@@ -444,11 +444,10 @@ CO_fifo_readToken(CO_fifo_t* fifo, char* buf, size_t count, uint8_t* closed, boo
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS */
 
 #if ((CO_CONFIG_FIFO)&CO_CONFIG_FIFO_ASCII_DATATYPES) != 0
-/* Tables for mime-base64 encoding, as specified in RFC 2045, (without CR-LF,
- * but one long string). Base64 is used for encoding binary data into easy
- * transferable printable characters. In general, each three bytes of binary
- * data are translated into four characters, where characters are selected from
- * 64 characters long table. See https://en.wikipedia.org/wiki/Base64 */
+/* Tables for mime-base64 encoding, as specified in RFC 2045, (without CR-LF, but one long string).
+ * Base64 is used for encoding binary data into easy transferable printable characters. In general,
+ * each three bytes of binary data are translated into four characters, where characters are
+ * selected from 64 characters long table. See https://en.wikipedia.org/wiki/Base64 */
 static const char base64EncTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 static const uint8_t base64DecTable[] = {
@@ -1257,8 +1256,7 @@ CO_fifo_cpyTok2Vs(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status) {
         step = (uint8_t)dest->aux;
     }
 
-    /* repeat until destination space available and no error and not finished
-     * and source characters available */
+    /* repeat until destination space available and no error and not finished and source characters available */
     while ((destSpace > 0U) && ((st & CO_fifo_st_errMask) == 0U) && !finished) {
         uint8_t c;
         if (!CO_fifo_getc(src, &c)) {
@@ -1283,7 +1281,7 @@ CO_fifo_cpyTok2Vs(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status) {
             case 2: /* inside string, single word, no quotes */
                 if (c == DELIM_DQUOTE) {
                     /* double quote found, this may be end of the string or escaped
-                 * double quote (with two double quotes) */
+                     * double quote (with two double quotes) */
                     step += 2U;
                 } else if ((isgraph((int)c) == 0) && (step == 2U)) {
                     /* end of single word string */
@@ -1410,8 +1408,7 @@ CO_fifo_cpyTok2B64(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status) {
         dword = dest->aux & 0xFFFFFFU;
     }
 
-    /* repeat until destination space available and no error and not finished
-     * and source characters available */
+    /* repeat until destination space available and no error and not finished and source characters available */
     while ((destSpace >= 3U) && ((st & CO_fifo_st_errMask) == 0U) && !finished) {
         uint8_t c;
         if (!CO_fifo_getc(src, &c)) {

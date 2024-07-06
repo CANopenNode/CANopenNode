@@ -88,8 +88,7 @@ OD_write_1014(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
         return ODR_INVALID_VALUE;
     }
 
-    /* store values. If default CAN-ID is used, then store only value of
-     * CO_CAN_ID_EMERGENCY without node id. */
+    /* store values. If default CAN-ID is used, then store only value of CO_CAN_ID_EMERGENCY without node id. */
     em->producerEnabled = newEnabled;
     em->producerCanId = (newCanId == ((uint16_t)CO_CAN_ID_EMERGENCY + em->nodeId)) ? CO_CAN_ID_EMERGENCY : newCanId;
 
@@ -273,9 +272,8 @@ OD_write_statusBits(OD_stream_t* stream, const void* buf, OD_size_t count, OD_si
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
 CO_EM_receive(void* object, void* msg) {
@@ -392,9 +390,8 @@ CO_EM_init(CO_EM_t* em, CO_CANmodule_t* CANdevTx, const OD_entry_t* OD_1001_errR
     /* following two variables are used inside OD_read_1014 and OD_write_1014 */
     em->producerCanId = producerCanId;
     em->CANdevTxIdx = CANdevTxIdx;
-    /* if default producerCanId is used, then value of CO_CAN_ID_EMERGENCY
-     * (0x80) is stored into non-volatile memory. In that case it is necessary
-     * to add nodeId of this node to the stored value. */
+    /* if default producerCanId is used, then value of CO_CAN_ID_EMERGENCY (0x80) is stored into non-volatile
+     * memory. In that case it is necessary to add nodeId of this node to the stored value. */
     if (producerCanId == CO_CAN_ID_EMERGENCY) {
         producerCanId += nodeId;
     }
@@ -597,8 +594,7 @@ CO_EM_process(CO_EM_t* em, bool_t NMTisPreOrOperational, uint32_t timeDifference
             fifoPpPtr++;
             em->fifoPpPtr = (fifoPpPtr < em->fifoSize) ? fifoPpPtr : 0U;
 
-            /* verify message buffer overflow. Clear error condition if all
-             * messages from fifo buffer are processed */
+            /* verify message buffer overflow. Clear error condition if all messages from fifo buffer are processed */
             if (em->fifoOverflow == 1U) {
                 em->fifoOverflow = 2;
                 CO_errorReport(em, CO_EM_EMERGENCY_BUFFER_FULL, CO_EMC_GENERIC, 0);
@@ -673,7 +669,7 @@ CO_error(CO_EM_t* em, bool_t setError, const uint8_t errorBit, uint16_t errorCod
     }
 
 #if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
-    /* prepare emergency message. Error register will be added in post-process*/
+    /* prepare emergency message. Error register will be added in post-process */
     uint32_t errMsg = ((uint32_t)errorBit << 24) | CO_SWAP_16(errorCode);
 #if ((CO_CONFIG_EM)&CO_CONFIG_EM_PRODUCER) != 0
     uint32_t infoCodeSwapped = CO_SWAP_32(infoCode);
@@ -715,8 +711,7 @@ CO_error(CO_EM_t* em, bool_t setError, const uint8_t errorBit, uint16_t errorCod
 
 #if ((CO_CONFIG_EM)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
 #if ((CO_CONFIG_EM)&CO_CONFIG_EM_PRODUCER) != 0
-    /* Optional signal to RTOS, which can resume task, which handles
-     * CO_EM_process */
+    /* Optional signal to RTOS, which can resume task, which handles CO_EM_process */
     if ((em->pFunctSignalPre != NULL) && em->producerEnabled) {
         em->pFunctSignalPre(em->functSignalObjectPre);
     }

@@ -1,4 +1,4 @@
-/**
+/*
  * CANopen Safety Related Data Object protocol.
  *
  * @file        CO_SRDO.c
@@ -138,7 +138,8 @@ OD_read_dummy(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countR
 #ifdef CO_CONFORMANCE_TEST_TOOL_ADAPTATION
 static bool_t
 OD_not_write_same_value(OD_stream_t* stream, const void* buf, OD_size_t count) {
-    // The conformance test tool does not recognize CANopen Safety and on all object dictionaty tries to read and write the same value
+    /* The conformance test tool does not recognize CANopen Safety and on all object
+     * dictionaty tries to read and write the same value */
     OD_size_t countRead = 0;
     uint8_t bufRead[6] = {0};
     if (count > 6U) {
@@ -379,8 +380,7 @@ CO_SRDOGuard_init(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13FE_configurationVa
     SRDOGuard->OD_13FF_extension.write = OD_write_13FF;
     (void)OD_extension_init(OD_13FF_safetyConfigurationSignature, &SRDOGuard->OD_13FF_extension);
 
-    /* Configure SRDOGuard->OD_IO_configurationValid variable.
-     * It will be used for writing 0 to OD variable 13FE,00 */
+    /* Configure SRDOGuard->OD_IO_configurationValid variable. It will be used for writing 0 to OD variable 13FE,00 */
     odRet = OD_getSub(OD_13FE_configurationValid, 0, &SRDOGuard->OD_IO_configurationValid, false);
     if ((odRet != ODR_OK) || (SRDOGuard->OD_IO_configurationValid.stream.dataLength != 1U)) {
         if (errInfo != NULL) {
@@ -734,7 +734,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
         /* Detect transition to NMT operational */
         if (!SRDO->NMTisOperationalPrevious) {
             SRDO->cycleTimer = (SRDO->informationDirection == CO_SRDO_TX)
-                                   ? ((uint32_t)SRDO->nodeId * 500U) /* 0.5ms * node-ID delay*/
+                                   ? ((uint32_t)SRDO->nodeId * 500U) /* 0.5ms * node-ID delay */
                                    : SRDO->cycleTime_us;
             SRDO->validationTimer = SRDO->cycleTime_us;
             SRDO->internalState = CO_SRDO_state_initializing;

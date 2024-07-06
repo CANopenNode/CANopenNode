@@ -1,4 +1,4 @@
-/**
+/*
  * CANopen Global fail-safe command protocol.
  *
  * @file        CO_GFC.c

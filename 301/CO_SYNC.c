@@ -25,9 +25,8 @@
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
 CO_SYNC_receive(void* object, void* msg) {
@@ -58,7 +57,7 @@ CO_SYNC_receive(void* object, void* msg) {
         CO_FLAG_SET(SYNC->CANrxNew);
 
 #if ((CO_CONFIG_SYNC)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-        /* Optional signal to RTOS, which can resume task, which handles SYNC.*/
+        /* Optional signal to RTOS, which can resume task, which handles SYNC. */
         if (SYNC->pFunctSignalPre != NULL) {
             SYNC->pFunctSignalPre(SYNC->functSignalObjectPre);
         }
@@ -237,8 +236,7 @@ CO_SYNC_init(CO_SYNC_t* SYNC, CO_EM_t* em, OD_entry_t* OD_1005_cobIdSync, OD_ent
         return CO_ERROR_OD_PARAMETERS;
     }
 
-    /* get and verify optional "Synchronous counter overflow value" from OD and
-     * configure extension */
+    /* get and verify optional "Synchronous counter overflow value" from OD and configure extension */
     uint8_t syncCounterOvf = 0;
 
     if (OD_1019_syncCounterOvf != NULL) {

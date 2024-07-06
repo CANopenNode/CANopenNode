@@ -44,9 +44,8 @@
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
 CO_SDO_receive(void* object, void* msg) {
@@ -94,9 +93,8 @@ CO_SDO_receive(void* object, void* msg) {
                         state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP;
                     }
                 }
-                /* If message is duplicate or sequence didn't start yet, ignore
-                 * it. Otherwise seqno is wrong, so break sub-block. Data after
-                 * last good seqno will be re-transmitted. */
+                /* If message is duplicate or sequence didn't start yet, ignore it. Otherwise seqno is wrong,
+                 * so break sub-block. Data after last good seqno will be re-transmitted. */
                 else if (seqno != SDO->block_seqno && SDO->block_seqno != 0U) {
                     state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP;
 #ifdef CO_DEBUG_SDO_SERVER
@@ -114,14 +112,12 @@ CO_SDO_receive(void* object, void* msg) {
 #endif
 
                 if (state != CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ) {
-                    /* SDO->state has changed, processing will continue in
-                     * another thread. Make memory barrier here with
-                     * CO_FLAG_CLEAR() call. */
+                    /* SDO->state has changed, processing will continue in another thread.
+                     * Make memory barrier here with CO_FLAG_CLEAR() call. */
                     CO_FLAG_CLEAR(SDO->CANrxNew);
                     SDO->state = state;
 #if ((CO_CONFIG_SDO_SRV)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-                    /* Optional signal to RTOS, which can resume task, which
-                     * handles SDO server processing. */
+                    /* Optional signal to RTOS, which can resume task, which handles SDO server processing. */
                     if (SDO->pFunctSignalPre != NULL) {
                         SDO->pFunctSignalPre(SDO->functSignalObjectPre);
                     }
@@ -133,13 +129,11 @@ CO_SDO_receive(void* object, void* msg) {
         }
 #endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_SDO_SRV_BLOCK */
         else {
-            /* copy data and set 'new message' flag, data will be processed in
-             * CO_SDOserver_process() */
+            /* copy data and set 'new message' flag, data will be processed in CO_SDOserver_process() */
             (void)memcpy(SDO->CANrxData, data, DLC);
             CO_FLAG_SET(SDO->CANrxNew);
 #if ((CO_CONFIG_SDO_SRV)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-            /* Optional signal to RTOS, which can resume task, which handles
-            * SDO server processing. */
+            /* Optional signal to RTOS, which can resume task, which handles SDO server processing. */
             if (SDO->pFunctSignalPre != NULL) {
                 SDO->pFunctSignalPre(SDO->functSignalObjectPre);
             }
@@ -148,7 +142,7 @@ CO_SDO_receive(void* object, void* msg) {
     }
 }
 
-/* helper for configuring CANrx and CANtx *************************************/
+/* helper for configuring CANrx and CANtx */
 static CO_ReturnError_t
 CO_SDOserver_init_canRxTx(CO_SDOserver_t* SDO, CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, uint16_t CANdevTxIdx,
                           uint32_t COB_IDClientToServer, uint32_t COB_IDServerToClient) {
@@ -189,8 +183,7 @@ CO_SDOserver_init_canRxTx(CO_SDOserver_t* SDO, CO_CANmodule_t* CANdevRx, uint16_
 
 #if ((CO_CONFIG_SDO_SRV)&CO_CONFIG_FLAG_OD_DYNAMIC) != 0
 /*
- * Custom function for writing OD object _SDO server parameter_, additional
- * channels
+ * Custom function for writing OD object _SDO server parameter_, additional channels
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
@@ -392,17 +385,15 @@ reverseBytes(void* start, OD_size_t size) {
 #endif
 
 #if ((CO_CONFIG_SDO_SRV)&CO_CONFIG_SDO_SRV_SEGMENTED) != 0
-/** Helper function for writing data to Object dictionary. Function swaps data
- * if necessary, calcualtes (and verifies CRC) writes data to OD and verifies
- * data lengths.
+/* Helper function for writing data to Object dictionary. Function swaps data if necessary,
+ * calcualtes (and verifies CRC) writes data to OD and verifies data lengths.
  *
  * @param SDO SDO server
  * @param [out] abortCode SDO abort code in case of error
  * @param crcOperation 0=none, 1=calculate, 2=calculate and compare
  * @parma crcClient crc checksum to campare with
  *
- * Returns true on success, otherwise write also abortCode and sets state to
- * CO_SDO_ST_ABORT */
+ * Returns true on success, otherwise write also abortCode and sets state to CO_SDO_ST_ABORT */
 static bool_t
 validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t crcOperation, uint16_t crcClient) {
     OD_size_t bufOffsetWrOrig = SDO->bufOffsetWr;
@@ -424,10 +415,9 @@ validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t
 
         OD_size_t sizeInOd = SDO->OD_IO.stream.dataLength;
 
-        /* If dataType is string, then size of data downloaded may be
-         * shorter than size of OD data buffer. If so, add two zero bytes
-         * to terminate (unicode) string. Shorten also OD data size,
-         * (temporary, send information about EOF into OD_IO.write) */
+        /* If dataType is string, then size of data downloaded may be shorter than size of the
+         * OD data buffer. If so, add two zero bytes to terminate (unicode) string. Shorten
+         * also OD data size, (temporary, send information about EOF into OD_IO.write) */
         if (((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)
             && ((sizeInOd == 0U) || (SDO->sizeTran < sizeInOd))
             && ((SDO->bufOffsetWr + 2U) <= CO_CONFIG_SDO_SRV_BUFFER_SIZE)) {
@@ -441,7 +431,7 @@ validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t
             }
             SDO->OD_IO.stream.dataLength = SDO->sizeTran;
         }
-        /* Indicate OD data size, if not indicated. Can be used for EOF check.*/
+        /* Indicate OD data size, if not indicated. Can be used for EOF check. */
         else if (sizeInOd == 0U) {
             SDO->OD_IO.stream.dataLength = SDO->sizeTran;
         }
@@ -497,7 +487,7 @@ validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t
         SDO->state = CO_SDO_ST_ABORT;
         return false;
     } else if (!SDO->finished && (odRet == ODR_OK)) {
-        /* OD variable was written completely, but SDO download still has data*/
+        /* OD variable was written completely, but SDO download still has data */
         *abortCode = CO_SDO_AB_DATA_LONG;
         SDO->state = CO_SDO_ST_ABORT;
         return false;
@@ -507,17 +497,14 @@ validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t
     return true;
 }
 
-/** Helper function for reading data from Object dictionary. Function also swaps
- * data if necessary and calcualtes CRC.
+/* Helper function for reading data from Object dictionary. Function also swaps data if necessary and calcualtes CRC.
  *
  * @param SDO SDO server
  * @param [out] abortCode SDO abort code in case of error
- * @parma countMinimum if data size in buffer is less than countMinimum, then
- * buffer is refilled from OD variable
+ * @parma countMinimum if data size in buffer is less than countMinimum, then buffer is refilled from OD variable
  * @param calculateCrc if true, crc is calculated
  *
- * Returns true on success, otherwise write also abortCode and sets state to
- * CO_SDO_ST_ABORT */
+ * Returns true on success, otherwise write also abortCode and sets state to CO_SDO_ST_ABORT */
 static bool_t
 readFromOd(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, OD_size_t countMinimum, bool_t calculateCrc) {
 #if ((CO_CONFIG_SDO_SRV)&CO_CONFIG_SDO_SRV_BLOCK) == 0
@@ -618,8 +605,7 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
         /* Idle and nothing new */
         ret = CO_SDO_RT_ok_communicationEnd;
     } else if (!NMTisPreOrOperational || !SDO->valid) {
-        /* SDO is allowed only in operational or pre-operational NMT state
-         * and must be valid */
+        /* SDO is allowed only in operational or pre-operational NMT state and must be valid */
         SDO->state = CO_SDO_ST_IDLE;
         CO_FLAG_CLEAR(SDO->CANrxNew);
         ret = CO_SDO_RT_ok_communicationEnd;
@@ -735,10 +721,9 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
                         }
 #endif
 
-                        /* If dataType is string, then size of data downloaded may be
-                     * shorter as size of OD data buffer. If so, add two zero bytes
-                     * to terminate (unicode) string. Shorten also OD data size,
-                     * (temporary, send information about EOF into OD_IO.write) */
+                        /* If dataType is string, then size of data downloaded may be shorter as size of
+                         * the OD data buffer. If so, add two zero bytes to terminate (unicode) string.
+                         * Shorten also OD data size, (temporary, send information about EOF into OD_IO.write) */
                         if (((SDO->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)
                             && ((sizeInOd == 0U) || (dataSizeToWrite < sizeInOd))) {
                             OD_size_t delta = sizeInOd - dataSizeToWrite;
@@ -918,8 +903,7 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
 
                 case CO_SDO_ST_DOWNLOAD_BLK_END_REQ: {
                     if ((SDO->CANrxData[0] & 0xE3) == 0xC1) {
-                        /* Get number of data bytes in last segment, that do not
-                        * contain data. Then reduce buffer. */
+                        /* Get number of data bytes in last segment, that do not contain data. Then reduce buffer. */
                         uint8_t noData = ((SDO->CANrxData[0] >> 2) & 0x07);
                         if (SDO->bufOffsetWr <= noData) {
                             /* just in case, should never happen */
@@ -950,7 +934,7 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
 
                 case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ: {
                     /* if pst (protocol switch threshold, byte5) is larger than data
-                 * size of OD variable, then switch to segmented transfer */
+                     * size of OD variable, then switch to segmented transfer */
                     if (SDO->sizeInd > 0 && SDO->CANrxData[5] > 0 && SDO->CANrxData[5] >= SDO->sizeInd) {
                         SDO->state = CO_SDO_ST_UPLOAD_INITIATE_RSP;
                     } else {
@@ -1004,8 +988,7 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
 
                         /* check number of segments */
                         if (SDO->CANrxData[1] < SDO->block_seqno) {
-                            /* NOT all segments transferred successfully.
-                         * Re-transmit data after erroneous segment. */
+                            /* NOT all segments transferred successfully. Re-transmit data after erroneous segment. */
                             OD_size_t cntFailed = SDO->block_seqno - SDO->CANrxData[1];
                             cntFailed = cntFailed * 7 - SDO->block_noData;
                             SDO->bufOffsetRd -= cntFailed;
@@ -1109,7 +1092,7 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
             }
             if (SDO->block_timeoutTimer >= SDO->block_SDOtimeoutTime_us) {
                 /* SDO->state will change, processing will continue in this
-                 * thread. Make memory barrier here with CO_FLAG_CLEAR() call.*/
+                 * thread. Make memory barrier here with CO_FLAG_CLEAR() call. */
                 SDO->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP;
                 CO_FLAG_CLEAR(SDO->CANrxNew);
             }
@@ -1323,7 +1306,7 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
                 SDO->block_timeoutTimer = 0;
 
                 /* Block segments will be received in different thread. Make memory
-             * barrier here with CO_FLAG_CLEAR() call. */
+                 * barrier here with CO_FLAG_CLEAR() call. */
                 SDO->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ;
                 CO_FLAG_CLEAR(SDO->CANrxNew);
                 (void)CO_CANsend(SDO->CANdevTx, SDO->CANtxBuff);
@@ -1362,7 +1345,7 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
                     SDO->block_blksize = (uint8_t)count;
                     SDO->block_seqno = 0;
                     /* Block segments will be received in different thread. Make
-                 * memory barrier here with CO_FLAG_CLEAR() call. */
+                     * memory barrier here with CO_FLAG_CLEAR() call. */
                     SDO->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ;
                     CO_FLAG_CLEAR(SDO->CANrxNew);
                 }

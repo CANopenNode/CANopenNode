@@ -27,9 +27,8 @@
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
 CO_TIME_receive(void* object, void* msg) {
@@ -42,7 +41,7 @@ CO_TIME_receive(void* object, void* msg) {
         CO_FLAG_SET(TIME->CANrxNew);
 
 #if ((CO_CONFIG_TIME)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-        /* Optional signal to RTOS, which can resume task, which handles TIME.*/
+        /* Optional signal to RTOS, which can resume task, which handles TIME. */
         if (TIME->pFunctSignalPre != NULL) {
             TIME->pFunctSignalPre(TIME->functSignalObjectPre);
         }

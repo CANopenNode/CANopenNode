@@ -70,8 +70,7 @@ OD_read_dummy(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countR
 /*
  * Find mapped variable in Object Dictionary and configure entry in RPDO or TPDO
  *
- * @param PDO This object will be configured. If map is erroneous, then it will
- * stay unchanged.
+ * @param PDO This object will be configured. If map is erroneous, then it will stay unchanged.
  * @param map PDO mapping parameter.
  * @param mapIndex from 0 to CO_PDO_MAX_MAPPED_ENTRIES
  * @param isRPDO True for RPDO and false for TPDO.
@@ -412,7 +411,7 @@ OD_read_PDO_commParam(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t
 /*
  * @defgroup CO_PDO_receiveErrors_t States for RPDO->receiveError indicates received RPDOs with wrong length.
  * @{
- * 
+ *
  */
 #define CO_RPDO_RX_ACK_NO_ERROR 0U  /* No error */
 #define CO_RPDO_RX_ACK_ERROR    1U  /* Error is acknowledged */
@@ -421,14 +420,13 @@ OD_read_PDO_commParam(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t
 #define CO_RPDO_RX_SHORT        12U /* Too short RPDO received, not acknowledged */
 #define CO_RPDO_RX_LONG         13U /* Too long RPDO received, not acknowledged */
 
-/** @} */ /* CO_PDO_receiveErrors_t */
+/* @} */ /* CO_PDO_receiveErrors_t */
 
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  * If new message arrives and previous message wasn't processed yet, then
  * previous message will be lost and overwritten by the new message.
  */
@@ -466,8 +464,7 @@ CO_PDO_receive(void* object, void* msg) {
             CO_FLAG_SET(RPDO->CANrxNew[bufNo]);
 
 #if ((CO_CONFIG_PDO)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-            /* Optional signal to RTOS, which can resume task, which handles
-             * the RPDO. */
+            /* Optional signal to RTOS, which can resume task, which handles the RPDO. */
             if (RPDO->pFunctSignalPre != NULL) {
                 RPDO->pFunctSignalPre(RPDO->functSignalObjectPre);
             }
@@ -505,9 +502,8 @@ OD_write_14xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
             uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
-            /* bits 11...29 must be zero, PDO must be disabled on change,
-         * CAN_ID == 0 is not allowed, mapping must be configured before
-         * enabling the PDO */
+            /* bits 11...29 must be zero, PDO must be disabled on change, CAN_ID == 0 is
+             * not allowed, mapping must be configured before enabling the PDO */
             if (((COB_ID & 0x3FFFF800U) != 0U) || (valid && PDO->valid && (CAN_ID != PDO->configuredCanId))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID)) || (valid && (PDO->mappedObjectsCount == 0U))) {
                 return ODR_INVALID_VALUE;
@@ -835,7 +831,7 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE */
     }  /* if (PDO->valid && NMTisOperational) */
     else {
-        /* not valid and operational, clear CAN receive flags and timeoutTimer*/
+        /* not valid and operational, clear CAN receive flags and timeoutTimer */
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0
         if (!PDO->valid || !NMTisOperational) {
             CO_FLAG_CLEAR(RPDO->CANrxNew[0]);
@@ -882,9 +878,8 @@ OD_write_18xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
             uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
-            /* bits 11...29 must be zero, PDO must be disabled on change,
-         * CAN_ID == 0 is not allowed, mapping must be configured before
-         * enabling the PDO */
+            /* bits 11...29 must be zero, PDO must be disabled on change, CAN_ID == 0 is
+             * not allowed, mapping must be configured before enabling the PDO */
             if (((COB_ID & 0x3FFFF800U) != 0U) || (valid && (PDO->valid && (CAN_ID != PDO->configuredCanId)))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID)) || (valid && (PDO->mappedObjectsCount == 0U))) {
                 return ODR_INVALID_VALUE;
@@ -1147,8 +1142,7 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
             dataTPDOCopy = dataTPDO;
         }
 
-        /* Set stream.dataOffset to zero, perform OD_IO.read()
-         * and store mappedLength back to stream.dataOffset */
+        /* Set stream.dataOffset to zero, perform OD_IO.read() and store mappedLength back to stream.dataOffset */
         stream->dataOffset = 0;
         OD_size_t countRd;
         OD_IO->read(stream, dataTPDOCopy, ODdataLength, &countRd);
@@ -1252,7 +1246,7 @@ CO_TPDO_process(CO_TPDO_t* TPDO,
             }
 #endif
         }
-#endif /*((CO_CONFIG_PDO)&CO_CONFIG_TPDO_TIMERS_ENABLE)||(OD_FLAGS_PDO_SIZE>0)*/
+#endif /* ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_TIMERS_ENABLE)||(OD_FLAGS_PDO_SIZE>0) */
 
         /* Send PDO by application request or by Event timer */
         if (TPDO->transmissionType >= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO) {
@@ -1299,8 +1293,7 @@ CO_TPDO_process(CO_TPDO_t* TPDO,
                         TPDO->syncCounter = (TPDO->transmissionType / 2U) + 1U;
                     }
                 }
-                /* If the syncStartValue is in use, start first TPDO after SYNC
-                 * with matched syncStartValue. */
+                /* If the syncStartValue is in use, start first TPDO after SYNC with matched syncStartValue. */
                 if (TPDO->syncCounter == 254U) {
                     if (TPDO->SYNC->counter == TPDO->syncStartValue) {
                         TPDO->syncCounter = TPDO->transmissionType;

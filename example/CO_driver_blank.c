@@ -134,8 +134,7 @@ CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, bo
         /* get specific buffer */
         buffer = &CANmodule->txArray[index];
 
-        /* CAN identifier, DLC and rtr, bit aligned with CAN module transmit buffer.
-         * Microcontroller specific. */
+        /* CAN identifier, DLC and rtr, bit aligned with CAN module transmit buffer, microcontroller specific. */
         buffer->ident = ((uint32_t)ident & 0x07FFU) | ((uint32_t)(((uint32_t)noOfBytes & 0xFU) << 11U))
                         | ((uint32_t)(rtr ? 0x8000U : 0U));
 
@@ -182,7 +181,7 @@ CO_CANclearPendingSyncPDOs(CO_CANmodule_t* CANmodule) {
     CO_LOCK_CAN_SEND(CANmodule);
     /* Abort message from CAN module, if there is synchronous TPDO.
      * Take special care with this functionality. */
-    if (/*messageIsOnCanBuffer && */ CANmodule->bufferInhibitFlag) {
+    if (/* messageIsOnCanBuffer && */ CANmodule->bufferInhibitFlag) {
         /* clear TXREQ */
         CANmodule->bufferInhibitFlag = false;
         tpdoDeleted = 1U;
@@ -209,8 +208,7 @@ CO_CANclearPendingSyncPDOs(CO_CANmodule_t* CANmodule) {
     }
 }
 
-/* Get error counters from the module. If necessary, function may use
-    * different way to determine errors. */
+/* Get error counters from the module. If necessary, function may use different way to determine errors. */
 static uint16_t rxErrors = 0, txErrors = 0, overflow = 0;
 
 void
@@ -282,8 +280,7 @@ CO_CANinterrupt(CO_CANmodule_t* CANmodule) {
         rcvMsg = 0; /* get message from module here */
         rcvMsgIdent = rcvMsg->ident;
         if (CANmodule->useCANrxFilters) {
-            /* CAN module filters are used. Message with known 11-bit identifier has */
-            /* been received */
+            /* CAN module filters are used. Message with known 11-bit identifier has been received */
             index = 0; /* get index of the received message here. Or something similar */
             if (index < CANmodule->rxSize) {
                 buffer = &CANmodule->rxArray[index];

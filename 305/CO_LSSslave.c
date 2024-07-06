@@ -36,9 +36,8 @@
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
 CO_LSSslave_receive(void* object, void* msg) {
@@ -58,7 +57,7 @@ CO_LSSslave_receive(void* object, void* msg) {
                     if ((LSSslave->lssState == CO_LSS_STATE_CONFIGURATION)
                         && (LSSslave->activeNodeID == CO_LSS_NODE_ID_ASSIGNMENT)
                         && (*LSSslave->pendingNodeID != CO_LSS_NODE_ID_ASSIGNMENT)) {
-                        /* Slave process function will request NMT Reset comm.*/
+                        /* Slave process function will request NMT Reset comm. */
                         LSSslave->service = cs;
                         request_LSSslave_process = true;
                     }
@@ -170,8 +169,7 @@ CO_LSSslave_receive(void* object, void* msg) {
         if (request_LSSslave_process) {
             CO_FLAG_SET(LSSslave->sendResponse);
 #if ((CO_CONFIG_LSS)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-            /* Optional signal to RTOS, which can resume task,
-             * which handles further processing. */
+            /* Optional signal to RTOS, which can resume task, which handles further processing. */
             if (LSSslave->pFunctSignalPre != NULL) {
                 LSSslave->pFunctSignalPre(LSSslave->functSignalObjectPre);
             }

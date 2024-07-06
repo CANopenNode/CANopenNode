@@ -37,8 +37,7 @@
  * - calculate number of CANrx and CYNtx messages: CO_RX_CNT_xx and CO_TX_CNT_xx
  * - set optional undefined OD_ENTRY_Hxxxx to NULL.
  * - calculate indexes: CO_RX_IDX_xx and CO_TX_IDX_xx
- * - calculate total count of CAN message buffers: CO_CNT_ALL_RX_MSGS and
- *   CO_CNT_ALL_TX_MSGS. */
+ * - calculate total count of CAN message buffers: CO_CNT_ALL_RX_MSGS and CO_CNT_ALL_TX_MSGS. */
 #if OD_CNT_NMT != 1
 #error OD_CNT_NMT from OD.h not correct!
 #endif
@@ -264,9 +263,8 @@
 #endif
 #endif
 
-/* Indexes of CO_CANrx_t and CO_CANtx_t objects in CO_CANmodule_t and total
- * number of them. Indexes are sorted in a way, that objects with highest
- * priority of the CAN identifier are listed first. */
+/* Indexes of CO_CANrx_t and CO_CANtx_t objects in CO_CANmodule_t and total number of them. Indexes
+ * are sorted in a way, that objects with highest priority of the CAN identifier are listed first. */
 #define CO_RX_IDX_NMT_SLV  0U
 #define CO_RX_IDX_GFC      (CO_RX_IDX_NMT_SLV + (uint16_t)CO_RX_CNT_NMT_SLV)
 #define CO_RX_IDX_SYNC     (CO_RX_IDX_GFC + (uint16_t)CO_RX_CNT_GFC)
@@ -315,10 +313,7 @@
 #undef CO_free
 #endif
 
-/*
- * Allocate memory for number of elements, each of specific size
- * Allocated memory must be reset to all zeros
- */
+/* Allocate memory for number of elements, each of specific size Allocated memory must be reset to all zeros */
 #define CO_alloc(num, size) calloc((num), (size))
 #define CO_free(ptr)        free((ptr))
 
@@ -354,9 +349,7 @@ CO_new(CO_config_t* config, uint32_t* heapMemoryUsed) {
      *   - use config structure
      *   - calculate number of CANrx and CYNtx messages: RX_CNT_xx and TX_CNT_xx
      *   - calculate indexes: RX_IDX_xx and TX_IDX_xx
-     *   - calculate total count of CAN message buffers: CNT_ALL_RX_MSGS and
-     *     CNT_ALL_TX_MSGS. */
-
+     *   - calculate total count of CAN message buffers: CNT_ALL_RX_MSGS and CNT_ALL_TX_MSGS. */
     do {
 #ifdef CO_MULTIPLE_OD
         /* verify arguments */
@@ -546,9 +539,8 @@ CO_new(CO_config_t* config, uint32_t* heapMemoryUsed) {
 #endif
 
 #ifdef CO_MULTIPLE_OD
-        /* Indexes of CO_CANrx_t and CO_CANtx_t objects in CO_CANmodule_t and
-         * total number of them. Indexes are sorted in a way, that objects with
-         * highest priority of the CAN identifier are listed first. */
+        /* Indexes of CO_CANrx_t and CO_CANtx_t objects in CO_CANmodule_t and total number of them. Indexes
+         * are sorted in a way, that objects with highest priority of the CAN identifier are listed first. */
         int16_t idxRx = 0;
         co->RX_IDX_NMT_SLV = idxRx;
         idxRx += RX_CNT_NMT_SLV;
@@ -930,7 +922,6 @@ CO_isLSSslaveEnabled(CO_t* co) {
     return en;
 }
 
-/******************************************************************************/
 CO_ReturnError_t
 CO_CANinit(CO_t* co, void* CANptr, uint16_t bitRate) {
     CO_ReturnError_t err;
@@ -949,7 +940,6 @@ CO_CANinit(CO_t* co, void* CANptr, uint16_t bitRate) {
     return err;
 }
 
-/******************************************************************************/
 #if ((CO_CONFIG_LSS)&CO_CONFIG_LSS_SLAVE) != 0
 CO_ReturnError_t
 CO_LSSinit(CO_t* co, CO_LSS_address_t* lssAddress, uint8_t* pendingNodeID, uint16_t* pendingBitRate) {
@@ -968,7 +958,6 @@ CO_LSSinit(CO_t* co, CO_LSS_address_t* lssAddress, uint8_t* pendingNodeID, uint1
 }
 #endif /* (CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE */
 
-/******************************************************************************/
 CO_ReturnError_t
 CO_CANopenInit(CO_t* co, CO_NMT_t* NMT, CO_EM_t* em, OD_t* od, OD_entry_t* OD_statusBits, uint16_t NMTcontrol,
                uint16_t firstHBTime_ms, uint16_t SDOserverTimeoutTime_ms, uint16_t SDOclientTimeoutTime_ms,
@@ -1194,7 +1183,6 @@ CO_CANopenInit(CO_t* co, CO_NMT_t* NMT, CO_EM_t* em, OD_t* od, OD_entry_t* OD_st
     return CO_ERROR_NO;
 }
 
-/******************************************************************************/
 CO_ReturnError_t
 CO_CANopenInitPDO(CO_t* co, CO_EM_t* em, OD_t* od, uint8_t nodeId, uint32_t* errInfo) {
     if (co == NULL) {
@@ -1267,7 +1255,6 @@ CO_CANopenInitPDO(CO_t* co, CO_EM_t* em, OD_t* od, uint8_t nodeId, uint32_t* err
     return CO_ERROR_NO;
 }
 
-/******************************************************************************/
 #if (((CO_CONFIG_GFC)&CO_CONFIG_GFC_ENABLE) != 0) || (((CO_CONFIG_SRDO)&CO_CONFIG_SRDO_ENABLE) != 0)
 CO_ReturnError_t
 CO_CANopenInitSRDO(CO_t* co, CO_EM_t* em, OD_t* od, uint8_t nodeId, uint32_t* errInfo) {
@@ -1320,7 +1307,6 @@ CO_CANopenInitSRDO(CO_t* co, CO_EM_t* em, OD_t* od, uint8_t nodeId, uint32_t* er
 }
 #endif
 
-/******************************************************************************/
 CO_NMT_reset_cmd_t
 CO_process(CO_t* co, bool_t enableGateway, uint32_t timeDifference_us, uint32_t* timerNext_us) {
     (void)enableGateway; /* may be unused */
@@ -1417,7 +1403,6 @@ CO_process(CO_t* co, bool_t enableGateway, uint32_t timeDifference_us, uint32_t*
     return reset;
 }
 
-/******************************************************************************/
 #if ((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_ENABLE) != 0
 bool_t
 CO_process_SYNC(CO_t* co, uint32_t timeDifference_us, uint32_t* timerNext_us) {
@@ -1444,7 +1429,6 @@ CO_process_SYNC(CO_t* co, uint32_t timeDifference_us, uint32_t* timerNext_us) {
 }
 #endif
 
-/******************************************************************************/
 #if ((CO_CONFIG_PDO)&CO_CONFIG_RPDO_ENABLE) != 0
 void
 CO_process_RPDO(CO_t* co, bool_t syncWas, uint32_t timeDifference_us, uint32_t* timerNext_us) {
@@ -1466,7 +1450,6 @@ CO_process_RPDO(CO_t* co, bool_t syncWas, uint32_t timeDifference_us, uint32_t* 
 }
 #endif
 
-/******************************************************************************/
 #if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_ENABLE) != 0
 void
 CO_process_TPDO(CO_t* co, bool_t syncWas, uint32_t timeDifference_us, uint32_t* timerNext_us) {
@@ -1488,7 +1471,6 @@ CO_process_TPDO(CO_t* co, bool_t syncWas, uint32_t timeDifference_us, uint32_t* 
 }
 #endif
 
-/******************************************************************************/
 #if ((CO_CONFIG_SRDO)&CO_CONFIG_SRDO_ENABLE) != 0
 CO_SRDO_state_t
 CO_process_SRDO(CO_t* co, uint32_t timeDifference_us, uint32_t* timerNext_us) {

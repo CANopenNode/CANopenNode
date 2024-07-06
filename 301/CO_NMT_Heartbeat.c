@@ -23,9 +23,8 @@
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
 CO_NMT_receive(void* object, void* msg) {
@@ -184,7 +183,7 @@ CO_NMT_process(CO_NMT_t* NMT, CO_NMT_internalState_t* NMTstate, uint32_t timeDif
 
     /* Send heartbeat producer message if:
      * - First start, send bootup message or
-     * - HB producer enabled and: Timer expired or NMT->operatingState changed*/
+     * - HB producer enabled and: Timer expired or NMT->operatingState changed */
     if (NNTinit
         || ((NMT->HBproducerTime_us != 0U)
             && ((NMT->HBproducerTimer == 0U) || (NMTstateCpy != NMT->operatingStatePrev)))) {
@@ -197,17 +196,15 @@ CO_NMT_process(CO_NMT_t* NMT, CO_NMT_internalState_t* NMTstate, uint32_t timeDif
                               ? CO_NMT_OPERATIONAL
                               : CO_NMT_PRE_OPERATIONAL;
         } else {
-            /* Start timer from the beginning. If OS is slow, time sliding may
-             * occur. However, heartbeat is not for synchronization, it is for
-             * health report. In case of initializing, timer is set in the
-             * CO_NMT_init() function with pre-defined value. */
+            /* Start timer from the beginning. If OS is slow, time sliding may occur. However,
+             * heartbeat is not for synchronization, it is for health report. In case of
+             * initializing, timer is set in the CO_NMT_init() function with pre-defined value. */
             NMT->HBproducerTimer = NMT->HBproducerTime_us;
         }
     }
     NMT->operatingStatePrev = NMTstateCpy;
 
-    /* process internal NMT commands, received from CO_NMT_receive() or
-     * CO_NMT_sendCommand() */
+    /* process internal NMT commands, received from CO_NMT_receive() or CO_NMT_sendCommand() */
     if (NMT->internalCommand != CO_NMT_NO_COMMAND) {
         switch (NMT->internalCommand) {
             case CO_NMT_ENTER_OPERATIONAL: NMTstateCpy = CO_NMT_OPERATIONAL; break;

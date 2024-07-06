@@ -312,8 +312,8 @@ static const CO_GTWA_dataType_t dataTypes[] = {
     {(char*)"r32", 4, CO_fifo_readR322a, CO_fifo_cpyTok2R32}, /* REAL32 */
     {(char*)"r64", 8, CO_fifo_readR642a, CO_fifo_cpyTok2R64}, /* REAL64 */
     {(char*)"vs", 0, CO_fifo_readVs2a, CO_fifo_cpyTok2Vs},    /* VISIBLE_STRING */
-    {(char*)"os", 0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},  /* OCTET_STRING base64*/
-    {(char*)"us", 0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},  /* UNICODE_STRING base64*/
+    {(char*)"os", 0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},  /* OCTET_STRING base64 */
+    {(char*)"us", 0, CO_fifo_readB642a, CO_fifo_cpyTok2B64},  /* UNICODE_STRING base64 */
     {(char*)"d", 0, CO_fifo_readB642a, CO_fifo_cpyTok2B64}    /* DOMAIN - base64 */
 };
 
@@ -577,8 +577,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
         return;
     }
 
-    /* If there is some more output data for application, read them first.
-     * Hold on this state, if necessary. */
+    /* If there is some more output data for application, read them first. Hold on this state, if necessary. */
     if (gtwa->respHold) {
         timeDifference_us += gtwa->timeDifference_us_cumulative;
 
@@ -606,8 +605,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
         /* parse mandatory token '"["<sequence>"]"' */
         closed = 0xFFU;
         n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
-        /* Break if error in token or token was found, but closed with
-         * command delimiter. */
+        /* Break if error in token or token was found, but closed with command delimiter. */
         if (err || ((n > 0U) && (closed != 0U))) {
             err = true;
             break;
@@ -1053,7 +1051,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             }
         }
 
-        /* NMT reset (node or communication) - 'reset <node|comm[unication]>'*/
+        /* NMT reset (node or communication) - 'reset <node|comm[unication]>' */
         else if (tok_is_reset) {
             CO_ReturnError_t ret;
             bool_t NodeErr = checkNetNode(gtwa, net, node, 0, &respErrorCode);
@@ -1208,8 +1206,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                 break;
             }
 
-            /* First parameter is table selector. We only support the CiA
-             * bit timing table from CiA301 ("0") */
+            /* First parameter is table selector. We only support the CiA bit timing table from CiA301 ("0") */
             closed = 0U;
             (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
             (void)getU32(tok, 0, 0, &err);
@@ -1303,7 +1300,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                 gtwa->state = CO_GTWA_ST_LSS_INQUIRE_ADDR_ALL;
             }
         }
-        /* LSS inquire node-ID command - 'lss_get_node'*/
+        /* LSS inquire node-ID command - 'lss_get_node' */
         else if (tok_is_lss_get_node) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
 
@@ -1317,7 +1314,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             gtwa->state = CO_GTWA_ST_LSS_INQUIRE;
         }
         /* LSS identify fastscan. This is a manufacturer specific command as
-         * the one in DSP309 is quite useless - '_lss_fastscan [<timeout_ms>]'*/
+         * the one in DSP309 is quite useless - '_lss_fastscan [<timeout_ms>]' */
         else if (tok_is__lss_fastscan) {
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint16_t timeout_ms = 0;
@@ -1354,17 +1351,14 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
          * <scanType0=0..2> <vendorId> <scanType1=0..2> <productCode>
          * <scanType2=0..2> <revisionNo> <scanType3=0..2> <serialNo>]]' */
         else if (tok_is_lss_allnodes) {
-            /* Request node enumeration by LSS identify fastscan.
-             * This initiates node enumeration by the means of LSS fastscan
-             * mechanism. When this function is finished:
-             * - All nodes that match the given criteria are assigned a node ID
-             *   beginning with nodeId. If 127 is reached, the process
-             *   is stopped, no matter if there are nodes remaining or not.
+            /* Request node enumeration by LSS identify fastscan. This initiates node enumeration
+             * by the means of LSS fastscan mechanism. When this function is finished:
+             * - All nodes that match the given criteria are assigned a node ID beginning with nodeId.
+             * If 127 is reached, the process is stopped, no matter if there are nodes remaining or not.
              * - No IDs are assigned because:
              *   - the given criteria do not match any node,
              *   - all nodes are already configured.
-             * This function needs that no node is selected when starting the
-             * scan process. */
+             * This function needs that no node is selected when starting the scan process. */
             bool_t NodeErr = checkNet(gtwa, net, &respErrorCode);
             uint16_t timeout_ms = 0;
 
@@ -1389,8 +1383,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             gtwa->lssSubState = 0;
 
             if (closed == 1U) {
-                /* No other arguments, as by CiA specification for this command.
-                 * Do full scan. */
+                /* No other arguments, as by CiA specification for this command. Do full scan. */
                 /* use start node ID 2. Should work in most cases */
                 gtwa->lssNID = 2;
                 /* store node ID in node's NVM */
@@ -1587,10 +1580,10 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                     }
 
                     /* Empty SDO fifo buffer in multiple cycles. Repeat until
-             * application runs out of space (respHold) or fifo empty. */
+                     * application runs out of space (respHold) or fifo empty. */
                     do {
                         /* read SDO fifo (partially) and print specific data type as
-                 * ascii into intermediate respBuf */
+                         * ascii into intermediate respBuf */
                         gtwa->respBufCount += gtwa->SDOdataType->dataTypePrint(
                             &gtwa->SDO_C->bufFifo, &gtwa->respBuf[gtwa->respBufCount],
                             (CO_GTWA_RESP_BUF_SIZE - 2U) - gtwa->respBufCount, ret == CO_SDO_RT_ok_communicationEnd);
@@ -1645,8 +1638,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                         }
                     }
                     if (gtwa->state == CO_GTWA_ST_WRITE_ABORTED) {
-                        /* Stay in this state, until all data transferred via commFifo
-                 * will be purged. */
+                        /* Stay in this state, until all data transferred via commFifo will be purged. */
                         if (!CO_fifo_purge(&gtwa->SDO_C->bufFifo) || (closed == 1U)) {
                             gtwa->state = CO_GTWA_ST_IDLE;
                         }
@@ -1654,8 +1646,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                     }
                 }
                 /* If not all data were transferred, make sure, there is enough data in
-         * SDO buffer, to continue communication. Otherwise wait and check for
-         * timeout */
+                 * SDO buffer, to continue communication. Otherwise wait and check for timeout */
                 if (gtwa->SDOdataCopyStatus) {
                     if (CO_fifo_getOccupied(&gtwa->SDO_C->bufFifo) < (CO_CONFIG_GTW_BLOCK_DL_LOOP * 7U)) {
                         if (gtwa->stateTimeoutTmr > CO_GTWA_STATE_TIMEOUT_TIME_US) {
@@ -2001,8 +1992,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
         } /* switch (gtwa->state) */
     }
 
-    /* execute next CANopen processing immediately, if idle and more commands
-     * available */
+    /* execute next CANopen processing immediately, if idle and more commands available */
     if ((timerNext_us != NULL) && (gtwa->state == CO_GTWA_ST_IDLE)) {
         if (CO_fifo_CommSearch(&gtwa->commFifo, false)) {
             *timerNext_us = 0;

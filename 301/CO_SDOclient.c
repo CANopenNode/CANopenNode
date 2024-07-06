@@ -50,9 +50,8 @@
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
 CO_SDOclient_receive(void* object, void* msg) {
@@ -94,8 +93,7 @@ CO_SDOclient_receive(void* object, void* msg) {
 
                 /* is this the last segment? */
                 if ((data[0] & 0x80U) != 0U) {
-                    /* copy data to temporary buffer, because we don't know the
-                     * number of bytes not containing data */
+                    /* copy data to temporary buffer, because we don't know the number of bytes not containing data */
                     (void)memcpy((void*)&SDO_C->block_dataUploadLast[0], (const void*)&data[1], 7);
                     SDO_C->finished = true;
                     state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP;
@@ -110,9 +108,8 @@ CO_SDOclient_receive(void* object, void* msg) {
                     }
                 }
             }
-            /* If message is duplicate or sequence didn't start yet, ignore
-             * it. Otherwise seqno is wrong, so break sub-block. Data after
-             * last good seqno will be re-transmitted. */
+            /* If message is duplicate or sequence didn't start yet, ignore it. Otherwise seqno is wrong,
+             * so break sub-block. Data after last good seqno will be re-transmitted. */
             else if ((seqno != SDO_C->block_seqno) && (SDO_C->block_seqno != 0U)) {
                 state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP;
 #ifdef CO_DEBUG_SDO_CLIENT
@@ -136,8 +133,7 @@ CO_SDOclient_receive(void* object, void* msg) {
                 CO_FLAG_CLEAR(SDO_C->CANrxNew);
                 SDO_C->state = state;
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-                /* Optional signal to RTOS, which can resume task, which handles
-                * SDO client processing. */
+                /* Optional signal to RTOS, which can resume task, which handles SDO client processing. */
                 if (SDO_C->pFunctSignal != NULL) {
                     SDO_C->pFunctSignal(SDO_C->functSignalObject);
                 }
@@ -383,8 +379,7 @@ CO_SDOclientDownloadInitiate(CO_SDOclient_t* SDO_C, uint16_t index, uint8_t subI
     CO_fifo_reset(&SDO_C->bufFifo);
 
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_LOCAL) != 0
-    /* if node-ID of the SDO server is the same as node-ID of this node, then
-     * transfer data within this node */
+    /* if node-ID of the SDO server is the same as node-ID of this node, then transfer data within this node */
     if ((SDO_C->OD != NULL) && (SDO_C->nodeId != 0U) && (SDO_C->nodeIDOfTheSDOServer == SDO_C->nodeId)) {
         SDO_C->OD_IO.write = NULL;
         SDO_C->state = CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER;
@@ -442,7 +437,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
         ret = CO_SDO_RT_ok_communicationEnd;
     }
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_LOCAL) != 0
-    /* Transfer data locally **************************************************/
+    /* Transfer data locally */
     else if ((SDO_C->state == CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER) && !send_abort) {
         /* search object dictionary in first pass */
         if (SDO_C->OD_IO.write == NULL) {
@@ -499,10 +494,9 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
 #endif
                 OD_size_t sizeInOd = SDO_C->OD_IO.stream.dataLength;
 
-                /* If dataType is string, then size of data downloaded may be
-                 * shorter than size of OD data buffer. If so, add two zero
-                 * bytes to terminate (unicode) string. Shorten also OD data
-                 * size, (temporary, send info about EOF into OD_IO.write) */
+                /* If dataType is string, then size of data downloaded may be shorter than size of
+                 * OD data buffer. If so, add two zero bytes to terminate (unicode) string. Shorten
+                 * also OD data size, (temporary, send info about EOF into OD_IO.write) */
                 if (((SDO_C->OD_IO.stream.attribute & (OD_attr_t)ODA_STR) != 0U)
                     && ((sizeInOd == 0U) || (SDO_C->sizeTran < sizeInOd))) {
                     buf[count] = 0;
@@ -541,16 +535,14 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
                     abortCode = (CO_SDO_abortCode_t)OD_getSDOabCode(odRet);
                     ret = CO_SDO_RT_endedWithServerAbort;
                 }
-                /* error if OD variable was written completely,
-                 * but SDO download still has data */
+                /* error if OD variable was written completely, but SDO download still has data */
                 else if (bufferPartial && (odRet == ODR_OK)) {
                     abortCode = CO_SDO_AB_DATA_LONG;
                     ret = CO_SDO_RT_endedWithClientAbort;
                 }
                 /* is end of transfer? */
                 else if (!bufferPartial) {
-                    /* error if OD variable was not written completely, but SDO
-                     * download finished */
+                    /* error if OD variable was not written completely, but SDO download finished */
                     if (odRet == ODR_PARTIAL) {
                         abortCode = CO_SDO_AB_DATA_SHORT;
                         ret = CO_SDO_RT_endedWithClientAbort;
@@ -577,7 +569,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
 #endif
     }
 #endif /* CO_CONFIG_SDO_CLI_LOCAL */
-    /* CAN data received ******************************************************/
+    /* CAN data received */
     else if (CO_FLAG_READ(SDO_C->CANrxNew)) {
         /* is SDO abort */
         if (SDO_C->CANrxData[0] == 0x80U) {
@@ -689,8 +681,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
                     if (SDO_C->CANrxData[0] == 0xA2U) {
                         /* check number of segments */
                         if (SDO_C->CANrxData[1] < SDO_C->block_seqno) {
-                            /* NOT all segments transferred successfully.
-                             * Re-transmit data after erroneous segment. */
+                            /* NOT all segments transferred successfully. Re-transmit data after erroneous segment. */
                             size_t cntFailed = (size_t)(SDO_C->block_seqno) - (size_t)(SDO_C->CANrxData[1]);
                             cntFailed = (cntFailed * 7U) - SDO_C->block_noData;
                             SDO_C->sizeTran -= cntFailed;
@@ -778,7 +769,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
     } else { /* MISRA C 2004 14.10 */
     }
 
-    /* Timeout timers and transmit bufferFull flag ****************************/
+    /* Timeout timers and transmit bufferFull flag */
     if (ret == CO_SDO_RT_waitingResponse) {
         if (SDO_C->timeoutTimer < SDO_C->SDOtimeoutTime_us) {
             SDO_C->timeoutTimer += timeDifference_us;
@@ -802,7 +793,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
         }
     }
 
-    /* Transmit CAN data ******************************************************/
+    /* Transmit CAN data */
     if (ret == CO_SDO_RT_waitingResponse) {
         size_t count;
         (void)memset((void*)&SDO_C->CANtxBuff->data[0], 0, 8);
@@ -1070,8 +1061,7 @@ CO_SDOclientUploadInitiate(CO_SDOclient_t* SDO_C, uint16_t index, uint8_t subInd
 #endif
 
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_LOCAL) != 0
-    /* if node-ID of the SDO server is the same as node-ID of this node, then
-     * transfer data within this node */
+    /* if node-ID of the SDO server is the same as node-ID of this node, then transfer data within this node */
     if (((SDO_C->OD != NULL) && (SDO_C->nodeId != 0U)) && (SDO_C->nodeIDOfTheSDOServer == SDO_C->nodeId)) {
         SDO_C->OD_IO.read = NULL;
         SDO_C->state = CO_SDO_ST_UPLOAD_LOCAL_TRANSFER;
@@ -1107,7 +1097,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
         ret = CO_SDO_RT_ok_communicationEnd;
     }
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_LOCAL) != 0
-    /* Transfer data locally **************************************************/
+    /* Transfer data locally */
     else if ((SDO_C->state == CO_SDO_ST_UPLOAD_LOCAL_TRANSFER) && !send_abort) {
         /* search object dictionary in first pass */
         if (SDO_C->OD_IO.read == NULL) {
@@ -1208,7 +1198,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
 #endif
     }
 #endif /* CO_CONFIG_SDO_CLI_LOCAL */
-    /* CAN data received ******************************************************/
+    /* CAN data received */
     else if (CO_FLAG_READ(SDO_C->CANrxNew)) {
         /* is SDO abort */
         if (SDO_C->CANrxData[0] == 0x80U) {
@@ -1481,7 +1471,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
     } else { /* MISRA C 2004 14.10 */
     }
 
-    /* Timeout timers and transmit bufferFull flag ****************************/
+    /* Timeout timers and transmit bufferFull flag */
     if (ret == CO_SDO_RT_waitingResponse) {
         if (SDO_C->timeoutTimer < SDO_C->SDOtimeoutTime_us) {
             SDO_C->timeoutTimer += timeDifference_us;
@@ -1516,7 +1506,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
             }
             if (SDO_C->block_timeoutTimer >= SDO_C->block_SDOtimeoutTime_us) {
                 /* SDO_C->state will change, processing will continue in this
-                 * thread. Make memory barrier here with CO_FLAG_CLEAR() call.*/
+                 * thread. Make memory barrier here with CO_FLAG_CLEAR() call. */
                 SDO_C->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP;
                 CO_FLAG_CLEAR(SDO_C->CANrxNew);
             }
@@ -1538,7 +1528,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
         }
     }
 
-    /* Transmit CAN data ******************************************************/
+    /* Transmit CAN data */
     if (ret == CO_SDO_RT_waitingResponse) {
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_BLOCK) != 0
         size_t count;
@@ -1613,7 +1603,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
                 SDO_C->block_seqno = 0;
                 SDO_C->block_crc = 0;
                 /* Block segments will be received in different thread. Make memory
-             * barrier here with CO_FLAG_CLEAR() call. */
+                 * barrier here with CO_FLAG_CLEAR() call. */
                 SDO_C->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ;
                 CO_FLAG_CLEAR(SDO_C->CANrxNew);
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
@@ -1666,7 +1656,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
                     SDO_C->block_blksize = (uint8_t)count;
                     SDO_C->block_seqno = 0;
                     /* Block segments will be received in different thread. Make
-                 * memory barrier here with CO_FLAG_CLEAR() call. */
+                     * memory barrier here with CO_FLAG_CLEAR() call. */
                     SDO_C->state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ;
                     CO_FLAG_CLEAR(SDO_C->CANrxNew);
                 }

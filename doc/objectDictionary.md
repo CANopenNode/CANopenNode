@@ -75,10 +75,10 @@ If OD object has OD extension enabled, then direct access to its OD variables mu
 #include ODxyz.h
 
 void myFuncGlob(void) {
-    //Direct address instead of OD_find()
+    /* Direct address instead of OD_find() */
     OD_entry_t *entry_errReg = ODxyz_1001_errorRegister;
 
-    //Direct access to OD variable
+    /* Direct access to OD variable */
     uint32_t devType = ODxyz_0.x1000_deviceType;
     ODxyz_0.x1018_identity.serialNumber = 0x12345678;
 }

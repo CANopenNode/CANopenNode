@@ -22,7 +22,7 @@
 
 #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_ENABLE) != 0
 
-/* Verify HB consumer configuration *******************************************/
+/* Verify HB consumer configuration */
 #if (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0)                                                     \
     && (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)
 #error CO_CONFIG_HB_CONS_CALLBACK_CHANGE and CO_CONFIG_HB_CONS_CALLBACK_MULTI cannot be set simultaneously!
@@ -31,9 +31,8 @@
 /*
  * Read received message from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN
- * message with correct identifier will be received. For more information and
- * description of parameters see file CO_driver.h.
+ * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
 CO_HBcons_receive(void* object, void* msg) {
@@ -57,8 +56,7 @@ CO_HBcons_receive(void* object, void* msg) {
 /*
  * Initialize one Heartbeat consumer entry
  *
- * This function is called from the @ref CO_HBconsumer_init() or when writing
- * to OD entry 1016.
+ * This function is called from the @ref CO_HBconsumer_init() or when writing to OD entry 1016.
  *
  * @param HBcons This object.
  * @param idx index of the node in HBcons object
@@ -317,7 +315,7 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
             /* Verify if received message is heartbeat or bootup */
             if (CO_FLAG_READ(monitoredNode->CANrxNew)) {
                 if (monitoredNode->NMTstate == CO_NMT_INITIALIZING) {
-                    /* bootup message*/
+                    /* bootup message */
 #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0
                     if (monitoredNode->pFunctSignalRemoteReset != NULL) {
                         monitoredNode->pFunctSignalRemoteReset(monitoredNode->nodeId, i,

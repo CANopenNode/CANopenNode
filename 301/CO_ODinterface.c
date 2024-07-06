@@ -78,9 +78,8 @@ OD_writeOriginal(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_
 
     ODR_t returnCode = ODR_OK;
 
-    /* If previous write was partial or OD variable length is larger than
-     * current buffer size, then data was (will be) written in several
-     * segments */
+    /* If previous write was partial or OD variable length is larger than current buffer size,
+     * then data was (will be) written in several segments */
     if ((stream->dataOffset > 0U) || (dataLenToCopy > count)) {
         if (stream->dataOffset >= dataLenToCopy) {
             return ODR_DEV_INCOMPAT;
@@ -117,7 +116,7 @@ OD_writeOriginal(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_
     return returnCode;
 }
 
-/* Read value from variable from Object Dictionary disabled, see OD_IO_t*/
+/* Read value from variable from Object Dictionary disabled, see OD_IO_t */
 static ODR_t
 OD_readDisabled(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead) {
     (void)stream;
@@ -146,9 +145,8 @@ OD_find(OD_t* od, uint16_t index) {
     uint16_t min = 0;
     uint16_t max = od->size - 1U;
 
-    /* Fast search in ordered Object Dictionary. If indexes are mixed,
-     * this won't work. If Object Dictionary has up to N entries, then the
-     * max number of loop passes is log2(N) */
+    /* Fast search in ordered Object Dictionary. If indexes are mixed, this won't work. If Object
+     * Dictionary has up to N entries, then the max number of loop passes is log2(N) */
     while (min < max) {
         /* get entry between min and max */
         uint16_t cur = (min + max) >> 1;
