@@ -121,7 +121,6 @@ static inline CO_LSSmaster_return_t CO_LSSmaster_check_timeout(
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_LSSmaster_init(
         CO_LSSmaster_t         *LSSmaster,
         uint16_t                timeout_ms,
@@ -178,7 +177,6 @@ CO_ReturnError_t CO_LSSmaster_init(
 }
 
 
-/******************************************************************************/
 void CO_LSSmaster_changeTimeout(
         CO_LSSmaster_t         *LSSmaster,
         uint16_t                timeout_ms)
@@ -190,7 +188,6 @@ void CO_LSSmaster_changeTimeout(
 
 
 #if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-/******************************************************************************/
 void CO_LSSmaster_initCallbackPre(
         CO_LSSmaster_t         *LSSmaster,
         void                   *object,
@@ -280,7 +277,6 @@ static CO_LSSmaster_return_t CO_LSSmaster_switchStateSelectWait(
     return ret;
 }
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_swStateSelect(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
@@ -317,7 +313,6 @@ CO_LSSmaster_return_t CO_LSSmaster_swStateSelect(
 }
 
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_swStateDeselect(
         CO_LSSmaster_t         *LSSmaster)
 {
@@ -404,7 +399,6 @@ static CO_LSSmaster_return_t CO_LSSmaster_configureCheckWait(
 }
 
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
@@ -462,7 +456,6 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
 }
 
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
@@ -508,7 +501,6 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
 }
 
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_configureStore(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us)
@@ -549,7 +541,6 @@ CO_LSSmaster_return_t CO_LSSmaster_configureStore(
 }
 
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(
         CO_LSSmaster_t         *LSSmaster,
         uint16_t                switchDelay_ms)
@@ -623,7 +614,6 @@ static CO_LSSmaster_return_t CO_LSSmaster_inquireCheckWait(
     return ret;
 }
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
@@ -713,7 +703,6 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
 }
 
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_Inquire(
         CO_LSSmaster_t         *LSSmaster,
         uint32_t                timeDifference_us,
@@ -987,7 +976,6 @@ static uint8_t CO_LSSmaster_FsSearchNext(
     return CO_LSS_FASTSCAN_VENDOR_ID;
 }
 
-/******************************************************************************/
 CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
         CO_LSSmaster_t          *LSSmaster,
         uint32_t                 timeDifference_us,

@@ -47,7 +47,6 @@
  #endif
 #endif
 
-/******************************************************************************/
 void CO_fifo_init(CO_fifo_t *fifo, uint8_t *buf, size_t bufSize) {
 
     if ((fifo == NULL) || (buf == NULL) || (bufSize < 2U)) {
@@ -122,7 +121,6 @@ size_t CO_fifo_write(CO_fifo_t *fifo,
 }
 
 
-/******************************************************************************/
 size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof) {
     size_t i;
     const uint8_t *bufSrc;
@@ -172,7 +170,6 @@ size_t CO_fifo_read(CO_fifo_t *fifo, uint8_t *buf, size_t count, bool_t *eof) {
 
 
 #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ALT_READ) != 0
-/******************************************************************************/
 size_t CO_fifo_altBegin(CO_fifo_t *fifo, size_t offset) {
     size_t i;
 
@@ -255,7 +252,6 @@ size_t CO_fifo_altRead(CO_fifo_t *fifo, uint8_t *buf, size_t count) {
 
 
 #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_COMMANDS) != 0
-/******************************************************************************/
 bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
     bool_t newCommand = false;
     size_t count;
@@ -310,7 +306,6 @@ bool_t CO_fifo_CommSearch(CO_fifo_t *fifo, bool_t clear) {
 }
 
 
-/******************************************************************************/
 bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment) {
     bool_t delimCommandFound = false;
     bool_t alive_cycle = true;
@@ -343,7 +338,6 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t *fifo, bool_t *insideComment) {
 }
 
 
-/******************************************************************************/
 size_t CO_fifo_readToken(CO_fifo_t *fifo,
                          char *buf,
                          size_t count,
@@ -480,7 +474,6 @@ size_t CO_fifo_readToken(CO_fifo_t *fifo,
 
 
 #if ((CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES) != 0
-/******************************************************************************/
 /* Tables for mime-base64 encoding, as specified in RFC 2045, (without CR-LF,
  * but one long string). Base64 is used for encoding binary data into easy
  * transferable printable characters. In general, each three bytes of binary
@@ -866,7 +859,6 @@ size_t CO_fifo_readB642a(CO_fifo_t *fifo, char *buf, size_t count, bool_t end) {
 }
 
 
-/******************************************************************************/
 size_t CO_fifo_cpyTok2U8(CO_fifo_t *dest, CO_fifo_t *src, uint8_t *status) {
     char buf[15];
     uint8_t closed = 0xFFU;

@@ -336,7 +336,6 @@ static void CO_EM_receive(void *object, void *msg) {
 #endif
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_EM_init(CO_EM_t *em,
                             CO_CANmodule_t *CANdevTx,
                             const OD_entry_t *OD_1001_errReg,
@@ -521,7 +520,6 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
 }
 
 
-/******************************************************************************/
 #if ((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0
 void CO_EM_initCallbackRx(CO_EM_t *em,
                           void (*pFunctSignalRx)(const uint16_t ident,
@@ -549,7 +547,6 @@ void CO_EM_initCallbackPre(CO_EM_t *em,
 #endif
 
 
-/******************************************************************************/
 void CO_EM_process(CO_EM_t *em,
                    bool_t NMTisPreOrOperational,
                    uint32_t timeDifference_us,
@@ -723,7 +720,6 @@ void CO_EM_process(CO_EM_t *em,
 }
 
 
-/******************************************************************************/
 void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
               uint16_t errorCode, uint32_t infoCode)
 {

@@ -22,7 +22,6 @@
 #include "301/CO_ODinterface.h"
 
 
-/******************************************************************************/
 ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
                       OD_size_t count, OD_size_t *countRead)
 {
@@ -66,7 +65,6 @@ ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
     return returnCode;
 }
 
-/******************************************************************************/
 ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
                        OD_size_t count, OD_size_t *countWritten)
 {
@@ -142,7 +140,6 @@ static ODR_t OD_writeDisabled(OD_stream_t *stream, const void *buf,
 }
 
 
-/******************************************************************************/
 OD_entry_t *OD_find(OD_t *od, uint16_t index) {
     if ((od == NULL) || (od->size == 0U)) {
         return NULL;
@@ -181,7 +178,6 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index) {
     return NULL;  /* entry does not exist in OD */
 }
 
-/******************************************************************************/
 ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
                 OD_IO_t *io, bool_t odOrig)
 {
@@ -267,7 +263,6 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     return ODR_OK;
 }
 
-/******************************************************************************/
 uint32_t OD_getSDOabCode(ODR_t returnCode) {
     static const uint32_t abortCodes[(uint8_t)ODR_COUNT] = {
         0x00000000UL, /* No abort */
@@ -303,7 +298,6 @@ uint32_t OD_getSDOabCode(ODR_t returnCode) {
 }
 
 
-/******************************************************************************/
 ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
                    void *val, OD_size_t len, bool_t odOrig)
 {

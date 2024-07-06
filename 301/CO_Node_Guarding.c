@@ -97,7 +97,6 @@ static ODR_t OD_write_100D(OD_stream_t *stream, const void *buf,
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
                                            OD_entry_t *OD_100C_GuardTime,
                                            OD_entry_t *OD_100D_LifeTimeFactor,
@@ -199,7 +198,6 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
 }
 
 
-/******************************************************************************/
 void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
                                   CO_NMT_internalState_t NMTstate,
                                   bool_t slaveDisable,
@@ -305,7 +303,6 @@ static void CO_ngm_receive(void *object, void *msg) {
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
                                             CO_EM_t *em,
                                             CO_CANmodule_t *CANdevRx,
@@ -358,7 +355,6 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t *ngm,
                                                 uint8_t index,
                                                 uint8_t nodeId,
@@ -392,7 +388,6 @@ CO_ReturnError_t CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t *ngm,
 }
 
 
-/******************************************************************************/
 void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
                                    uint32_t timeDifference_us,
                                    uint32_t *timerNext_us)

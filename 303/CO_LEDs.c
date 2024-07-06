@@ -22,7 +22,6 @@
 
 #if ((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0
 
-/******************************************************************************/
 CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs) {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
@@ -38,7 +37,6 @@ CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs) {
 }
 
 
-/******************************************************************************/
 void CO_LEDs_process(CO_LEDs_t *LEDs,
                      uint32_t timeDifference_us,
                      CO_NMT_internalState_t NMTstate,

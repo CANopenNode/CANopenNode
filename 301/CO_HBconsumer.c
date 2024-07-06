@@ -106,7 +106,6 @@ static ODR_t OD_write_1016(OD_stream_t *stream, const void *buf,
 #endif
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
                                     CO_EM_t *em,
                                     CO_HBconsNode_t *monitoredNodes,
@@ -171,7 +170,6 @@ CO_ReturnError_t CO_HBconsumer_init(CO_HBconsumer_t *HBcons,
 }
 
 
-/******************************************************************************/
 static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
                                                 uint8_t idx,
                                                 uint8_t nodeId,
@@ -233,7 +231,6 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t *HBcons,
 
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-/******************************************************************************/
 void CO_HBconsumer_initCallbackPre(
         CO_HBconsumer_t        *HBcons,
         void                   *object,
@@ -251,7 +248,6 @@ void CO_HBconsumer_initCallbackPre(
 
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0
-/******************************************************************************/
 void CO_HBconsumer_initCallbackNmtChanged(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx,
@@ -272,7 +268,6 @@ void CO_HBconsumer_initCallbackNmtChanged(
 
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0
-/******************************************************************************/
 void CO_HBconsumer_initCallbackNmtChanged(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx,
@@ -291,7 +286,6 @@ void CO_HBconsumer_initCallbackNmtChanged(
 }
 
 
-/******************************************************************************/
 void CO_HBconsumer_initCallbackHeartbeatStarted(
     CO_HBconsumer_t        *HBcons,
     uint8_t                 idx,
@@ -310,7 +304,6 @@ void CO_HBconsumer_initCallbackHeartbeatStarted(
 }
 
 
-/******************************************************************************/
 void CO_HBconsumer_initCallbackTimeout(
     CO_HBconsumer_t        *HBcons,
     uint8_t                 idx,
@@ -329,7 +322,6 @@ void CO_HBconsumer_initCallbackTimeout(
 }
 
 
-/******************************************************************************/
 void CO_HBconsumer_initCallbackRemoteReset(
     CO_HBconsumer_t        *HBcons,
     uint8_t                 idx,
@@ -349,7 +341,6 @@ void CO_HBconsumer_initCallbackRemoteReset(
 #endif /* (CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_CALLBACK_MULTI */
 
 
-/******************************************************************************/
 void CO_HBconsumer_process(
         CO_HBconsumer_t        *HBcons,
         bool_t                  NMTisPreOrOperational,
@@ -498,7 +489,6 @@ void CO_HBconsumer_process(
 
 
 #if ((CO_CONFIG_HB_CONS) & CO_CONFIG_HB_CONS_QUERY_FUNCT) != 0
-/******************************************************************************/
 int8_t CO_HBconsumer_getIdxByNodeId(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 nodeId)
@@ -523,7 +513,6 @@ int8_t CO_HBconsumer_getIdxByNodeId(
 }
 
 
-/******************************************************************************/
 CO_HBconsumer_state_t CO_HBconsumer_getState(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx)
@@ -538,7 +527,6 @@ CO_HBconsumer_state_t CO_HBconsumer_getState(
     return monitoredNode->HBstate;
 }
 
-/******************************************************************************/
 int8_t CO_HBconsumer_getNmtState(
         CO_HBconsumer_t        *HBcons,
         uint8_t                 idx,

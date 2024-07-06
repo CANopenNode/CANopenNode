@@ -76,14 +76,12 @@ static const uint16_t crc16_ccitt_table[256] = {
 };
 
 
-/******************************************************************************/
 void crc16_ccitt_single(uint16_t *crc, const uint8_t chr) {
     uint8_t tmp = (uint8_t)(*crc >> 8U) ^ chr;
     *crc = (uint16_t)((*crc << 8U) ^ crc16_ccitt_table[tmp]);
 }
 
 
-/******************************************************************************/
 uint16_t crc16_ccitt(const uint8_t block[],
                      size_t blockLength,
                      uint16_t crc)

@@ -74,7 +74,6 @@ static ODR_t OD_write_1017(OD_stream_t *stream, const void *buf,
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
                              OD_entry_t *OD_1017_ProducerHbTime,
                              CO_EM_t *em,
@@ -198,7 +197,6 @@ void CO_NMT_initCallbackPre(CO_NMT_t *NMT,
 
 
 #if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) != 0
-/******************************************************************************/
 void CO_NMT_initCallbackChanged(CO_NMT_t *NMT,
                                 void (*pFunctNMT)(CO_NMT_internalState_t state))
 {
@@ -212,7 +210,6 @@ void CO_NMT_initCallbackChanged(CO_NMT_t *NMT,
 #endif
 
 
-/******************************************************************************/
 CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
                                   CO_NMT_internalState_t *NMTstate,
                                   uint32_t timeDifference_us,
@@ -330,7 +327,6 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
 
 
 #if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0
-/******************************************************************************/
 CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
                                     CO_NMT_command_t command,
                                     uint8_t nodeID)

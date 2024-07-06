@@ -24,13 +24,11 @@
 #include "301/CO_driver.h"
 
 
-/******************************************************************************/
 void CO_CANsetConfigurationMode(void *CANptr){
     /* Put CAN module in configuration mode */
 }
 
 
-/******************************************************************************/
 void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
     /* Put CAN module in normal mode */
 
@@ -38,7 +36,6 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule){
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_CANmodule_init(
         CO_CANmodule_t         *CANmodule,
         void                   *CANptr,
@@ -107,7 +104,6 @@ CO_ReturnError_t CO_CANmodule_init(
 }
 
 
-/******************************************************************************/
 void CO_CANmodule_disable(CO_CANmodule_t *CANmodule) {
     if (CANmodule != NULL) {
         /* turn off the module */
@@ -115,7 +111,6 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule) {
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_CANrxBufferInit(
         CO_CANmodule_t         *CANmodule,
         uint16_t                index,
@@ -155,7 +150,6 @@ CO_ReturnError_t CO_CANrxBufferInit(
 }
 
 
-/******************************************************************************/
 CO_CANtx_t *CO_CANtxBufferInit(
         CO_CANmodule_t         *CANmodule,
         uint16_t                index,
@@ -184,7 +178,6 @@ CO_CANtx_t *CO_CANtxBufferInit(
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
     CO_ReturnError_t err = CO_ERROR_NO;
 
@@ -214,7 +207,6 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer){
 }
 
 
-/******************************************************************************/
 void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
     uint32_t tpdoDeleted = 0U;
 
@@ -250,7 +242,6 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule){
 }
 
 
-/******************************************************************************/
 /* Get error counters from the module. If necessary, function may use
     * different way to determine errors. */
 static uint16_t rxErrors=0, txErrors=0, overflow=0;
@@ -305,7 +296,6 @@ void CO_CANmodule_process(CO_CANmodule_t *CANmodule) {
 }
 
 
-/******************************************************************************/
 typedef struct {
     uint32_t ident;
     uint8_t DLC;

@@ -98,7 +98,6 @@ static ODR_t restoreEeprom(CO_storage_entry_t *entry,
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
                                        CO_CANmodule_t *CANmodule,
                                        void *storageModule,
@@ -219,7 +218,6 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
 }
 
 
-/******************************************************************************/
 void CO_storageEeprom_auto_process(CO_storage_t *storage, bool_t saveAll) {
     /* verify arguments */
     if ((storage == NULL) || !storage->enabled) {

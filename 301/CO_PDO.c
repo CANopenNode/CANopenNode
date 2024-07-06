@@ -625,7 +625,6 @@ static ODR_t OD_write_14xx(OD_stream_t *stream, const void *buf,
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC */
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_RPDO_init(CO_RPDO_t *RPDO,
                               OD_t *OD,
                               CO_EM_t *em,
@@ -774,7 +773,6 @@ void CO_RPDO_initCallbackPre(CO_RPDO_t *RPDO,
 #endif
 
 
-/******************************************************************************/
 void CO_RPDO_process(CO_RPDO_t *RPDO,
 #if ((CO_CONFIG_PDO) & CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
                      uint32_t timeDifference_us,
@@ -1075,7 +1073,6 @@ static ODR_t OD_write_18xx(OD_stream_t *stream, const void *buf,
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_FLAG_OD_DYNAMIC */
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_TPDO_init(CO_TPDO_t *TPDO,
                               OD_t *OD,
                               CO_EM_t *em,
@@ -1326,7 +1323,6 @@ static CO_ReturnError_t CO_TPDOsend(CO_TPDO_t *TPDO) {
 }
 
 
-/******************************************************************************/
 void CO_TPDO_process(CO_TPDO_t *TPDO,
 #if (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_TIMERS_ENABLE) != 0) || defined CO_DOXYGEN
                      uint32_t timeDifference_us,

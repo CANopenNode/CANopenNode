@@ -394,7 +394,6 @@ static CO_SDO_abortCode_t CO_ODF_trace(CO_ODF_arg_t *ODF_arg) {
 }
 
 
-/******************************************************************************/
 void CO_trace_init(
         CO_trace_t             *trace,
         CO_SDO_t               *SDO,
@@ -451,7 +450,6 @@ void CO_trace_init(
 }
 
 
-/******************************************************************************/
 void CO_trace_process(CO_trace_t *trace, uint32_t timestamp) {
     if(trace->enabled) {
 

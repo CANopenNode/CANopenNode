@@ -196,7 +196,6 @@ static ODR_t OD_write_1019(OD_stream_t *stream, const void *buf,
 #endif /* (CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC */
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
                               CO_EM_t *em,
                               OD_entry_t *OD_1005_cobIdSync,
@@ -344,7 +343,6 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
 
 
 #if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-/******************************************************************************/
 void CO_SYNC_initCallbackPre(
         CO_SYNC_t              *SYNC,
         void                   *object,
@@ -358,7 +356,6 @@ void CO_SYNC_initCallbackPre(
 #endif
 
 
-/******************************************************************************/
 CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
                                  bool_t NMTisPreOrOperational,
                                  uint32_t timeDifference_us,

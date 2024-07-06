@@ -43,7 +43,6 @@
  #endif
 #endif
 
-/******************************************************************************/
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 #if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
                               CO_SDOclient_t* SDO_C,
@@ -117,7 +116,6 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
 }
 
 
-/******************************************************************************/
 void CO_GTWA_initRead(CO_GTWA_t* gtwa,
                       size_t (*readCallback)(void *object,
                                              const char *buf,
@@ -132,7 +130,6 @@ void CO_GTWA_initRead(CO_GTWA_t* gtwa,
 }
 
 
-/******************************************************************************/
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0
 void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message) {
     if ((gtwa != NULL) && (message != NULL)) {

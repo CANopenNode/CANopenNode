@@ -247,7 +247,6 @@ static ODR_t OD_write_1280(OD_stream_t *stream, const void *buf,
 #endif /* (CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC */
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
                                    OD_t *OD,
                                    OD_entry_t *OD_1280_SDOcliPar,
@@ -336,7 +335,6 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
 
 
 #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-/******************************************************************************/
 void CO_SDOclient_initCallbackPre(CO_SDOclient_t *SDOclient,
                                   void *object,
                                   void (*pFunctSignal)(void *object))
@@ -362,7 +360,6 @@ static inline void reverseBytes(void *start, OD_size_t size) {
 #endif
 
 
-/******************************************************************************/
 CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
                                    uint32_t COB_IDClientToServer,
                                    uint32_t COB_IDServerToClient,
@@ -503,7 +500,6 @@ void CO_SDOclientDownloadInitSize(CO_SDOclient_t *SDO_C,
 }
 
 
-/******************************************************************************/
 size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
                                     const uint8_t *buf,
                                     size_t count)
@@ -516,7 +512,6 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
 }
 
 
-/******************************************************************************/
 CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
                                      uint32_t timeDifference_us,
                                      bool_t send_abort,
@@ -1229,7 +1224,6 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
 }
 
 
-/******************************************************************************/
 CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
                                    uint32_t timeDifference_us,
                                    bool_t send_abort,
@@ -1959,7 +1953,6 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
 }
 
 
-/******************************************************************************/
 size_t CO_SDOclientUploadBufRead(CO_SDOclient_t *SDO_C,
                                  uint8_t *buf,
                                  size_t count)
@@ -1972,7 +1965,6 @@ size_t CO_SDOclientUploadBufRead(CO_SDOclient_t *SDO_C,
 }
 
 
-/******************************************************************************/
 void CO_SDOclientClose(CO_SDOclient_t *SDO_C) {
     if (SDO_C != NULL) {
         SDO_C->state = CO_SDO_ST_IDLE;

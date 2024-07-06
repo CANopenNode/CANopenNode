@@ -196,7 +196,6 @@ static void CO_LSSslave_receive(void *object, void *msg)
 }
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_LSSslave_init(
         CO_LSSslave_t          *LSSslave,
         CO_LSS_address_t       *lssAddress,
@@ -263,7 +262,6 @@ CO_ReturnError_t CO_LSSslave_init(
 
 
 #if ((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-/******************************************************************************/
 void CO_LSSslave_initCallbackPre(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
@@ -277,7 +275,6 @@ void CO_LSSslave_initCallbackPre(
 #endif
 
 
-/******************************************************************************/
 void CO_LSSslave_initCkBitRateCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
@@ -290,7 +287,6 @@ void CO_LSSslave_initCkBitRateCall(
 }
 
 
-/******************************************************************************/
 void CO_LSSslave_initActBitRateCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
@@ -303,7 +299,6 @@ void CO_LSSslave_initActBitRateCall(
 }
 
 
-/******************************************************************************/
 void CO_LSSslave_initCfgStoreCall(
         CO_LSSslave_t          *LSSslave,
         void                   *object,
@@ -316,7 +311,6 @@ void CO_LSSslave_initCfgStoreCall(
 }
 
 
-/******************************************************************************/
 bool_t CO_LSSslave_process(CO_LSSslave_t *LSSslave) {
     bool_t resetCommunication = false;
 

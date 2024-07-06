@@ -308,7 +308,6 @@ static ODR_t OD_write_1201_additional(OD_stream_t *stream, const void *buf,
 #endif /* (CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_OD_DYNAMIC */
 
 
-/******************************************************************************/
 CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
                                    OD_t *OD,
                                    OD_entry_t *OD_1200_SDOsrvPar,
@@ -434,7 +433,6 @@ CO_ReturnError_t CO_SDOserver_init(CO_SDOserver_t *SDO,
 
 
 #if ((CO_CONFIG_SDO_SRV) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0
-/******************************************************************************/
 void CO_SDOserver_initCallbackPre(CO_SDOserver_t *SDO,
                                   void *object,
                                   void (*pFunctSignalPre)(void *object))
@@ -685,7 +683,6 @@ static bool_t readFromOd(CO_SDOserver_t *SDO,
 #endif
 
 
-/******************************************************************************/
 CO_SDO_return_t CO_SDOserver_process(CO_SDOserver_t *SDO,
                                      bool_t NMTisPreOrOperational,
                                      uint32_t timeDifference_us,
