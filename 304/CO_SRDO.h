@@ -47,10 +47,10 @@ extern "C" {
  * @ingroup CO_CANopen_304
  * @{
  * Safety Related Data Object protocol is specified by standard EN 50325-5:2010 (formerly CiA304).
- * Its functionality is very similar to that of the PDOs. The main differences is every message is send and received twice.
- * The second message must be bitwise inverted. The delay between the two messages and between each message pair is monitored.
- * The distinction between sending and receiving SRDO is made at runtime (for PDO it is compile time).
- * If the security protocol is used, at least one SRDO is mandatory.
+ * Its functionality is very similar to that of the PDOs. The main differences is every message is send and received
+ * twice. The second message must be bitwise inverted. The delay between the two messages and between each message pair
+ * is monitored. The distinction between sending and receiving SRDO is made at runtime (for PDO it is compile time). If
+ * the security protocol is used, at least one SRDO is mandatory.
  *
  * If there is erroneous structure of OD entries for SRDO parameters, then @CO_SRDO_init() function
  * returns error and CANopen device doesn't work. It is necessary to repair Object Dictionary and reprogram the device.
@@ -65,8 +65,8 @@ extern "C" {
  *
  * @CO_SRDO_process() must be executed cyclically, similar as PDO processing. Function is fast, no time consuming tasks.
  * Function returns @CO_SRDO_state_t value, which may be used to determine working-state or safe-state of safety related
- * device. If return values from all SRDO objects are >= CO_SRDO_state_communicationEstablished, then working state is allowed.
- * Otherwise SR device must be in safe state.
+ * device. If return values from all SRDO objects are >= CO_SRDO_state_communicationEstablished, then working state is
+ * allowed. Otherwise SR device must be in safe state.
  *
  * Requirement for mapped objects:
  *  - @OD_attributes_t must have set bit ODA_RSRDO or ODA_RSRDO or ODA_TRSRDO (by CANopenEditor).

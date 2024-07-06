@@ -73,7 +73,7 @@ CO_SDOclient_receive(void* object, void* msg) {
             CO_FLAG_SET(SDO_C->CANrxNew);
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
             /* Optional signal to RTOS, which can resume task, which handles
-            * SDO client processing. */
+             * SDO client processing. */
             if (SDO_C->pFunctSignal != NULL) {
                 SDO_C->pFunctSignal(SDO_C->functSignalObject);
             }

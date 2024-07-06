@@ -780,7 +780,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         }
 
                         /* Set stream.dataOffset to zero, perform OD_IO.read()
-                        * and store mappedLength back to stream.dataOffset */
+                         * and store mappedLength back to stream.dataOffset */
                         stream->dataOffset = 0;
                         OD_size_t countRd;
                         OD_IO->read(stream, dataSRDOCopy, ODdataLength, &countRd);
@@ -905,7 +905,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                                 ODdataLength = CO_SRDO_MAX_SIZE;
                             }
                             /* Prepare data for writing into OD variable. If mappedLength
-                            * is smaller than ODdataLength, then use auxiliary buffer */
+                             * is smaller than ODdataLength, then use auxiliary buffer */
                             uint8_t buf[CO_SRDO_MAX_SIZE];
                             uint8_t* dataOD;
                             if (ODdataLength > mappedLength) {
@@ -930,7 +930,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
 #endif
 
                             /* Set stream.dataOffset to zero, perform OD_IO.write()
-                            * and store mappedLength back to stream.dataOffset */
+                             * and store mappedLength back to stream.dataOffset */
                             *dataOffset = 0;
                             OD_size_t countWritten;
                             OD_IO->write(&OD_IO->stream, dataOD, ODdataLength, &countWritten);

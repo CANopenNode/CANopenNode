@@ -274,7 +274,7 @@ CO_LSSslave_process(CO_LSSslave_t* LSSslave) {
         switch (LSSslave->service) {
             case CO_LSS_SWITCH_STATE_GLOBAL: {
                 /* Node-Id was unconfigured before, now it is configured,
-             * enter the NMT Reset communication autonomously. */
+                 * enter the NMT Reset communication autonomously. */
                 resetCommunication = true;
                 break;
             }

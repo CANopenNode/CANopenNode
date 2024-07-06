@@ -210,7 +210,8 @@ extern "C" {
 #define CO_EM_10_unused           0x10U /**< 0x10   communication   critical   (unused) */
 #define CO_EM_11_unused           0x11U /**< 0x11   communication   critical   (unused) */
 #define CO_EM_CAN_TX_BUS_OFF      0x12U /**< 0x12   communication   critical   CAN transmit bus is off */
-#define CO_EM_CAN_RXB_OVERFLOW    0x13U /**< 0x13   communication   critical   CAN module receive buffer has overflowed */
+#define CO_EM_CAN_RXB_OVERFLOW    0x13U /**< 0x13   communication   critical   CAN module receive buffer has overflowed \
+                                         */
 #define CO_EM_CAN_TX_OVERFLOW     0x14U /**< 0x14   communication   critical   CAN transmit buffer has overflowed */
 #define CO_EM_TPDO_OUTSIDE_WINDOW 0x15U /**< 0x15   communication   critical   TPDO is outside SYNC window */
 #define CO_EM_16_unused           0x16U /**< 0x16   communication   critical   (unused) */
@@ -221,7 +222,8 @@ extern "C" {
 #define CO_EM_HEARTBEAT_CONSUMER  0x1BU /**< 0x1B   communication   critical   Heartbeat consumer timeout */
 #define CO_EM_HB_CONSUMER_REMOTE_RESET                                                                                 \
     0x1CU /**< 0x1C   communication   critical   Heartbeat consumer detected remote node reset */
-#define CO_EM_SRDO_CONFIGURATION 0x1DU /**< 0x1D   communication   critical   Error in SRDO configuration parameters. */
+#define CO_EM_SRDO_CONFIGURATION 0x1DU /**< 0x1D   communication   critical   Error in SRDO configuration parameters.  \
+                                        */
 #define CO_EM_1E_unused          0x1EU /**< 0x1E   communication   critical   (unused) */
 #define CO_EM_1F_unused          0x1FU /**< 0x1F   communication   critical   (unused) */
 
@@ -233,9 +235,11 @@ extern "C" {
 #define CO_EM_24_unused               0x24U /**< 0x24   generic   info   (unused) */
 #define CO_EM_25_unused               0x25U /**< 0x25   generic   info   (unused) */
 #define CO_EM_26_unused               0x26U /**< 0x26   generic   info   (unused) */
-#define CO_EM_NON_VOLATILE_AUTO_SAVE  0x27U /**< 0x27   generic   info   Automatic store to non-volatile memory failed */
+#define CO_EM_NON_VOLATILE_AUTO_SAVE  0x27U /**< 0x27   generic   info   Automatic store to non-volatile memory failed \
+                                             */
 
-#define CO_EM_WRONG_ERROR_REPORT      0x28U /**< 0x28   generic   critical   Wrong parameters to CO_errorReport() function*/
+#define CO_EM_WRONG_ERROR_REPORT      0x28U /**< 0x28   generic   critical   Wrong parameters to CO_errorReport()      \
+                                               function*/
 #define CO_EM_ISR_TIMER_OVERFLOW      0x29U /**< 0x29   generic   critical   Timer task has overflowed */
 #define CO_EM_MEMORY_ALLOCATION_ERROR 0x2AU /**< 0x2A   generic   critical   Unable to allocate memory for objects */
 #define CO_EM_GENERIC_ERROR           0x2BU /**< 0x2B   generic   critical   Generic error   test usage */

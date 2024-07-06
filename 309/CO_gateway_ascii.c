@@ -591,8 +591,8 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
     }
 
     /***************************************************************************
-    * COMMAND PARSER
-    ***************************************************************************/
+     * COMMAND PARSER
+     ***************************************************************************/
     /* if idle, search for new command, skip comments or empty lines */
     while (CO_fifo_CommSearch(&gtwa->commFifo, false) && (gtwa->state == CO_GTWA_ST_IDLE)) {
         char tok[20];
@@ -1531,8 +1531,8 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
     } /* while CO_GTWA_ST_IDLE && CO_fifo_CommSearch */
 
     /***************************************************************************
-    * STATE MACHINE
-    ***************************************************************************/
+     * STATE MACHINE
+     ***************************************************************************/
     /* If error, generate error response */
     if (err) {
         if (respErrorCode == CO_GTWA_respErrorNone) {

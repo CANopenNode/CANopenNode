@@ -133,8 +133,8 @@ typedef enum {
  */
 typedef enum {
     /* !!!! WARNING !!!!
- * If changing these values, change also OD_getSDOabCode() function!
- */
+     * If changing these values, change also OD_getSDOabCode() function!
+     */
     /** Read/write is only partial, make more calls */
     ODR_PARTIAL = -1,
     /** SDO abort 0x00000000 - Read/write successfully finished */

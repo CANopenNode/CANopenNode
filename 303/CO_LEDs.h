@@ -70,7 +70,7 @@ extern "C" {
 /**
  * @defgroup CO_LED_BITFIELD_t Bitfield for combining with red or green led
  * @{
- * 
+ *
  */
 #define CO_LED_flicker               0x01U /**< LED flickering 10Hz */
 #define CO_LED_blink                 0x02U /**< LED blinking 2,5Hz */

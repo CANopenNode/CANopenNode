@@ -97,224 +97,224 @@ extern "C" {
  */
 typedef enum {
     /**
- * - SDO client may start new download to or upload from specified node,
- * specified index and specified subindex. It can start normal or block
- * communication.
- * - SDO server is waiting for client request. */
+     * - SDO client may start new download to or upload from specified node,
+     * specified index and specified subindex. It can start normal or block
+     * communication.
+     * - SDO server is waiting for client request. */
     CO_SDO_ST_IDLE = 0x00U,
     /**
- * - SDO client or server may send SDO abort message in case of error:
- *  - byte 0: @b 10000000 binary.
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4..7: #CO_SDO_abortCode_t. */
+     * - SDO client or server may send SDO abort message in case of error:
+     *  - byte 0: @b 10000000 binary.
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4..7: #CO_SDO_abortCode_t. */
     CO_SDO_ST_ABORT = 0x01U,
 
     /**
- * - SDO client: Node-ID of the SDO server is the same as node-ID of this node,
- *   SDO client is the same device as SDO server. Transfer data directly without
- *   communication on CAN.
- * - SDO server does not use this state. */
+     * - SDO client: Node-ID of the SDO server is the same as node-ID of this node,
+     *   SDO client is the same device as SDO server. Transfer data directly without
+     *   communication on CAN.
+     * - SDO server does not use this state. */
     CO_SDO_ST_DOWNLOAD_LOCAL_TRANSFER = 0x10U,
     /**
- * - SDO client initiates SDO download:
- *  - byte 0: @b 0010nnes binary: (nn: if e=s=1, number of data bytes, that do
- *    @b not contain data; e=1 for expedited transfer; s=1 if data size is
- *    indicated.)
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4..7: If e=1, expedited data are here. If e=0 s=1, size of data for
- *    segmented transfer is indicated here.
- * - SDO server is in #CO_SDO_ST_IDLE state and waits for client request. */
+     * - SDO client initiates SDO download:
+     *  - byte 0: @b 0010nnes binary: (nn: if e=s=1, number of data bytes, that do
+     *    @b not contain data; e=1 for expedited transfer; s=1 if data size is
+     *    indicated.)
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4..7: If e=1, expedited data are here. If e=0 s=1, size of data for
+     *    segmented transfer is indicated here.
+     * - SDO server is in #CO_SDO_ST_IDLE state and waits for client request. */
     CO_SDO_ST_DOWNLOAD_INITIATE_REQ = 0x11U,
     /**
- * - SDO client waits for response.
- * - SDO server responses:
- *  - byte 0: @b 01100000 binary.
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4..7: Reserved.
- * - In case of expedited transfer communication ends here. */
+     * - SDO client waits for response.
+     * - SDO server responses:
+     *  - byte 0: @b 01100000 binary.
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4..7: Reserved.
+     * - In case of expedited transfer communication ends here. */
     CO_SDO_ST_DOWNLOAD_INITIATE_RSP = 0x12U,
     /**
- * - SDO client sends SDO segment:
- *  - byte 0: @b 000tnnnc binary: (t: toggle bit, set to 0 in first segment;
- *    nnn: number of data bytes, that do @b not contain data; c=1 if this is the
- *    last segment).
- *  - byte 1..7: Data segment.
- * - SDO server waits for segment. */
+     * - SDO client sends SDO segment:
+     *  - byte 0: @b 000tnnnc binary: (t: toggle bit, set to 0 in first segment;
+     *    nnn: number of data bytes, that do @b not contain data; c=1 if this is the
+     *    last segment).
+     *  - byte 1..7: Data segment.
+     * - SDO server waits for segment. */
     CO_SDO_ST_DOWNLOAD_SEGMENT_REQ = 0x13U,
     /**
- * - SDO client waits for response.
- * - SDO server responses:
- *  - byte 0: @b 001t0000 binary: (t: toggle bit, set to 0 in first segment).
- *  - byte 1..7: Reserved.
- * - If c was set to 1, then communication ends here. */
+     * - SDO client waits for response.
+     * - SDO server responses:
+     *  - byte 0: @b 001t0000 binary: (t: toggle bit, set to 0 in first segment).
+     *  - byte 1..7: Reserved.
+     * - If c was set to 1, then communication ends here. */
     CO_SDO_ST_DOWNLOAD_SEGMENT_RSP = 0x14U,
 
     /**
- * - SDO client: Node-ID of the SDO server is the same as node-ID of this node,
- *   SDO client is the same device as SDO server. Transfer data directly without
- *   communication on CAN.
- * - SDO server does not use this state. */
+     * - SDO client: Node-ID of the SDO server is the same as node-ID of this node,
+     *   SDO client is the same device as SDO server. Transfer data directly without
+     *   communication on CAN.
+     * - SDO server does not use this state. */
     CO_SDO_ST_UPLOAD_LOCAL_TRANSFER = 0x20U,
     /**
- * - SDO client initiates SDO upload:
- *  - byte 0: @b 01000000 binary.
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4..7: Reserved.
- * - SDO server is in #CO_SDO_ST_IDLE state and waits for client request. */
+     * - SDO client initiates SDO upload:
+     *  - byte 0: @b 01000000 binary.
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4..7: Reserved.
+     * - SDO server is in #CO_SDO_ST_IDLE state and waits for client request. */
     CO_SDO_ST_UPLOAD_INITIATE_REQ = 0x21U,
     /**
- * - SDO client waits for response.
- * - SDO server responses:
- *  - byte 0: @b 0100nnes binary: (nn: if e=s=1, number of data bytes, that do
- *    @b not contain data; e=1 for expedited transfer; s=1 if data size is
- *    indicated).
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4..7: If e=1, expedited data are here. If e=0 s=1, size of data for
- *    segmented transfer is indicated here.
- * - In case of expedited transfer communication ends here. */
+     * - SDO client waits for response.
+     * - SDO server responses:
+     *  - byte 0: @b 0100nnes binary: (nn: if e=s=1, number of data bytes, that do
+     *    @b not contain data; e=1 for expedited transfer; s=1 if data size is
+     *    indicated).
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4..7: If e=1, expedited data are here. If e=0 s=1, size of data for
+     *    segmented transfer is indicated here.
+     * - In case of expedited transfer communication ends here. */
     CO_SDO_ST_UPLOAD_INITIATE_RSP = 0x22U,
     /**
- * - SDO client requests SDO segment:
- *  - byte 0: @b 011t0000 binary: (t: toggle bit, set to 0 in first segment).
- *  - byte 1..7: Reserved.
- * - SDO server waits for segment request. */
+     * - SDO client requests SDO segment:
+     *  - byte 0: @b 011t0000 binary: (t: toggle bit, set to 0 in first segment).
+     *  - byte 1..7: Reserved.
+     * - SDO server waits for segment request. */
     CO_SDO_ST_UPLOAD_SEGMENT_REQ = 0x23U,
     /**
- * - SDO client waits for response.
- * - SDO server responses with data:
- *  - byte 0: @b 000tnnnc binary: (t: toggle bit, set to 0 in first segment;
- *    nnn: number of data bytes, that do @b not contain data; c=1 if this is the
- *    last segment).
- *  - byte 1..7: Data segment.
- * - If c is set to 1, then communication ends here. */
+     * - SDO client waits for response.
+     * - SDO server responses with data:
+     *  - byte 0: @b 000tnnnc binary: (t: toggle bit, set to 0 in first segment;
+     *    nnn: number of data bytes, that do @b not contain data; c=1 if this is the
+     *    last segment).
+     *  - byte 1..7: Data segment.
+     * - If c is set to 1, then communication ends here. */
     CO_SDO_ST_UPLOAD_SEGMENT_RSP = 0x24U,
 
     /**
- * - SDO client initiates SDO block download:
- *  - byte 0: @b 11000rs0 binary: (r=1 if client supports generating CRC on
- *    data; s=1 if data size is indicated.)
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4..7: If s=1, then size of data for block download is indicated here.
- * - SDO server is in #CO_SDO_ST_IDLE state and waits for client request. */
+     * - SDO client initiates SDO block download:
+     *  - byte 0: @b 11000rs0 binary: (r=1 if client supports generating CRC on
+     *    data; s=1 if data size is indicated.)
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4..7: If s=1, then size of data for block download is indicated here.
+     * - SDO server is in #CO_SDO_ST_IDLE state and waits for client request. */
     CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ = 0x51U,
     /**
- * - SDO client waits for response.
- * - SDO server responses:
- *  - byte 0: @b 10100r00 binary: (r=1 if server supports generating CRC on
- *    data.)
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4: blksize: Number of segments per block that shall be used by the
- *    client for the following block download with 0 < blksize < 128.
- *  - byte 5..7: Reserved. */
+     * - SDO client waits for response.
+     * - SDO server responses:
+     *  - byte 0: @b 10100r00 binary: (r=1 if server supports generating CRC on
+     *    data.)
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4: blksize: Number of segments per block that shall be used by the
+     *    client for the following block download with 0 < blksize < 128.
+     *  - byte 5..7: Reserved. */
     CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP = 0x52U,
     /**
- * - SDO client sends 'blksize' segments of data in sequence:
- *  - byte 0: @b cnnnnnnn binary: (c=1 if no more segments to be downloaded,
- *    enter SDO block download end phase; nnnnnnn is sequence number of segment,
- *    1..127.
- *  - byte 1..7: At most 7 bytes of segment data to be downloaded.
- * - SDO server reads sequence of 'blksize' blocks. */
+     * - SDO client sends 'blksize' segments of data in sequence:
+     *  - byte 0: @b cnnnnnnn binary: (c=1 if no more segments to be downloaded,
+     *    enter SDO block download end phase; nnnnnnn is sequence number of segment,
+     *    1..127.
+     *  - byte 1..7: At most 7 bytes of segment data to be downloaded.
+     * - SDO server reads sequence of 'blksize' blocks. */
     CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ = 0x53U,
     /**
- * - SDO client waits for response.
- * - SDO server responses:
- *  - byte 0: @b 10100010 binary.
- *  - byte 1: ackseq: sequence number of last segment that was received
- *    successfully during the last block download. If ackseq is set to 0 the
- *    server indicates the client that the segment with the sequence number 1
- *    was not received correctly and all segments shall be retransmitted by the
- *    client.
- *  - byte 2: Number of segments per block that shall be used by the client for
- *    the following block download with 0 < blksize < 128.
- *  - byte 3..7: Reserved.
- * - If c was set to 1, then communication enters SDO block download end phase.
- */
+     * - SDO client waits for response.
+     * - SDO server responses:
+     *  - byte 0: @b 10100010 binary.
+     *  - byte 1: ackseq: sequence number of last segment that was received
+     *    successfully during the last block download. If ackseq is set to 0 the
+     *    server indicates the client that the segment with the sequence number 1
+     *    was not received correctly and all segments shall be retransmitted by the
+     *    client.
+     *  - byte 2: Number of segments per block that shall be used by the client for
+     *    the following block download with 0 < blksize < 128.
+     *  - byte 3..7: Reserved.
+     * - If c was set to 1, then communication enters SDO block download end phase.
+     */
     CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_RSP = 0x54U,
     /**
- * - SDO client sends SDO block download end:
- *  - byte 0: @b 110nnn01 binary: (nnn: number of data bytes, that do @b not
- *    contain data)
- *  - byte 1..2: 16 bit CRC for the data set, if enabled by client and server.
- *  - byte 3..7: Reserved.
- * - SDO server waits for client request. */
+     * - SDO client sends SDO block download end:
+     *  - byte 0: @b 110nnn01 binary: (nnn: number of data bytes, that do @b not
+     *    contain data)
+     *  - byte 1..2: 16 bit CRC for the data set, if enabled by client and server.
+     *  - byte 3..7: Reserved.
+     * - SDO server waits for client request. */
     CO_SDO_ST_DOWNLOAD_BLK_END_REQ = 0x55U,
     /**
- * - SDO client waits for response.
- * - SDO server responses:
- *  - byte 0: @b 10100001 binary.
- *  - byte 1..7: Reserved.
- * - Block download successfully ends here.
- */
+     * - SDO client waits for response.
+     * - SDO server responses:
+     *  - byte 0: @b 10100001 binary.
+     *  - byte 1..7: Reserved.
+     * - Block download successfully ends here.
+     */
     CO_SDO_ST_DOWNLOAD_BLK_END_RSP = 0x56U,
 
     /**
- * - SDO client initiates SDO block upload:
- *  - byte 0: @b 10100r00 binary: (r=1 if client supports generating CRC on
- *    data.)
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4: blksize: Number of segments per block with 0 < blksize < 128.
- *  - byte 5: pst - protocol switch threshold. If pst > 0 and size of the data
- *    in bytes is less or equal pst, then the server may switch to the SDO
- *    upload protocol #CO_SDO_ST_UPLOAD_INITIATE_RSP.
- *  - byte 6..7: Reserved.
- * - SDO server is in #CO_SDO_ST_IDLE state and waits for client request. */
+     * - SDO client initiates SDO block upload:
+     *  - byte 0: @b 10100r00 binary: (r=1 if client supports generating CRC on
+     *    data.)
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4: blksize: Number of segments per block with 0 < blksize < 128.
+     *  - byte 5: pst - protocol switch threshold. If pst > 0 and size of the data
+     *    in bytes is less or equal pst, then the server may switch to the SDO
+     *    upload protocol #CO_SDO_ST_UPLOAD_INITIATE_RSP.
+     *  - byte 6..7: Reserved.
+     * - SDO server is in #CO_SDO_ST_IDLE state and waits for client request. */
     CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ = 0x61U,
     /**
- * - SDO client waits for response.
- * - SDO server responses:
- *  - byte 0: @b 11000rs0 binary: (r=1 if server supports generating CRC on
- *    data; s=1 if data size is indicated. )
- *  - byte 1..3: Object index and subIndex.
- *  - byte 4..7: If s=1, then size of data for block upload is indicated here.
- * - If enabled by pst, then server may alternatively response with
- *   #CO_SDO_ST_UPLOAD_INITIATE_RSP */
+     * - SDO client waits for response.
+     * - SDO server responses:
+     *  - byte 0: @b 11000rs0 binary: (r=1 if server supports generating CRC on
+     *    data; s=1 if data size is indicated. )
+     *  - byte 1..3: Object index and subIndex.
+     *  - byte 4..7: If s=1, then size of data for block upload is indicated here.
+     * - If enabled by pst, then server may alternatively response with
+     *   #CO_SDO_ST_UPLOAD_INITIATE_RSP */
     CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP = 0x62U,
     /**
- * - SDO client sends second initiate for SDO block upload:
- *  - byte 0: @b 10100011 binary.
- *  - byte 1..7: Reserved.
- * - SDO server waits for client request. */
+     * - SDO client sends second initiate for SDO block upload:
+     *  - byte 0: @b 10100011 binary.
+     *  - byte 1..7: Reserved.
+     * - SDO server waits for client request. */
     CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2 = 0x63U,
     /**
- * - SDO client reads sequence of 'blksize' blocks.
- * - SDO server sends 'blksize' segments of data in sequence:
- *  - byte 0: @b cnnnnnnn binary: (c=1 if no more segments to be uploaded,
- *    enter SDO block upload end phase; nnnnnnn is sequence number of segment,
- *    1..127.
- *  - byte 1..7: At most 7 bytes of segment data to be uploaded. */
+     * - SDO client reads sequence of 'blksize' blocks.
+     * - SDO server sends 'blksize' segments of data in sequence:
+     *  - byte 0: @b cnnnnnnn binary: (c=1 if no more segments to be uploaded,
+     *    enter SDO block upload end phase; nnnnnnn is sequence number of segment,
+     *    1..127.
+     *  - byte 1..7: At most 7 bytes of segment data to be uploaded. */
     CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ = 0x64U,
     /**
- * - SDO client responses:
- *  - byte 0: @b 10100010 binary.
- *  - byte 1: ackseq: sequence number of last segment that was received
- *    successfully during the last block upload. If ackseq is set to 0 the
- *    client indicates the server that the segment with the sequence number 1
- *    was not received correctly and all segments shall be retransmitted by the
- *    server.
- *  - byte 2: Number of segments per block that shall be used by the server for
- *    the following block upload with 0 < blksize < 128.
- *  - byte 3..7: Reserved.
- * - SDO server waits for response.
- * - If c was set to 1 and all segments were successfull received, then
- *   communication enters SDO block upload end phase. */
+     * - SDO client responses:
+     *  - byte 0: @b 10100010 binary.
+     *  - byte 1: ackseq: sequence number of last segment that was received
+     *    successfully during the last block upload. If ackseq is set to 0 the
+     *    client indicates the server that the segment with the sequence number 1
+     *    was not received correctly and all segments shall be retransmitted by the
+     *    server.
+     *  - byte 2: Number of segments per block that shall be used by the server for
+     *    the following block upload with 0 < blksize < 128.
+     *  - byte 3..7: Reserved.
+     * - SDO server waits for response.
+     * - If c was set to 1 and all segments were successfull received, then
+     *   communication enters SDO block upload end phase. */
     CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP = 0x65U,
     /**
- * - SDO client waits for server request.
- * - SDO server sends SDO block upload end:
- *  - byte 0: @b 110nnn01 binary: (nnn: number of data bytes, that do @b not
- *    contain data)
- *  - byte 1..2: 16 bit CRC for the data set, if enabled by client and server.
- *  - byte 3..7: Reserved. */
+     * - SDO client waits for server request.
+     * - SDO server sends SDO block upload end:
+     *  - byte 0: @b 110nnn01 binary: (nnn: number of data bytes, that do @b not
+     *    contain data)
+     *  - byte 1..2: 16 bit CRC for the data set, if enabled by client and server.
+     *  - byte 3..7: Reserved. */
     CO_SDO_ST_UPLOAD_BLK_END_SREQ = 0x66U,
     /**
- * - SDO client responses:
- *  - byte 0: @b 10100001 binary.
- *  - byte 1..7: Reserved.
- * - SDO server waits for response.
- * - Block download successfully ends here. Note that this communication ends
- *   with client response. Client may then start next SDO communication
- *   immediately.
- */
+     * - SDO client responses:
+     *  - byte 0: @b 10100001 binary.
+     *  - byte 1..7: Reserved.
+     * - SDO server waits for response.
+     * - Block download successfully ends here. Note that this communication ends
+     *   with client response. Client may then start next SDO communication
+     *   immediately.
+     */
     CO_SDO_ST_UPLOAD_BLK_END_CRSP = 0x67U,
 } CO_SDO_state_t;
 

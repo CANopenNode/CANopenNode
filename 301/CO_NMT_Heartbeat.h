@@ -118,7 +118,7 @@ typedef enum {
 /**
  * @defgroup CO_NMT_control_t NMT control bitfield for NMT internal state.
  * @{
- * 
+ *
  *
  * Variable of this type is passed to @ref CO_NMT_init() function. It
  * controls behavior of the @ref CO_NMT_internalState_t of the device according

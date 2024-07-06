@@ -79,7 +79,7 @@ CO_SDO_receive(void* object, void* msg) {
                     SDO->block_seqno = seqno;
 
                     /* Copy data. There is always enough space in buffer,
-                    * because block_blksize was calculated before */
+                     * because block_blksize was calculated before */
                     (void)memcpy(SDO->buf + SDO->bufOffsetWr, &data[1], 7);
                     SDO->bufOffsetWr += 7;
                     SDO->sizeTran += 7;
