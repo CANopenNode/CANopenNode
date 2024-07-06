@@ -25,15 +25,12 @@
 #include "301/CO_ODinterface.h"
 #include "301/CO_NMT_Heartbeat.h"
 
-
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_TIME
-#define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | \
-                        CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+#define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
-#if (((CO_CONFIG_TIME) & CO_CONFIG_TIME_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME)&CO_CONFIG_TIME_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,10 +62,8 @@ extern "C" {
  * send from @ref CO_TIME_process() in intervals specified by @ref CO_TIME_set()
  */
 
-
 /** Length of the TIME message */
 #define CO_TIME_MSG_LENGTH 6U
-
 
 /**
  * TIME producer and consumer object.
@@ -82,36 +77,35 @@ typedef struct {
     uint16_t days;
     /** Residual microseconds calculated inside CO_TIME_process() */
     uint16_t residual_us;
-	/** True, if device is TIME consumer. Calculated from _COB ID TIME Message_
+    /** True, if device is TIME consumer. Calculated from _COB ID TIME Message_
     variable from Object dictionary (index 0x1012). */
     bool_t isConsumer;
     /** True, if device is TIME producer. Calculated from _COB ID TIME Message_
     variable from Object dictionary (index 0x1012). */
     bool_t isProducer;
     /** Variable indicates, if new TIME message received from CAN bus */
-    volatile void *CANrxNew;
-#if (((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0) || defined CO_DOXYGEN
+    volatile void* CANrxNew;
+#if (((CO_CONFIG_TIME)&CO_CONFIG_TIME_PRODUCER) != 0) || defined CO_DOXYGEN
     /** Interval for time producer in milli seconds */
     uint32_t producerInterval_ms;
     /** Sync producer timer */
     uint32_t producerTimer_ms;
     /** From CO_TIME_init() */
-    CO_CANmodule_t *CANdevTx;
+    CO_CANmodule_t* CANdevTx;
     /** CAN transmit buffer */
-    CO_CANtx_t *CANtxBuff;
+    CO_CANtx_t* CANtxBuff;
 #endif
-#if (((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_TIME_initCallbackPre() or NULL */
-    void (*pFunctSignalPre)(void *object);
+    void (*pFunctSignalPre)(void* object);
     /** From CO_TIME_initCallbackPre() or NULL */
-    void *functSignalObjectPre;
+    void* functSignalObjectPre;
 #endif
-#if (((CO_CONFIG_TIME) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME)&CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
     /** Extension for OD object */
     OD_extension_t OD_1012_extension;
 #endif
 } CO_TIME_t;
-
 
 /**
  * Initialize TIME object.
@@ -129,18 +123,14 @@ typedef struct {
  *
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
-CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
-                              OD_entry_t *OD_1012_cobIdTimeStamp,
-                              CO_CANmodule_t *CANdevRx,
+CO_ReturnError_t CO_TIME_init(CO_TIME_t* TIME, OD_entry_t* OD_1012_cobIdTimeStamp, CO_CANmodule_t* CANdevRx,
                               uint16_t CANdevRxIdx,
-#if (((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0) || defined CO_DOXYGEN
-                              CO_CANmodule_t *CANdevTx,
-                              uint16_t CANdevTxIdx,
+#if (((CO_CONFIG_TIME)&CO_CONFIG_TIME_PRODUCER) != 0) || defined CO_DOXYGEN
+                              CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx,
 #endif
-                              uint32_t *errInfo);
+                              uint32_t* errInfo);
 
-
-#if (((CO_CONFIG_TIME) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_TIME)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize TIME callback function.
  *
@@ -152,11 +142,8 @@ CO_ReturnError_t CO_TIME_init(CO_TIME_t *TIME,
  * @param object Pointer to object, which will be passed to pFunctSignalPre().
  * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
  */
-void CO_TIME_initCallbackPre(CO_TIME_t *TIME,
-                             void *object,
-                             void (*pFunctSignalPre)(void *object));
+void CO_TIME_initCallbackPre(CO_TIME_t* TIME, void* object, void (*pFunctSignalPre)(void* object));
 #endif
-
 
 /**
  * Set current time
@@ -166,23 +153,19 @@ void CO_TIME_initCallbackPre(CO_TIME_t *TIME,
  * @param days Number of days since January 1, 1984
  * @param producerInterval_ms Interval time for time producer in milliseconds
  */
-static inline void CO_TIME_set(CO_TIME_t *TIME,
-                               uint32_t ms,
-                               uint16_t days,
-                               uint32_t producerInterval_ms)
-{
+static inline void
+CO_TIME_set(CO_TIME_t* TIME, uint32_t ms, uint16_t days, uint32_t producerInterval_ms) {
     (void)producerInterval_ms; /* may be unused */
 
     if (TIME != NULL) {
         TIME->residual_us = 0;
         TIME->ms = ms;
         TIME->days = days;
-#if ((CO_CONFIG_TIME) & CO_CONFIG_TIME_PRODUCER) != 0
-        TIME->producerTimer_ms = TIME->producerInterval_ms =producerInterval_ms;
+#if ((CO_CONFIG_TIME)&CO_CONFIG_TIME_PRODUCER) != 0
+        TIME->producerTimer_ms = TIME->producerInterval_ms = producerInterval_ms;
 #endif
     }
 }
-
 
 /**
  * Process TIME object.
@@ -199,10 +182,7 @@ static inline void CO_TIME_set(CO_TIME_t *TIME,
  *
  * @return True if new TIME stamp message recently received (consumer).
  */
-bool_t CO_TIME_process(CO_TIME_t *TIME,
-                       bool_t NMTisPreOrOperational,
-                       uint32_t timeDifference_us);
-
+bool_t CO_TIME_process(CO_TIME_t* TIME, bool_t NMTisPreOrOperational, uint32_t timeDifference_us);
 
 /** @} */ /* CO_TIME */
 

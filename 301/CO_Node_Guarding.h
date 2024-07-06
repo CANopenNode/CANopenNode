@@ -34,7 +34,7 @@
 #define CO_CONFIG_NODE_GUARDING_MASTER_COUNT 0x7F
 #endif
 
-#if (((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NODE_GUARDING)&CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,9 +77,9 @@ extern "C" {
  */
 typedef struct {
     /** From CO_nodeGuardingSlave_init() */
-    CO_EM_t *em;
+    CO_EM_t* em;
     /** Indicates, if new rtr message received from CAN bus */
-    volatile void *CANrxNew;
+    volatile void* CANrxNew;
     /** Guard time in microseconds, calculated from OD_0x100C */
     uint32_t guardTime_us;
     /** Life time in microseconds, calculated from guardTime_us * lifeTimeFactor */
@@ -97,11 +97,10 @@ typedef struct {
     /** Extension for OD object */
     OD_extension_t OD_100D_extension;
     /** From CO_nodeGuardingSlave_init() */
-    CO_CANmodule_t *CANdevTx;
+    CO_CANmodule_t* CANdevTx;
     /** CAN transmit buffer for the message */
-    CO_CANtx_t *CANtxBuff;
+    CO_CANtx_t* CANtxBuff;
 } CO_nodeGuardingSlave_t;
-
 
 /**
  * Initialize Node Guarding slave object.
@@ -124,17 +123,10 @@ typedef struct {
  *
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
-CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
-                                           OD_entry_t *OD_100C_GuardTime,
-                                           OD_entry_t *OD_100D_LifeTimeFactor,
-                                           CO_EM_t *em,
-                                           uint16_t CANidNodeGuarding,
-                                           CO_CANmodule_t *CANdevRx,
-                                           uint16_t CANdevRxIdx,
-                                           CO_CANmodule_t *CANdevTx,
-                                           uint16_t CANdevTxIdx,
-                                           uint32_t *errInfo);
-
+CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t* ngs, OD_entry_t* OD_100C_GuardTime,
+                                           OD_entry_t* OD_100D_LifeTimeFactor, CO_EM_t* em, uint16_t CANidNodeGuarding,
+                                           CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, CO_CANmodule_t* CANdevTx,
+                                           uint16_t CANdevTxIdx, uint32_t* errInfo);
 
 /**
  * Process Node Guarding slave.
@@ -148,12 +140,8 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
  * microseconds.
  * @param [out] timerNext_us info to OS - see CO_process().
  */
-void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
-                                  CO_NMT_internalState_t NMTstate,
-                                  bool_t slaveDisable,
-                                  uint32_t timeDifference_us,
-                                  uint32_t *timerNext_us);
-
+void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t* ngs, CO_NMT_internalState_t NMTstate, bool_t slaveDisable,
+                                  uint32_t timeDifference_us, uint32_t* timerNext_us);
 
 /**
  * Inquire, if Node guarding slave detected life time timeout
@@ -164,11 +152,10 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
  *
  * @return true, if life time timeout was detected.
  */
-static inline bool_t CO_nodeGuardingSlave_isTimeout(CO_nodeGuardingSlave_t *ngs)
-{
+static inline bool_t
+CO_nodeGuardingSlave_isTimeout(CO_nodeGuardingSlave_t* ngs) {
     return (ngs == NULL) || ngs->lifeTimeTimeout;
 }
-
 
 /** @} */ /* CO_Node_Guarding */
 
@@ -178,10 +165,7 @@ static inline bool_t CO_nodeGuardingSlave_isTimeout(CO_nodeGuardingSlave_t *ngs)
 
 #endif /* (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE */
 
-
-
-
-#if (((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NODE_GUARDING)&CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0) || defined CO_DOXYGEN
 
 #if CO_CONFIG_NODE_GUARDING_MASTER_COUNT < 1 || CO_CONFIG_NODE_GUARDING_MASTER_COUNT > 127
 #error CO_CONFIG_NODE_GUARDING_MASTER_COUNT value is wrong!
@@ -223,13 +207,13 @@ typedef struct {
  */
 typedef struct {
     /** From CO_nodeGuardingMaster_init() */
-    CO_EM_t *em;
+    CO_EM_t* em;
     /** From CO_nodeGuardingMaster_init() */
-    CO_CANmodule_t *CANdevTx;
+    CO_CANmodule_t* CANdevTx;
     /** From CO_nodeGuardingMaster_init() */
     uint16_t CANdevTxIdx;
     /** CAN transmit buffer for the message */
-    CO_CANtx_t *CANtxBuff;
+    CO_CANtx_t* CANtxBuff;
     /** True, if all monitored nodes are active or no node is monitored. Can be
      * read by the application */
     bool_t allMonitoredActive;
@@ -254,12 +238,8 @@ typedef struct {
  *
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
-CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
-                                            CO_EM_t *em,
-                                            CO_CANmodule_t *CANdevRx,
-                                            uint16_t CANdevRxIdx,
-                                            CO_CANmodule_t *CANdevTx,
-                                            uint16_t CANdevTxIdx);
+CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t* ngm, CO_EM_t* em, CO_CANmodule_t* CANdevRx,
+                                            uint16_t CANdevRxIdx, CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx);
 
 /**
  * Initialize node inside Node Guarding master object.
@@ -275,9 +255,7 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
  *
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
-CO_ReturnError_t CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t *ngm,
-                                                uint8_t index,
-                                                uint8_t nodeId,
+CO_ReturnError_t CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t* ngm, uint8_t index, uint8_t nodeId,
                                                 uint16_t guardTime_ms);
 
 /**
@@ -290,9 +268,7 @@ CO_ReturnError_t CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t *ngm,
  * microseconds.
  * @param [out] timerNext_us info to OS - see CO_process().
  */
-void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
-                                   uint32_t timeDifference_us,
-                                   uint32_t *timerNext_us);
+void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t* ngm, uint32_t timeDifference_us, uint32_t* timerNext_us);
 
 /** @} */ /* @addtogroup CO_Node_Guarding */
 

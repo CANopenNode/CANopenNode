@@ -29,7 +29,7 @@
 #define CO_CONFIG_STORAGE (CO_CONFIG_STORAGE_ENABLE)
 #endif
 
-#if (((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_STORAGE)&CO_CONFIG_STORAGE_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,7 +79,6 @@ extern "C" {
  *   corresponding data.
  */
 
-
 /**
  * Attributes (bit masks) for Data storage object.
  */
@@ -92,26 +91,22 @@ typedef enum {
     CO_storage_restore = 0x04
 } CO_storage_attributes_t;
 
-
 /**
  * Data storage object.
  *
  * Object is used with CANopen OD objects at index 1010 and 1011.
  */
 typedef struct {
-    OD_extension_t OD_1010_extension; /**< Extension for OD object */
-    OD_extension_t OD_1011_extension; /**< Extension for OD object */
-    CO_CANmodule_t *CANmodule; /**< From CO_storage_init() */
-    ODR_t (*store)(CO_storage_entry_t *entry,
-                   CO_CANmodule_t *CANmodule); /**< From CO_storage_init() */
-    ODR_t (*restore)(CO_storage_entry_t *entry,
-                     CO_CANmodule_t *CANmodule); /**< From CO_storage_init() */
-    CO_storage_entry_t *entries; /**< From CO_storage_init() */
-    uint8_t entriesCount; /**< From CO_storage_init() */
+    OD_extension_t OD_1010_extension;                                       /**< Extension for OD object */
+    OD_extension_t OD_1011_extension;                                       /**< Extension for OD object */
+    CO_CANmodule_t* CANmodule;                                              /**< From CO_storage_init() */
+    ODR_t (*store)(CO_storage_entry_t* entry, CO_CANmodule_t* CANmodule);   /**< From CO_storage_init() */
+    ODR_t (*restore)(CO_storage_entry_t* entry, CO_CANmodule_t* CANmodule); /**< From CO_storage_init() */
+    CO_storage_entry_t* entries;                                            /**< From CO_storage_init() */
+    uint8_t entriesCount;                                                   /**< From CO_storage_init() */
     bool_t enabled; /**< true, if storage is enabled. Setting of this variable
     is implementation specific. */
 } CO_storage_t;
-
 
 /**
  * Initialize data storage object
@@ -142,16 +137,11 @@ typedef struct {
  *
  * @return CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-CO_ReturnError_t CO_storage_init(CO_storage_t *storage,
-                                 CO_CANmodule_t *CANmodule,
-                                 OD_entry_t *OD_1010_StoreParameters,
-                                 OD_entry_t *OD_1011_RestoreDefaultParameters,
-                                 ODR_t (*store)(CO_storage_entry_t *entry,
-                                                CO_CANmodule_t *CANmodule),
-                                 ODR_t (*restore)(CO_storage_entry_t *entry,
-                                                  CO_CANmodule_t *CANmodule),
-                                 CO_storage_entry_t *entries,
-                                 uint8_t entriesCount);
+CO_ReturnError_t CO_storage_init(CO_storage_t* storage, CO_CANmodule_t* CANmodule, OD_entry_t* OD_1010_StoreParameters,
+                                 OD_entry_t* OD_1011_RestoreDefaultParameters,
+                                 ODR_t (*store)(CO_storage_entry_t* entry, CO_CANmodule_t* CANmodule),
+                                 ODR_t (*restore)(CO_storage_entry_t* entry, CO_CANmodule_t* CANmodule),
+                                 CO_storage_entry_t* entries, uint8_t entriesCount);
 
 /** @} */ /* CO_storage */
 

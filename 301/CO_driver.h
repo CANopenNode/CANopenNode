@@ -33,24 +33,24 @@ extern "C" {
 /* Stack configuration default global values.
  * For more information see file CO_config.h. */
 #ifndef CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE
- #define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE (0)
+#define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE (0)
 #endif
 #ifndef CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE
- #define CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE (0)
+#define CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE (0)
 #endif
 #ifndef CO_CONFIG_GLOBAL_FLAG_TIMERNEXT
- #define CO_CONFIG_GLOBAL_FLAG_TIMERNEXT (0)
+#define CO_CONFIG_GLOBAL_FLAG_TIMERNEXT (0)
 #endif
 #ifndef CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC
- #define CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC CO_CONFIG_FLAG_OD_DYNAMIC
+#define CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC CO_CONFIG_FLAG_OD_DYNAMIC
 #endif
 #ifdef CO_DEBUG_COMMON
- #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_CLIENT
-  #define CO_DEBUG_SDO_CLIENT(msg) CO_DEBUG_COMMON(msg)
- #endif
- #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_SERVER
-  #define CO_DEBUG_SDO_SERVER(msg) CO_DEBUG_COMMON(msg)
- #endif
+#if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_CLIENT
+#define CO_DEBUG_SDO_CLIENT(msg) CO_DEBUG_COMMON(msg)
+#endif
+#if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_SERVER
+#define CO_DEBUG_SDO_SERVER(msg) CO_DEBUG_COMMON(msg)
+#endif
 #endif
 
 /**
@@ -111,7 +111,6 @@ extern "C" {
 /** Minor version number of CANopenNode */
 #define CO_VERSION_MINOR 0
 
-
 /* Macros and declarations in following part are only used for documentation. */
 #ifdef CO_DOXYGEN
 /**
@@ -139,11 +138,11 @@ extern "C" {
 /** Macro must swap bytes, if CO_BIG_ENDIAN is defined */
 #define CO_SWAP_64(x) x
 /** NULL, for general usage */
-#define NULL (0)
+#define NULL          (0)
 /** Logical true, for general use */
-#define true 1
+#define true          1
 /** Logical false, for general use */
-#define false 0
+#define false         0
 /** Boolean data type for general use */
 typedef uint_fast8_t bool_t;
 /** INTEGER8 in CANopen (0002h), 8-bit signed integer */
@@ -167,7 +166,6 @@ typedef float float32_t;
 /** REAL64 in CANopen (0011h), double precision floating point value, 64-bit */
 typedef double float64_t;
 /** @} */
-
 
 /**
  * @defgroup CO_CAN_Message_reception Reception of CAN messages
@@ -200,7 +198,7 @@ typedef double float64_t;
  * registered with CO_CANrxBufferInit()
  * @param rxMsg pointer to received CAN message
  */
-void CANrx_callback(void *object, void *rxMsg);
+void CANrx_callback(void* object, void* rxMsg);
 
 /**
  * CANrx_callback() can read CAN identifier from received CAN message
@@ -216,7 +214,8 @@ void CANrx_callback(void *object, void *rxMsg);
  * @param rxMsg Pointer to received message
  * @return 11-bit CAN standard identifier.
  */
-static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg) {
+static inline uint16_t
+CO_CANrxMsg_readIdent(void* rxMsg) {
     return 0;
 }
 
@@ -228,7 +227,8 @@ static inline uint16_t CO_CANrxMsg_readIdent(void *rxMsg) {
  * @param rxMsg Pointer to received message
  * @return data length in bytes (0 to 8)
  */
-static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg) {
+static inline uint8_t
+CO_CANrxMsg_readDLC(void* rxMsg) {
     return 0;
 }
 
@@ -240,7 +240,8 @@ static inline uint8_t CO_CANrxMsg_readDLC(void *rxMsg) {
  * @param rxMsg Pointer to received message
  * @return pointer to data buffer
  */
-static inline const uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
+static inline const uint8_t*
+CO_CANrxMsg_readData(void* rxMsg) {
     return NULL;
 }
 
@@ -256,17 +257,16 @@ static inline const uint8_t *CO_CANrxMsg_readData(void *rxMsg) {
  * CO_CANmodule_t.
  */
 typedef struct {
-    uint16_t ident; /**< Standard CAN Identifier (bits 0..10) + RTR (bit 11) */
-    uint16_t mask;  /**< Standard CAN Identifier mask with the same alignment as
+    uint16_t ident;                                       /**< Standard CAN Identifier (bits 0..10) + RTR (bit 11) */
+    uint16_t mask;                                        /**< Standard CAN Identifier mask with the same alignment as
                        ident */
-    void *object;   /**< \ref CO_obj "CANopenNode Object" initialized in from
+    void* object;                                         /**< \ref CO_obj "CANopenNode Object" initialized in from
                        CO_CANrxBufferInit() */
-    void (*pCANrx_callback)(
-        void *object, void *message); /**< Pointer to CANrx_callback()
+    void (*pCANrx_callback)(void* object, void* message); /**< Pointer to CANrx_callback()
                                          initialized in CO_CANrxBufferInit() */
 } CO_CANrx_t;
-/** @} */
 
+/** @} */
 
 /**
  * @defgroup CO_CAN_Message_transmission Transmission of CAN messages
@@ -306,8 +306,8 @@ typedef struct {
     volatile bool_t syncFlag;   /**< Synchronous PDO messages has this flag set.
                   It prevents them to be sent outside the synchronous window */
 } CO_CANtx_t;
-/** @} */
 
+/** @} */
 
 /**
  * Complete CAN module object.
@@ -318,10 +318,10 @@ typedef struct {
  * microcontrollers.
  */
 typedef struct {
-    void *CANptr;                      /**< From CO_CANmodule_init() */
-    CO_CANrx_t *rxArray;               /**< From CO_CANmodule_init() */
+    void* CANptr;                      /**< From CO_CANmodule_init() */
+    CO_CANrx_t* rxArray;               /**< From CO_CANmodule_init() */
     uint16_t rxSize;                   /**< From CO_CANmodule_init() */
-    CO_CANtx_t *txArray;               /**< From CO_CANmodule_init() */
+    CO_CANtx_t* txArray;               /**< From CO_CANmodule_init() */
     uint16_t txSize;                   /**< From CO_CANmodule_init() */
     uint16_t CANerrorStatus;           /**< CAN error status bitfield,
                                             see @ref CO_CAN_ERR_status_t */
@@ -341,7 +341,6 @@ typedef struct {
     uint32_t errOld;                   /**< Previous state of CAN errors */
 } CO_CANmodule_t;
 
-
 /**
  * Data storage object for one entry.
  *
@@ -354,7 +353,7 @@ typedef struct {
  */
 typedef struct {
     /** Address of data to store, always required. */
-    void *addr;
+    void* addr;
     /** Length of data to store, always required. */
     size_t len;
     /** Sub index in OD objects 1010 and 1011, from 2 to 127. Writing
@@ -366,7 +365,7 @@ typedef struct {
     uint8_t attr;
     /** Pointer to storage module, target system specific usage, required with
      * @ref CO_storage_eeprom. */
-    void *storageModule;
+    void* storageModule;
     /** CRC checksum of the data stored in eeprom, set on store, required with
      * @ref CO_storage_eeprom. */
     uint16_t crc;
@@ -380,9 +379,8 @@ typedef struct {
      * @ref CO_storage_eeprom. */
     size_t offset;
     /** Additional target specific parameters, optional. */
-    void *additionalParameters;
+    void* additionalParameters;
 } CO_storage_entry_t;
-
 
 /**
  * @defgroup CO_critical_sections Critical sections
@@ -455,13 +453,20 @@ typedef struct {
 /** Check if new message has arrived */
 #define CO_FLAG_READ(rxNew) ((rxNew) != NULL)
 /** Set new message flag */
-#define CO_FLAG_SET(rxNew) { __sync_synchronize(); rxNew = (void *)1L; }
+#define CO_FLAG_SET(rxNew)                                                                                             \
+    {                                                                                                                  \
+        __sync_synchronize();                                                                                          \
+        rxNew = (void*)1L;                                                                                             \
+    }
 /** Clear new message flag */
-#define CO_FLAG_CLEAR(rxNew) { __sync_synchronize(); rxNew = NULL; }
+#define CO_FLAG_CLEAR(rxNew)                                                                                           \
+    {                                                                                                                  \
+        __sync_synchronize();                                                                                          \
+        rxNew = NULL;                                                                                                  \
+    }
 
 /** @} */
 #endif /* CO_DOXYGEN */
-
 
 /**
  * @defgroup CO_Default_CAN_ID_t Default CANopen identifiers
@@ -472,28 +477,27 @@ typedef struct {
  * can be changed in CANopen. Especially PDO identifiers are configured
  * in PDO linking phase of the CANopen network configuration.
  */
-#define CO_CAN_ID_NMT_SERVICE   0x000U  /**< 0x000 Network management */
-#define CO_CAN_ID_GFC           0x001U  /**< 0x001 Global fail-safe command */
-#define CO_CAN_ID_SYNC          0x080U  /**< 0x080 Synchronous message */
-#define CO_CAN_ID_EMERGENCY     0x080U  /**< 0x080 Emergency messages (+nodeID) */
-#define CO_CAN_ID_TIME          0x100U  /**< 0x100 Time message */
-#define CO_CAN_ID_SRDO_1        0x0FFU  /**< 0x0FF Default SRDO1 (+2*nodeID) */
-#define CO_CAN_ID_TPDO_1        0x180U  /**< 0x180 Default TPDO1 (+nodeID) */
-#define CO_CAN_ID_RPDO_1        0x200U  /**< 0x200 Default RPDO1 (+nodeID) */
-#define CO_CAN_ID_TPDO_2        0x280U  /**< 0x280 Default TPDO2 (+nodeID) */
-#define CO_CAN_ID_RPDO_2        0x300U  /**< 0x300 Default RPDO2 (+nodeID) */
-#define CO_CAN_ID_TPDO_3        0x380U  /**< 0x380 Default TPDO3 (+nodeID) */
-#define CO_CAN_ID_RPDO_3        0x400U  /**< 0x400 Default RPDO3 (+nodeID) */
-#define CO_CAN_ID_TPDO_4        0x480U  /**< 0x480 Default TPDO4 (+nodeID) */
-#define CO_CAN_ID_RPDO_4        0x500U  /**< 0x500 Default RPDO5 (+nodeID) */
-#define CO_CAN_ID_SDO_SRV       0x580U  /**< 0x580 SDO response from server (+nodeID) */
-#define CO_CAN_ID_SDO_CLI       0x600U  /**< 0x600 SDO request from client (+nodeID) */
-#define CO_CAN_ID_HEARTBEAT     0x700U  /**< 0x700 Heartbeat message */
-#define CO_CAN_ID_LSS_SLV       0x7E4U  /**< 0x7E4 LSS response from slave */
-#define CO_CAN_ID_LSS_MST       0x7E5U  /**< 0x7E5 LSS request from master */
+#define CO_CAN_ID_NMT_SERVICE 0x000U /**< 0x000 Network management */
+#define CO_CAN_ID_GFC         0x001U /**< 0x001 Global fail-safe command */
+#define CO_CAN_ID_SYNC        0x080U /**< 0x080 Synchronous message */
+#define CO_CAN_ID_EMERGENCY   0x080U /**< 0x080 Emergency messages (+nodeID) */
+#define CO_CAN_ID_TIME        0x100U /**< 0x100 Time message */
+#define CO_CAN_ID_SRDO_1      0x0FFU /**< 0x0FF Default SRDO1 (+2*nodeID) */
+#define CO_CAN_ID_TPDO_1      0x180U /**< 0x180 Default TPDO1 (+nodeID) */
+#define CO_CAN_ID_RPDO_1      0x200U /**< 0x200 Default RPDO1 (+nodeID) */
+#define CO_CAN_ID_TPDO_2      0x280U /**< 0x280 Default TPDO2 (+nodeID) */
+#define CO_CAN_ID_RPDO_2      0x300U /**< 0x300 Default RPDO2 (+nodeID) */
+#define CO_CAN_ID_TPDO_3      0x380U /**< 0x380 Default TPDO3 (+nodeID) */
+#define CO_CAN_ID_RPDO_3      0x400U /**< 0x400 Default RPDO3 (+nodeID) */
+#define CO_CAN_ID_TPDO_4      0x480U /**< 0x480 Default TPDO4 (+nodeID) */
+#define CO_CAN_ID_RPDO_4      0x500U /**< 0x500 Default RPDO5 (+nodeID) */
+#define CO_CAN_ID_SDO_SRV     0x580U /**< 0x580 SDO response from server (+nodeID) */
+#define CO_CAN_ID_SDO_CLI     0x600U /**< 0x600 SDO request from client (+nodeID) */
+#define CO_CAN_ID_HEARTBEAT   0x700U /**< 0x700 Heartbeat message */
+#define CO_CAN_ID_LSS_SLV     0x7E4U /**< 0x7E4 LSS response from slave */
+#define CO_CAN_ID_LSS_MST     0x7E5U /**< 0x7E5 LSS request from master */
 
 /** @} */ /* CO_Default_CAN_ID_t */
-
 
 /**
  * Restricted CAN-IDs
@@ -502,14 +506,11 @@ typedef struct {
  * They shall not be used for SYNC, TIME, EMCY, PDO and SDO.
  */
 #ifndef CO_IS_RESTRICTED_CAN_ID
-#define CO_IS_RESTRICTED_CAN_ID(CAN_ID) (((CAN_ID) <= 0x7FU) \
-        || (((CAN_ID) >= 0x101U) && ((CAN_ID) <= 0x180U)) \
-        || (((CAN_ID) >= 0x581U) && ((CAN_ID) <= 0x5FFU)) \
-        || (((CAN_ID) >= 0x601U) && ((CAN_ID) <= 0x67FU)) \
-        || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) \
-        || ((CAN_ID) >= 0x701U))
+#define CO_IS_RESTRICTED_CAN_ID(CAN_ID)                                                                                \
+    (((CAN_ID) <= 0x7FU) || (((CAN_ID) >= 0x101U) && ((CAN_ID) <= 0x180U))                                             \
+     || (((CAN_ID) >= 0x581U) && ((CAN_ID) <= 0x5FFU)) || (((CAN_ID) >= 0x601U) && ((CAN_ID) <= 0x67FU))               \
+     || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) || ((CAN_ID) >= 0x701U))
 #endif
-
 
 /**
  * @defgroup CO_CAN_ERR_status_t CAN error status bitmasks
@@ -520,15 +521,15 @@ typedef struct {
  * equal to 128. Transmitter goes in error state 'bus off' if transmit error
  * counter is more or equal to 256.
  */
-#define CO_CAN_ERRTX_WARNING        0x0001U  /**< 0x0001 CAN transmitter warning */
-#define CO_CAN_ERRTX_PASSIVE        0x0002U  /**< 0x0002 CAN transmitter passive */
-#define CO_CAN_ERRTX_BUS_OFF        0x0004U  /**< 0x0004 CAN transmitter bus off */
-#define CO_CAN_ERRTX_OVERFLOW       0x0008U  /**< 0x0008 CAN transmitter overflow */
-#define CO_CAN_ERRTX_PDO_LATE       0x0080U  /**< 0x0080 TPDO is outside sync window */
-#define CO_CAN_ERRRX_WARNING        0x0100U  /**< 0x0100 CAN receiver warning */
-#define CO_CAN_ERRRX_PASSIVE        0x0200U  /**< 0x0200 CAN receiver passive */
-#define CO_CAN_ERRRX_OVERFLOW       0x0800U  /**< 0x0800 CAN receiver overflow */
-#define CO_CAN_ERR_WARN_PASSIVE     0x0303U  /**< 0x0303 combination */
+#define CO_CAN_ERRTX_WARNING    0x0001U /**< 0x0001 CAN transmitter warning */
+#define CO_CAN_ERRTX_PASSIVE    0x0002U /**< 0x0002 CAN transmitter passive */
+#define CO_CAN_ERRTX_BUS_OFF    0x0004U /**< 0x0004 CAN transmitter bus off */
+#define CO_CAN_ERRTX_OVERFLOW   0x0008U /**< 0x0008 CAN transmitter overflow */
+#define CO_CAN_ERRTX_PDO_LATE   0x0080U /**< 0x0080 TPDO is outside sync window */
+#define CO_CAN_ERRRX_WARNING    0x0100U /**< 0x0100 CAN receiver warning */
+#define CO_CAN_ERRRX_PASSIVE    0x0200U /**< 0x0200 CAN receiver passive */
+#define CO_CAN_ERRRX_OVERFLOW   0x0800U /**< 0x0800 CAN receiver overflow */
+#define CO_CAN_ERR_WARN_PASSIVE 0x0303U /**< 0x0303 combination */
 
 /** @} */ /* CO_CAN_ERR_status_t */
 
@@ -537,52 +538,49 @@ typedef struct {
  * successfully it returns 0 otherwise it returns <0.
  */
 typedef enum {
-    CO_ERROR_NO = 0,                /**< Operation completed successfully */
-    CO_ERROR_ILLEGAL_ARGUMENT = -1, /**< Error in function arguments */
-    CO_ERROR_OUT_OF_MEMORY = -2,    /**< Memory allocation failed */
-    CO_ERROR_TIMEOUT = -3,          /**< Function timeout */
-    CO_ERROR_ILLEGAL_BAUDRATE = -4, /**< Illegal baudrate passed to function
+    CO_ERROR_NO = 0,                        /**< Operation completed successfully */
+    CO_ERROR_ILLEGAL_ARGUMENT = -1,         /**< Error in function arguments */
+    CO_ERROR_OUT_OF_MEMORY = -2,            /**< Memory allocation failed */
+    CO_ERROR_TIMEOUT = -3,                  /**< Function timeout */
+    CO_ERROR_ILLEGAL_BAUDRATE = -4,         /**< Illegal baudrate passed to function
                                          CO_CANmodule_init() */
-    CO_ERROR_RX_OVERFLOW = -5,      /**< Previous message was not processed
+    CO_ERROR_RX_OVERFLOW = -5,              /**< Previous message was not processed
                                          yet */
-    CO_ERROR_RX_PDO_OVERFLOW = -6,  /**< previous PDO was not processed yet */
-    CO_ERROR_RX_MSG_LENGTH = -7,    /**< Wrong receive message length */
-    CO_ERROR_RX_PDO_LENGTH = -8,    /**< Wrong receive PDO length */
-    CO_ERROR_TX_OVERFLOW = -9,      /**< Previous message is still waiting,
+    CO_ERROR_RX_PDO_OVERFLOW = -6,          /**< previous PDO was not processed yet */
+    CO_ERROR_RX_MSG_LENGTH = -7,            /**< Wrong receive message length */
+    CO_ERROR_RX_PDO_LENGTH = -8,            /**< Wrong receive PDO length */
+    CO_ERROR_TX_OVERFLOW = -9,              /**< Previous message is still waiting,
                                          buffer full */
-    CO_ERROR_TX_PDO_WINDOW = -10,   /**< Synchronous TPDO is outside window */
-    CO_ERROR_TX_UNCONFIGURED = -11, /**< Transmit buffer was not configured
+    CO_ERROR_TX_PDO_WINDOW = -10,           /**< Synchronous TPDO is outside window */
+    CO_ERROR_TX_UNCONFIGURED = -11,         /**< Transmit buffer was not configured
                                          properly */
-    CO_ERROR_OD_PARAMETERS = -12,   /**< Error in Object Dictionary parameters*/
-    CO_ERROR_DATA_CORRUPT = -13,    /**< Stored data are corrupt */
-    CO_ERROR_CRC = -14,             /**< CRC does not match */
-    CO_ERROR_TX_BUSY = -15,         /**< Sending rejected because driver is
+    CO_ERROR_OD_PARAMETERS = -12,           /**< Error in Object Dictionary parameters*/
+    CO_ERROR_DATA_CORRUPT = -13,            /**< Stored data are corrupt */
+    CO_ERROR_CRC = -14,                     /**< CRC does not match */
+    CO_ERROR_TX_BUSY = -15,                 /**< Sending rejected because driver is
                                          busy. Try again */
-    CO_ERROR_WRONG_NMT_STATE = -16, /**< Command can't be processed in current
+    CO_ERROR_WRONG_NMT_STATE = -16,         /**< Command can't be processed in current
                                          state */
-    CO_ERROR_SYSCALL = -17,         /**< Syscall failed */
-    CO_ERROR_INVALID_STATE = -18,   /**< Driver not ready */
+    CO_ERROR_SYSCALL = -17,                 /**< Syscall failed */
+    CO_ERROR_INVALID_STATE = -18,           /**< Driver not ready */
     CO_ERROR_NODE_ID_UNCONFIGURED_LSS = -19 /**< Node-id is in LSS unconfigured
                                          state. If objects are handled properly,
                                          this may not be an error. */
 } CO_ReturnError_t;
-
 
 /**
  * Request CAN configuration (stopped) mode and *wait* until it is set.
  *
  * @param CANptr Pointer to CAN device
  */
-void CO_CANsetConfigurationMode(void *CANptr);
-
+void CO_CANsetConfigurationMode(void* CANptr);
 
 /**
  * Request CAN normal (operational) mode and *wait* until it is set.
  *
  * @param CANmodule CO_CANmodule_t object.
  */
-void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
-
+void CO_CANsetNormalMode(CO_CANmodule_t* CANmodule);
 
 /**
  * Initialize CAN module object.
@@ -603,22 +601,15 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule);
  *
  * Return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t *CANmodule,
-                                   void *CANptr,
-                                   CO_CANrx_t rxArray[],
-                                   uint16_t rxSize,
-                                   CO_CANtx_t txArray[],
-                                   uint16_t txSize,
-                                   uint16_t CANbitRate);
-
+CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t* CANmodule, void* CANptr, CO_CANrx_t rxArray[], uint16_t rxSize,
+                                   CO_CANtx_t txArray[], uint16_t txSize, uint16_t CANbitRate);
 
 /**
  * Switch off CANmodule. Call at program exit.
  *
  * @param CANmodule CAN module object.
  */
-void CO_CANmodule_disable(CO_CANmodule_t *CANmodule);
-
+void CO_CANmodule_disable(CO_CANmodule_t* CANmodule);
 
 /**
  * Configure CAN message receive buffer.
@@ -645,15 +636,8 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule);
  * Return #CO_ReturnError_t: CO_ERROR_NO CO_ERROR_ILLEGAL_ARGUMENT or
  * CO_ERROR_OUT_OF_MEMORY (not enough masks for configuration).
  */
-CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t *CANmodule,
-                                    uint16_t index,
-                                    uint16_t ident,
-                                    uint16_t mask,
-                                    bool_t rtr,
-                                    void *object,
-                                    void (*CANrx_callback)(void *object,
-                                                           void *message));
-
+CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, uint16_t mask,
+                                    bool_t rtr, void* object, void (*CANrx_callback)(void* object, void* message));
 
 /**
  * Configure CAN message transmit buffer.
@@ -673,13 +657,8 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t *CANmodule,
  * buffer should be written, before CO_CANsend() function is called.
  * Zero is returned in case of wrong arguments.
  */
-CO_CANtx_t *CO_CANtxBufferInit(CO_CANmodule_t *CANmodule,
-                               uint16_t index,
-                               uint16_t ident,
-                               bool_t rtr,
-                               uint8_t noOfBytes,
+CO_CANtx_t* CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, bool_t rtr, uint8_t noOfBytes,
                                bool_t syncFlag);
-
 
 /**
  * Send CAN message.
@@ -691,8 +670,7 @@ CO_CANtx_t *CO_CANtxBufferInit(CO_CANmodule_t *CANmodule,
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_TX_OVERFLOW or
  * CO_ERROR_TX_PDO_WINDOW (Synchronous TPDO is outside window).
  */
-CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
-
+CO_ReturnError_t CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer);
 
 /**
  * Clear all synchronous TPDOs from CAN module transmit buffers.
@@ -708,8 +686,7 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer);
  *
  * @param CANmodule This object.
  */
-void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
-
+void CO_CANclearPendingSyncPDOs(CO_CANmodule_t* CANmodule);
 
 /**
  * Process can module - verify CAN errors
@@ -719,8 +696,7 @@ void CO_CANclearPendingSyncPDOs(CO_CANmodule_t *CANmodule);
  *
  * @param CANmodule This object.
  */
-void CO_CANmodule_process(CO_CANmodule_t *CANmodule);
-
+void CO_CANmodule_process(CO_CANmodule_t* CANmodule);
 
 /**
  * Get uint8_t value from memory buffer
@@ -729,16 +705,27 @@ void CO_CANmodule_process(CO_CANmodule_t *CANmodule);
  *
  * @return Value
  */
-static inline uint8_t CO_getUint8(const void *buf) {
-    uint8_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
+static inline uint8_t
+CO_getUint8(const void* buf) {
+    uint8_t value;
+    (void)memmove((void*)&value, buf, sizeof(value));
+    return value;
 }
+
 /** Get uint16_t value from memory buffer, see @ref CO_getUint8 */
-static inline uint16_t CO_getUint16(const void *buf) {
-    uint16_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
+static inline uint16_t
+CO_getUint16(const void* buf) {
+    uint16_t value;
+    (void)memmove((void*)&value, buf, sizeof(value));
+    return value;
 }
+
 /** Get uint32_t value from memory buffer, see @ref CO_getUint8 */
-static inline uint32_t CO_getUint32(const void *buf) {
-    uint32_t value; (void)memmove((void *)&value, buf, sizeof(value)); return value;
+static inline uint32_t
+CO_getUint32(const void* buf) {
+    uint32_t value;
+    (void)memmove((void*)&value, buf, sizeof(value));
+    return value;
 }
 
 /**
@@ -749,16 +736,24 @@ static inline uint32_t CO_getUint32(const void *buf) {
  *
  * @return number of bytes written.
  */
-static inline uint8_t CO_setUint8(void *buf, uint8_t value) {
-    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
+static inline uint8_t
+CO_setUint8(void* buf, uint8_t value) {
+    (void)memmove(buf, (const void*)&value, sizeof(value));
+    return (uint8_t)(sizeof(value));
 }
+
 /** Write uint16_t value into memory buffer, see @ref CO_setUint8 */
-static inline uint8_t CO_setUint16(void *buf, uint16_t value) {
-    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
+static inline uint8_t
+CO_setUint16(void* buf, uint16_t value) {
+    (void)memmove(buf, (const void*)&value, sizeof(value));
+    return (uint8_t)(sizeof(value));
 }
+
 /** Write uint32_t value into memory buffer, see @ref CO_setUint8 */
-static inline uint8_t CO_setUint32(void *buf, uint32_t value) {
-    (void)memmove(buf, (const void *)&value, sizeof(value)); return (uint8_t)(sizeof(value));
+static inline uint8_t
+CO_setUint32(void* buf, uint32_t value) {
+    (void)memmove(buf, (const void*)&value, sizeof(value));
+    return (uint8_t)(sizeof(value));
 }
 
 /** @} */ /* CO_driver */

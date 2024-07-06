@@ -24,7 +24,7 @@
 
 #include "305/CO_LSS.h"
 
-#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS)&CO_CONFIG_LSS_MASTER) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,44 +82,43 @@ extern "C" {
  * Return values of LSS master functions.
  */
 typedef enum {
-    CO_LSSmaster_SCAN_FINISHED       = 2,    /**< Scanning finished successful */
-    CO_LSSmaster_WAIT_SLAVE          = 1,    /**< No response arrived from slave yet */
-    CO_LSSmaster_OK                  = 0,    /**< Success, end of communication */
-    CO_LSSmaster_TIMEOUT             = -1,   /**< No reply received */
-    CO_LSSmaster_ILLEGAL_ARGUMENT    = -2,   /**< Invalid argument */
-    CO_LSSmaster_INVALID_STATE       = -3,   /**< State machine not ready or already processing a request */
-    CO_LSSmaster_SCAN_NOACK          = -4,   /**< No node found that matches scan request */
-    CO_LSSmaster_SCAN_FAILED         = -5,   /**< An error occurred while scanning. Try again */
+    CO_LSSmaster_SCAN_FINISHED = 2,          /**< Scanning finished successful */
+    CO_LSSmaster_WAIT_SLAVE = 1,             /**< No response arrived from slave yet */
+    CO_LSSmaster_OK = 0,                     /**< Success, end of communication */
+    CO_LSSmaster_TIMEOUT = -1,               /**< No reply received */
+    CO_LSSmaster_ILLEGAL_ARGUMENT = -2,      /**< Invalid argument */
+    CO_LSSmaster_INVALID_STATE = -3,         /**< State machine not ready or already processing a request */
+    CO_LSSmaster_SCAN_NOACK = -4,            /**< No node found that matches scan request */
+    CO_LSSmaster_SCAN_FAILED = -5,           /**< An error occurred while scanning. Try again */
     CO_LSSmaster_OK_ILLEGAL_ARGUMENT = -101, /**< LSS success, node rejected argument because of non-supported value */
-    CO_LSSmaster_OK_MANUFACTURER     = -102, /**< LSS success, node rejected argument with manufacturer error code */
+    CO_LSSmaster_OK_MANUFACTURER = -102,     /**< LSS success, node rejected argument with manufacturer error code */
 } CO_LSSmaster_return_t;
-
 
 /**
  * LSS master object.
  */
-typedef struct{
-    uint32_t         timeout_us;       /**< LSS response timeout in us */
+typedef struct {
+    uint32_t timeout_us; /**< LSS response timeout in us */
 
-    uint8_t          state;            /**< Node is currently selected */
-    uint8_t          command;          /**< Active command */
-    uint32_t         timeoutTimer;     /**< Timeout timer for LSS communication */
+    uint8_t state;         /**< Node is currently selected */
+    uint8_t command;       /**< Active command */
+    uint32_t timeoutTimer; /**< Timeout timer for LSS communication */
 
-    uint8_t          fsState;          /**< Current state of fastscan master state machine */
-    uint8_t          fsLssSub;         /**< Current state of node state machine */
-    uint8_t          fsBitChecked;     /**< Current scan bit position */
-    uint32_t         fsIdNumber;       /**< Current scan result */
+    uint8_t fsState;      /**< Current state of fastscan master state machine */
+    uint8_t fsLssSub;     /**< Current state of node state machine */
+    uint8_t fsBitChecked; /**< Current scan bit position */
+    uint32_t fsIdNumber;  /**< Current scan result */
 
-    volatile void   *CANrxNew;         /**< Indication if new LSS message is received from CAN bus. It needs to be cleared when received message is completely processed. */
-    uint8_t          CANrxData[8];     /**< 8 data bytes of the received message */
-#if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
-    void           (*pFunctSignal)(void *object); /**< From CO_LSSmaster_initCallbackPre() or NULL */
-    void            *functSignalObject;/**< Pointer to object */
+    volatile void*
+        CANrxNew; /**< Indication if new LSS message is received from CAN bus. It needs to be cleared when received message is completely processed. */
+    uint8_t CANrxData[8]; /**< 8 data bytes of the received message */
+#if (((CO_CONFIG_LSS)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+    void (*pFunctSignal)(void* object); /**< From CO_LSSmaster_initCallbackPre() or NULL */
+    void* functSignalObject;            /**< Pointer to object */
 #endif
-    CO_CANmodule_t  *CANdevTx;         /**< From CO_LSSmaster_init() */
-    CO_CANtx_t      *TXbuff;           /**< CAN transmit buffer */
-}CO_LSSmaster_t;
-
+    CO_CANmodule_t* CANdevTx; /**< From CO_LSSmaster_init() */
+    CO_CANtx_t* TXbuff;       /**< CAN transmit buffer */
+} CO_LSSmaster_t;
 
 /**
  * Default timeout for LSS slave in ms. This is the same as for SDO. For more
@@ -128,7 +127,6 @@ typedef struct{
 #ifndef CO_LSSmaster_DEFAULT_TIMEOUT
 #define CO_LSSmaster_DEFAULT_TIMEOUT 1000U /* ms */
 #endif
-
 
 /**
  * Initialize LSS object.
@@ -146,15 +144,9 @@ typedef struct{
  * @param CANidLssMaster COB ID for transmission.
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-CO_ReturnError_t CO_LSSmaster_init(
-        CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeout_ms,
-        CO_CANmodule_t         *CANdevRx,
-        uint16_t                CANdevRxIdx,
-        uint16_t                CANidLssSlave,
-        CO_CANmodule_t         *CANdevTx,
-        uint16_t                CANdevTxIdx,
-        uint16_t                CANidLssMaster);
+CO_ReturnError_t CO_LSSmaster_init(CO_LSSmaster_t* LSSmaster, uint16_t timeout_ms, CO_CANmodule_t* CANdevRx,
+                                   uint16_t CANdevRxIdx, uint16_t CANidLssSlave, CO_CANmodule_t* CANdevTx,
+                                   uint16_t CANdevTxIdx, uint16_t CANidLssMaster);
 
 /**
  * Change LSS master timeout
@@ -175,12 +167,9 @@ CO_ReturnError_t CO_LSSmaster_init(
  * @param LSSmaster This object.
  * @param timeout_ms timeout value in ms
  */
-void CO_LSSmaster_changeTimeout(
-        CO_LSSmaster_t         *LSSmaster,
-        uint16_t                timeout_ms);
+void CO_LSSmaster_changeTimeout(CO_LSSmaster_t* LSSmaster, uint16_t timeout_ms);
 
-
-#if (((CO_CONFIG_LSS) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LSS)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize LSSmasterRx callback function.
  *
@@ -193,12 +182,8 @@ void CO_LSSmaster_changeTimeout(
  * @param object Pointer to object, which will be passed to pFunctSignal(). Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_LSSmaster_initCallbackPre(
-        CO_LSSmaster_t         *LSSmaster,
-        void                   *object,
-        void                  (*pFunctSignal)(void *object));
+void CO_LSSmaster_initCallbackPre(CO_LSSmaster_t* LSSmaster, void* object, void (*pFunctSignal)(void* object));
 #endif
-
 
 /**
  * Request LSS switch state select
@@ -217,11 +202,8 @@ void CO_LSSmaster_initCallbackPre(
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
-CO_LSSmaster_return_t CO_LSSmaster_swStateSelect(
-        CO_LSSmaster_t         *LSSmaster,
-        uint32_t                timeDifference_us,
-        CO_LSS_address_t       *lssAddress);
-
+CO_LSSmaster_return_t CO_LSSmaster_swStateSelect(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference_us,
+                                                 CO_LSS_address_t* lssAddress);
 
 /**
  * Request LSS switch state deselect
@@ -235,9 +217,7 @@ CO_LSSmaster_return_t CO_LSSmaster_swStateSelect(
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_OK
  */
-CO_LSSmaster_return_t CO_LSSmaster_swStateDeselect(
-        CO_LSSmaster_t         *LSSmaster);
-
+CO_LSSmaster_return_t CO_LSSmaster_swStateDeselect(CO_LSSmaster_t* LSSmaster);
 
 /**
  * Request LSS configure Bit Timing
@@ -257,11 +237,8 @@ CO_LSSmaster_return_t CO_LSSmaster_swStateDeselect(
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT,
  * #CO_LSSmaster_OK_MANUFACTURER, #CO_LSSmaster_OK_ILLEGAL_ARGUMENT
  */
-CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
-        CO_LSSmaster_t         *LSSmaster,
-        uint32_t                timeDifference_us,
-        uint16_t                bit);
-
+CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference_us,
+                                                      uint16_t bit);
 
 /**
  * Request LSS configure node ID
@@ -282,11 +259,8 @@ CO_LSSmaster_return_t CO_LSSmaster_configureBitTiming(
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT,
  * #CO_LSSmaster_OK_MANUFACTURER, #CO_LSSmaster_OK_ILLEGAL_ARGUMENT
  */
-CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
-        CO_LSSmaster_t         *LSSmaster,
-        uint32_t                timeDifference_us,
-        uint8_t                 nodeId);
-
+CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference_us,
+                                                   uint8_t nodeId);
 
 /**
  * Request LSS store configuration
@@ -306,10 +280,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureNodeId(
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT,
  * #CO_LSSmaster_OK_MANUFACTURER, #CO_LSSmaster_OK_ILLEGAL_ARGUMENT
  */
-CO_LSSmaster_return_t CO_LSSmaster_configureStore(
-        CO_LSSmaster_t         *LSSmaster,
-        uint32_t                timeDifference_us);
-
+CO_LSSmaster_return_t CO_LSSmaster_configureStore(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference_us);
 
 /**
  * Request LSS activate bit timing
@@ -330,10 +301,7 @@ CO_LSSmaster_return_t CO_LSSmaster_configureStore(
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_OK
  */
-CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(
-        CO_LSSmaster_t         *LSSmaster,
-        uint16_t                switchDelay_ms);
-
+CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(CO_LSSmaster_t* LSSmaster, uint16_t switchDelay_ms);
 
 /**
  * Request LSS inquire LSS address
@@ -353,11 +321,8 @@ CO_LSSmaster_return_t CO_LSSmaster_ActivateBit(
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
-CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
-        CO_LSSmaster_t         *LSSmaster,
-        uint32_t                timeDifference_us,
-        CO_LSS_address_t       *lssAddress);
-
+CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference_us,
+                                                     CO_LSS_address_t* lssAddress);
 
 /**
  * Request LSS inquire node ID or part of LSS address
@@ -378,29 +343,25 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT,  #CO_LSSmaster_INVALID_STATE,
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK, #CO_LSSmaster_TIMEOUT
  */
-CO_LSSmaster_return_t CO_LSSmaster_Inquire(
-        CO_LSSmaster_t         *LSSmaster,
-        uint32_t                timeDifference_us,
-        uint8_t                 lssInquireCs,
-        uint32_t               *value);
-
+CO_LSSmaster_return_t CO_LSSmaster_Inquire(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference_us, uint8_t lssInquireCs,
+                                           uint32_t* value);
 
 /**
  * Scan type for #CO_LSSmaster_fastscan_t scan
  */
 typedef enum {
-    CO_LSSmaster_FS_SCAN  = 0,    /**< Do full 32 bit scan */
-    CO_LSSmaster_FS_SKIP  = 1,    /**< Skip this value */
-    CO_LSSmaster_FS_MATCH = 2,    /**< Full 32 bit value is given as argument, just verify */
+    CO_LSSmaster_FS_SCAN = 0,  /**< Do full 32 bit scan */
+    CO_LSSmaster_FS_SKIP = 1,  /**< Skip this value */
+    CO_LSSmaster_FS_MATCH = 2, /**< Full 32 bit value is given as argument, just verify */
 } CO_LSSmaster_scantype_t;
 
 /**
  * Parameters for LSS fastscan #CO_LSSmaster_IdentifyFastscan
  */
-typedef struct{
-    CO_LSSmaster_scantype_t scan[4];  /**< Scan type for each part of the LSS address */
-    CO_LSS_address_t        match;    /**< Value to match in case of #CO_LSSmaster_FS_MATCH */
-    CO_LSS_address_t        found;    /**< Scan result */
+typedef struct {
+    CO_LSSmaster_scantype_t scan[4]; /**< Scan type for each part of the LSS address */
+    CO_LSS_address_t match;          /**< Value to match in case of #CO_LSSmaster_FS_MATCH */
+    CO_LSS_address_t found;          /**< Scan result */
 } CO_LSSmaster_fastscan_t;
 
 /**
@@ -457,10 +418,8 @@ fastscan.scan[CO_LSS_FASTSCAN_SERIAL] = CO_LSSmaster_FS_SCAN;
  * #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_SCAN_FINISHED, #CO_LSSmaster_SCAN_NOACK,
  * #CO_LSSmaster_SCAN_FAILED
  */
-CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(
-        CO_LSSmaster_t                  *LSSmaster,
-        uint32_t                         timeDifference_us,
-        CO_LSSmaster_fastscan_t         *fastscan);
+CO_LSSmaster_return_t CO_LSSmaster_IdentifyFastscan(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference_us,
+                                                    CO_LSSmaster_fastscan_t* fastscan);
 
 /** @} */ /*@defgroup CO_LSSmaster*/
 

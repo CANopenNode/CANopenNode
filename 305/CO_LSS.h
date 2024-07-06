@@ -26,8 +26,7 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_LSS
-#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE | \
-                       CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
+#define CO_CONFIG_LSS (CO_CONFIG_LSS_SLAVE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
 #endif
 
 #if (((CO_CONFIG_LSS) & (CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER)) != 0) || defined CO_DOXYGEN
@@ -79,71 +78,72 @@ extern "C" {
  *
  * As identifying method only "LSS fastscan" is supported.
  */
-#define CO_LSS_SWITCH_STATE_GLOBAL          0x04U  /**< Switch state global protocol */
-#define CO_LSS_SWITCH_STATE_SEL_VENDOR      0x40U  /**< Switch state selective protocol - Vendor ID */
-#define CO_LSS_SWITCH_STATE_SEL_PRODUCT     0x41U  /**< Switch state selective protocol - Product code */
-#define CO_LSS_SWITCH_STATE_SEL_REV         0x42U  /**< Switch state selective protocol - Revision number */
-#define CO_LSS_SWITCH_STATE_SEL_SERIAL      0x43U  /**< Switch state selective protocol - Serial number */
-#define CO_LSS_SWITCH_STATE_SEL             0x44U  /**< Switch state selective protocol - Slave response */
-#define CO_LSS_CFG_NODE_ID                  0x11U  /**< Configure node ID protocol */
-#define CO_LSS_CFG_BIT_TIMING               0x13U  /**< Configure bit timing parameter protocol */
-#define CO_LSS_CFG_ACTIVATE_BIT_TIMING      0x15U  /**< Activate bit timing parameter protocol */
-#define CO_LSS_CFG_STORE                    0x17U  /**< Store configuration protocol */
-#define CO_LSS_IDENT_SLAVE                  0x4FU  /**< LSS Fastscan response */
-#define CO_LSS_IDENT_FASTSCAN               0x51U  /**< LSS Fastscan protocol */
-#define CO_LSS_INQUIRE_VENDOR               0x5AU  /**< Inquire identity vendor-ID protocol */
-#define CO_LSS_INQUIRE_PRODUCT              0x5BU  /**< Inquire identity product-code protocol */
-#define CO_LSS_INQUIRE_REV                  0x5CU  /**< Inquire identity revision-number protocol */
-#define CO_LSS_INQUIRE_SERIAL               0x5DU  /**< Inquire identity serial-number protocol */
-#define CO_LSS_INQUIRE_NODE_ID              0x5EU  /**< Inquire node-ID protocol */
-/** @} */ /* CO_LSS_cs_t */
+#define CO_LSS_SWITCH_STATE_GLOBAL         0x04U /**< Switch state global protocol */
+#define CO_LSS_SWITCH_STATE_SEL_VENDOR     0x40U /**< Switch state selective protocol - Vendor ID */
+#define CO_LSS_SWITCH_STATE_SEL_PRODUCT    0x41U /**< Switch state selective protocol - Product code */
+#define CO_LSS_SWITCH_STATE_SEL_REV        0x42U /**< Switch state selective protocol - Revision number */
+#define CO_LSS_SWITCH_STATE_SEL_SERIAL     0x43U /**< Switch state selective protocol - Serial number */
+#define CO_LSS_SWITCH_STATE_SEL            0x44U /**< Switch state selective protocol - Slave response */
+#define CO_LSS_CFG_NODE_ID                 0x11U /**< Configure node ID protocol */
+#define CO_LSS_CFG_BIT_TIMING              0x13U /**< Configure bit timing parameter protocol */
+#define CO_LSS_CFG_ACTIVATE_BIT_TIMING     0x15U /**< Activate bit timing parameter protocol */
+#define CO_LSS_CFG_STORE                   0x17U /**< Store configuration protocol */
+#define CO_LSS_IDENT_SLAVE                 0x4FU /**< LSS Fastscan response */
+#define CO_LSS_IDENT_FASTSCAN              0x51U /**< LSS Fastscan protocol */
+#define CO_LSS_INQUIRE_VENDOR              0x5AU /**< Inquire identity vendor-ID protocol */
+#define CO_LSS_INQUIRE_PRODUCT             0x5BU /**< Inquire identity product-code protocol */
+#define CO_LSS_INQUIRE_REV                 0x5CU /**< Inquire identity revision-number protocol */
+#define CO_LSS_INQUIRE_SERIAL              0x5DU /**< Inquire identity serial-number protocol */
+#define CO_LSS_INQUIRE_NODE_ID             0x5EU /**< Inquire node-ID protocol */
+/** @} */                                        /* CO_LSS_cs_t */
 
 /**
  * @defgroup CO_LSS_cfgNodeId_t Error codes for Configure node ID protocol
  * @{
  */
-#define CO_LSS_CFG_NODE_ID_OK               0x00U  /**< Protocol successfully completed */
-#define CO_LSS_CFG_NODE_ID_OUT_OF_RANGE     0x01U  /**< NID out of range */
-#define CO_LSS_CFG_NODE_ID_MANUFACTURER     0xFFU  /**< Manufacturer specific error. No further support */
-/** @} */ /* CO_LSS_cfgNodeId_t */
+#define CO_LSS_CFG_NODE_ID_OK              0x00U /**< Protocol successfully completed */
+#define CO_LSS_CFG_NODE_ID_OUT_OF_RANGE    0x01U /**< NID out of range */
+#define CO_LSS_CFG_NODE_ID_MANUFACTURER    0xFFU /**< Manufacturer specific error. No further support */
+/** @} */                                        /* CO_LSS_cfgNodeId_t */
 
 /**
  * @defgroup CO_LSS_cfgBitTiming_t Error codes for Configure bit timing parameters protocol
  * @{
  */
-#define CO_LSS_CFG_BIT_TIMING_OK            0x00U  /**< Protocol successfully completed */
-#define CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE  0x01U  /**< Bit timing / Bit rate not supported */
-#define CO_LSS_CFG_BIT_TIMING_MANUFACTURER  0xFFU  /**< Manufacturer specific error. No further support */
-/** @} */ /* CO_LSS_cfgBitTiming_t */
+#define CO_LSS_CFG_BIT_TIMING_OK           0x00U /**< Protocol successfully completed */
+#define CO_LSS_CFG_BIT_TIMING_OUT_OF_RANGE 0x01U /**< Bit timing / Bit rate not supported */
+#define CO_LSS_CFG_BIT_TIMING_MANUFACTURER 0xFFU /**< Manufacturer specific error. No further support */
+/** @} */                                        /* CO_LSS_cfgBitTiming_t */
 
 /**
  * @defgroup CO_LSS_cfgStore_t Error codes for Store configuration protocol
  * @{
  */
-#define CO_LSS_CFG_STORE_OK                 0x00U  /**< Protocol successfully completed */
-#define CO_LSS_CFG_STORE_NOT_SUPPORTED      0x01U  /**< Store configuration not supported */
-#define CO_LSS_CFG_STORE_FAILED             0x02U  /**< Storage media access error */
-#define CO_LSS_CFG_STORE_MANUFACTURER       0xFFU  /**< Manufacturer specific error. No further support */
-/** @} */ /* CO_LSS_cfgStore_t */
+#define CO_LSS_CFG_STORE_OK                0x00U /**< Protocol successfully completed */
+#define CO_LSS_CFG_STORE_NOT_SUPPORTED     0x01U /**< Store configuration not supported */
+#define CO_LSS_CFG_STORE_FAILED            0x02U /**< Storage media access error */
+#define CO_LSS_CFG_STORE_MANUFACTURER      0xFFU /**< Manufacturer specific error. No further support */
+/** @} */                                        /* CO_LSS_cfgStore_t */
 
 /**
  * @defgroup CO_LSS_fastscan_bitcheck Fastscan BitCheck. BIT0 means all bits are checked for equality by slave
  * @{
  */
-#define CO_LSS_FASTSCAN_BIT0            0x00U  /**< Least significant bit of IDnumbners bit area to be checked */
-    /* ... */
-#define CO_LSS_FASTSCAN_BIT31           0x1FU  /**< dito */
-#define CO_LSS_FASTSCAN_CONFIRM         0x80U  /**< All LSS slaves waiting for scan respond and previous scan is reset */
-/** @} */ /* CO_LSS_fastscan_bitcheck */
+#define CO_LSS_FASTSCAN_BIT0               0x00U /**< Least significant bit of IDnumbners bit area to be checked */
+/* ... */
+#define CO_LSS_FASTSCAN_BIT31              0x1FU /**< dito */
+#define CO_LSS_FASTSCAN_CONFIRM            0x80U /**< All LSS slaves waiting for scan respond and previous scan is reset */
+/** @} */                                        /* CO_LSS_fastscan_bitcheck */
 
 /**
  * @defgroup CO_LSS_fastscan_lss_sub_next Fastscan LSSsub, LSSnext
  * @{
  */
-#define CO_LSS_FASTSCAN_VENDOR_ID       0x00U  /**< Vendor ID */
-#define CO_LSS_FASTSCAN_PRODUCT         0x01U  /**< Product code */
-#define CO_LSS_FASTSCAN_REV             0x02U  /**< Revision number */
-#define CO_LSS_FASTSCAN_SERIAL          0x03U  /**< Serial number */
+#define CO_LSS_FASTSCAN_VENDOR_ID          0x00U /**< Vendor ID */
+#define CO_LSS_FASTSCAN_PRODUCT            0x01U /**< Product code */
+#define CO_LSS_FASTSCAN_REV                0x02U /**< Revision number */
+#define CO_LSS_FASTSCAN_SERIAL             0x03U /**< Serial number */
+
 /** @} */ /* CO_LSS_fastscan_lss_sub_next */
 
 /**
@@ -152,6 +152,7 @@ extern "C" {
  */
 typedef union {
     uint32_t addr[4];
+
     struct {
         uint32_t vendorID;
         uint32_t productCode;
@@ -170,42 +171,31 @@ typedef union {
  * - LSS configuration: In this state variables may be configured in the LSS slave.
  * - Final: Pseudo state, indicating the deactivation of the FSA.
  */
-#define CO_LSS_STATE_WAITING            0x00U  /**< LSS FSA waiting for requests*/
-#define CO_LSS_STATE_CONFIGURATION      0x01U  /**< LSS FSA waiting for configuration*/
-/** @} */ /* CO_LSS_state_t */
+#define CO_LSS_STATE_WAITING       0x00U /**< LSS FSA waiting for requests*/
+#define CO_LSS_STATE_CONFIGURATION 0x01U /**< LSS FSA waiting for configuration*/
+/** @} */                                /* CO_LSS_state_t */
 
 /**
  * @defgroup CO_LSS_bitTimingTable_t Definition of table_index for /CiA301/ bit timing table
  * @{
  */
-#define CO_LSS_BIT_TIMING_1000     0U  /**< 1000kbit/s */
-#define CO_LSS_BIT_TIMING_800      1U  /**< 800kbit/s */
-#define CO_LSS_BIT_TIMING_500      2U  /**< 500kbit/s */
-#define CO_LSS_BIT_TIMING_250      3U  /**< 250kbit/s */
-#define CO_LSS_BIT_TIMING_125      4U  /**< 125kbit/s */
-        /* reserved                5U */
-#define CO_LSS_BIT_TIMING_50       6U  /**< 50kbit/s */
-#define CO_LSS_BIT_TIMING_20       7U  /**< 20kbit/s */
-#define CO_LSS_BIT_TIMING_10       8U  /**< 10kbit/s */
-#define CO_LSS_BIT_TIMING_AUTO     9U  /**< Automatic bit rate detection */
-/** @} */ /* CO_LSS_bitTimingTable_t */
+#define CO_LSS_BIT_TIMING_1000     0U /**< 1000kbit/s */
+#define CO_LSS_BIT_TIMING_800      1U /**< 800kbit/s */
+#define CO_LSS_BIT_TIMING_500      2U /**< 500kbit/s */
+#define CO_LSS_BIT_TIMING_250      3U /**< 250kbit/s */
+#define CO_LSS_BIT_TIMING_125      4U /**< 125kbit/s */
+                                      /* reserved                5U */
+#define CO_LSS_BIT_TIMING_50       6U /**< 50kbit/s */
+#define CO_LSS_BIT_TIMING_20       7U /**< 20kbit/s */
+#define CO_LSS_BIT_TIMING_10       8U /**< 10kbit/s */
+#define CO_LSS_BIT_TIMING_AUTO     9U /**< Automatic bit rate detection */
+/** @} */                             /* CO_LSS_bitTimingTable_t */
 
 /**
  * Lookup table for conversion between bit timing table and numerical
  * bit rate
  */
-static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
-     1000,
-     800,
-     500,
-     250,
-     125,
-     0,
-     50,
-     20,
-     10,
-     0
-};
+static const uint16_t CO_LSS_bitTimingTableLookup[] = {1000, 800, 500, 250, 125, 0, 50, 20, 10, 0};
 
 /**
  * Invalid node ID triggers node ID assignment
@@ -220,11 +210,10 @@ static const uint16_t CO_LSS_bitTimingTableLookup[]  = {
 /**
  * Macro to check if two LSS addresses are equal
  */
-#define CO_LSS_ADDRESS_EQUAL(/*CO_LSS_address_t*/ a1, /*CO_LSS_address_t*/ a2) \
-     ((a1.identity.productCode == a2.identity.productCode) &&         \
-      (a1.identity.revisionNumber == a2.identity.revisionNumber) &&   \
-      (a1.identity.serialNumber == a2.identity.serialNumber) &&       \
-      (a1.identity.vendorID == a2.identity.vendorID))
+#define CO_LSS_ADDRESS_EQUAL(/*CO_LSS_address_t*/ a1, /*CO_LSS_address_t*/ a2)                                         \
+    ((a1.identity.productCode == a2.identity.productCode)                                                              \
+     && (a1.identity.revisionNumber == a2.identity.revisionNumber)                                                     \
+     && (a1.identity.serialNumber == a2.identity.serialNumber) && (a1.identity.vendorID == a2.identity.vendorID))
 
 /** @} */ /*@defgroup CO_LSS*/
 

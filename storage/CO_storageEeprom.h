@@ -27,7 +27,7 @@
 #define CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT 5U
 #endif
 
-#if (((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_STORAGE)&CO_CONFIG_STORAGE_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,7 +71,6 @@ extern "C" {
  * used.
  */
 
-
 /**
  * Initialize data storage object (block device (eeprom) specific)
  *
@@ -102,15 +101,9 @@ extern "C" {
  * @return CO_ERROR_NO, CO_ERROR_DATA_CORRUPT if data can not be initialized,
  * CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY.
  */
-CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
-                                       CO_CANmodule_t *CANmodule,
-                                       void *storageModule,
-                                       OD_entry_t *OD_1010_StoreParameters,
-                                       OD_entry_t *OD_1011_RestoreDefaultParam,
-                                       CO_storage_entry_t *entries,
-                                       uint8_t entriesCount,
-                                       uint32_t *storageInitError);
-
+CO_ReturnError_t CO_storageEeprom_init(CO_storage_t* storage, CO_CANmodule_t* CANmodule, void* storageModule,
+                                       OD_entry_t* OD_1010_StoreParameters, OD_entry_t* OD_1011_RestoreDefaultParam,
+                                       CO_storage_entry_t* entries, uint8_t entriesCount, uint32_t* storageInitError);
 
 /**
  * Automatically update data if differs inside eeprom.
@@ -120,7 +113,7 @@ CO_ReturnError_t CO_storageEeprom_init(CO_storage_t *storage,
  * @param storage This object
  * @param saveAll If true, all bytes are updated, useful on program end.
  */
-void CO_storageEeprom_auto_process(CO_storage_t *storage, bool_t saveAll);
+void CO_storageEeprom_auto_process(CO_storage_t* storage, bool_t saveAll);
 
 /** @} */ /* CO_storage_eeprom */
 

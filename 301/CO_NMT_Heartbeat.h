@@ -27,8 +27,7 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_NMT
-#define CO_CONFIG_NMT (CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                       CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+#define CO_CONFIG_NMT (CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
 #ifdef __cplusplus
@@ -82,7 +81,6 @@ typedef enum {
     CO_NMT_STOPPED = 4
 } CO_NMT_internalState_t;
 
-
 /**
  * Commands from NMT master.
  */
@@ -101,7 +99,6 @@ typedef enum {
     CO_NMT_RESET_COMMUNICATION = 130
 } CO_NMT_command_t;
 
-
 /**
  * Return code from CO_NMT_process() that tells application code what to
  * reset.
@@ -118,7 +115,6 @@ typedef enum {
     CO_RESET_QUIT = 3
 } CO_NMT_reset_cmd_t;
 
-
 /**
  * @defgroup CO_NMT_control_t NMT control bitfield for NMT internal state.
  * @{
@@ -134,27 +130,26 @@ typedef enum {
 
 /** First 8 bits can be used to specify bitmask for the
  * @ref CO_errorRegister_t to get relevant bits for the calculation. */
-#define CO_NMT_ERR_REG_MASK  0x00FFU
+#define CO_NMT_ERR_REG_MASK            0x00FFU
 /** If bit is set then device enters NMT operational state after the
  * initialization phase otherwise it enters NMT pre-operational state. */
 #define CO_NMT_STARTUP_TO_OPERATIONAL  0x0100U
 /** If bit is set and device is operational it enters NMT pre-operational
  * or stopped state if CAN bus is off or heartbeat consumer timeout is
  * detected. */
-#define CO_NMT_ERR_ON_BUSOFF_HB  0x1000U
+#define CO_NMT_ERR_ON_BUSOFF_HB        0x1000U
 /** If bit is set and device is operational it enters NMT pre-operational
  * or stopped state if masked CANopen error register is different than
  * zero. */
-#define CO_NMT_ERR_ON_ERR_REG  0x2000U
+#define CO_NMT_ERR_ON_ERR_REG          0x2000U
 /** If bit is set and CO_NMT_ERR_ON_xx condition is met then device will
  * enter NMT stopped state otherwise it will enter NMT pre-op state. */
-#define CO_NMT_ERR_TO_STOPPED  0x4000U
+#define CO_NMT_ERR_TO_STOPPED          0x4000U
 /** If bit is set and device is pre-operational it enters NMT operational
  * state automatically if conditions from CO_NMT_ERR_ON_xx are all false.*/
-#define CO_NMT_ERR_FREE_TO_OPERATIONAL  0x8000U
+#define CO_NMT_ERR_FREE_TO_OPERATIONAL 0x8000U
 
 /** @} */ /* CO_NMT_control_t */
-
 
 /**
  * NMT consumer and Heartbeat producer object
@@ -178,29 +173,28 @@ typedef struct {
     /** Extension for OD object */
     OD_extension_t OD_1017_extension;
     /** From CO_NMT_init() */
-    CO_EM_t *em;
-#if (((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0) || defined CO_DOXYGEN
+    CO_EM_t* em;
+#if (((CO_CONFIG_NMT)&CO_CONFIG_NMT_MASTER) != 0) || defined CO_DOXYGEN
     /** From CO_NMT_init() */
-    CO_CANmodule_t *NMT_CANdevTx;
+    CO_CANmodule_t* NMT_CANdevTx;
     /** CAN transmit buffer for NMT master message */
-    CO_CANtx_t *NMT_TXbuff;
+    CO_CANtx_t* NMT_TXbuff;
 #endif
     /** From CO_NMT_init() */
-    CO_CANmodule_t *HB_CANdevTx;
+    CO_CANmodule_t* HB_CANdevTx;
     /** CAN transmit buffer for heartbeat message */
-    CO_CANtx_t *HB_TXbuff;
-#if (((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+    CO_CANtx_t* HB_TXbuff;
+#if (((CO_CONFIG_NMT)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_NMT_initCallbackPre() or NULL */
-    void (*pFunctSignalPre)(void *object);
+    void (*pFunctSignalPre)(void* object);
     /** From CO_NMT_initCallbackPre() or NULL */
-    void *functSignalObjectPre;
+    void* functSignalObjectPre;
 #endif
-#if (((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT)&CO_CONFIG_NMT_CALLBACK_CHANGE) != 0) || defined CO_DOXYGEN
     /** From CO_NMT_initCallbackChanged() or NULL */
     void (*pFunctNMT)(CO_NMT_internalState_t state);
 #endif
 } CO_NMT_t;
-
 
 /**
  * Initialize NMT and Heartbeat producer object.
@@ -231,27 +225,15 @@ typedef struct {
  *
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
-CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
-                             OD_entry_t *OD_1017_ProducerHbTime,
-                             CO_EM_t *em,
-                             uint8_t nodeId,
-                             uint16_t NMTcontrol,
-                             uint16_t firstHBTime_ms,
-                             CO_CANmodule_t *NMT_CANdevRx,
-                             uint16_t NMT_rxIdx,
-                             uint16_t CANidRxNMT,
-#if (((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) != 0) || defined CO_DOXYGEN
-                             CO_CANmodule_t *NMT_CANdevTx,
-                             uint16_t NMT_txIdx,
-                             uint16_t CANidTxNMT,
+CO_ReturnError_t CO_NMT_init(CO_NMT_t* NMT, OD_entry_t* OD_1017_ProducerHbTime, CO_EM_t* em, uint8_t nodeId,
+                             uint16_t NMTcontrol, uint16_t firstHBTime_ms, CO_CANmodule_t* NMT_CANdevRx,
+                             uint16_t NMT_rxIdx, uint16_t CANidRxNMT,
+#if (((CO_CONFIG_NMT)&CO_CONFIG_NMT_MASTER) != 0) || defined CO_DOXYGEN
+                             CO_CANmodule_t* NMT_CANdevTx, uint16_t NMT_txIdx, uint16_t CANidTxNMT,
 #endif
-                             CO_CANmodule_t *HB_CANdevTx,
-                             uint16_t HB_txIdx,
-                             uint16_t CANidTxHB,
-                             uint32_t *errInfo);
+                             CO_CANmodule_t* HB_CANdevTx, uint16_t HB_txIdx, uint16_t CANidTxHB, uint32_t* errInfo);
 
-
-#if (((CO_CONFIG_NMT) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize NMT callback function after message preprocessed.
  *
@@ -264,13 +246,10 @@ CO_ReturnError_t CO_NMT_init(CO_NMT_t *NMT,
  * Can be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_NMT_initCallbackPre(CO_NMT_t *NMT,
-                            void *object,
-                            void (*pFunctSignal)(void *object));
+void CO_NMT_initCallbackPre(CO_NMT_t* NMT, void* object, void (*pFunctSignal)(void* object));
 #endif
 
-
-#if (((CO_CONFIG_NMT) & CO_CONFIG_NMT_CALLBACK_CHANGE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_NMT)&CO_CONFIG_NMT_CALLBACK_CHANGE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize NMT callback function.
  *
@@ -282,10 +261,8 @@ void CO_NMT_initCallbackPre(CO_NMT_t *NMT,
  * @param NMT This object.
  * @param pFunctNMT Pointer to the callback function. Not called if NULL.
  */
-void CO_NMT_initCallbackChanged(CO_NMT_t *NMT,
-                                void (*pFunctNMT)(CO_NMT_internalState_t state));
+void CO_NMT_initCallbackChanged(CO_NMT_t* NMT, void (*pFunctNMT)(CO_NMT_internalState_t state));
 #endif
-
 
 /**
  * Process received NMT and produce Heartbeat messages.
@@ -300,11 +277,8 @@ void CO_NMT_initCallbackChanged(CO_NMT_t *NMT,
  *
  * @return #CO_NMT_reset_cmd_t
  */
-CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
-                                  CO_NMT_internalState_t *NMTstate,
-                                  uint32_t timeDifference_us,
-                                  uint32_t *timerNext_us);
-
+CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t* NMT, CO_NMT_internalState_t* NMTstate, uint32_t timeDifference_us,
+                                  uint32_t* timerNext_us);
 
 /**
  * Query current NMT state
@@ -313,10 +287,10 @@ CO_NMT_reset_cmd_t CO_NMT_process(CO_NMT_t *NMT,
  *
  * @return @ref CO_NMT_internalState_t
  */
-static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
+static inline CO_NMT_internalState_t
+CO_NMT_getInternalState(CO_NMT_t* NMT) {
     return (NMT == NULL) ? CO_NMT_INITIALIZING : NMT->operatingState;
 }
-
 
 /**
  * Send NMT command to self, without sending NMT message
@@ -326,14 +300,14 @@ static inline CO_NMT_internalState_t CO_NMT_getInternalState(CO_NMT_t *NMT) {
  * @param NMT This object.
  * @param command NMT command
  */
-static inline void CO_NMT_sendInternalCommand(CO_NMT_t *NMT,
-                                              CO_NMT_command_t command)
-{
-    if (NMT != NULL) { NMT->internalCommand = command; }
+static inline void
+CO_NMT_sendInternalCommand(CO_NMT_t* NMT, CO_NMT_command_t command) {
+    if (NMT != NULL) {
+        NMT->internalCommand = command;
+    }
 }
 
-
-#if ((CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
+#if ((CO_CONFIG_NMT)&CO_CONFIG_NMT_MASTER) || defined CO_DOXYGEN
 /**
  * Send NMT master command.
  *
@@ -349,9 +323,7 @@ static inline void CO_NMT_sendInternalCommand(CO_NMT_t *NMT,
  *
  * @return CO_ERROR_NO on success or CO_ReturnError_t from CO_CANsend().
  */
-CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t *NMT,
-                                    CO_NMT_command_t command,
-                                    uint8_t nodeID);
+CO_ReturnError_t CO_NMT_sendCommand(CO_NMT_t* NMT, CO_NMT_command_t command, uint8_t nodeID);
 
 #endif /* (CO_CONFIG_NMT) & CO_CONFIG_NMT_MASTER */
 

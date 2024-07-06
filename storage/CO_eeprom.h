@@ -39,8 +39,7 @@ extern "C" {
  *
  * @return True on success
  */
-bool_t CO_eeprom_init(void *storageModule);
-
+bool_t CO_eeprom_init(void* storageModule);
 
 /**
  * Get free address inside eeprom, target system specific function.
@@ -55,9 +54,7 @@ bool_t CO_eeprom_init(void *storageModule);
  *
  * @return Asigned eeprom address
  */
-size_t CO_eeprom_getAddr(void *storageModule, bool_t isAuto,
-                         size_t len, bool_t *overflow);
-
+size_t CO_eeprom_getAddr(void* storageModule, bool_t isAuto, size_t len, bool_t* overflow);
 
 /**
  * Read block of data from the eeprom, target system specific function.
@@ -67,9 +64,7 @@ size_t CO_eeprom_getAddr(void *storageModule, bool_t isAuto,
  * @param eepromAddr Address in eeprom, from where data will be read.
  * @param len Length of the data block to be read.
  */
-void CO_eeprom_readBlock(void *storageModule, uint8_t *data,
-                         size_t eepromAddr, size_t len);
-
+void CO_eeprom_readBlock(void* storageModule, uint8_t* data, size_t eepromAddr, size_t len);
 
 /**
  * Write block of data to the eeprom, target system specific function.
@@ -84,9 +79,7 @@ void CO_eeprom_readBlock(void *storageModule, uint8_t *data,
  *
  * @return true on success
  */
-bool_t CO_eeprom_writeBlock(void *storageModule, uint8_t *data,
-                            size_t eepromAddr, size_t len);
-
+bool_t CO_eeprom_writeBlock(void* storageModule, uint8_t* data, size_t eepromAddr, size_t len);
 
 /**
  * Get CRC checksum of the block of data stored in the eeprom, target system
@@ -98,9 +91,7 @@ bool_t CO_eeprom_writeBlock(void *storageModule, uint8_t *data,
  *
  * @return CRC checksum
  */
-uint16_t CO_eeprom_getCrcBlock(void *storageModule,
-                               size_t eepromAddr, size_t len);
-
+uint16_t CO_eeprom_getCrcBlock(void* storageModule, size_t eepromAddr, size_t len);
 
 /**
  * Update one byte of data in the eeprom, target system specific function.
@@ -115,9 +106,7 @@ uint16_t CO_eeprom_getCrcBlock(void *storageModule,
  * @return true if write was successful or false, if still waiting previous
  * data to finish writing.
  */
-bool_t CO_eeprom_updateByte(void *storageModule, uint8_t data,
-                            size_t eepromAddr);
-
+bool_t CO_eeprom_updateByte(void* storageModule, uint8_t data, size_t eepromAddr);
 
 /** @} */ /* CO_storage_eeprom */
 

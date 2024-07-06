@@ -25,17 +25,14 @@
 #include "301/CO_ODinterface.h"
 #include "301/CO_Emergency.h"
 
-
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_SYNC
-#define CO_CONFIG_SYNC (CO_CONFIG_SYNC_ENABLE | \
-                        CO_CONFIG_SYNC_PRODUCER | \
-                        CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE | \
-                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
-                        CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+#define CO_CONFIG_SYNC                                                                                                 \
+    (CO_CONFIG_SYNC_ENABLE | CO_CONFIG_SYNC_PRODUCER | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE                           \
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
-#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,15 +66,14 @@ extern "C" {
  * RPDO reception and which for RPDO processing.
  */
 
-
 /**
  * SYNC producer and consumer object.
  */
 typedef struct {
     /** From CO_SYNC_init() */
-    CO_EM_t *em;
+    CO_EM_t* em;
     /** Indicates, if new SYNC message received from CAN bus */
-    volatile void *CANrxNew;
+    volatile void* CANrxNew;
     /** Set to nonzero value, if SYNC with wrong data length is received */
     uint8_t receiveError;
     /** Variable toggles, if new SYNC message received from CAN bus */
@@ -97,21 +93,21 @@ typedef struct {
     Set to zero after received or transmitted SYNC message */
     uint32_t timer;
     /**Pointer to variable in OD, "Communication cycle period" in microseconds*/
-    uint32_t *OD_1006_period;
+    uint32_t* OD_1006_period;
     /** Pointer to variable in OD, "Synchronous window length" in microseconds*/
-    uint32_t *OD_1007_window;
+    uint32_t* OD_1007_window;
 
-#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
     /** True, if device is SYNC producer. Calculated from _COB ID SYNC Message_
     variable from Object dictionary (index 0x1005). */
     bool_t isProducer;
     /** CAN transmit buffer inside CANdevTx */
-    CO_CANtx_t *CANtxBuff;
+    CO_CANtx_t* CANtxBuff;
 #endif
 
-#if ((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
+#if ((CO_CONFIG_SYNC)&CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
     /** From CO_SYNC_init() */
-    CO_CANmodule_t *CANdevRx;
+    CO_CANmodule_t* CANdevRx;
     /** From CO_SYNC_init() */
     uint16_t CANdevRxIdx;
     /** Extension for OD object */
@@ -119,24 +115,23 @@ typedef struct {
     /** CAN ID of the SYNC message. Calculated from _COB ID SYNC Message_
     variable from Object dictionary (index 0x1005). */
     uint16_t CAN_ID;
- #if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
     /** From CO_SYNC_init() */
-    CO_CANmodule_t *CANdevTx;
+    CO_CANmodule_t* CANdevTx;
     /** From CO_SYNC_init() */
     uint16_t CANdevTxIdx;
     /** Extension for OD object */
     OD_extension_t OD_1019_extension;
- #endif
+#endif
 #endif
 
-#if (((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_SYNC_initCallbackPre() or NULL */
-    void (*pFunctSignalPre)(void *object);
+    void (*pFunctSignalPre)(void* object);
     /** From CO_SYNC_initCallbackPre() or NULL */
-    void *functSignalObjectPre;
+    void* functSignalObjectPre;
 #endif
 } CO_SYNC_t;
-
 
 /** Return value for @ref CO_SYNC_process */
 typedef enum {
@@ -147,7 +142,6 @@ typedef enum {
     /** Time has just passed SYNC window (OD_1007) in last cycle */
     CO_SYNC_PASSED_WINDOW = 2
 } CO_SYNC_status_t;
-
 
 /**
  * Initialize SYNC object.
@@ -172,22 +166,15 @@ typedef enum {
  *
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
-CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
-                              CO_EM_t *em,
-                              OD_entry_t *OD_1005_cobIdSync,
-                              OD_entry_t *OD_1006_commCyclePeriod,
-                              OD_entry_t *OD_1007_syncWindowLen,
-                              OD_entry_t *OD_1019_syncCounterOvf,
-                              CO_CANmodule_t *CANdevRx,
-                              uint16_t CANdevRxIdx,
-#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
-                              CO_CANmodule_t *CANdevTx,
-                              uint16_t CANdevTxIdx,
+CO_ReturnError_t CO_SYNC_init(CO_SYNC_t* SYNC, CO_EM_t* em, OD_entry_t* OD_1005_cobIdSync,
+                              OD_entry_t* OD_1006_commCyclePeriod, OD_entry_t* OD_1007_syncWindowLen,
+                              OD_entry_t* OD_1019_syncCounterOvf, CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx,
+#if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
+                              CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx,
 #endif
-                              uint32_t *errInfo);
+                              uint32_t* errInfo);
 
-
-#if (((CO_CONFIG_SYNC) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize SYNC callback function.
  *
@@ -199,13 +186,10 @@ CO_ReturnError_t CO_SYNC_init(CO_SYNC_t *SYNC,
  * @param object Pointer to object, which will be passed to pFunctSignalPre().
  * @param pFunctSignalPre Pointer to the callback function. Not called if NULL.
  */
-void CO_SYNC_initCallbackPre(CO_SYNC_t *SYNC,
-                             void *object,
-                             void (*pFunctSignalPre)(void *object));
+void CO_SYNC_initCallbackPre(CO_SYNC_t* SYNC, void* object, void (*pFunctSignalPre)(void* object));
 #endif
 
-
-#if (((CO_CONFIG_SYNC) & CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
 /**
  * Send SYNC message.
  *
@@ -217,15 +201,17 @@ void CO_SYNC_initCallbackPre(CO_SYNC_t *SYNC,
  *
  * @return Same as CO_CANsend().
  */
-static inline CO_ReturnError_t CO_SYNCsend(CO_SYNC_t *SYNC) {
-    if (++SYNC->counter > SYNC->counterOverflowValue) { SYNC->counter = 1; }
+static inline CO_ReturnError_t
+CO_SYNCsend(CO_SYNC_t* SYNC) {
+    if (++SYNC->counter > SYNC->counterOverflowValue) {
+        SYNC->counter = 1;
+    }
     SYNC->timer = 0;
     SYNC->CANrxToggle = SYNC->CANrxToggle ? false : true;
     SYNC->CANtxBuff->data[0] = SYNC->counter;
     return CO_CANsend(SYNC->CANdevTx, SYNC->CANtxBuff);
 }
 #endif
-
 
 /**
  * Process SYNC communication.
@@ -241,10 +227,8 @@ static inline CO_ReturnError_t CO_SYNCsend(CO_SYNC_t *SYNC) {
  *
  * @return @ref CO_SYNC_status_t
  */
-CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t *SYNC,
-                                 bool_t NMTisPreOrOperational,
-                                 uint32_t timeDifference_us,
-                                 uint32_t *timerNext_us);
+CO_SYNC_status_t CO_SYNC_process(CO_SYNC_t* SYNC, bool_t NMTisPreOrOperational, uint32_t timeDifference_us,
+                                 uint32_t* timerNext_us);
 
 /** @} */ /* CO_SYNC */
 

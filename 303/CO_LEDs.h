@@ -26,11 +26,10 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_LEDS
-#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE | \
-                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
-#if (((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LEDS)&CO_CONFIG_LEDS_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,36 +72,34 @@ extern "C" {
  * @{
  * 
  */
-#define CO_LED_flicker  0x01U  /**< LED flickering 10Hz */
-#define CO_LED_blink    0x02U  /**< LED blinking 2,5Hz */
-#define CO_LED_flash_1  0x04U  /**< LED single flash */
-#define CO_LED_flash_2  0x08U  /**< LED double flash */
-#define CO_LED_flash_3  0x10U  /**< LED triple flash */
-#define CO_LED_flash_4  0x20U  /**< LED quadruple flash */
-#define CO_LED_CANopen  0x80U  /**< LED CANopen according to CiA 303-3 */
+#define CO_LED_flicker               0x01U /**< LED flickering 10Hz */
+#define CO_LED_blink                 0x02U /**< LED blinking 2,5Hz */
+#define CO_LED_flash_1               0x04U /**< LED single flash */
+#define CO_LED_flash_2               0x08U /**< LED double flash */
+#define CO_LED_flash_3               0x10U /**< LED triple flash */
+#define CO_LED_flash_4               0x20U /**< LED quadruple flash */
+#define CO_LED_CANopen               0x80U /**< LED CANopen according to CiA 303-3 */
 
 /** @} */ /* CO_LED_BITFIELD_t */
 
 /** Get on/off state for green led for specified bitfield */
-#define CO_LED_RED(LEDs, BITFIELD) ((((LEDs)->LEDred & BITFIELD) != 0U) ? 1U : 0U)
+#define CO_LED_RED(LEDs, BITFIELD)   ((((LEDs)->LEDred & BITFIELD) != 0U) ? 1U : 0U)
 /** Get on/off state for green led for specified bitfield */
 #define CO_LED_GREEN(LEDs, BITFIELD) ((((LEDs)->LEDgreen & BITFIELD) != 0U) ? 1U : 0U)
-
 
 /**
  * LEDs object, initialized by CO_LEDs_init()
  */
-typedef struct{
-    uint32_t            LEDtmr50ms;     /**< 50ms led timer */
-    uint8_t             LEDtmr200ms;    /**< 200ms led timer */
-    uint8_t             LEDtmrflash_1;  /**< single flash led timer */
-    uint8_t             LEDtmrflash_2;  /**< double flash led timer */
-    uint8_t             LEDtmrflash_3;  /**< triple flash led timer */
-    uint8_t             LEDtmrflash_4;  /**< quadruple flash led timer */
-    uint8_t             LEDred;         /**< red led #CO_LED_BITFIELD_t */
-    uint8_t             LEDgreen;       /**< green led #CO_LED_BITFIELD_t */
+typedef struct {
+    uint32_t LEDtmr50ms;   /**< 50ms led timer */
+    uint8_t LEDtmr200ms;   /**< 200ms led timer */
+    uint8_t LEDtmrflash_1; /**< single flash led timer */
+    uint8_t LEDtmrflash_2; /**< double flash led timer */
+    uint8_t LEDtmrflash_3; /**< triple flash led timer */
+    uint8_t LEDtmrflash_4; /**< quadruple flash led timer */
+    uint8_t LEDred;        /**< red led #CO_LED_BITFIELD_t */
+    uint8_t LEDgreen;      /**< green led #CO_LED_BITFIELD_t */
 } CO_LEDs_t;
-
 
 /**
  * Initialize LEDs object.
@@ -113,8 +110,7 @@ typedef struct{
  *
  * @return #CO_ReturnError_t CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs);
-
+CO_ReturnError_t CO_LEDs_init(CO_LEDs_t* LEDs);
 
 /**
  * Process indicator states
@@ -135,18 +131,9 @@ CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs);
  * @param firmwareDownload Firmware download is in progress indication.
  * @param [out] timerNext_us info to OS - see CO_process().
  */
-void CO_LEDs_process(CO_LEDs_t *LEDs,
-                     uint32_t timeDifference_us,
-                     CO_NMT_internalState_t NMTstate,
-                     bool_t LSSconfig,
-                     bool_t ErrCANbusOff,
-                     bool_t ErrCANbusWarn,
-                     bool_t ErrRpdo,
-                     bool_t ErrSync,
-                     bool_t ErrHbCons,
-                     bool_t ErrOther,
-                     bool_t firmwareDownload,
-                     uint32_t *timerNext_us);
+void CO_LEDs_process(CO_LEDs_t* LEDs, uint32_t timeDifference_us, CO_NMT_internalState_t NMTstate, bool_t LSSconfig,
+                     bool_t ErrCANbusOff, bool_t ErrCANbusWarn, bool_t ErrRpdo, bool_t ErrSync, bool_t ErrHbCons,
+                     bool_t ErrOther, bool_t firmwareDownload, uint32_t* timerNext_us);
 
 /** @} */ /* CO_LEDs */
 

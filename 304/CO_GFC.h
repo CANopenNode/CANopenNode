@@ -30,7 +30,7 @@
 #define CO_CONFIG_GFC (0)
 #endif
 
-#if (((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GFC)&CO_CONFIG_GFC_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,13 +53,13 @@ extern "C" {
  * GFC object.
  */
 typedef struct {
-    bool_t valid; /**< From OD parameter 1300 */
+    bool_t valid;                   /**< From OD parameter 1300 */
     OD_extension_t OD_gfcParam_ext; /**< Extension for OD object */
-#if (((CO_CONFIG_GFC) & CO_CONFIG_GFC_PRODUCER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GFC)&CO_CONFIG_GFC_PRODUCER) != 0) || defined CO_DOXYGEN
     CO_CANmodule_t* CANdevTx; /**< From CO_GFC_init() */
     CO_CANtx_t* CANtxBuff;    /**< CAN transmit buffer inside CANdevTx */
 #endif
-#if (((CO_CONFIG_GFC) & CO_CONFIG_GFC_CONSUMER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GFC)&CO_CONFIG_GFC_CONSUMER) != 0) || defined CO_DOXYGEN
     /** From CO_GFC_initCallbackEnterSafeState() or NULL */
     void (*pFunctSignalSafe)(void* object);
     /** From CO_GFC_initCallbackEnterSafeState() or NULL */
@@ -84,11 +84,11 @@ typedef struct {
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-CO_ReturnError_t CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter,
-                             CO_CANmodule_t* GFC_CANdevRx, uint16_t GFC_rxIdx, uint16_t CANidRxGFC,
-                             CO_CANmodule_t* GFC_CANdevTx, uint16_t GFC_txIdx, uint16_t CANidTxGFC);
+CO_ReturnError_t CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC_CANdevRx,
+                             uint16_t GFC_rxIdx, uint16_t CANidRxGFC, CO_CANmodule_t* GFC_CANdevTx, uint16_t GFC_txIdx,
+                             uint16_t CANidTxGFC);
 
-#if (((CO_CONFIG_GFC) & CO_CONFIG_GFC_CONSUMER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GFC)&CO_CONFIG_GFC_CONSUMER) != 0) || defined CO_DOXYGEN
 /**
  * Initialize GFC callback function.
  *
@@ -103,7 +103,7 @@ CO_ReturnError_t CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter,
 void CO_GFC_initCallbackEnterSafeState(CO_GFC_t* GFC, void* object, void (*pFunctSignalSafe)(void* object));
 #endif
 
-#if (((CO_CONFIG_GFC) & CO_CONFIG_GFC_PRODUCER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GFC)&CO_CONFIG_GFC_PRODUCER) != 0) || defined CO_DOXYGEN
 /**
  * Send GFC message.
  *

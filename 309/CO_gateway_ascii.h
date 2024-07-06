@@ -34,7 +34,7 @@
 #define CO_CONFIG_GTW (0)
 #endif
 
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -140,19 +140,16 @@ lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\
  * @}
  */
 
-
 /** Size of response string buffer. This is intermediate buffer. If there is
  * larger amount of data to transfer, then multiple transfers will occur. */
 #ifndef CO_GTWA_RESP_BUF_SIZE
 #define CO_GTWA_RESP_BUF_SIZE 200U
 #endif
 
-
 /** Timeout time in microseconds for some internal states. */
 #ifndef CO_GTWA_STATE_TIMEOUT_TIME_US
 #define CO_GTWA_STATE_TIMEOUT_TIME_US 1200000U
 #endif
-
 
 /**
  * Response error codes as specified by CiA 309-3. Values less or equal to 0
@@ -160,63 +157,62 @@ lss_allnodes [<timeout_ms> [<nodeStart=1..127> <store=0|1>\\
  */
 typedef enum {
     /** 0 - No error or idle */
-    CO_GTWA_respErrorNone                        = 0,
+    CO_GTWA_respErrorNone = 0,
     /** 100 - Request not supported */
-    CO_GTWA_respErrorReqNotSupported             = 100,
+    CO_GTWA_respErrorReqNotSupported = 100,
     /** 101 - Syntax error */
-    CO_GTWA_respErrorSyntax                      = 101,
+    CO_GTWA_respErrorSyntax = 101,
     /** 102 - Request not processed due to internal state */
-    CO_GTWA_respErrorInternalState               = 102,
+    CO_GTWA_respErrorInternalState = 102,
     /** 103 - Time-out (where applicable) */
-    CO_GTWA_respErrorTimeOut                     = 103,
+    CO_GTWA_respErrorTimeOut = 103,
     /** 104 - No default net set */
-    CO_GTWA_respErrorNoDefaultNetSet             = 104,
+    CO_GTWA_respErrorNoDefaultNetSet = 104,
     /** 105 - No default node set */
-    CO_GTWA_respErrorNoDefaultNodeSet            = 105,
+    CO_GTWA_respErrorNoDefaultNodeSet = 105,
     /** 106 - Unsupported net */
-    CO_GTWA_respErrorUnsupportedNet              = 106,
+    CO_GTWA_respErrorUnsupportedNet = 106,
     /** 107 - Unsupported node */
-    CO_GTWA_respErrorUnsupportedNode             = 107,
+    CO_GTWA_respErrorUnsupportedNode = 107,
     /** 200 - Lost guarding message */
-    CO_GTWA_respErrorLostGuardingMessage         = 200,
+    CO_GTWA_respErrorLostGuardingMessage = 200,
     /** 201 - Lost connection */
-    CO_GTWA_respErrorLostConnection              = 201,
+    CO_GTWA_respErrorLostConnection = 201,
     /** 202 - Heartbeat started */
-    CO_GTWA_respErrorHeartbeatStarted            = 202,
+    CO_GTWA_respErrorHeartbeatStarted = 202,
     /** 203 - Heartbeat lost */
-    CO_GTWA_respErrorHeartbeatLost               = 203,
+    CO_GTWA_respErrorHeartbeatLost = 203,
     /** 204 - Wrong NMT state */
-    CO_GTWA_respErrorWrongNMTstate               = 204,
+    CO_GTWA_respErrorWrongNMTstate = 204,
     /** 205 - Boot-up */
-    CO_GTWA_respErrorBootUp                      = 205,
+    CO_GTWA_respErrorBootUp = 205,
     /** 300 - Error passive */
-    CO_GTWA_respErrorErrorPassive                = 300,
+    CO_GTWA_respErrorErrorPassive = 300,
     /** 301 - Bus off */
-    CO_GTWA_respErrorBusOff                      = 301,
+    CO_GTWA_respErrorBusOff = 301,
     /** 303 - CAN buffer overflow */
-    CO_GTWA_respErrorCANbufferOverflow           = 303,
+    CO_GTWA_respErrorCANbufferOverflow = 303,
     /** 304 - CAN init */
-    CO_GTWA_respErrorCANinit                     = 304,
+    CO_GTWA_respErrorCANinit = 304,
     /** 305 - CAN active (at init or start-up) */
-    CO_GTWA_respErrorCANactive                   = 305,
+    CO_GTWA_respErrorCANactive = 305,
     /** 400 - PDO already used */
-    CO_GTWA_respErrorPDOalreadyUsed              = 400,
+    CO_GTWA_respErrorPDOalreadyUsed = 400,
     /** 401 - PDO length exceeded */
-    CO_GTWA_respErrorPDOlengthExceeded           = 401,
+    CO_GTWA_respErrorPDOlengthExceeded = 401,
     /** 501 - LSS implementation- / manufacturer-specific error */
-    CO_GTWA_respErrorLSSmanufacturer             = 501,
+    CO_GTWA_respErrorLSSmanufacturer = 501,
     /** 502 - LSS node-ID not supported */
-    CO_GTWA_respErrorLSSnodeIdNotSupported       = 502,
+    CO_GTWA_respErrorLSSnodeIdNotSupported = 502,
     /** 503 - LSS bit-rate not supported */
-    CO_GTWA_respErrorLSSbitRateNotSupported      = 503,
+    CO_GTWA_respErrorLSSbitRateNotSupported = 503,
     /** 504 - LSS parameter storing failed */
-    CO_GTWA_respErrorLSSparameterStoringFailed   = 504,
+    CO_GTWA_respErrorLSSparameterStoringFailed = 504,
     /** 505 - LSS command failed because of media error */
-    CO_GTWA_respErrorLSSmediaError               = 505,
+    CO_GTWA_respErrorLSSmediaError = 505,
     /** 600 - Running out of memory */
-    CO_GTWA_respErrorRunningOutOfMemory          = 600
+    CO_GTWA_respErrorRunningOutOfMemory = 600
 } CO_GTWA_respErrorCode_t;
-
 
 /**
  * Internal states of the Gateway-ascii state machine.
@@ -257,8 +253,7 @@ typedef enum {
     CO_GTWA_ST_LED = 0x82U
 } CO_GTWA_state_t;
 
-
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
 /*
  * CANopen Gateway-ascii data types structure
  */
@@ -271,20 +266,14 @@ typedef struct {
      * writes them as corresponding ascii string. It is a pointer to
      * #CO_fifo_readU82a function or similar and is used with SDO upload. For
      * description of parameters see #CO_fifo_readU82a */
-    size_t (*dataTypePrint)(CO_fifo_t *fifo,
-                            char *buf,
-                            size_t count,
-                            bool_t end);
+    size_t (*dataTypePrint)(CO_fifo_t* fifo, char* buf, size_t count, bool_t end);
     /** Function, which reads ascii-data of specific data type from fifo buffer
      * and copies them to another fifo buffer as binary data. It is a pointer to
      * #CO_fifo_cpyTok2U8 function or similar and is used with SDO download. For
      * description of parameters see #CO_fifo_cpyTok2U8 */
-    size_t (*dataTypeScan)(CO_fifo_t *dest,
-                           CO_fifo_t *src,
-                           uint8_t *status);
+    size_t (*dataTypeScan)(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status);
 } CO_GTWA_dataType_t;
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
-
 
 /**
  * CANopen Gateway-ascii object
@@ -300,13 +289,10 @@ typedef struct {
      *
      * @return Count of bytes actually transferred.
      */
-    size_t (*readCallback)(void *object,
-                           const char *buf,
-                           size_t count,
-                           uint8_t *connectionOK);
+    size_t (*readCallback)(void* object, const char* buf, size_t count, uint8_t* connectionOK);
     /** Pointer to object, which will be used inside readCallback, from
      * CO_GTWA_init() */
-    void *readCallbackObject;
+    void* readCallbackObject;
     /** Sequence number of the command */
     uint32_t sequence;
     /** Default CANopen Net number is undefined (-1) at startup */
@@ -338,9 +324,9 @@ typedef struct {
     CO_GTWA_state_t state;
     /** Timeout timer for the current state */
     uint32_t stateTimeoutTmr;
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
     /** SDO client object from CO_GTWA_init() */
-    CO_SDOclient_t *SDO_C;
+    CO_SDOclient_t* SDO_C;
     /** Timeout time for SDO transfer in milliseconds, if no response */
     uint16_t SDOtimeoutTime;
     /** SDO block transfer enabled? */
@@ -350,15 +336,15 @@ typedef struct {
      * SDO buffer contains only part of data and more data will follow. */
     bool_t SDOdataCopyStatus;
     /** Data type of variable in current SDO communication */
-    const CO_GTWA_dataType_t *SDOdataType;
+    const CO_GTWA_dataType_t* SDOdataType;
 #endif
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_NMT) != 0) || defined CO_DOXYGEN
     /** NMT object from CO_GTWA_init() */
-    CO_NMT_t *NMT;
+    CO_NMT_t* NMT;
 #endif
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_LSS) != 0) || defined CO_DOXYGEN
     /** LSSmaster object from CO_GTWA_init() */
-    CO_LSSmaster_t *LSSmaster;
+    CO_LSSmaster_t* LSSmaster;
     /** 128 bit number, uniquely identifying each node */
     CO_LSS_address_t lssAddress;
     /** LSS Node-ID parameter */
@@ -378,24 +364,23 @@ typedef struct {
     /** LSS allnodes timeout parameter */
     uint16_t lssTimeout_ms;
 #endif
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_LOG) != 0) || defined CO_DOXYGEN
     /** Message log buffer of usable size @ref CO_CONFIG_GTWA_LOG_BUF_SIZE */
     uint8_t logBuf[CO_CONFIG_GTWA_LOG_BUF_SIZE + 1];
     /** CO_fifo_t object for message log (not pointer) */
     CO_fifo_t logFifo;
 #endif
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_HELP) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_PRINT_HELP) != 0) || defined CO_DOXYGEN
     /** Offset, when printing help text */
-    const char *helpString;
+    const char* helpString;
     size_t helpStringOffset;
 #endif
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0) || defined CO_DOXYGEN
     /** CO_LEDs_t object for CANopen status LEDs imitation from CO_GTWA_init()*/
-    CO_LEDs_t *LEDs;
+    CO_LEDs_t* LEDs;
     uint8_t ledStringPreviousIndex;
 #endif
 } CO_GTWA_t;
-
 
 /**
  * Initialize Gateway-ascii object
@@ -412,22 +397,19 @@ typedef struct {
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT
  */
 CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
-                              CO_SDOclient_t* SDO_C,
-                              uint16_t SDOclientTimeoutTime_ms,
-                              bool_t SDOclientBlockTransfer,
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
+                              CO_SDOclient_t* SDO_C, uint16_t SDOclientTimeoutTime_ms, bool_t SDOclientBlockTransfer,
 #endif
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_NMT) != 0) || defined CO_DOXYGEN
-                              CO_NMT_t *NMT,
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_NMT) != 0) || defined CO_DOXYGEN
+                              CO_NMT_t* NMT,
 #endif
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LSS) != 0) || defined CO_DOXYGEN
-                              CO_LSSmaster_t *LSSmaster,
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_LSS) != 0) || defined CO_DOXYGEN
+                              CO_LSSmaster_t* LSSmaster,
 #endif
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0) || defined CO_DOXYGEN
-                              CO_LEDs_t *LEDs,
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_PRINT_LEDS) != 0) || defined CO_DOXYGEN
+                              CO_LEDs_t* LEDs,
 #endif
                               uint8_t dummy);
-
 
 /**
  * Initialize read callback in Gateway-ascii object
@@ -444,12 +426,8 @@ CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
  * readCallback
  */
 void CO_GTWA_initRead(CO_GTWA_t* gtwa,
-                      size_t (*readCallback)(void *object,
-                                             const char *buf,
-                                             size_t count,
-                                             uint8_t *connectionOK),
-                      void *readCallbackObject);
-
+                      size_t (*readCallback)(void* object, const char* buf, size_t count, uint8_t* connectionOK),
+                      void* readCallbackObject);
 
 /**
  * Get free write buffer space
@@ -458,10 +436,10 @@ void CO_GTWA_initRead(CO_GTWA_t* gtwa,
  *
  * @return number of available bytes
  */
-static inline size_t CO_GTWA_write_getSpace(CO_GTWA_t* gtwa) {
+static inline size_t
+CO_GTWA_write_getSpace(CO_GTWA_t* gtwa) {
     return CO_fifo_getSpace(&gtwa->commFifo);
 }
-
 
 /**
  * Write command into CO_GTWA_t object.
@@ -478,15 +456,12 @@ static inline size_t CO_GTWA_write_getSpace(CO_GTWA_t* gtwa) {
  *
  * @return number of bytes actually written.
  */
-static inline size_t CO_GTWA_write(CO_GTWA_t* gtwa,
-                                   const char *buf,
-                                   size_t count)
-{
-    return CO_fifo_write(&gtwa->commFifo, (const uint8_t *)buf, count, NULL);
+static inline size_t
+CO_GTWA_write(CO_GTWA_t* gtwa, const char* buf, size_t count) {
+    return CO_fifo_write(&gtwa->commFifo, (const uint8_t*)buf, count, NULL);
 }
 
-
-#if (((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_LOG) != 0) || defined CO_DOXYGEN
 /**
  * Print message log string into fifo buffer
  *
@@ -499,9 +474,8 @@ static inline size_t CO_GTWA_write(CO_GTWA_t* gtwa,
  * @param gtwa This object
  * @param message Null terminated string
  */
-void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message);
+void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char* message);
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
-
 
 /**
  * Process Gateway-ascii object
@@ -518,10 +492,7 @@ void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char *message);
  *
  * @return CO_ReturnError_t: CO_ERROR_NO on success or CO_ERROR_ILLEGAL_ARGUMENT
  */
-void CO_GTWA_process(CO_GTWA_t *gtwa,
-                     bool_t enable,
-                     uint32_t timeDifference_us,
-                     uint32_t *timerNext_us);
+void CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint32_t* timerNext_us);
 
 /** @} */ /* CO_CANopen_309_3 */
 
@@ -529,6 +500,6 @@ void CO_GTWA_process(CO_GTWA_t *gtwa,
 }
 #endif /*__cplusplus*/
 
-#endif  /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII */
 
 #endif /* CO_GATEWAY_ASCII_H */

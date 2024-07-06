@@ -26,24 +26,21 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_EM
-#define CO_CONFIG_EM (CO_CONFIG_EM_PRODUCER | \
-                      CO_CONFIG_EM_HISTORY | \
-                      CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
-                      CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+#define CO_CONFIG_EM                                                                                                   \
+    (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE                                 \
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 #ifndef CO_CONFIG_EM_ERR_STATUS_BITS_COUNT
-#define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10U*8U)
+#define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10U * 8U)
 #endif
 #ifndef CO_CONFIG_ERR_CONDITION_GENERIC
 #define CO_CONFIG_ERR_CONDITION_GENERIC (em->errorStatusBits[5] != 0U)
 #endif
 #ifndef CO_CONFIG_ERR_CONDITION_COMMUNICATION
-#define CO_CONFIG_ERR_CONDITION_COMMUNICATION ((em->errorStatusBits[2] != 0U) \
-                                            || (em->errorStatusBits[3] != 0U))
+#define CO_CONFIG_ERR_CONDITION_COMMUNICATION ((em->errorStatusBits[2] != 0U) || (em->errorStatusBits[3] != 0U))
 #endif
 #ifndef CO_CONFIG_ERR_CONDITION_MANUFACTURER
-#define CO_CONFIG_ERR_CONDITION_MANUFACTURER (( em->errorStatusBits[8] != 0U) \
-                                           || (em->errorStatusBits[9] != 0U))
+#define CO_CONFIG_ERR_CONDITION_MANUFACTURER ((em->errorStatusBits[8] != 0U) || (em->errorStatusBits[9] != 0U))
 #endif
 
 #ifdef __cplusplus
@@ -96,7 +93,6 @@ extern "C" {
  * registered by @ref CO_EM_initCallbackRx() function.
  */
 
-
 /**
  * @defgroup CO_errorRegister_t CANopen Error register
  * @{
@@ -110,14 +106,14 @@ extern "C" {
  * Internal errors may prevent device to stay in NMT Operational state and
  * changes may switch between the states. See @ref CO_NMT_control_t for details.
  */
-#define CO_ERR_REG_GENERIC_ERR      0x01U  /**< bit 0, generic error */
-#define CO_ERR_REG_CURRENT          0x02U  /**< bit 1, current */
-#define CO_ERR_REG_VOLTAGE          0x04U  /**< bit 2, voltage */
-#define CO_ERR_REG_TEMPERATURE      0x08U  /**< bit 3, temperature */
-#define CO_ERR_REG_COMMUNICATION    0x10U  /**< bit 4, communication error */
-#define CO_ERR_REG_DEV_PROFILE      0x20U  /**< bit 5, device profile specific */
-#define CO_ERR_REG_RESERVED         0x40U  /**< bit 6, reserved (always 0) */
-#define CO_ERR_REG_MANUFACTURER     0x80U  /**< bit 7, manufacturer specific */
+#define CO_ERR_REG_GENERIC_ERR   0x01U /**< bit 0, generic error */
+#define CO_ERR_REG_CURRENT       0x02U /**< bit 1, current */
+#define CO_ERR_REG_VOLTAGE       0x04U /**< bit 2, voltage */
+#define CO_ERR_REG_TEMPERATURE   0x08U /**< bit 3, temperature */
+#define CO_ERR_REG_COMMUNICATION 0x10U /**< bit 4, communication error */
+#define CO_ERR_REG_DEV_PROFILE   0x20U /**< bit 5, device profile specific */
+#define CO_ERR_REG_RESERVED      0x40U /**< bit 6, reserved (always 0) */
+#define CO_ERR_REG_MANUFACTURER  0x80U /**< bit 7, manufacturer specific */
 
 /** @} */ /* CO_errorRegister_t */
 
@@ -127,54 +123,53 @@ extern "C" {
  *
  * Standard error codes according to CiA DS-301 and DS-401.
  */
-#define CO_EMC_NO_ERROR             0x0000U  /**< 0x00xx error Reset or No Error */
-#define CO_EMC_GENERIC              0x1000U  /**< 0x10xx Generic Error */
-#define CO_EMC_CURRENT              0x2000U  /**< 0x20xx Current */
-#define CO_EMC_CURRENT_INPUT        0x2100U  /**< 0x21xx Current device input side */
-#define CO_EMC_CURRENT_INSIDE       0x2200U  /**< 0x22xx Current inside the device */
-#define CO_EMC_CURRENT_OUTPUT       0x2300U  /**< 0x23xx Current device output side */
-#define CO_EMC_VOLTAGE              0x3000U  /**< 0x30xx Voltage */
-#define CO_EMC_VOLTAGE_MAINS        0x3100U  /**< 0x31xx Mains Voltage */
-#define CO_EMC_VOLTAGE_INSIDE       0x3200U  /**< 0x32xx Voltage inside the device */
-#define CO_EMC_VOLTAGE_OUTPUT       0x3300U  /**< 0x33xx Output Voltage */
-#define CO_EMC_TEMPERATURE          0x4000U  /**< 0x40xx Temperature */
-#define CO_EMC_TEMP_AMBIENT         0x4100U  /**< 0x41xx Ambient Temperature */
-#define CO_EMC_TEMP_DEVICE          0x4200U  /**< 0x42xx Device Temperature */
-#define CO_EMC_HARDWARE             0x5000U  /**< 0x50xx Device Hardware */
-#define CO_EMC_SOFTWARE_DEVICE      0x6000U  /**< 0x60xx Device Software */
-#define CO_EMC_SOFTWARE_INTERNAL    0x6100U  /**< 0x61xx Internal Software */
-#define CO_EMC_SOFTWARE_USER        0x6200U  /**< 0x62xx User Software */
-#define CO_EMC_DATA_SET             0x6300U  /**< 0x63xx Data Set */
-#define CO_EMC_ADDITIONAL_MODUL     0x7000U  /**< 0x70xx Additional Modules */
-#define CO_EMC_MONITORING           0x8000U  /**< 0x80xx Monitoring */
-#define CO_EMC_COMMUNICATION        0x8100U  /**< 0x81xx Communication */
-#define CO_EMC_CAN_OVERRUN          0x8110U  /**< 0x8110 CAN Overrun (Objects lost) */
-#define CO_EMC_CAN_PASSIVE          0x8120U  /**< 0x8120 CAN in Error Passive Mode */
-#define CO_EMC_HEARTBEAT            0x8130U  /**< 0x8130 Life Guard Error or Heartbeat Error */
-#define CO_EMC_BUS_OFF_RECOVERED    0x8140U  /**< 0x8140 recovered from bus off */
-#define CO_EMC_CAN_ID_COLLISION     0x8150U  /**< 0x8150 CAN-ID collision */
-#define CO_EMC_PROTOCOL_ERROR       0x8200U  /**< 0x82xx Protocol Error */
-#define CO_EMC_PDO_LENGTH           0x8210U  /**< 0x8210 PDO not processed due to length error */
-#define CO_EMC_PDO_LENGTH_EXC       0x8220U  /**< 0x8220 PDO length exceeded */
-#define CO_EMC_DAM_MPDO             0x8230U  /**< 0x8230 DAM MPDO not processed destination object not available */
-#define CO_EMC_SYNC_DATA_LENGTH     0x8240U  /**< 0x8240 Unexpected SYNC data length */
-#define CO_EMC_RPDO_TIMEOUT         0x8250U  /**< 0x8250 RPDO timeout */
-#define CO_EMC_EXTERNAL_ERROR       0x9000U  /**< 0x90xx External Error */
-#define CO_EMC_ADDITIONAL_FUNC      0xF000U  /**< 0xF0xx Additional Functions */
-#define CO_EMC_DEVICE_SPECIFIC      0xFF00U  /**< 0xFFxx Device specific */
+#define CO_EMC_NO_ERROR          0x0000U /**< 0x00xx error Reset or No Error */
+#define CO_EMC_GENERIC           0x1000U /**< 0x10xx Generic Error */
+#define CO_EMC_CURRENT           0x2000U /**< 0x20xx Current */
+#define CO_EMC_CURRENT_INPUT     0x2100U /**< 0x21xx Current device input side */
+#define CO_EMC_CURRENT_INSIDE    0x2200U /**< 0x22xx Current inside the device */
+#define CO_EMC_CURRENT_OUTPUT    0x2300U /**< 0x23xx Current device output side */
+#define CO_EMC_VOLTAGE           0x3000U /**< 0x30xx Voltage */
+#define CO_EMC_VOLTAGE_MAINS     0x3100U /**< 0x31xx Mains Voltage */
+#define CO_EMC_VOLTAGE_INSIDE    0x3200U /**< 0x32xx Voltage inside the device */
+#define CO_EMC_VOLTAGE_OUTPUT    0x3300U /**< 0x33xx Output Voltage */
+#define CO_EMC_TEMPERATURE       0x4000U /**< 0x40xx Temperature */
+#define CO_EMC_TEMP_AMBIENT      0x4100U /**< 0x41xx Ambient Temperature */
+#define CO_EMC_TEMP_DEVICE       0x4200U /**< 0x42xx Device Temperature */
+#define CO_EMC_HARDWARE          0x5000U /**< 0x50xx Device Hardware */
+#define CO_EMC_SOFTWARE_DEVICE   0x6000U /**< 0x60xx Device Software */
+#define CO_EMC_SOFTWARE_INTERNAL 0x6100U /**< 0x61xx Internal Software */
+#define CO_EMC_SOFTWARE_USER     0x6200U /**< 0x62xx User Software */
+#define CO_EMC_DATA_SET          0x6300U /**< 0x63xx Data Set */
+#define CO_EMC_ADDITIONAL_MODUL  0x7000U /**< 0x70xx Additional Modules */
+#define CO_EMC_MONITORING        0x8000U /**< 0x80xx Monitoring */
+#define CO_EMC_COMMUNICATION     0x8100U /**< 0x81xx Communication */
+#define CO_EMC_CAN_OVERRUN       0x8110U /**< 0x8110 CAN Overrun (Objects lost) */
+#define CO_EMC_CAN_PASSIVE       0x8120U /**< 0x8120 CAN in Error Passive Mode */
+#define CO_EMC_HEARTBEAT         0x8130U /**< 0x8130 Life Guard Error or Heartbeat Error */
+#define CO_EMC_BUS_OFF_RECOVERED 0x8140U /**< 0x8140 recovered from bus off */
+#define CO_EMC_CAN_ID_COLLISION  0x8150U /**< 0x8150 CAN-ID collision */
+#define CO_EMC_PROTOCOL_ERROR    0x8200U /**< 0x82xx Protocol Error */
+#define CO_EMC_PDO_LENGTH        0x8210U /**< 0x8210 PDO not processed due to length error */
+#define CO_EMC_PDO_LENGTH_EXC    0x8220U /**< 0x8220 PDO length exceeded */
+#define CO_EMC_DAM_MPDO          0x8230U /**< 0x8230 DAM MPDO not processed destination object not available */
+#define CO_EMC_SYNC_DATA_LENGTH  0x8240U /**< 0x8240 Unexpected SYNC data length */
+#define CO_EMC_RPDO_TIMEOUT      0x8250U /**< 0x8250 RPDO timeout */
+#define CO_EMC_EXTERNAL_ERROR    0x9000U /**< 0x90xx External Error */
+#define CO_EMC_ADDITIONAL_FUNC   0xF000U /**< 0xF0xx Additional Functions */
+#define CO_EMC_DEVICE_SPECIFIC   0xFF00U /**< 0xFFxx Device specific */
 
-#define CO_EMC401_OUT_CUR_HI        0x2310U  /**< 0x2310 DS401 Current at outputs too high (overload) */
-#define CO_EMC401_OUT_SHORTED       0x2320U  /**< 0x2320 DS401 Short circuit at outputs */
-#define CO_EMC401_OUT_LOAD_DUMP     0x2330U  /**< 0x2330 DS401 Load dump at outputs */
-#define CO_EMC401_IN_VOLT_HI        0x3110U  /**< 0x3110 DS401 Input voltage too high */
-#define CO_EMC401_IN_VOLT_LOW       0x3120U  /**< 0x3120 DS401 Input voltage too low */
-#define CO_EMC401_INTERN_VOLT_HI    0x3210U  /**< 0x3210 DS401 Internal voltage too high */
-#define CO_EMC401_INTERN_VOLT_LO    0x3220U  /**< 0x3220 DS401 Internal voltage too low */
-#define CO_EMC401_OUT_VOLT_HIGH     0x3310U  /**< 0x3310 DS401 Output voltage too high */
-#define CO_EMC401_OUT_VOLT_LOW      0x3320U  /**< 0x3320 DS401 Output voltage too low */
+#define CO_EMC401_OUT_CUR_HI     0x2310U /**< 0x2310 DS401 Current at outputs too high (overload) */
+#define CO_EMC401_OUT_SHORTED    0x2320U /**< 0x2320 DS401 Short circuit at outputs */
+#define CO_EMC401_OUT_LOAD_DUMP  0x2330U /**< 0x2330 DS401 Load dump at outputs */
+#define CO_EMC401_IN_VOLT_HI     0x3110U /**< 0x3110 DS401 Input voltage too high */
+#define CO_EMC401_IN_VOLT_LOW    0x3120U /**< 0x3120 DS401 Input voltage too low */
+#define CO_EMC401_INTERN_VOLT_HI 0x3210U /**< 0x3210 DS401 Internal voltage too high */
+#define CO_EMC401_INTERN_VOLT_LO 0x3220U /**< 0x3220 DS401 Internal voltage too low */
+#define CO_EMC401_OUT_VOLT_HIGH  0x3310U /**< 0x3310 DS401 Output voltage too high */
+#define CO_EMC401_OUT_VOLT_LOW   0x3320U /**< 0x3320 DS401 Output voltage too low */
 
 /** @} */ /* CO_EM_errorCode_t */
-
 
 /**
  * @defgroup CO_EM_errorStatusBits_t Error status bits
@@ -193,84 +188,87 @@ extern "C" {
  * uses first 6 bytes. Additional 4 bytes are pre-defined for manufacturer
  * or device specific error indications, by default.
  */
-#define CO_EM_NO_ERROR                  0x00U  /**< 0x00   Error Reset or No Error */
-#define CO_EM_CAN_BUS_WARNING           0x01U  /**< 0x01   communication   info   CAN bus warning limit reached */
-#define CO_EM_RXMSG_WRONG_LENGTH        0x02U  /**< 0x02   communication   info   Wrong data length of the received CAN message */
-#define CO_EM_RXMSG_OVERFLOW            0x03U  /**< 0x03   communication   info   Previous received CAN message wasn't processed yet */
-#define CO_EM_RPDO_WRONG_LENGTH         0x04U  /**< 0x04   communication   info   Wrong data length of received PDO */
-#define CO_EM_RPDO_OVERFLOW             0x05U  /**< 0x05   communication   info   Previous received PDO wasn't processed yet */
-#define CO_EM_CAN_RX_BUS_PASSIVE        0x06U  /**< 0x06   communication   info   CAN receive bus is passive */
-#define CO_EM_CAN_TX_BUS_PASSIVE        0x07U  /**< 0x07   communication   info   CAN transmit bus is passive */
-#define CO_EM_NMT_WRONG_COMMAND         0x08U  /**< 0x08   communication   info   Wrong NMT command received */
-#define CO_EM_TIME_TIMEOUT              0x09U  /**< 0x09   communication   info   TIME message timeout */
-#define CO_EM_0A_unused                 0x0AU  /**< 0x0A   communication   info   (unused) */
-#define CO_EM_0B_unused                 0x0BU  /**< 0x0B   communication   info   (unused) */
-#define CO_EM_0C_unused                 0x0CU  /**< 0x0C   communication   info   (unused) */
-#define CO_EM_0D_unused                 0x0DU  /**< 0x0D   communication   info   (unused) */
-#define CO_EM_0E_unused                 0x0EU  /**< 0x0E   communication   info   (unused) */
-#define CO_EM_0F_unused                 0x0FU  /**< 0x0F   communication   info   (unused) */
+#define CO_EM_NO_ERROR           0x00U /**< 0x00   Error Reset or No Error */
+#define CO_EM_CAN_BUS_WARNING    0x01U /**< 0x01   communication   info   CAN bus warning limit reached */
+#define CO_EM_RXMSG_WRONG_LENGTH                                                                                       \
+    0x02U /**< 0x02   communication   info   Wrong data length of the received CAN message */
+#define CO_EM_RXMSG_OVERFLOW                                                                                           \
+    0x03U /**< 0x03   communication   info   Previous received CAN message wasn't processed yet */
+#define CO_EM_RPDO_WRONG_LENGTH   0x04U /**< 0x04   communication   info   Wrong data length of received PDO */
+#define CO_EM_RPDO_OVERFLOW       0x05U /**< 0x05   communication   info   Previous received PDO wasn't processed yet */
+#define CO_EM_CAN_RX_BUS_PASSIVE  0x06U /**< 0x06   communication   info   CAN receive bus is passive */
+#define CO_EM_CAN_TX_BUS_PASSIVE  0x07U /**< 0x07   communication   info   CAN transmit bus is passive */
+#define CO_EM_NMT_WRONG_COMMAND   0x08U /**< 0x08   communication   info   Wrong NMT command received */
+#define CO_EM_TIME_TIMEOUT        0x09U /**< 0x09   communication   info   TIME message timeout */
+#define CO_EM_0A_unused           0x0AU /**< 0x0A   communication   info   (unused) */
+#define CO_EM_0B_unused           0x0BU /**< 0x0B   communication   info   (unused) */
+#define CO_EM_0C_unused           0x0CU /**< 0x0C   communication   info   (unused) */
+#define CO_EM_0D_unused           0x0DU /**< 0x0D   communication   info   (unused) */
+#define CO_EM_0E_unused           0x0EU /**< 0x0E   communication   info   (unused) */
+#define CO_EM_0F_unused           0x0FU /**< 0x0F   communication   info   (unused) */
 
-#define CO_EM_10_unused                 0x10U  /**< 0x10   communication   critical   (unused) */
-#define CO_EM_11_unused                 0x11U  /**< 0x11   communication   critical   (unused) */
-#define CO_EM_CAN_TX_BUS_OFF            0x12U  /**< 0x12   communication   critical   CAN transmit bus is off */
-#define CO_EM_CAN_RXB_OVERFLOW          0x13U  /**< 0x13   communication   critical   CAN module receive buffer has overflowed */
-#define CO_EM_CAN_TX_OVERFLOW           0x14U  /**< 0x14   communication   critical   CAN transmit buffer has overflowed */
-#define CO_EM_TPDO_OUTSIDE_WINDOW       0x15U  /**< 0x15   communication   critical   TPDO is outside SYNC window */
-#define CO_EM_16_unused                 0x16U  /**< 0x16   communication   critical   (unused) */
-#define CO_EM_RPDO_TIME_OUT             0x17U  /**< 0x17   communication   critical   RPDO message timeout */
-#define CO_EM_SYNC_TIME_OUT             0x18U  /**< 0x18   communication   critical   SYNC message timeout */
-#define CO_EM_SYNC_LENGTH               0x19U  /**< 0x19   communication   critical   Unexpected SYNC data length */
-#define CO_EM_PDO_WRONG_MAPPING         0x1AU  /**< 0x1A   communication   critical   Error with PDO mapping */
-#define CO_EM_HEARTBEAT_CONSUMER        0x1BU  /**< 0x1B   communication   critical   Heartbeat consumer timeout */
-#define CO_EM_HB_CONSUMER_REMOTE_RESET  0x1CU  /**< 0x1C   communication   critical   Heartbeat consumer detected remote node reset */
-#define CO_EM_SRDO_CONFIGURATION        0x1DU  /**< 0x1D   communication   critical   Error in SRDO configuration parameters. */
-#define CO_EM_1E_unused                 0x1EU  /**< 0x1E   communication   critical   (unused) */
-#define CO_EM_1F_unused                 0x1FU  /**< 0x1F   communication   critical   (unused) */
+#define CO_EM_10_unused           0x10U /**< 0x10   communication   critical   (unused) */
+#define CO_EM_11_unused           0x11U /**< 0x11   communication   critical   (unused) */
+#define CO_EM_CAN_TX_BUS_OFF      0x12U /**< 0x12   communication   critical   CAN transmit bus is off */
+#define CO_EM_CAN_RXB_OVERFLOW    0x13U /**< 0x13   communication   critical   CAN module receive buffer has overflowed */
+#define CO_EM_CAN_TX_OVERFLOW     0x14U /**< 0x14   communication   critical   CAN transmit buffer has overflowed */
+#define CO_EM_TPDO_OUTSIDE_WINDOW 0x15U /**< 0x15   communication   critical   TPDO is outside SYNC window */
+#define CO_EM_16_unused           0x16U /**< 0x16   communication   critical   (unused) */
+#define CO_EM_RPDO_TIME_OUT       0x17U /**< 0x17   communication   critical   RPDO message timeout */
+#define CO_EM_SYNC_TIME_OUT       0x18U /**< 0x18   communication   critical   SYNC message timeout */
+#define CO_EM_SYNC_LENGTH         0x19U /**< 0x19   communication   critical   Unexpected SYNC data length */
+#define CO_EM_PDO_WRONG_MAPPING   0x1AU /**< 0x1A   communication   critical   Error with PDO mapping */
+#define CO_EM_HEARTBEAT_CONSUMER  0x1BU /**< 0x1B   communication   critical   Heartbeat consumer timeout */
+#define CO_EM_HB_CONSUMER_REMOTE_RESET                                                                                 \
+    0x1CU /**< 0x1C   communication   critical   Heartbeat consumer detected remote node reset */
+#define CO_EM_SRDO_CONFIGURATION 0x1DU /**< 0x1D   communication   critical   Error in SRDO configuration parameters. */
+#define CO_EM_1E_unused          0x1EU /**< 0x1E   communication   critical   (unused) */
+#define CO_EM_1F_unused          0x1FU /**< 0x1F   communication   critical   (unused) */
 
-#define CO_EM_EMERGENCY_BUFFER_FULL     0x20U  /**< 0x20   generic   info   Emergency buffer is full   Emergency message wasn't sent */
-#define CO_EM_21_unused                 0x21U  /**< 0x21   generic   info   (unused) */
-#define CO_EM_MICROCONTROLLER_RESET     0x22U  /**< 0x22   generic   info   Microcontroller has just started */
-#define CO_EM_23_unused                 0x23U  /**< 0x23   generic   info   (unused) */
-#define CO_EM_24_unused                 0x24U  /**< 0x24   generic   info   (unused) */
-#define CO_EM_25_unused                 0x25U  /**< 0x25   generic   info   (unused) */
-#define CO_EM_26_unused                 0x26U  /**< 0x26   generic   info   (unused) */
-#define CO_EM_NON_VOLATILE_AUTO_SAVE    0x27U  /**< 0x27   generic   info   Automatic store to non-volatile memory failed */
+#define CO_EM_EMERGENCY_BUFFER_FULL                                                                                    \
+    0x20U /**< 0x20   generic   info   Emergency buffer is full   Emergency message wasn't sent */
+#define CO_EM_21_unused               0x21U /**< 0x21   generic   info   (unused) */
+#define CO_EM_MICROCONTROLLER_RESET   0x22U /**< 0x22   generic   info   Microcontroller has just started */
+#define CO_EM_23_unused               0x23U /**< 0x23   generic   info   (unused) */
+#define CO_EM_24_unused               0x24U /**< 0x24   generic   info   (unused) */
+#define CO_EM_25_unused               0x25U /**< 0x25   generic   info   (unused) */
+#define CO_EM_26_unused               0x26U /**< 0x26   generic   info   (unused) */
+#define CO_EM_NON_VOLATILE_AUTO_SAVE  0x27U /**< 0x27   generic   info   Automatic store to non-volatile memory failed */
 
-#define CO_EM_WRONG_ERROR_REPORT        0x28U  /**< 0x28   generic   critical   Wrong parameters to CO_errorReport() function*/
-#define CO_EM_ISR_TIMER_OVERFLOW        0x29U  /**< 0x29   generic   critical   Timer task has overflowed */
-#define CO_EM_MEMORY_ALLOCATION_ERROR   0x2AU  /**< 0x2A   generic   critical   Unable to allocate memory for objects */
-#define CO_EM_GENERIC_ERROR             0x2BU  /**< 0x2B   generic   critical   Generic error   test usage */
-#define CO_EM_GENERIC_SOFTWARE_ERROR    0x2CU  /**< 0x2C   generic   critical   Software error */
-#define CO_EM_INCONSISTENT_OBJECT_DICT  0x2DU  /**< 0x2D   generic   critical   Object dictionary does not match the software*/
-#define CO_EM_CALCULATION_OF_PARAMETERS 0x2EU  /**< 0x2E   generic   critical   Error in calculation of device parameters */
-#define CO_EM_NON_VOLATILE_MEMORY       0x2FU  /**< 0x2F   generic   critical   Error with access to non volatile device memory */
+#define CO_EM_WRONG_ERROR_REPORT      0x28U /**< 0x28   generic   critical   Wrong parameters to CO_errorReport() function*/
+#define CO_EM_ISR_TIMER_OVERFLOW      0x29U /**< 0x29   generic   critical   Timer task has overflowed */
+#define CO_EM_MEMORY_ALLOCATION_ERROR 0x2AU /**< 0x2A   generic   critical   Unable to allocate memory for objects */
+#define CO_EM_GENERIC_ERROR           0x2BU /**< 0x2B   generic   critical   Generic error   test usage */
+#define CO_EM_GENERIC_SOFTWARE_ERROR  0x2CU /**< 0x2C   generic   critical   Software error */
+#define CO_EM_INCONSISTENT_OBJECT_DICT                                                                                 \
+    0x2DU /**< 0x2D   generic   critical   Object dictionary does not match the software*/
+#define CO_EM_CALCULATION_OF_PARAMETERS                                                                                \
+    0x2EU /**< 0x2E   generic   critical   Error in calculation of device parameters */
+#define CO_EM_NON_VOLATILE_MEMORY                                                                                      \
+    0x2FU /**< 0x2F   generic   critical   Error with access to non volatile device memory */
 
 /** 0x30+   manufacturer   info or critical   Error status buts   free to use by
  * manufacturer. By default bits 0x30..0x3F are set as informational and
  * bits 0x40..0x4F are set as critical. Manufacturer critical bits sets the
  * error register   as specified by @ref CO_CONFIG_ERR_CONDITION_MANUFACTURER
  */
-#define CO_EM_MANUFACTURER_START        0x30U  
+#define CO_EM_MANUFACTURER_START 0x30U
 /** (@ref CO_CONFIG_EM_ERR_STATUS_BITS_COUNT - 1)   largest value of the Error status bit. */
-#define CO_EM_MANUFACTURER_END          (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT - 1U)
+#define CO_EM_MANUFACTURER_END   (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT - 1U)
 
 /** @} */ /* CO_EM_errorStatusBits_t */
 
-
-
-#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) \
-    || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) || defined CO_DOXYGEN
 /**
  * Fifo buffer for emergency producer and error history
  */
 typedef struct {
     uint32_t msg;
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
     uint32_t info;
 #endif
 } CO_EM_fifo_t;
 #endif
-
 
 /**
  * Emergency object.
@@ -279,21 +277,20 @@ typedef struct {
     /** Bitfield for the internal indication of the error condition. */
     uint8_t errorStatusBits[CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8U];
     /** Pointer to error register in object dictionary at 0x1001,00. */
-    uint8_t *errorRegister;
+    uint8_t* errorRegister;
     /** Old CAN error status bitfield */
     uint16_t CANerrorStatusOld;
     /** From CO_EM_init() */
-    CO_CANmodule_t *CANdevTx;
+    CO_CANmodule_t* CANdevTx;
 
-#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) \
-    || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) || defined CO_DOXYGEN
     /** Internal circular FIFO buffer for storing pre-processed emergency
      * messages. Messages are added by @ref CO_error() function. All messages
      * are later post-processed by @ref CO_EM_process() function. In case of
      * overflow, error is indicated but emergency message is not sent. Fifo is
      * also used for error history, OD object 0x1003, "Pre-defined error field".
      * Buffer is defined by @ref CO_EM_init(). */
-    CO_EM_fifo_t *fifo;
+    CO_EM_fifo_t* fifo;
     /** Size of the above buffer, specified by @ref CO_EM_init(). */
     uint8_t fifoSize;
     /** Pointer for the fifo buffer, where next emergency message will be
@@ -309,58 +306,54 @@ typedef struct {
     uint8_t fifoCount;
 #endif /* (CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY) */
 
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
     /** True, if emergency producer is enabled, from Object dictionary */
     bool_t producerEnabled;
     /** Copy of CANopen node ID, from CO_EM_init() */
     uint8_t nodeId;
     /** CAN transmit buffer */
-    CO_CANtx_t *CANtxBuff;
+    CO_CANtx_t* CANtxBuff;
     /** Extension for OD object */
     OD_extension_t OD_1014_extension;
- #if (((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_CONFIGURABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_CONFIGURABLE) != 0) || defined CO_DOXYGEN
     /** COB ID of emergency message, from Object dictionary */
     uint16_t producerCanId;
     /** From CO_EM_init() */
     uint16_t CANdevTxIdx;
- #endif
- #if (((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN
-     /** Inhibit time for emergency message, from Object dictionary */
+#endif
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN
+    /** Inhibit time for emergency message, from Object dictionary */
     uint32_t inhibitEmTime_us;
     /**< Internal timer for inhibit time */
     uint32_t inhibitEmTimer;
     /** Extension for OD object */
     OD_extension_t OD_1015_extension;
- #endif
+#endif
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER */
 
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_HISTORY) != 0) || defined CO_DOXYGEN
     /** Extension for OD object */
     OD_extension_t OD_1003_extension;
 #endif
 
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_STATUS_BITS) != 0) || defined CO_DOXYGEN
     /** Extension for OD object */
     OD_extension_t OD_statusBits_extension;
 #endif
 
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
     /** From CO_EM_initCallbackRx() or NULL */
-    void (*pFunctSignalRx)(const uint16_t ident,
-                           const uint16_t errorCode,
-                           const uint8_t errorRegister,
-                           const uint8_t errorBit,
-                           const uint32_t infoCode);
+    void (*pFunctSignalRx)(const uint16_t ident, const uint16_t errorCode, const uint8_t errorRegister,
+                           const uint8_t errorBit, const uint32_t infoCode);
 #endif
 
-#if (((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_EM_initCallbackPre() or NULL */
-    void (*pFunctSignalPre)(void *object);
+    void (*pFunctSignalPre)(void* object);
     /** From CO_EM_initCallbackPre() or NULL */
-    void *functSignalObjectPre;
+    void* functSignalObjectPre;
 #endif
 } CO_EM_t;
-
 
 /**
  * Initialize Emergency object.
@@ -396,36 +389,28 @@ typedef struct {
  *
  * @return @ref CO_ReturnError_t CO_ERROR_NO in case of success.
  */
-CO_ReturnError_t CO_EM_init(CO_EM_t *em,
-                            CO_CANmodule_t *CANdevTx,
-                            const OD_entry_t *OD_1001_errReg,
-#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) \
-    || defined CO_DOXYGEN
-                            CO_EM_fifo_t *fifo,
-                            uint8_t fifoSize,
+CO_ReturnError_t CO_EM_init(CO_EM_t* em, CO_CANmodule_t* CANdevTx, const OD_entry_t* OD_1001_errReg,
+#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) || defined CO_DOXYGEN
+                            CO_EM_fifo_t* fifo, uint8_t fifoSize,
 #endif
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
-                            OD_entry_t *OD_1014_cobIdEm,
-                            uint16_t CANdevTxIdx,
- #if (((CO_CONFIG_EM) & CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN
-                            OD_entry_t *OD_1015_InhTime,
- #endif
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
+                            OD_entry_t* OD_1014_cobIdEm, uint16_t CANdevTxIdx,
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN
+                            OD_entry_t* OD_1015_InhTime,
 #endif
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_HISTORY) != 0) || defined CO_DOXYGEN
-                            OD_entry_t *OD_1003_preDefErr,
 #endif
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_STATUS_BITS) != 0) || defined CO_DOXYGEN
-                            OD_entry_t *OD_statusBits,
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_HISTORY) != 0) || defined CO_DOXYGEN
+                            OD_entry_t* OD_1003_preDefErr,
 #endif
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
-                            CO_CANmodule_t *CANdevRx,
-                            uint16_t CANdevRxIdx,
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_STATUS_BITS) != 0) || defined CO_DOXYGEN
+                            OD_entry_t* OD_statusBits,
 #endif
-                            const uint8_t nodeId,
-                            uint32_t *errInfo);
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
+                            CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx,
+#endif
+                            const uint8_t nodeId, uint32_t* errInfo);
 
-
-#if (((CO_CONFIG_EM) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize Emergency callback function.
  *
@@ -440,13 +425,10 @@ CO_ReturnError_t CO_EM_init(CO_EM_t *em,
  * be NULL
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_EM_initCallbackPre(CO_EM_t *em,
-                           void *object,
-                           void (*pFunctSignal)(void *object));
+void CO_EM_initCallbackPre(CO_EM_t* em, void* object, void (*pFunctSignal)(void* object));
 #endif
 
-
-#if (((CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
 /**
  * Initialize Emergency received callback function.
  *
@@ -462,14 +444,10 @@ void CO_EM_initCallbackPre(CO_EM_t *em,
  * @param em This object.
  * @param pFunctSignalRx Pointer to the callback function. Not called if NULL.
  */
-void CO_EM_initCallbackRx(CO_EM_t *em,
-                          void (*pFunctSignalRx)(const uint16_t ident,
-                                                 const uint16_t errorCode,
-                                                 const uint8_t errorRegister,
-                                                 const uint8_t errorBit,
-                                                 const uint32_t infoCode));
+void CO_EM_initCallbackRx(CO_EM_t* em, void (*pFunctSignalRx)(const uint16_t ident, const uint16_t errorCode,
+                                                              const uint8_t errorRegister, const uint8_t errorBit,
+                                                              const uint32_t infoCode));
 #endif
-
 
 /**
  * Process Error control and Emergency object.
@@ -485,11 +463,7 @@ void CO_EM_initCallbackRx(CO_EM_t *em,
  * [microseconds].
  * @param [out] timerNext_us info to OS - see CO_process().
  */
-void CO_EM_process(CO_EM_t *em,
-                   bool_t NMTisPreOrOperational,
-                   uint32_t timeDifference_us,
-                   uint32_t *timerNext_us);
-
+void CO_EM_process(CO_EM_t* em, bool_t NMTisPreOrOperational, uint32_t timeDifference_us, uint32_t* timerNext_us);
 
 /**
  * Set or reset error condition.
@@ -509,23 +483,17 @@ void CO_EM_process(CO_EM_t *em,
  * @param infoCode 32 bit value is passed to bytes 4...7 of the Emergency
  * message. It contains optional additional information.
  */
-void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
-              uint16_t errorCode, uint32_t infoCode);
-
+void CO_error(CO_EM_t* em, bool_t setError, const uint8_t errorBit, uint16_t errorCode, uint32_t infoCode);
 
 /**
  * Report error condition, for description of parameters see @ref CO_error.
  */
-#define CO_errorReport(em, errorBit, errorCode, infoCode) \
-    CO_error(em, true, errorBit, errorCode, infoCode)
-
+#define CO_errorReport(em, errorBit, errorCode, infoCode) CO_error(em, true, errorBit, errorCode, infoCode)
 
 /**
  * Reset error condition, for description of parameters see @ref CO_error.
  */
-#define CO_errorReset(em, errorBit, infoCode) \
-    CO_error(em, false, errorBit, CO_EMC_NO_ERROR, infoCode)
-
+#define CO_errorReset(em, errorBit, infoCode)             CO_error(em, false, errorBit, CO_EMC_NO_ERROR, infoCode)
 
 /**
  * Check specific error condition.
@@ -537,12 +505,15 @@ void CO_error(CO_EM_t *em, bool_t setError, const uint8_t errorBit,
  *
  * @return true if Error is present.
  */
-static inline bool_t CO_isError(CO_EM_t *em, const uint8_t errorBit) {
+static inline bool_t
+CO_isError(CO_EM_t* em, const uint8_t errorBit) {
     uint8_t index = errorBit >> 3;
     uint8_t bitmask = 1 << (errorBit & 0x7);
 
     return (em == NULL || index >= (CO_CONFIG_EM_ERR_STATUS_BITS_COUNT / 8U)
-            || (em->errorStatusBits[index] & bitmask) != 0) ? true : false;
+            || (em->errorStatusBits[index] & bitmask) != 0)
+               ? true
+               : false;
 }
 
 /**
@@ -552,7 +523,8 @@ static inline bool_t CO_isError(CO_EM_t *em, const uint8_t errorBit) {
  *
  * @return Error register or 0 if doesn't exist.
  */
-static inline uint8_t CO_getErrorRegister(CO_EM_t *em) {
+static inline uint8_t
+CO_getErrorRegister(CO_EM_t* em) {
     return (em == NULL || em->errorRegister == NULL) ? 0 : *em->errorRegister;
 }
 

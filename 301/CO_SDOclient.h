@@ -32,14 +32,14 @@
 #define CO_CONFIG_SDO_CLI (0)
 #endif
 #ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
- #if ((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0
-  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000U
- #else
-  #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32U
- #endif
+#if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_BLOCK) != 0
+#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000U
+#else
+#define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32U
+#endif
 #endif
 
-#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -164,30 +164,29 @@ CO_SDO_abortCode_t write_SDO(CO_SDOclient_t *SDO_C, uint8_t nodeId,
  * @see @ref CO_SDOserver
  */
 
-
 /**
  * SDO client object
  */
 typedef struct {
-#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_LOCAL) != 0) || defined CO_DOXYGEN
     /** From CO_SDOclient_init() */
-    OD_t *OD;
+    OD_t* OD;
     /** From CO_SDOclient_init() */
     uint8_t nodeId;
     /** Object dictionary interface for locally transferred object */
     OD_IO_t OD_IO;
 #endif
     /** From CO_SDOclient_init() */
-    CO_CANmodule_t *CANdevRx;
+    CO_CANmodule_t* CANdevRx;
     /** From CO_SDOclient_init() */
     uint16_t CANdevRxIdx;
     /** From CO_SDOclient_init() */
-    CO_CANmodule_t *CANdevTx;
+    CO_CANmodule_t* CANdevTx;
     /** From CO_SDOclient_init() */
     uint16_t CANdevTxIdx;
     /** CAN transmit buffer inside CANdevTx for CAN tx message */
-    CO_CANtx_t *CANtxBuff;
-#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
+    CO_CANtx_t* CANtxBuff;
+#if (((CO_CONFIG_SDO_CLI)&CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
     /** Copy of CANopen COB_ID Client -> Server, meaning of the specific bits:
         - Bit 0...10: 11-bit CAN identifier.
         - Bit 11..30: reserved, must be 0.
@@ -226,20 +225,20 @@ typedef struct {
     uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1U];
     /** Indicates, if new SDO message received from CAN bus. It is not cleared,
      * until received message is completely processed. */
-    volatile void *CANrxNew;
+    volatile void* CANrxNew;
     /** 8 data bytes of the received message */
     uint8_t CANrxData[8];
-#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     /** From CO_SDOclient_initCallbackPre() or NULL */
-    void (*pFunctSignal)(void *object);
+    void (*pFunctSignal)(void* object);
     /** From CO_SDOclient_initCallbackPre() or NULL */
-    void *functSignalObject;
+    void* functSignalObject;
 #endif
-#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_SEGMENTED) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_SEGMENTED) != 0) || defined CO_DOXYGEN
     /** Toggle bit toggled in each segment in segmented transfer */
     uint8_t toggle;
 #endif
-#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_BLOCK) != 0) || defined CO_DOXYGEN
     /** Timeout time for SDO sub-block upload, half of #SDOtimeoutTime_us */
     uint32_t block_SDOtimeoutTime_us;
     /** Timeout timer for SDO sub-block upload */
@@ -258,7 +257,6 @@ typedef struct {
     uint16_t block_crc;
 #endif
 } CO_SDOclient_t;
-
 
 /**
  * Initialize SDO client object.
@@ -281,18 +279,11 @@ typedef struct {
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
-                                   OD_t *OD,
-                                   OD_entry_t *OD_1280_SDOcliPar,
-                                   uint8_t nodeId,
-                                   CO_CANmodule_t *CANdevRx,
-                                   uint16_t CANdevRxIdx,
-                                   CO_CANmodule_t *CANdevTx,
-                                   uint16_t CANdevTxIdx,
-                                   uint32_t *errInfo);
+CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t* SDO_C, OD_t* OD, OD_entry_t* OD_1280_SDOcliPar, uint8_t nodeId,
+                                   CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, CO_CANmodule_t* CANdevTx,
+                                   uint16_t CANdevTxIdx, uint32_t* errInfo);
 
-
-#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_SDO_CLI)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
 /**
  * Initialize SDOclient callback function.
  *
@@ -307,11 +298,8 @@ CO_ReturnError_t CO_SDOclient_init(CO_SDOclient_t *SDO_C,
  * be NULL.
  * @param pFunctSignal Pointer to the callback function. Not called if NULL.
  */
-void CO_SDOclient_initCallbackPre(CO_SDOclient_t *SDOclient,
-                                  void *object,
-                                  void (*pFunctSignal)(void *object));
+void CO_SDOclient_initCallbackPre(CO_SDOclient_t* SDOclient, void* object, void (*pFunctSignal)(void* object));
 #endif
-
 
 /**
  * Setup SDO client object.
@@ -331,11 +319,8 @@ void CO_SDOclient_initCallbackPre(CO_SDOclient_t *SDOclient,
  * @return #CO_SDO_return_t, CO_SDO_RT_ok_communicationEnd or
  * CO_SDO_RT_wrongArguments
  */
-CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
-                                   uint32_t COB_IDClientToServer,
-                                   uint32_t COB_IDServerToClient,
+CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t* SDO_C, uint32_t COB_IDClientToServer, uint32_t COB_IDServerToClient,
                                    uint8_t nodeIDOfTheSDOServer);
-
 
 /**
  * Initiate SDO download communication.
@@ -361,13 +346,8 @@ CO_SDO_return_t CO_SDOclient_setup(CO_SDOclient_t *SDO_C,
  *
  * @return #CO_SDO_return_t
  */
-CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
-                                             uint16_t index,
-                                             uint8_t subIndex,
-                                             size_t sizeIndicated,
-                                             uint16_t SDOtimeoutTime_ms,
-                                             bool_t blockEnable);
-
+CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t* SDO_C, uint16_t index, uint8_t subIndex,
+                                             size_t sizeIndicated, uint16_t SDOtimeoutTime_ms, bool_t blockEnable);
 
 /**
  * Initiate SDO download communication - update size.
@@ -380,9 +360,7 @@ CO_SDO_return_t CO_SDOclientDownloadInitiate(CO_SDOclient_t *SDO_C,
  * @param SDO_C This object.
  * @param sizeIndicated Same as in CO_SDOclientDownloadInitiate().
  */
-void CO_SDOclientDownloadInitSize(CO_SDOclient_t *SDO_C,
-                                      size_t sizeIndicated);
-
+void CO_SDOclientDownloadInitSize(CO_SDOclient_t* SDO_C, size_t sizeIndicated);
 
 /**
  * Write data into SDO client buffer
@@ -403,10 +381,7 @@ void CO_SDOclientDownloadInitSize(CO_SDOclient_t *SDO_C,
  *
  * @return number of bytes actually written.
  */
-size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
-                                    const uint8_t *buf,
-                                    size_t count);
-
+size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t* SDO_C, const uint8_t* buf, size_t count);
 
 /**
  * Process SDO download communication.
@@ -436,14 +411,9 @@ size_t CO_SDOclientDownloadBufWrite(CO_SDOclient_t *SDO_C,
  * ends successfully and state becomes idle. If greater than 0, then
  * communication is in progress.
  */
-CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
-                                     uint32_t timeDifference_us,
-                                     bool_t send_abort,
-                                     bool_t bufferPartial,
-                                     CO_SDO_abortCode_t *SDOabortCode,
-                                     size_t *sizeTransferred,
-                                     uint32_t *timerNext_us);
-
+CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t send_abort,
+                                     bool_t bufferPartial, CO_SDO_abortCode_t* SDOabortCode, size_t* sizeTransferred,
+                                     uint32_t* timerNext_us);
 
 /**
  * Initiate SDO upload communication.
@@ -460,12 +430,8 @@ CO_SDO_return_t CO_SDOclientDownload(CO_SDOclient_t *SDO_C,
  *
  * @return #CO_SDO_return_t
  */
-CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
-                                           uint16_t index,
-                                           uint8_t subIndex,
-                                           uint16_t SDOtimeoutTime_ms,
-                                           bool_t blockEnable);
-
+CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t* SDO_C, uint16_t index, uint8_t subIndex,
+                                           uint16_t SDOtimeoutTime_ms, bool_t blockEnable);
 
 /**
  * Process SDO upload communication.
@@ -497,14 +463,9 @@ CO_SDO_return_t CO_SDOclientUploadInitiate(CO_SDOclient_t *SDO_C,
  * ends successfully and state becomes idle. If greater than 0, then
  * communication is in progress.
  */
-CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
-                                   uint32_t timeDifference_us,
-                                   bool_t send_abort,
-                                   CO_SDO_abortCode_t *SDOabortCode,
-                                   size_t *sizeIndicated,
-                                   size_t *sizeTransferred,
-                                   uint32_t *timerNext_us);
-
+CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t send_abort,
+                                   CO_SDO_abortCode_t* SDOabortCode, size_t* sizeIndicated, size_t* sizeTransferred,
+                                   uint32_t* timerNext_us);
 
 /**
  * Read data from SDO client buffer.
@@ -526,10 +487,7 @@ CO_SDO_return_t CO_SDOclientUpload(CO_SDOclient_t *SDO_C,
  *
  * @return number of bytes actually read.
  */
-size_t CO_SDOclientUploadBufRead(CO_SDOclient_t *SDO_C,
-                                 uint8_t *buf,
-                                 size_t count);
-
+size_t CO_SDOclientUploadBufRead(CO_SDOclient_t* SDO_C, uint8_t* buf, size_t count);
 
 /**
  * Close SDO communication temporary.
@@ -540,7 +498,7 @@ size_t CO_SDOclientUploadBufRead(CO_SDOclient_t *SDO_C,
  *
  * @param SDO_C This object.
  */
-void CO_SDOclientClose(CO_SDOclient_t *SDO_C);
+void CO_SDOclientClose(CO_SDOclient_t* SDO_C);
 
 /** @} */ /* CO_SDOclient */
 
