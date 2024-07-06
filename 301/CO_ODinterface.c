@@ -21,16 +21,14 @@
 #define OD_DEFINITION
 #include "301/CO_ODinterface.h"
 
-
-ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
-                      OD_size_t count, OD_size_t *countRead)
-{
+ODR_t
+OD_readOriginal(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead) {
     if ((stream == NULL) || (buf == NULL) || (countRead == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
     OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
-    const uint8_t *dataOrig = stream->dataOrig;
+    const uint8_t* dataOrig = stream->dataOrig;
 
     if (dataOrig == NULL) {
         return ODR_SUB_NOT_EXIST;
@@ -53,28 +51,26 @@ ODR_t OD_readOriginal(OD_stream_t *stream, void *buf,
             dataLenToCopy = count;
             stream->dataOffset += dataLenToCopy;
             returnCode = ODR_PARTIAL;
-        }
-        else {
+        } else {
             stream->dataOffset = 0; /* copy finished, reset offset */
         }
     }
 
-    (void)memcpy((void *)buf, (const void *)dataOrig, dataLenToCopy);
+    (void)memcpy((void*)buf, (const void*)dataOrig, dataLenToCopy);
 
     *countRead = dataLenToCopy;
     return returnCode;
 }
 
-ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
-                       OD_size_t count, OD_size_t *countWritten)
-{
+ODR_t
+OD_writeOriginal(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten) {
     if ((stream == NULL) || (buf == NULL) || (countWritten == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
     OD_size_t dataLenToCopy = stream->dataLength; /* length of OD variable */
     OD_size_t dataLenRemain = dataLenToCopy;      /* remaining length of dataOrig buffer */
-    uint8_t *dataOrig = stream->dataOrig;
+    uint8_t* dataOrig = stream->dataOrig;
 
     if (dataOrig == NULL) {
         return ODR_SUB_NOT_EXIST;
@@ -100,8 +96,7 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
             dataLenToCopy = count;
             stream->dataOffset += dataLenToCopy;
             returnCode = ODR_PARTIAL;
-        }
-        else {
+        } else {
             stream->dataOffset = 0; /* copy finished, reset offset */
         }
     }
@@ -113,9 +108,8 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
 
     /* additional check for Misra c compliance */
     if ((dataLenToCopy <= dataLenRemain) && (dataLenToCopy <= count)) {
-        (void)memcpy((void *)dataOrig, (const void *)buf, dataLenToCopy);
-    }
-    else {
+        (void)memcpy((void*)dataOrig, (const void*)buf, dataLenToCopy);
+    } else {
         return ODR_DEV_INCOMPAT;
     }
 
@@ -124,23 +118,27 @@ ODR_t OD_writeOriginal(OD_stream_t *stream, const void *buf,
 }
 
 /* Read value from variable from Object Dictionary disabled, see OD_IO_t*/
-static ODR_t OD_readDisabled(OD_stream_t *stream, void *buf,
-                             OD_size_t count, OD_size_t *countRead)
-{
-    (void) stream; (void) buf; (void) count; (void) countRead;
+static ODR_t
+OD_readDisabled(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead) {
+    (void)stream;
+    (void)buf;
+    (void)count;
+    (void)countRead;
     return ODR_UNSUPP_ACCESS;
 }
 
 /* Write value to variable from Object Dictionary disabled, see OD_IO_t */
-static ODR_t OD_writeDisabled(OD_stream_t *stream, const void *buf,
-                              OD_size_t count, OD_size_t *countWritten)
-{
-    (void) stream; (void) buf; (void) count; (void) countWritten;
+static ODR_t
+OD_writeDisabled(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten) {
+    (void)stream;
+    (void)buf;
+    (void)count;
+    (void)countWritten;
     return ODR_UNSUPP_ACCESS;
 }
 
-
-OD_entry_t *OD_find(OD_t *od, uint16_t index) {
+OD_entry_t*
+OD_find(OD_t* od, uint16_t index) {
     if ((od == NULL) || (od->size == 0U)) {
         return NULL;
     }
@@ -162,8 +160,7 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index) {
 
         if (index < entry->index) {
             max = (cur > 0U) ? (cur - 1U) : cur;
-        }
-        else {
+        } else {
             min = cur + 1U;
         }
     }
@@ -175,67 +172,73 @@ OD_entry_t *OD_find(OD_t *od, uint16_t index) {
         }
     }
 
-    return NULL;  /* entry does not exist in OD */
+    return NULL; /* entry does not exist in OD */
 }
 
-ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
-                OD_IO_t *io, bool_t odOrig)
-{
-    if ((entry == NULL) || (entry->odObject == NULL)) { return ODR_IDX_NOT_EXIST; }
-    if (io == NULL) { return ODR_DEV_INCOMPAT; }
+ODR_t
+OD_getSub(const OD_entry_t* entry, uint8_t subIndex, OD_IO_t* io, bool_t odOrig) {
+    if ((entry == NULL) || (entry->odObject == NULL)) {
+        return ODR_IDX_NOT_EXIST;
+    }
+    if (io == NULL) {
+        return ODR_DEV_INCOMPAT;
+    }
 
-    OD_stream_t *stream = &io->stream;
+    OD_stream_t* stream = &io->stream;
 
     /* attribute, dataOrig and dataLength, depends on object type */
     switch (entry->odObjectType & (uint8_t)ODT_TYPE_MASK) {
-    case ODT_VAR: {
-        if (subIndex > 0U) { return ODR_SUB_NOT_EXIST; }
-        CO_PROGMEM OD_obj_var_t *odo = entry->odObject;
-
-
-        stream->attribute = odo->attribute;
-        stream->dataOrig = odo->dataOrig;
-        stream->dataLength = odo->dataLength;
-        break;
-    }
-    case ODT_ARR: {
-        if (subIndex >= entry->subEntriesCount) { return ODR_SUB_NOT_EXIST; }
-        CO_PROGMEM OD_obj_array_t *odo = entry->odObject;
-
-        if (subIndex == 0U) {
-            stream->attribute = odo->attribute0;
-            stream->dataOrig = odo->dataOrig0;
-            stream->dataLength = 1;
-        }
-        else {
-            stream->attribute = odo->attribute;
-            uint8_t *ptr = odo->dataOrig;
-            stream->dataOrig = (ptr == NULL) ? ptr
-                             : (ptr + (odo->dataElementSizeof * (uint8_t)(subIndex - 1U)));
-            stream->dataLength = odo->dataElementLength;
-        }
-        break;
-    }
-    case ODT_REC: {
-        CO_PROGMEM OD_obj_record_t *odoArr = entry->odObject;
-        CO_PROGMEM OD_obj_record_t *odo = NULL;
-        for (uint8_t i = 0; i < entry->subEntriesCount; i++) {
-            if (odoArr[i].subIndex == subIndex) {
-                odo = &odoArr[i];
-                break;
+        case ODT_VAR: {
+            if (subIndex > 0U) {
+                return ODR_SUB_NOT_EXIST;
             }
-        }
-        if (odo == NULL) { return ODR_SUB_NOT_EXIST; }
+            CO_PROGMEM OD_obj_var_t* odo = entry->odObject;
 
-        stream->attribute = odo->attribute;
-        stream->dataOrig = odo->dataOrig;
-        stream->dataLength = odo->dataLength;
-        break;
-    }
-    default: {
-        return ODR_DEV_INCOMPAT;
-        break;
-    }
+            stream->attribute = odo->attribute;
+            stream->dataOrig = odo->dataOrig;
+            stream->dataLength = odo->dataLength;
+            break;
+        }
+        case ODT_ARR: {
+            if (subIndex >= entry->subEntriesCount) {
+                return ODR_SUB_NOT_EXIST;
+            }
+            CO_PROGMEM OD_obj_array_t* odo = entry->odObject;
+
+            if (subIndex == 0U) {
+                stream->attribute = odo->attribute0;
+                stream->dataOrig = odo->dataOrig0;
+                stream->dataLength = 1;
+            } else {
+                stream->attribute = odo->attribute;
+                uint8_t* ptr = odo->dataOrig;
+                stream->dataOrig = (ptr == NULL) ? ptr : (ptr + (odo->dataElementSizeof * (uint8_t)(subIndex - 1U)));
+                stream->dataLength = odo->dataElementLength;
+            }
+            break;
+        }
+        case ODT_REC: {
+            CO_PROGMEM OD_obj_record_t* odoArr = entry->odObject;
+            CO_PROGMEM OD_obj_record_t* odo = NULL;
+            for (uint8_t i = 0; i < entry->subEntriesCount; i++) {
+                if (odoArr[i].subIndex == subIndex) {
+                    odo = &odoArr[i];
+                    break;
+                }
+            }
+            if (odo == NULL) {
+                return ODR_SUB_NOT_EXIST;
+            }
+
+            stream->attribute = odo->attribute;
+            stream->dataOrig = odo->dataOrig;
+            stream->dataLength = odo->dataLength;
+            break;
+        }
+        default: {
+            return ODR_DEV_INCOMPAT;
+            break;
+        }
     }
 
     /* Access data from the original OD location */
@@ -246,10 +249,8 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     }
     /* Access data from extension specified by application */
     else {
-        io->read = (entry->extension->read != NULL) ?
-                   entry->extension->read : OD_readDisabled;
-        io->write = (entry->extension->write != NULL) ?
-                    entry->extension->write : OD_writeDisabled;
+        io->read = (entry->extension->read != NULL) ? entry->extension->read : OD_readDisabled;
+        io->write = (entry->extension->write != NULL) ? entry->extension->write : OD_writeDisabled;
         stream->object = entry->extension->object;
     }
 
@@ -263,7 +264,8 @@ ODR_t OD_getSub(const OD_entry_t *entry, uint8_t subIndex,
     return ODR_OK;
 }
 
-uint32_t OD_getSDOabCode(ODR_t returnCode) {
+uint32_t
+OD_getSDOabCode(ODR_t returnCode) {
     static const uint32_t abortCodes[(uint8_t)ODR_COUNT] = {
         0x00000000UL, /* No abort */
         0x05040005UL, /* Out of memory */
@@ -293,65 +295,73 @@ uint32_t OD_getSDOabCode(ODR_t returnCode) {
         0x08000024UL  /* No data available */
     };
 
-    return ((returnCode < ODR_OK) || (returnCode >= ODR_COUNT)) ?
-        abortCodes[ODR_DEV_INCOMPAT] : abortCodes[returnCode];
+    return ((returnCode < ODR_OK) || (returnCode >= ODR_COUNT)) ? abortCodes[ODR_DEV_INCOMPAT] : abortCodes[returnCode];
 }
 
+ODR_t
+OD_get_value(const OD_entry_t* entry, uint8_t subIndex, void* val, OD_size_t len, bool_t odOrig) {
+    if (val == NULL) {
+        return ODR_DEV_INCOMPAT;
+    }
 
-ODR_t OD_get_value(const OD_entry_t *entry, uint8_t subIndex,
-                   void *val, OD_size_t len, bool_t odOrig)
-{
-    if (val == NULL) { return ODR_DEV_INCOMPAT; }
-
-    OD_IO_t io = { NULL };
-    OD_stream_t *stream = &io.stream;
+    OD_IO_t io = {NULL};
+    OD_stream_t* stream = &io.stream;
     OD_size_t countRd = 0;
 
     ODR_t ret = OD_getSub(entry, subIndex, &io, odOrig);
 
-    if (ret != ODR_OK) { return ret; }
-    if (stream->dataLength != len) { return ODR_TYPE_MISMATCH; }
+    if (ret != ODR_OK) {
+        return ret;
+    }
+    if (stream->dataLength != len) {
+        return ODR_TYPE_MISMATCH;
+    }
 
     return io.read(stream, val, len, &countRd);
 }
 
-ODR_t OD_set_value(const OD_entry_t *entry, uint8_t subIndex, void *val,
-                   OD_size_t len, bool_t odOrig)
-{
-    if (val == NULL) { return ODR_DEV_INCOMPAT; }
+ODR_t
+OD_set_value(const OD_entry_t* entry, uint8_t subIndex, void* val, OD_size_t len, bool_t odOrig) {
+    if (val == NULL) {
+        return ODR_DEV_INCOMPAT;
+    }
 
-    OD_IO_t io = { NULL };
-    OD_stream_t *stream = &io.stream;
+    OD_IO_t io = {NULL};
+    OD_stream_t* stream = &io.stream;
     OD_size_t countWritten = 0;
 
     ODR_t ret = OD_getSub(entry, subIndex, &io, odOrig);
 
-    if (ret != ODR_OK) { return ret; }
-    if (stream->dataLength != len) { return ODR_TYPE_MISMATCH; }
+    if (ret != ODR_OK) {
+        return ret;
+    }
+    if (stream->dataLength != len) {
+        return ODR_TYPE_MISMATCH;
+    }
 
     return io.write(stream, val, len, &countWritten);
 }
 
-void *OD_getPtr(const OD_entry_t *entry, uint8_t subIndex, OD_size_t len,
-                ODR_t *err)
-{
+void*
+OD_getPtr(const OD_entry_t* entry, uint8_t subIndex, OD_size_t len, ODR_t* err) {
     ODR_t errCopy;
     OD_IO_t io;
-    OD_stream_t *stream = &io.stream;
+    OD_stream_t* stream = &io.stream;
 
     errCopy = OD_getSub(entry, subIndex, &io, true);
 
     if (errCopy == ODR_OK) {
         if ((stream->dataOrig == NULL) || (stream->dataLength == 0U)) {
             errCopy = ODR_DEV_INCOMPAT;
-        }
-        else if ((len != 0U) && (len != stream->dataLength)) {
+        } else if ((len != 0U) && (len != stream->dataLength)) {
             errCopy = ODR_TYPE_MISMATCH;
+        } else { /* MISRA C 2004 14.10 */
         }
-        else { /* MISRA C 2004 14.10 */ }
     }
 
-    if (err != NULL) { *err = errCopy; }
+    if (err != NULL) {
+        *err = errCopy;
+    }
 
     return (errCopy == ODR_OK) ? stream->dataOrig : NULL;
 }

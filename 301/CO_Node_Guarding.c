@@ -20,7 +20,7 @@
 
 #include "301/CO_Node_Guarding.h"
 
-#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0
+#if ((CO_CONFIG_NODE_GUARDING)&CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0
 
 /*
  * Read received message from CAN module.
@@ -29,29 +29,27 @@
  * message with correct identifier will be received. For more information and
  * description of parameters see file CO_driver.h.
  */
-static void CO_ngs_receive(void *object, void *msg) {
-    (void) msg;
-    CO_nodeGuardingSlave_t *ngs = (CO_nodeGuardingSlave_t*)object;
+static void
+CO_ngs_receive(void* object, void* msg) {
+    (void)msg;
+    CO_nodeGuardingSlave_t* ngs = (CO_nodeGuardingSlave_t*)object;
 
     CO_FLAG_SET(ngs->CANrxNew);
 }
-
 
 /*
  * Custom function for writing OD object "Guard time"
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
-                           OD_size_t count, OD_size_t *countWritten)
-{
-    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
-        || (count != sizeof(uint16_t)) || (countWritten == NULL)
-    ) {
+static ODR_t
+OD_write_100C(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten) {
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL) || (count != sizeof(uint16_t))
+        || (countWritten == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
-    CO_nodeGuardingSlave_t *ngs = (CO_nodeGuardingSlave_t *)stream->object;
+    CO_nodeGuardingSlave_t* ngs = (CO_nodeGuardingSlave_t*)stream->object;
 
     /* update objects */
     ngs->guardTime_us = (uint32_t)CO_getUint16(buf) * 1000U;
@@ -66,22 +64,19 @@ static ODR_t OD_write_100C(OD_stream_t *stream, const void *buf,
     return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
-
 /*
  * Custom function for writing OD object "Life time factor"
  *
  * For more information see file CO_ODinterface.h, OD_IO_t.
  */
-static ODR_t OD_write_100D(OD_stream_t *stream, const void *buf,
-                           OD_size_t count, OD_size_t *countWritten)
-{
-    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL)
-        || (count != sizeof(uint8_t)) || (countWritten == NULL)
-    ) {
+static ODR_t
+OD_write_100D(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten) {
+    if ((stream == NULL) || (stream->subIndex != 0U) || (buf == NULL) || (count != sizeof(uint8_t))
+        || (countWritten == NULL)) {
         return ODR_DEV_INCOMPAT;
     }
 
-    CO_nodeGuardingSlave_t *ngs = (CO_nodeGuardingSlave_t *)stream->object;
+    CO_nodeGuardingSlave_t* ngs = (CO_nodeGuardingSlave_t*)stream->object;
 
     /* update objects */
     ngs->lifeTimeFactor = (uint8_t)CO_getUint8(buf);
@@ -96,24 +91,16 @@ static ODR_t OD_write_100D(OD_stream_t *stream, const void *buf,
     return OD_writeOriginal(stream, buf, count, countWritten);
 }
 
-
-CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
-                                           OD_entry_t *OD_100C_GuardTime,
-                                           OD_entry_t *OD_100D_LifeTimeFactor,
-                                           CO_EM_t *em,
-                                           uint16_t CANidNodeGuarding,
-                                           CO_CANmodule_t *CANdevRx,
-                                           uint16_t CANdevRxIdx,
-                                           CO_CANmodule_t *CANdevTx,
-                                           uint16_t CANdevTxIdx,
-                                           uint32_t *errInfo)
-{
+CO_ReturnError_t
+CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t* ngs, OD_entry_t* OD_100C_GuardTime,
+                          OD_entry_t* OD_100D_LifeTimeFactor, CO_EM_t* em, uint16_t CANidNodeGuarding,
+                          CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, CO_CANmodule_t* CANdevTx,
+                          uint16_t CANdevTxIdx, uint32_t* errInfo) {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
-    if ((ngs == NULL) || (em == NULL) || (CANdevRx == NULL) || (CANdevTx == NULL)
-        || (OD_100C_GuardTime == NULL) || (OD_100D_LifeTimeFactor == NULL)
-    ) {
+    if ((ngs == NULL) || (em == NULL) || (CANdevRx == NULL) || (CANdevTx == NULL) || (OD_100C_GuardTime == NULL)
+        || (OD_100D_LifeTimeFactor == NULL)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -169,27 +156,14 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     }
 
     /* configure CAN reception */
-    ret = CO_CANrxBufferInit(
-            CANdevRx,
-            CANdevRxIdx,
-            CANidNodeGuarding,
-            0x7FF,
-            true,
-            (void*)ngs,
-            CO_ngs_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidNodeGuarding, 0x7FF, true, (void*)ngs, CO_ngs_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
 
     /* configure CAN transmission */
     ngs->CANdevTx = CANdevTx;
-    ngs->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,
-            CANdevTxIdx,
-            CANidNodeGuarding,
-            false,
-            1,
-            false);
+    ngs->CANtxBuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, CANidNodeGuarding, false, 1, false);
     if (ngs->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -197,13 +171,9 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t *ngs,
     return ret;
 }
 
-
-void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
-                                  CO_NMT_internalState_t NMTstate,
-                                  bool_t slaveDisable,
-                                  uint32_t timeDifference_us,
-                                  uint32_t *timerNext_us)
-{
+void
+CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t* ngs, CO_NMT_internalState_t NMTstate, bool_t slaveDisable,
+                             uint32_t timeDifference_us, uint32_t* timerNext_us) {
     (void)timerNext_us; /* may be unused */
 
     if (slaveDisable) {
@@ -218,12 +188,11 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
         ngs->lifeTimer = ngs->lifeTime_us;
 
         /* send response */
-        ngs->CANtxBuff->data[0] = (uint8_t) NMTstate;
+        ngs->CANtxBuff->data[0] = (uint8_t)NMTstate;
         if (ngs->toggle) {
             ngs->CANtxBuff->data[0] |= 0x80U;
             ngs->toggle = false;
-        }
-        else {
+        } else {
             ngs->toggle = true;
         }
         (void)CO_CANsend(ngs->CANdevTx, ngs->CANtxBuff);
@@ -241,33 +210,28 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
     else if (ngs->lifeTimer > 0U) {
         if (timeDifference_us < ngs->lifeTimer) {
             ngs->lifeTimer -= timeDifference_us;
-#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT) != 0
+#if ((CO_CONFIG_NMT)&CO_CONFIG_FLAG_TIMERNEXT) != 0
             /* Calculate, when timeout expires */
             if (timerNext_us != NULL && *timerNext_us > ngs->lifeTimer) {
                 *timerNext_us = ngs->lifeTimer;
             }
 #endif
-        }
-        else {
+        } else {
             ngs->lifeTimer = 0;
             ngs->lifeTimeTimeout = true;
 
             /* error bit is shared with HB consumer */
-            CO_errorReport(ngs->em, CO_EM_HEARTBEAT_CONSUMER,
-                           CO_EMC_HEARTBEAT, 0);
+            CO_errorReport(ngs->em, CO_EM_HEARTBEAT_CONSUMER, CO_EMC_HEARTBEAT, 0);
         }
+    } else { /* MISRA C 2004 14.10 */
     }
-    else { /* MISRA C 2004 14.10 */ }
 
     return;
 }
 
 #endif /* (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE */
 
-
-
-
-#if ((CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0
+#if ((CO_CONFIG_NODE_GUARDING)&CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0
 /*
  * Read received message from CAN module.
  *
@@ -278,16 +242,17 @@ void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t *ngs,
  * Function receives messages from CAN identifier from 0x700 to 0x7FF. It
  * searches matching node->ident from nodes array.
  */
-static void CO_ngm_receive(void *object, void *msg) {
-    CO_nodeGuardingMaster_t *ngm = (CO_nodeGuardingMaster_t*)object;
+static void
+CO_ngm_receive(void* object, void* msg) {
+    CO_nodeGuardingMaster_t* ngm = (CO_nodeGuardingMaster_t*)object;
 
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
-    const uint8_t *data = CO_CANrxMsg_readData(msg);
+    const uint8_t* data = CO_CANrxMsg_readData(msg);
     uint16_t ident = CO_CANrxMsg_readIdent(msg);
-    CO_nodeGuardingMasterNode_t *node = &ngm->nodes[0];
+    CO_nodeGuardingMasterNode_t* node = &ngm->nodes[0];
 
     if (DLC == 1) {
-        for (uint8_t i=0; i<CO_CONFIG_NODE_GUARDING_MASTER_COUNT; i++) {
+        for (uint8_t i = 0; i < CO_CONFIG_NODE_GUARDING_MASTER_COUNT; i++) {
             if (ident == node->ident) {
                 uint8_t toggle = data[0] & 0x80;
                 if (toggle == node->toggle) {
@@ -297,19 +262,14 @@ static void CO_ngm_receive(void *object, void *msg) {
                 }
                 break;
             }
-            node ++;
+            node++;
         }
     }
 }
 
-
-CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
-                                            CO_EM_t *em,
-                                            CO_CANmodule_t *CANdevRx,
-                                            uint16_t CANdevRxIdx,
-                                            CO_CANmodule_t *CANdevTx,
-                                            uint16_t CANdevTxIdx)
-{
+CO_ReturnError_t
+CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t* ngm, CO_EM_t* em, CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx,
+                           CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx) {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
@@ -325,14 +285,7 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
 
     /* configure CAN reception. One buffer will receive all messages
      * from CAN-id 0x700 to 0x7FF. */
-    ret = CO_CANrxBufferInit(
-            CANdevRx,
-            CANdevRxIdx,
-            CO_CAN_ID_HEARTBEAT,
-            0x780,
-            false,
-            (void*)ngm,
-            CO_ngm_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CO_CAN_ID_HEARTBEAT, 0x780, false, (void*)ngm, CO_ngm_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
@@ -340,13 +293,7 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
     /* configure CAN transmission */
     ngm->CANdevTx = CANdevTx;
     ngm->CANdevTxIdx = CANdevTxIdx;
-    ngm->CANtxBuff = CO_CANtxBufferInit(
-            CANdevTx,
-            CANdevTxIdx,
-            CO_CAN_ID_HEARTBEAT,
-            true,
-            1,
-            0);
+    ngm->CANtxBuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, CO_CAN_ID_HEARTBEAT, true, 1, 0);
     if (ngm->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -354,19 +301,13 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t *ngm,
     return ret;
 }
 
-
-CO_ReturnError_t CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t *ngm,
-                                                uint8_t index,
-                                                uint8_t nodeId,
-                                                uint16_t guardTime_ms)
-{
-    if (ngm == NULL || index >= CO_CONFIG_NODE_GUARDING_MASTER_COUNT
-        || nodeId < 1 || nodeId > 0x7F
-    ) {
+CO_ReturnError_t
+CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t* ngm, uint8_t index, uint8_t nodeId, uint16_t guardTime_ms) {
+    if (ngm == NULL || index >= CO_CONFIG_NODE_GUARDING_MASTER_COUNT || nodeId < 1 || nodeId > 0x7F) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
-    CO_nodeGuardingMasterNode_t *node = &ngm->nodes[index];
+    CO_nodeGuardingMasterNode_t* node = &ngm->nodes[index];
 
     node->guardTime_us = (uint32_t)guardTime_ms * 1000;
     node->guardTimer = 0;
@@ -378,62 +319,48 @@ CO_ReturnError_t CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t *ngm,
     node->monitoringActive = false;
 
 #if CO_CONFIG_NODE_GUARDING_MASTER_COUNT == 1
-    ngm->CANtxBuff = CO_CANtxBufferInit(ngm->CANdevTx,
-                                        ngm->CANdevTxIdx,
-                                        node->ident,
-                                        true, 1, 0);
+    ngm->CANtxBuff = CO_CANtxBufferInit(ngm->CANdevTx, ngm->CANdevTxIdx, node->ident, true, 1, 0);
 #endif
 
-    return  CO_ERROR_NO;
+    return CO_ERROR_NO;
 }
 
-
-void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
-                                   uint32_t timeDifference_us,
-                                   uint32_t *timerNext_us)
-{
+void
+CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t* ngm, uint32_t timeDifference_us, uint32_t* timerNext_us) {
     (void)timerNext_us; /* may be unused */
     bool_t allMonitoredActiveCurrent = true;
     bool_t allMonitoredOperationalCurrent = true;
-    CO_nodeGuardingMasterNode_t *node = &ngm->nodes[0];
+    CO_nodeGuardingMasterNode_t* node = &ngm->nodes[0];
 
-    for (uint8_t i=0; i<CO_CONFIG_NODE_GUARDING_MASTER_COUNT; i++) {
+    for (uint8_t i = 0; i < CO_CONFIG_NODE_GUARDING_MASTER_COUNT; i++) {
         if (node->guardTime_us > 0 && node->ident > CO_CAN_ID_HEARTBEAT) {
             if (timeDifference_us < node->guardTimer) {
                 node->guardTimer -= timeDifference_us;
-#if ((CO_CONFIG_NMT) & CO_CONFIG_FLAG_TIMERNEXT) != 0
+#if ((CO_CONFIG_NMT)&CO_CONFIG_FLAG_TIMERNEXT) != 0
                 /* Calculate, when timeout expires */
                 if (timerNext_us != NULL && *timerNext_us > node->guardTimer) {
                     *timerNext_us = node->guardTimer;
                 }
 #endif
-            }
-            else {
+            } else {
                 /* it is time to send new rtr, but first verify last response */
                 if (!node->CANtxWasBusy) {
                     if (!node->responseRecived) {
                         node->monitoringActive = false;
                         /* error bit is shared with HB consumer */
-                        CO_errorReport(ngm->em, CO_EM_HEARTBEAT_CONSUMER,
-                                       CO_EMC_HEARTBEAT, node->ident & 0x7F);
-                    }
-                    else if (node->NMTstate != CO_NMT_UNKNOWN) {
+                        CO_errorReport(ngm->em, CO_EM_HEARTBEAT_CONSUMER, CO_EMC_HEARTBEAT, node->ident & 0x7F);
+                    } else if (node->NMTstate != CO_NMT_UNKNOWN) {
                         node->monitoringActive = true;
-                        CO_errorReset(ngm->em, CO_EM_HEARTBEAT_CONSUMER,
-                                      node->ident & 0x7F);
+                        CO_errorReset(ngm->em, CO_EM_HEARTBEAT_CONSUMER, node->ident & 0x7F);
                     }
                 }
 
                 if (ngm->CANtxBuff->bufferFull) {
                     node->guardTimer = 0;
                     node->CANtxWasBusy = true;
-                }
-                else {
+                } else {
 #if CO_CONFIG_NODE_GUARDING_MASTER_COUNT > 1
-                    ngm->CANtxBuff = CO_CANtxBufferInit(ngm->CANdevTx,
-                                                        ngm->CANdevTxIdx,
-                                                        node->ident,
-                                                        true, 1, 0);
+                    ngm->CANtxBuff = CO_CANtxBufferInit(ngm->CANdevTx, ngm->CANdevTxIdx, node->ident, true, 1, 0);
 #endif
                     (void)CO_CANsend(ngm->CANdevTx, ngm->CANtxBuff);
                     node->CANtxWasBusy = false;
@@ -447,15 +374,14 @@ void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t *ngm,
                     if (node->NMTstate != CO_NMT_OPERATIONAL) {
                         allMonitoredOperationalCurrent = false;
                     }
-                }
-                else {
+                } else {
                     allMonitoredActiveCurrent = false;
                     allMonitoredOperationalCurrent = false;
                 }
             }
         } /* if node enabled */
 
-        node ++;
+        node++;
     } /* for */
 
     ngm->allMonitoredActive = allMonitoredActiveCurrent;
