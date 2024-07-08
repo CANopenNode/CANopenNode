@@ -45,7 +45,7 @@ void myFunc(OD_t *od) {
         /* Locking is necessary from mainline thread, but must not be used from
          * timer interval (real-time) thread. Locking is not necessary in the
          * CANoopen initialization section. Locking is also not necessary, if
-         * OD variable is not mappable to PDO and not accessed from RT thread.*/
+         * OD variable is not mappable to PDO and not accessed from RT thread. */
         CO_LOCK_OD(CANmodule);
         odRet = io1008.read(&io1008.stream, &buf[0], sizeof(buf), &bytesRd);
         CO_UNLOCK_OD(CANmodule);

@@ -44,8 +44,7 @@ bool_t CO_eeprom_init(void* storageModule);
 /**
  * Get free address inside eeprom, target system specific function.
  *
- * Function is called several times for each storage block in the initialization
- * phase after CO_eeprom_init().
+ * Function is called several times for each storage block in the initialization phase after CO_eeprom_init().
  *
  * @param storageModule Pointer to storage module.
  * @param isAuto True, if variable is auto stored or false if protected
@@ -73,8 +72,8 @@ void CO_eeprom_readBlock(void* storageModule, uint8_t* data, size_t eepromAddr, 
  *
  * @param storageModule Pointer to storage module.
  * @param data Pointer to data buffer which will be written.
- * @param eepromAddr Address in eeprom, where data will be written. If data is
- * stored accross multiple pages, address must be aligned with page.
+ * @param eepromAddr Address in eeprom, where data will be written. If data is stored across multiple pages, address
+ * must be aligned with page.
  * @param len Length of the data block.
  *
  * @return true on success
@@ -82,8 +81,7 @@ void CO_eeprom_readBlock(void* storageModule, uint8_t* data, size_t eepromAddr, 
 bool_t CO_eeprom_writeBlock(void* storageModule, uint8_t* data, size_t eepromAddr, size_t len);
 
 /**
- * Get CRC checksum of the block of data stored in the eeprom, target system
- * specific function.
+ * Get CRC checksum of the block of data stored in the eeprom, target system specific function.
  *
  * @param storageModule Pointer to storage module.
  * @param eepromAddr Address of data in eeprom.
@@ -96,15 +94,13 @@ uint16_t CO_eeprom_getCrcBlock(void* storageModule, size_t eepromAddr, size_t le
 /**
  * Update one byte of data in the eeprom, target system specific function.
  *
- * Function is used by automatic storage. It updates byte in eeprom only if
- * differs from data.
+ * Function is used by automatic storage. It updates byte in eeprom only if differs from data.
  *
  * @param storageModule Pointer to storage module.
  * @param data Data byte to be written
  * @param eepromAddr Address in eeprom, from where data will be updated.
  *
- * @return true if write was successful or false, if still waiting previous
- * data to finish writing.
+ * @return true if write was successful or false, if still waiting previous data to finish writing.
  */
 bool_t CO_eeprom_updateByte(void* storageModule, uint8_t data, size_t eepromAddr);
 

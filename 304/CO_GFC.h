@@ -42,11 +42,9 @@ extern "C" {
  *
  * @ingroup CO_CANopen_304
  * @{
- * Very simple consumer/producer protocol.
- * A net can have multiple GFC producer and multiple GFC consumer.
- * On a safety-relevant the producer can send a GFC message (ID 1, DLC 0).
- * The consumer can use this message to start the transition to a safe state.
- * The GFC is optional for the security protocol and is not monitored (timed).
+ * Very simple consumer/producer protocol. A net can have multiple GFC producer and multiple GFC consumer. On a
+ * safety-relevant the producer can send a GFC message (ID 1, DLC 0). The consumer can use this message to start the
+ * transition to a safe state. The GFC is optional for the security protocol and is not monitored (timed).
  */
 
 /**
@@ -60,10 +58,8 @@ typedef struct {
     CO_CANtx_t* CANtxBuff;    /**< CAN transmit buffer inside CANdevTx */
 #endif
 #if (((CO_CONFIG_GFC)&CO_CONFIG_GFC_CONSUMER) != 0) || defined CO_DOXYGEN
-    /** From CO_GFC_initCallbackEnterSafeState() or NULL */
-    void (*pFunctSignalSafe)(void* object);
-    /** From CO_GFC_initCallbackEnterSafeState() or NULL */
-    void* functSignalObjectSafe;
+    void (*pFunctSignalSafe)(void* object); /**< From CO_GFC_initCallbackEnterSafeState() or NULL */
+    void* functSignalObjectSafe;            /**< From CO_GFC_initCallbackEnterSafeState() or NULL */
 #endif
 } CO_GFC_t;
 
@@ -73,8 +69,8 @@ typedef struct {
  * Function must be called in the communication reset section.
  *
  * @param GFC This object will be initialized.
- * @param OD_1300_gfcParameter Pointer to _Global fail-safe command parameter_
- * variable from Object dictionary (index 0x1300).
+ * @param OD_1300_gfcParameter Pointer to _Global fail-safe command parameter_ variable from Object dictionary (index
+ * 0x1300).
  * @param GFC_CANdevRx  CAN device used for SRDO reception.
  * @param GFC_rxIdx Index of receive buffer in the above CAN device.
  * @param CANidRxGFC GFC CAN ID for reception
@@ -92,12 +88,11 @@ CO_ReturnError_t CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO
 /**
  * Initialize GFC callback function.
  *
- * Function initializes optional callback function, that is called when GFC is
- * received. Callback is called from receive function (interrupt).
+ * Function initializes optional callback function, that is called when GFC is received. Callback is called from receive
+ * function (interrupt).
  *
  * @param GFC This object.
- * @param object Pointer to object, which will be passed to pFunctSignalSafe().
- * Can be NULL
+ * @param object Pointer to object, which will be passed to pFunctSignalSafe(). Can be NULL
  * @param pFunctSignalSafe Pointer to the callback function. Not called if NULL.
  */
 void CO_GFC_initCallbackEnterSafeState(CO_GFC_t* GFC, void* object, void (*pFunctSignalSafe)(void* object));
@@ -107,8 +102,7 @@ void CO_GFC_initCallbackEnterSafeState(CO_GFC_t* GFC, void* object, void (*pFunc
 /**
  * Send GFC message.
  *
- * It should be called by application, for example after a safety-relevant
- * change.
+ * It should be called by application, for example after a safety-relevant change.
  *
  * @param GFC GFC object.
  *
@@ -121,7 +115,7 @@ CO_ReturnError_t CO_GFCsend(CO_GFC_t* GFC);
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE */
 

@@ -41,9 +41,8 @@ extern "C" {
  *
  * @ingroup CO_CANopen_303
  * @{
- *
- * CIA 303-3 standard specifies indicator LED diodes, which reflects state of
- * the CANopen device. Green and red leds or bi-color led can be used.
+ * CIA 303-3 standard specifies indicator LED diodes, which reflects state of the CANopen device. Green and red leds or
+ * bi-color led can be used.
  *
  * CANopen green led - run led:
  * - flickering: LSS configuration state is active
@@ -62,15 +61,13 @@ extern "C" {
  * - quadruple flash: PDO has not been received before the event timer elapsed
  * - on: CAN bus off
  *
- * To apply on/off state to led diode, use #CO_LED_RED and #CO_LED_GREEN macros.
- * For CANopen leds use CO_LED_BITFIELD_t CO_LED_CANopen. Other bitfields are
- * available for implementing custom leds.
+ * To apply on/off state to led diode, use #CO_LED_RED and #CO_LED_GREEN macros. For CANopen leds use CO_LED_BITFIELD_t
+ * CO_LED_CANopen. Other bitfields are available for implementing custom leds.
  */
 
 /**
  * @defgroup CO_LED_BITFIELD_t Bitfield for combining with red or green led
  * @{
- *
  */
 #define CO_LED_flicker               0x01U /**< LED flickering 10Hz */
 #define CO_LED_blink                 0x02U /**< LED blinking 2,5Hz */
@@ -118,8 +115,7 @@ CO_ReturnError_t CO_LEDs_init(CO_LEDs_t* LEDs);
  * Function must be called cyclically.
  *
  * @param LEDs This object.
- * @param timeDifference_us Time difference from previous function call in
- *                          [microseconds].
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param NMTstate NMT operating state.
  * @param LSSconfig Node is in LSS configuration state indication.
  * @param ErrCANbusOff CAN bus off indication (highest priority).
@@ -139,7 +135,7 @@ void CO_LEDs_process(CO_LEDs_t* LEDs, uint32_t timeDifference_us, CO_NMT_interna
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE */
 

@@ -20,9 +20,8 @@
 #ifndef CO_DRIVER_TARGET_H
 #define CO_DRIVER_TARGET_H
 
-/* This file contains device and application specific definitions.
- * It is included from CO_driver.h, which contains documentation
- * for common definitions below. */
+/* This file contains device and application specific definitions. It is included from CO_driver.h, which contains
+ * documentation for common definitions below. */
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -36,8 +35,7 @@
 extern "C" {
 #endif
 
-/* Stack configuration override default values.
- * For more information see file CO_config.h. */
+/* Stack configuration override default values. For more information see file CO_config.h. */
 
 /* Basic definitions. If big endian, CO_SWAP_xx macros must swap bytes. */
 #define CO_LITTLE_ENDIAN

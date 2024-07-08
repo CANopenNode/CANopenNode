@@ -41,7 +41,6 @@ extern "C" {
  *
  * @ingroup CO_CANopen_301
  * @{
- *
  * Equation:
  *
  * `x^16 + x^12 + x^5 + 1`
@@ -50,11 +49,10 @@ extern "C" {
 /**
  * Update crc16_ccitt variable with one data byte
  *
- * This function updates crc variable for one data byte using crc16 ccitt
- * algorithm.
+ * This function updates crc variable for one data byte using crc16 ccitt algorithm.
  *
- * @param [in,out] crc Externally defined variable for CRC checksum. Before
- * start of new CRC calculation, variable must be initialized (zero for xmodem).
+ * @param [in,out] crc Externally defined variable for CRC checksum. Before start of new CRC calculation, variable must
+ * be initialized (zero for xmodem).
  * @param chr One byte of data
  */
 void crc16_ccitt_single(uint16_t* crc, const uint8_t chr);
@@ -64,8 +62,8 @@ void crc16_ccitt_single(uint16_t* crc, const uint8_t chr);
  *
  * @param block Pointer to block of data.
  * @param blockLength Length of data in bytes;
- * @param crc Initial value (zero for xmodem). If block is split into
- * multiple segments, previous CRC is used as initial.
+ * @param crc Initial value (zero for xmodem). If block is split into multiple segments, previous CRC is used as
+ * initial.
  *
  * @return Calculated CRC.
  */
@@ -75,7 +73,7 @@ uint16_t crc16_ccitt(const uint8_t block[], size_t blockLength, uint16_t crc);
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE */
 

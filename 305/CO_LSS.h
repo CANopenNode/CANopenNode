@@ -43,10 +43,9 @@ extern "C" {
  * @{
  * LSS protocol is according to CiA DSP 305 V3.0.0.
  *
- * LSS services and protocols are used to inquire or to change the settings
- * of three parameters of the physical layer, data link layer, and application
- * layer on a CANopen device with LSS slave capability by a CANopen device
- * with LSS master capability via the CAN network.
+ * LSS services and protocols are used to inquire or to change the settings of three parameters of the physical layer,
+ * data link layer, and application layer on a CANopen device with LSS slave capability by a CANopen device with LSS
+ * master capability via the CAN network.
  *
  * The following parameters may be inquired or changed:
  * - Node-ID of the CANopen device
@@ -54,16 +53,13 @@ extern "C" {
  * - LSS address compliant to the identity object (1018h)
  *
  * The connection is established in one of two ways:
- * - addressing a node by it's 128 bit LSS address. This requires that the
- *   master already knows the node's LSS address.
- * - scanning the network for unknown nodes (Fastscan). Using this method,
- *   unknown devices can be found and configured one by one.
+ * - addressing a node by it's 128 bit LSS address. This requires that the master already knows the node's LSS address.
+ * - scanning the network for unknown nodes (Fastscan). Using this method, unknown devices can be found and configured
+ *   one by one.
  *
- * Be aware that changing the bit rate is a critical step for the network. A
- * failure will render the network unusable!
+ * Be aware that changing the bit rate is a critical step for the network. A failure will render the network unusable!
  *
- * Using this implementation, only master or slave can be included in one
- * node at a time.
+ * Using this implementation, only master or slave can be included in one node at a time.
  *
  * For CAN identifiers see #CO_Default_CAN_ID_t
  */
@@ -72,9 +68,8 @@ extern "C" {
  * @defgroup CO_LSS_cs_t LSS protocol command specifiers
  * @{
  *
- * The LSS protocols are executed between the LSS master device and the LSS
- * slave device(s) to implement the LSS services. Some LSS protocols require
- * a sequence of CAN messages.
+ * The LSS protocols are executed between the LSS master device and the LSS slave device(s) to implement the LSS
+ * services. Some LSS protocols require a sequence of CAN messages.
  *
  * As identifying method only "LSS fastscan" is supported.
  */
@@ -147,8 +142,7 @@ extern "C" {
 /** @} */ /* CO_LSS_fastscan_lss_sub_next */
 
 /**
- * The LSS address is a 128 bit number, uniquely identifying each node. It
- * consists of the values in object 0x1018.
+ * The LSS address is a 128 bit number, uniquely identifying each node. It consists of the values in object 0x1018.
  */
 typedef union {
     uint32_t addr[4];
@@ -171,8 +165,8 @@ typedef union {
  * - LSS configuration: In this state variables may be configured in the LSS slave.
  * - Final: Pseudo state, indicating the deactivation of the FSA.
  */
-#define CO_LSS_STATE_WAITING       0x00U /**< LSS FSA waiting for requests*/
-#define CO_LSS_STATE_CONFIGURATION 0x01U /**< LSS FSA waiting for configuration*/
+#define CO_LSS_STATE_WAITING       0x00U /**< LSS FSA waiting for requests */
+#define CO_LSS_STATE_CONFIGURATION 0x01U /**< LSS FSA waiting for configuration */
 /** @} */                                /* CO_LSS_state_t */
 
 /**
@@ -184,7 +178,7 @@ typedef union {
 #define CO_LSS_BIT_TIMING_500      2U /**< 500kbit/s */
 #define CO_LSS_BIT_TIMING_250      3U /**< 250kbit/s */
 #define CO_LSS_BIT_TIMING_125      4U /**< 125kbit/s */
-                                      /* reserved                5U */
+                                      /* 5U - reserved */
 #define CO_LSS_BIT_TIMING_50       6U /**< 50kbit/s */
 #define CO_LSS_BIT_TIMING_20       7U /**< 20kbit/s */
 #define CO_LSS_BIT_TIMING_10       8U /**< 10kbit/s */
@@ -192,8 +186,7 @@ typedef union {
 /** @} */                             /* CO_LSS_bitTimingTable_t */
 
 /**
- * Lookup table for conversion between bit timing table and numerical
- * bit rate
+ * Lookup table for conversion between bit timing table and numerical bit rate
  */
 static const uint16_t CO_LSS_bitTimingTableLookup[] = {1000, 800, 500, 250, 125, 0, 50, 20, 10, 0};
 
@@ -210,17 +203,17 @@ static const uint16_t CO_LSS_bitTimingTableLookup[] = {1000, 800, 500, 250, 125,
 /**
  * Macro to check if two LSS addresses are equal
  */
-#define CO_LSS_ADDRESS_EQUAL(/*CO_LSS_address_t*/ a1, /*CO_LSS_address_t*/ a2)                                         \
+#define CO_LSS_ADDRESS_EQUAL(/* CO_LSS_address_t */ a1, /* CO_LSS_address_t */ a2)                                     \
     ((a1.identity.productCode == a2.identity.productCode)                                                              \
      && (a1.identity.revisionNumber == a2.identity.revisionNumber)                                                     \
      && (a1.identity.serialNumber == a2.identity.serialNumber) && (a1.identity.vendorID == a2.identity.vendorID))
 
-/** @} */ /*@defgroup CO_LSS*/
+/** @} */ /* @defgroup CO_LSS */
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_LSS) & (CO_CONFIG_LSS_SLAVE | CO_CONFIG_LSS_MASTER) */
 
-#endif /*CO_LSS_H*/
+#endif /* CO_LSS_H */

@@ -166,7 +166,7 @@ void CO_trace_process(CO_trace_t *trace, uint32_t timestamp);
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE */
 

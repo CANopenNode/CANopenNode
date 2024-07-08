@@ -35,44 +35,34 @@ extern "C" {
 #endif
 
 /**
- * @defgroup CO_CANopen_301_fifo FIFO circular buffer
- * FIFO circular buffer for continuous data flow.
+ * @defgroup CO_CANopen_301_fifo FIFO circular buffer FIFO circular buffer for continuous data flow.
  *
  * @ingroup CO_CANopen_301
  * @{
+ * FIFO is organized as circular buffer with predefined capacity. It must be initialized by CO_fifo_init(). Functions
+ * are not not thread safe.
  *
- * FIFO is organized as circular buffer with predefined capacity. It must be
- * initialized by CO_fifo_init(). Functions are not not thread safe.
+ * It can be used as general purpose FIFO circular buffer for any data. Data can be written by CO_fifo_write() and read
+ * by CO_fifo_read() functions.
  *
- * It can be used as general purpose FIFO circular buffer for any data. Data can
- * be written by CO_fifo_write() and read by CO_fifo_read() functions.
- *
- * Buffer has additional functions for usage with CiA309-3 standard. It acts as
- * circular buffer for storing ascii commands and fetching tokens from them.
+ * Buffer has additional functions for usage with CiA309-3 standard. It acts as circular buffer for storing ascii
+ * commands and fetching tokens from them.
  */
 
 /**
  * Fifo object
  */
 typedef struct {
-    /** Buffer of size bufSize. Initialized by CO_fifo_init() */
-    uint8_t* buf;
-    /** Initialized by CO_fifo_init() */
-    size_t bufSize;
-    /** Location in the buffer, which will be next written. */
-    size_t writePtr;
-    /** Location in the buffer, which will be next read. */
-    size_t readPtr;
+    uint8_t* buf;    /**< Buffer of size bufSize. Initialized by CO_fifo_init() */
+    size_t bufSize;  /**< Initialized by CO_fifo_init() */
+    size_t writePtr; /**< Location in the buffer, which will be next written. */
+    size_t readPtr;  /**< Location in the buffer, which will be next read. */
 #if (((CO_CONFIG_FIFO)&CO_CONFIG_FIFO_ALT_READ) != 0) || defined CO_DOXYGEN
-    /** Location in the buffer, which will be next read. */
-    size_t altReadPtr;
+    size_t altReadPtr; /**< Location in the buffer, which will be next read. */
 #endif
 #if (((CO_CONFIG_FIFO)&CO_CONFIG_FIFO_ASCII_DATATYPES) != 0) || defined CO_DOXYGEN
-    /** helper variable, set to false in CO_fifo_reset(), used in some
-     * functions. */
-    bool_t started;
-    /** auxiliary variable, used in some functions. */
-    uint32_t aux;
+    bool_t started; /**< helper variable, set to false in CO_fifo_reset(), used in some functions. */
+    uint32_t aux;   /**< auxiliary variable, used in some functions. */
 #endif
 } CO_fifo_t;
 
@@ -81,8 +71,8 @@ typedef struct {
  *
  * @param fifo This object will be initialized
  * @param buf Pointer to externally defined buffer
- * @param bufSize Size of the above buffer. Usable size of the buffer will be
- * one byte less than bufSize, it is used for operation of the circular buffer.
+ * @param bufSize Size of the above buffer. Usable size of the buffer will be one byte less than bufSize, it is used for
+ * operation of the circular buffer.
  */
 void CO_fifo_init(CO_fifo_t* fifo, uint8_t* buf, size_t bufSize);
 
@@ -224,15 +214,13 @@ CO_fifo_getc(CO_fifo_t* fifo, uint8_t* buf) {
 /**
  * Write data into CO_fifo_t object.
  *
- * This function copies data from buf into internal buffer of CO_fifo_t
- * object. Function returns number of bytes successfully copied.
- * If there is not enough space in destination, not all bytes will be copied.
+ * This function copies data from buf into internal buffer of CO_fifo_t object. Function returns number of bytes
+ * successfully copied. If there is not enough space in destination, not all bytes will be copied.
  *
  * @param fifo This object
  * @param buf Buffer which will be copied
  * @param count Number of bytes in buf
- * @param [in,out] crc Externally defined variable for CRC checksum, ignored if
- * NULL
+ * @param [in,out] crc Externally defined variable for CRC checksum, ignored if NULL
  *
  * @return number of bytes actually written.
  */
@@ -241,16 +229,14 @@ size_t CO_fifo_write(CO_fifo_t* fifo, const uint8_t* buf, size_t count, uint16_t
 /**
  * Read data from CO_fifo_t object.
  *
- * This function copies data from internal buffer of CO_fifo_t object into
- * buf. Function returns number of bytes successfully copied. Function also
- * writes true into eof argument, if command delimiter character is reached.
+ * This function copies data from internal buffer of CO_fifo_t object into buf. Function returns number of bytes
+ * successfully copied. Function also writes true into eof argument, if command delimiter character is reached.
  *
  * @param fifo This object
  * @param buf Buffer into which data will be copied
  * @param count Copy up to count bytes into buffer
- * @param [out] eof If different than NULL, then search for delimiter character.
- * If found, then read up to (including) that character and set *eof to true.
- * Otherwise set *eof to false.
+ * @param [out] eof If different than NULL, then search for delimiter character. If found, then read up to (including)
+ * that character and set *eof to true. Otherwise set *eof to false.
  *
  * @return number of bytes actually read.
  */
@@ -271,8 +257,7 @@ size_t CO_fifo_altBegin(CO_fifo_t* fifo, size_t offset);
  * Ends alternate read with #CO_fifo_altRead and calculate crc checksum
  *
  * @param fifo This object
- * @param [in,out] crc Externally defined variable for CRC checksum, ignored if
- * NULL
+ * @param [in,out] crc Externally defined variable for CRC checksum, ignored if NULL
  */
 void CO_fifo_altFinish(CO_fifo_t* fifo, uint16_t* crc);
 
@@ -296,12 +281,10 @@ CO_fifo_altGetOccupied(CO_fifo_t* fifo) {
 /**
  * Alternate read data from CO_fifo_t object.
  *
- * This function is similar as CO_fifo_read(), but uses alternate read pointer
- * inside circular buffer. It reads data from the buffer and data remains in it.
- * This function uses alternate read pointer and keeps original read pointer
- * unchanged. Before using this function, alternate read pointer must be
- * initialized with CO_fifo_altBegin(). CO_fifo_altFinish() sets original read
- * pointer to alternate read pointer and so empties the buffer.
+ * This function is similar as CO_fifo_read(), but uses alternate read pointer inside circular buffer. It reads data
+ * from the buffer and data remains in it. This function uses alternate read pointer and keeps original read pointer
+ * unchanged. Before using this function, alternate read pointer must be initialized with CO_fifo_altBegin().
+ * CO_fifo_altFinish() sets original read pointer to alternate read pointer and so empties the buffer.
  *
  * @param fifo This object
  * @param buf Buffer into which data will be copied
@@ -318,22 +301,18 @@ size_t CO_fifo_altRead(CO_fifo_t* fifo, uint8_t* buf, size_t count);
  *
  * If there are some data inside the FIFO, then search for command delimiter.
  *
- * If command is long, then in the buffer may not be enough space for it.
- * In that case buffer is full and no delimiter is present. Function then
- * returns true and command should be processed for the starting tokens.
- * Buffer can later be refilled multiple times, until command is closed by
- * command delimiter.
+ * If command is long, then in the buffer may not be enough space for it. In that case buffer is full and no delimiter
+ * is present. Function then returns true and command should be processed for the starting tokens. Buffer can later be
+ * refilled multiple times, until command is closed by command delimiter.
  *
- * If this function returns different than 0, then buffer is usually read
- * by multiple CO_fifo_readToken() calls. If reads was successful, then
- * delimiter is reached and fifo->readPtr is set after the command. If any
- * CO_fifo_readToken() returns nonzero *err, then there is an error and command
- * should be cleared. All this procedure must be implemented inside single
- * function call.
+ * If this function returns different than 0, then buffer is usually read by multiple CO_fifo_readToken() calls. If
+ * reads was successful, then delimiter is reached and fifo->readPtr is set after the command. If any
+ * CO_fifo_readToken() returns nonzero *err, then there is an error and command should be cleared. All this procedure
+ * must be implemented inside single function call.
  *
  * @param fifo This object.
- * @param clear If true, then command will be cleared from the
- * buffer. If there is no delimiter, buffer will be cleared entirely.
+ * @param clear If true, then command will be cleared from the buffer. If there is no delimiter, buffer will be cleared
+ * entirely.
  *
  * @return true if command with delimiter found or buffer full.
  */
@@ -342,14 +321,12 @@ bool_t CO_fifo_CommSearch(CO_fifo_t* fifo, bool_t clear);
 /**
  * Trim spaces inside FIFO
  *
- * Function removes all non graphical characters and comments from fifo
- * buffer. It stops on first graphical character or on command delimiter (later
- * is also removed).
+ * Function removes all non graphical characters and comments from fifo buffer. It stops on first graphical character or
+ * on command delimiter (later is also removed).
  *
  * @param fifo This object.
- * @param [in, out] insideComment if set to true as input, it skips all
- * characters and searches only for delimiter. As output it is set to true, if
- * fifo is empty, is inside comment and command delimiter is not found.
+ * @param [in, out] insideComment if set to true as input, it skips all characters and searches only for delimiter. As
+ * output it is set to true, if fifo is empty, is inside comment and command delimiter is not found.
  *
  * @return true if command delimiter was found.
  */
@@ -358,19 +335,17 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t* fifo, bool_t* insideComment);
 /**
  * Get token from FIFO buffer
  *
- * Function search FIFO buffer for token. Token is string of only graphical
- * characters. Graphical character is any printable character except space with
- * acsii code within limits: 0x20 < code < 0x7F (see isgraph() function).
+ * Function search FIFO buffer for token. Token is string of only graphical characters. Graphical character is any
+ * printable character except space with acsii code within limits: 0x20 < code < 0x7F (see isgraph() function).
  *
- * If token is found, then copy it to the buf, if count is large enough. On
- * success also set readPtr to point to the next graphical character.
+ * If token is found, then copy it to the buf, if count is large enough. On success also set readPtr to point to the
+ * next graphical character.
  *
- * Each token must have at least one empty space after it (space, command
- * delimiter, '\0', etc.). Delimiter must not be graphical character.
+ * Each token must have at least one empty space after it (space, command delimiter, '\0', etc.). Delimiter must not be
+ * graphical character.
  *
- * If comment delimiter (delimComment, see #CO_fifo_init) character is found,
- * then all string till command delimiter (delimCommand, see #CO_fifo_init) will
- * be erased from the buffer.
+ * If comment delimiter (delimComment, see #CO_fifo_init) character is found, then all string till command delimiter
+ * (delimCommand, see #CO_fifo_init) will be erased from the buffer.
  *
  * See also #CO_fifo_CommSearch().
  *
@@ -378,17 +353,14 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t* fifo, bool_t* insideComment);
  * @param buf Buffer into which data will be copied. Will be terminated by '\0'.
  * @param count Copy up to count bytes into buffer
  * @param [in,out] closed This is input/output variable. Not used if NULL.
- * - As output variable it is set to 1, if command delimiter (delimCommand,
- *   see #CO_fifo_init) is found after the token and set to 0 otherwise.
+ * - As output variable it is set to 1, if command delimiter (delimCommand, see #CO_fifo_init) is found after the token
+ *   and set to 0 otherwise.
  * - As input variable it is used for verifying error condition:
- *  - *closed = 0: Set *err to true if token is empty or command delimiter
- *                 is found.
- *  - *closed = 1: Set *err to true if token is empty or command delimiter
- *                 is NOT found.
+ *  - *closed = 0: Set *err to true if token is empty or command delimiter is found.
+ *  - *closed = 1: Set *err to true if token is empty or command delimiter is NOT found.
  *  - *closed = any other value: No checking of token size or command delimiter.
- * @param [out] err If not NULL, it is set to true if token is larger than buf
- * or in matching combination in 'closed' argument. If it is already true, then
- * function returns immediately.
+ * @param [out] err If not NULL, it is set to true if token is larger than buf or in matching combination in 'closed'
+ * argument. If it is already true, then function returns immediately.
  *
  * @return Number of bytes read.
  */
@@ -436,19 +408,14 @@ size_t CO_fifo_readR642a(CO_fifo_t* fifo, char* buf, size_t count, bool_t end);
 /** Read data from fifo and output as space separated two digit ascii string,
  * see also CO_fifo_readU82a */
 size_t CO_fifo_readHex2a(CO_fifo_t* fifo, char* buf, size_t count, bool_t end);
-/** Read data from fifo and output as visible string. A visible string is
- * enclosed with double quotes. If a double quote is used within the string,
- * the quotes are escaped by a second quotes, e.g. “Hello “”World””, CANopen
- * is great”. UTF-8 characters and also line breaks works with this function.
- * Function removes all NULL and CR characters from output string.
- * See also CO_fifo_readU82a */
+/** Read data from fifo and output as visible string. A visible string is enclosed with double quotes. If a double quote
+ * is used within the string, the quotes are escaped by a second quotes, e.g. “Hello “”World””, CANopen is great”. UTF-8
+ * characters and also line breaks works with this function. Function removes all NULL and CR characters from output
+ * string. See also CO_fifo_readU82a */
 size_t CO_fifo_readVs2a(CO_fifo_t* fifo, char* buf, size_t count, bool_t end);
-/** Read data from fifo and output as mime-base64 encoded string. Encoding is as
- * specified in RFC 2045, without CR-LF, but one long string. See also
- * CO_fifo_readU82a */
+/** Read data from fifo and output as mime-base64 encoded string. Encoding is as specified in RFC 2045, without CR-LF,
+ * but one long string. See also CO_fifo_readU82a */
 size_t CO_fifo_readB642a(CO_fifo_t* fifo, char* buf, size_t count, bool_t end);
-
-/** Bitfields for status argument from CO_fifo_cpyTok2U8 function and similar */
 
 /**
  * @defgroup uint8_t Bitfields for status argument from CO_fifo_cpyTok2U8 function and similar
@@ -463,7 +430,7 @@ size_t CO_fifo_readB642a(CO_fifo_t* fifo, char* buf, size_t count, bool_t end);
 #define CO_fifo_st_errBuf  0x40U /**< Bit is set, if destination buffer is to small */
 #define CO_fifo_st_errInt  0x80U /**< Bit is set, if internal error */
 #define CO_fifo_st_errMask 0xF0U /**< Bitmask for error bits */
-/** @} */                        /* uint8_t */
+/** @} */                        /* uint8_t Bitfields */
 
 /**
  * Read ascii string from src fifo and copy as uint8_t variable to dest fifo.
@@ -493,17 +460,15 @@ size_t CO_fifo_cpyTok2I64(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status);
 size_t CO_fifo_cpyTok2R32(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status);
 /** Copy ascii string to float64_t variable, see CO_fifo_cpyTok2U8 */
 size_t CO_fifo_cpyTok2R64(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status);
-/** Copy bytes written as two hex digits into to data. Bytes may be space
- * separated. See CO_fifo_cpyTok2U8 for parameters. */
+/** Copy bytes written as two hex digits into to data. Bytes may be space separated. See CO_fifo_cpyTok2U8 for
+ * parameters. */
 size_t CO_fifo_cpyTok2Hex(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status);
-/** Copy visible string to data. A visible string must be enclosed with double
- * quotes, if it contains space. If a double quote is used within the string,
- * the quotes are escaped by a second quotes. Input string can not contain
- * newline characters. See CO_fifo_cpyTok2U8 */
+/** Copy visible string to data. A visible string must be enclosed with double quotes, if it contains space. If a double
+ * quote is used within the string, the quotes are escaped by a second quotes. Input string can not contain newline
+ * characters. See CO_fifo_cpyTok2U8 */
 size_t CO_fifo_cpyTok2Vs(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status);
-/** Read ascii mime-base64 encoded string from src fifo and copy as binary data
- * to dest fifo. Encoding is as specified in RFC 2045, without CR-LF, but one
- * long string in single line. See also CO_fifo_readU82a */
+/** Read ascii mime-base64 encoded string from src fifo and copy as binary data to dest fifo. Encoding is as specified
+ * in RFC 2045, without CR-LF, but one long string in single line. See also CO_fifo_readU82a */
 size_t CO_fifo_cpyTok2B64(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status);
 
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ASCII_DATATYPES */
@@ -512,7 +477,7 @@ size_t CO_fifo_cpyTok2B64(CO_fifo_t* dest, CO_fifo_t* src, uint8_t* status);
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_FIFO) & CO_CONFIG_FIFO_ENABLE */
 

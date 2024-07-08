@@ -41,16 +41,13 @@ extern "C" {
 #endif
 
 /**
- * @defgroup CO_Node_Guarding Node Guarding
- * CANopen Node Guarding, an older alternative to the Heartbeat protocol.
+ * @defgroup CO_Node_Guarding Node Guarding CANopen Node Guarding, an older alternative to the Heartbeat protocol.
  *
  * @ingroup CO_CANopen_301
  * @{
- * Node guarding master pools each node guarding slave at time intervals, called
- * guard time. Master sends a CAN RTR message, and slave responds. Slave also
- * monitors presence of RTR message from master and indicates error, if it
- * wasn't received within life time. ('Life time' is 'Guard time' multiplied by
- * 'Life time factor').
+ * Node guarding master pools each node guarding slave at time intervals, called guard time. Master sends a CAN RTR
+ * message, and slave responds. Slave also monitors presence of RTR message from master and indicates error, if it
+ * wasn't received within life time. ('Life time' is 'Guard time' multiplied by 'Life time factor').
  *
  * Adding Node guarding to the project:
  *  - Make sure, driver supports it. RTR bit should be part of CAN identifier.
@@ -58,9 +55,8 @@ extern "C" {
  *  - For slave add 0x100C and 0x100D objects to the Object dictionary.
  *  - For master use CO_nodeGuardingMaster_initNode() to add monitored nodes.
  *
- * @warning Usage of Node guarding is not recommended, as it is outdated and
- * uses RTR CAN functionality, which is also not recommended. Use Heartbeat and
- * Heartbeat consumer, if possible.
+ * @warning Usage of Node guarding is not recommended, as it is outdated and uses RTR CAN functionality, which is also
+ * not recommended. Use Heartbeat and Heartbeat consumer, if possible.
  *
  * ### Node Guarding slave response message contents:
  *
@@ -76,30 +72,18 @@ extern "C" {
  * Node Guarding slave object
  */
 typedef struct {
-    /** From CO_nodeGuardingSlave_init() */
-    CO_EM_t* em;
-    /** Indicates, if new rtr message received from CAN bus */
-    volatile void* CANrxNew;
-    /** Guard time in microseconds, calculated from OD_0x100C */
-    uint32_t guardTime_us;
-    /** Life time in microseconds, calculated from guardTime_us * lifeTimeFactor */
-    uint32_t lifeTime_us;
-    /** Timer for monitoring Life time, counting down from lifeTime_us. */
-    uint32_t lifeTimer;
-    /** Life time factor, from OD_0x100D */
-    uint8_t lifeTimeFactor;
-    /** Toggle bit for response */
-    bool_t toggle;
-    /** True if rtr from master is missing */
-    bool_t lifeTimeTimeout;
-    /** Extension for OD object */
-    OD_extension_t OD_100C_extension;
-    /** Extension for OD object */
-    OD_extension_t OD_100D_extension;
-    /** From CO_nodeGuardingSlave_init() */
-    CO_CANmodule_t* CANdevTx;
-    /** CAN transmit buffer for the message */
-    CO_CANtx_t* CANtxBuff;
+    CO_EM_t* em;                      /**< From CO_nodeGuardingSlave_init() */
+    volatile void* CANrxNew;          /**< Indicates, if new rtr message received from CAN bus */
+    uint32_t guardTime_us;            /**< Guard time in microseconds, calculated from OD_0x100C */
+    uint32_t lifeTime_us;             /**< Life time in microseconds, calculated from guardTime_us * lifeTimeFactor */
+    uint32_t lifeTimer;               /**< Timer for monitoring Life time, counting down from lifeTime_us. */
+    uint8_t lifeTimeFactor;           /**< Life time factor, from OD_0x100D */
+    bool_t toggle;                    /**< Toggle bit for response */
+    bool_t lifeTimeTimeout;           /**< True if rtr from master is missing */
+    OD_extension_t OD_100C_extension; /**< Extension for OD object */
+    OD_extension_t OD_100D_extension; /**< Extension for OD object */
+    CO_CANmodule_t* CANdevTx;         /**< From CO_nodeGuardingSlave_init() */
+    CO_CANtx_t* CANtxBuff;            /**< CAN transmit buffer for the message */
 } CO_nodeGuardingSlave_t;
 
 /**
@@ -108,13 +92,11 @@ typedef struct {
  * Function must be called in the communication reset section.
  *
  * @param ngs This object will be initialized.
- * @param OD_100C_GuardTime OD entry for 0x100C -"Guard time",
- * entry is required.
- * @param OD_100D_LifeTimeFactor OD entry for 0x100D -"Life time factor",
- * entry is required.
+ * @param OD_100C_GuardTime OD entry for 0x100C -"Guard time", entry is required.
+ * @param OD_100D_LifeTimeFactor OD entry for 0x100D -"Life time factor", entry is required.
  * @param em Emergency object.
- * @param CANidNodeGuarding CAN identifier for Node Guarding rtr and response
- * message (usually CO_CAN_ID_HEARTBEAT + nodeId).
+ * @param CANidNodeGuarding CAN identifier for Node Guarding rtr and response message (usually CO_CAN_ID_HEARTBEAT +
+ * nodeId).
  * @param CANdevRx CAN device for Node Guarding rtr reception.
  * @param CANdevRxIdx Index of the receive buffer in the above CAN device.
  * @param CANdevTx CAN device for Node Guarding response transmission.
@@ -136,8 +118,7 @@ CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t* ngs, OD_entry
  * @param ngs This object.
  * @param NMTstate NMT operating state.
  * @param slaveDisable If true, then Node guarding slave is disabled.
- * @param timeDifference_us Time difference from previous function call in
- * microseconds.
+ * @param timeDifference_us Time difference from previous function call in microseconds.
  * @param [out] timerNext_us info to OS - see CO_process().
  */
 void CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t* ngs, CO_NMT_internalState_t NMTstate, bool_t slaveDisable,
@@ -161,7 +142,7 @@ CO_nodeGuardingSlave_isTimeout(CO_nodeGuardingSlave_t* ngs) {
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE */
 
@@ -184,44 +165,29 @@ extern "C" {
  * Node Guarding master - monitored node
  */
 typedef struct {
-    /** Guard time in microseconds */
-    uint32_t guardTime_us;
-    /** Guard timer in microseconds, counting down */
-    uint32_t guardTimer;
-    /** CAN identifier (CO_CAN_ID_HEARTBEAT + Node Id) */
-    uint16_t ident;
-    /** NMT operating state */
-    CO_NMT_internalState_t NMTstate;
-    /** toggle bit7, expected from the next received message */
-    uint8_t toggle;
-    /** True, if response was received since last rtr message */
-    bool_t responseRecived;
-    /** True, if CANtxBuff was busy since last processing */
-    bool_t CANtxWasBusy;
-    /** True, if monitoring is active (response within time). */
-    bool_t monitoringActive;
+    uint32_t guardTime_us;           /**< Guard time in microseconds */
+    uint32_t guardTimer;             /**< Guard timer in microseconds, counting down */
+    uint16_t ident;                  /**< CAN identifier (CO_CAN_ID_HEARTBEAT + Node Id) */
+    CO_NMT_internalState_t NMTstate; /**< NMT operating state */
+    uint8_t toggle;                  /**< toggle bit7, expected from the next received message */
+    bool_t responseRecived;          /**< True, if response was received since last rtr message */
+    bool_t CANtxWasBusy;             /**< True, if CANtxBuff was busy since last processing */
+    bool_t monitoringActive;         /**< True, if monitoring is active (response within time). */
 } CO_nodeGuardingMasterNode_t;
 
 /**
  * Node Guarding master object
  */
 typedef struct {
-    /** From CO_nodeGuardingMaster_init() */
-    CO_EM_t* em;
-    /** From CO_nodeGuardingMaster_init() */
-    CO_CANmodule_t* CANdevTx;
-    /** From CO_nodeGuardingMaster_init() */
-    uint16_t CANdevTxIdx;
-    /** CAN transmit buffer for the message */
-    CO_CANtx_t* CANtxBuff;
-    /** True, if all monitored nodes are active or no node is monitored. Can be
-     * read by the application */
-    bool_t allMonitoredActive;
-    /** True, if all monitored nodes are NMT operational or no node is
-     * monitored. Can be read by the application */
-    bool_t allMonitoredOperational;
-    /** Array of monitored nodes */
-    CO_nodeGuardingMasterNode_t nodes[CO_CONFIG_NODE_GUARDING_MASTER_COUNT];
+    CO_EM_t* em;               /**< From CO_nodeGuardingMaster_init() */
+    CO_CANmodule_t* CANdevTx;  /**< From CO_nodeGuardingMaster_init() */
+    uint16_t CANdevTxIdx;      /**< From CO_nodeGuardingMaster_init() */
+    CO_CANtx_t* CANtxBuff;     /**< CAN transmit buffer for the message */
+    bool_t allMonitoredActive; /**< True, if all monitored nodes are active or no node is monitored. Can be read by the
+                                  application */
+    bool_t allMonitoredOperational; /**< True, if all monitored nodes are NMT operational or no node is monitored. Can
+                                       be read by the application */
+    CO_nodeGuardingMasterNode_t nodes[CO_CONFIG_NODE_GUARDING_MASTER_COUNT]; /**< Array of monitored nodes */
 } CO_nodeGuardingMaster_t;
 
 /**
@@ -244,12 +210,10 @@ CO_ReturnError_t CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t* ngm, CO_EM_
 /**
  * Initialize node inside Node Guarding master object.
  *
- * Function may be called any time after CO_nodeGuardingMaster_init(). It
- * configures monitoring of the remote node.
+ * Function may be called any time after CO_nodeGuardingMaster_init(). It configures monitoring of the remote node.
  *
  * @param ngm Node Guarding master object.
- * @param index Index of the slot, which will be configured.
- * 0 <= index < CO_CONFIG_NODE_GUARDING_MASTER_COUNT.
+ * @param index Index of the slot, which will be configured. 0 <= index < CO_CONFIG_NODE_GUARDING_MASTER_COUNT.
  * @param nodeId Node Id of the monitored node.
  * @param guardTime_ms Guard time of the monitored node.
  *
@@ -264,8 +228,7 @@ CO_ReturnError_t CO_nodeGuardingMaster_initNode(CO_nodeGuardingMaster_t* ngm, ui
  * Function must be called cyclically.
  *
  * @param ngm This object.
- * @param timeDifference_us Time difference from previous function call in
- * microseconds.
+ * @param timeDifference_us Time difference from previous function call in microseconds.
  * @param [out] timerNext_us info to OS - see CO_process().
  */
 void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t* ngm, uint32_t timeDifference_us, uint32_t* timerNext_us);
@@ -274,7 +237,7 @@ void CO_nodeGuardingMaster_process(CO_nodeGuardingMaster_t* ngm, uint32_t timeDi
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_NODE_GUARDING) & CO_CONFIG_NODE_GUARDING_MASTER_ENABLE */
 
