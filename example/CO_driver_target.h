@@ -5,30 +5,23 @@
  * @author      Janez Paternoster
  * @copyright   2021 Janez Paternoster
  *
- * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <https://github.com/CANopenNode/CANopenNode>.
- * For more information on CANopen see <http://www.can-cia.org/>.
+ * This file is part of <https://github.com/CANopenNode/CANopenNode>, a CANopen Stack.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
-
 
 #ifndef CO_DRIVER_TARGET_H
 #define CO_DRIVER_TARGET_H
 
-/* This file contains device and application specific definitions.
- * It is included from CO_driver.h, which contains documentation
- * for common definitions below. */
+/* This file contains device and application specific definitions. It is included from CO_driver.h, which contains
+ * documentation for common definitions below. */
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -42,9 +35,7 @@
 extern "C" {
 #endif
 
-/* Stack configuration override default values.
- * For more information see file CO_config.h. */
-
+/* Stack configuration override default values. For more information see file CO_config.h. */
 
 /* Basic definitions. If big endian, CO_SWAP_xx macros must swap bytes. */
 #define CO_LITTLE_ENDIAN
@@ -54,22 +45,21 @@ extern "C" {
 /* NULL is defined in stddef.h */
 /* true and false are defined in stdbool.h */
 /* int8_t to uint64_t are defined in stdint.h */
-typedef uint_fast8_t            bool_t;
-typedef float                   float32_t;
-typedef double                  float64_t;
-
+typedef uint_fast8_t bool_t;
+typedef float float32_t;
+typedef double float64_t;
 
 /* Access to received CAN message */
 #define CO_CANrxMsg_readIdent(msg) ((uint16_t)0)
 #define CO_CANrxMsg_readDLC(msg)   ((uint8_t)0)
-#define CO_CANrxMsg_readData(msg)  ((const uint8_t *)NULL)
+#define CO_CANrxMsg_readData(msg)  ((const uint8_t*)NULL)
 
 /* Received message object */
 typedef struct {
     uint16_t ident;
     uint16_t mask;
-    void *object;
-    void (*CANrx_callback)(void *object, void *message);
+    void* object;
+    void (*CANrx_callback)(void* object, void* message);
 } CO_CANrx_t;
 
 /* Transmit message object */
@@ -83,10 +73,10 @@ typedef struct {
 
 /* CAN module object */
 typedef struct {
-    void *CANptr;
-    CO_CANrx_t *rxArray;
+    void* CANptr;
+    CO_CANrx_t* rxArray;
     uint16_t rxSize;
-    CO_CANtx_t *txArray;
+    CO_CANtx_t* txArray;
     uint16_t txSize;
     uint16_t CANerrorStatus;
     volatile bool_t CANnormal;
@@ -97,17 +87,15 @@ typedef struct {
     uint32_t errOld;
 } CO_CANmodule_t;
 
-
 /* Data storage object for one entry */
 typedef struct {
-    void *addr;
+    void* addr;
     size_t len;
     uint8_t subIndexOD;
     uint8_t attr;
     /* Additional variables (target specific) */
-    void *addrNV;
+    void* addrNV;
 } CO_storage_entry_t;
-
 
 /* (un)lock critical section in CO_CANsend() */
 #define CO_LOCK_CAN_SEND(CAN_MODULE)
@@ -124,9 +112,16 @@ typedef struct {
 /* Synchronization between CAN receive and message processing threads. */
 #define CO_MemoryBarrier()
 #define CO_FLAG_READ(rxNew) ((rxNew) != NULL)
-#define CO_FLAG_SET(rxNew) {CO_MemoryBarrier(); rxNew = (void*)1L;}
-#define CO_FLAG_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = NULL;}
-
+#define CO_FLAG_SET(rxNew)                                                                                             \
+    {                                                                                                                  \
+        CO_MemoryBarrier();                                                                                            \
+        rxNew = (void*)1L;                                                                                             \
+    }
+#define CO_FLAG_CLEAR(rxNew)                                                                                           \
+    {                                                                                                                  \
+        CO_MemoryBarrier();                                                                                            \
+        rxNew = NULL;                                                                                                  \
+    }
 
 #ifdef __cplusplus
 }

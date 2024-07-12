@@ -6,21 +6,16 @@
  * @author      Janez Paternoster
  * @copyright   2020 Janez Paternoster
  *
- * This file is part of CANopenNode, an opensource CANopen Stack.
- * Project home page is <https://github.com/CANopenNode/CANopenNode>.
- * For more information on CANopen see <http://www.can-cia.org/>.
+ * This file is part of <https://github.com/CANopenNode/CANopenNode>, a CANopen Stack.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 #ifndef CO_LEDS_H
@@ -31,11 +26,10 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_LEDS
-#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE | \
-                        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+#define CO_CONFIG_LEDS (CO_CONFIG_LEDS_ENABLE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 
-#if (((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0) || defined CO_DOXYGEN
+#if (((CO_CONFIG_LEDS)&CO_CONFIG_LEDS_ENABLE) != 0) || defined CO_DOXYGEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,9 +41,8 @@ extern "C" {
  *
  * @ingroup CO_CANopen_303
  * @{
- *
- * CIA 303-3 standard specifies indicator LED diodes, which reflects state of
- * the CANopen device. Green and red leds or bi-color led can be used.
+ * CIA 303-3 standard specifies indicator LED diodes, which reflects state of the CANopen device. Green and red leds or
+ * bi-color led can be used.
  *
  * CANopen green led - run led:
  * - flickering: LSS configuration state is active
@@ -68,46 +61,42 @@ extern "C" {
  * - quadruple flash: PDO has not been received before the event timer elapsed
  * - on: CAN bus off
  *
- * To apply on/off state to led diode, use #CO_LED_RED and #CO_LED_GREEN macros.
- * For CANopen leds use CO_LED_BITFIELD_t CO_LED_CANopen. Other bitfields are
- * available for implementing custom leds.
+ * To apply on/off state to led diode, use #CO_LED_RED and #CO_LED_GREEN macros. For CANopen leds use CO_LED_BITFIELD_t
+ * CO_LED_CANopen. Other bitfields are available for implementing custom leds.
  */
 
 /**
  * @defgroup CO_LED_BITFIELD_t Bitfield for combining with red or green led
  * @{
- * 
  */
-#define CO_LED_flicker  0x01U  /**< LED flickering 10Hz */
-#define CO_LED_blink    0x02U  /**< LED blinking 2,5Hz */
-#define CO_LED_flash_1  0x04U  /**< LED single flash */
-#define CO_LED_flash_2  0x08U  /**< LED double flash */
-#define CO_LED_flash_3  0x10U  /**< LED triple flash */
-#define CO_LED_flash_4  0x20U  /**< LED quadruple flash */
-#define CO_LED_CANopen  0x80U  /**< LED CANopen according to CiA 303-3 */
+#define CO_LED_flicker               0x01U /**< LED flickering 10Hz */
+#define CO_LED_blink                 0x02U /**< LED blinking 2,5Hz */
+#define CO_LED_flash_1               0x04U /**< LED single flash */
+#define CO_LED_flash_2               0x08U /**< LED double flash */
+#define CO_LED_flash_3               0x10U /**< LED triple flash */
+#define CO_LED_flash_4               0x20U /**< LED quadruple flash */
+#define CO_LED_CANopen               0x80U /**< LED CANopen according to CiA 303-3 */
 
 /** @} */ /* CO_LED_BITFIELD_t */
 
 /** Get on/off state for green led for specified bitfield */
-#define CO_LED_RED(LEDs, BITFIELD) ((((LEDs)->LEDred & BITFIELD) != 0U) ? 1U : 0U)
+#define CO_LED_RED(LEDs, BITFIELD)   ((((LEDs)->LEDred & BITFIELD) != 0U) ? 1U : 0U)
 /** Get on/off state for green led for specified bitfield */
 #define CO_LED_GREEN(LEDs, BITFIELD) ((((LEDs)->LEDgreen & BITFIELD) != 0U) ? 1U : 0U)
-
 
 /**
  * LEDs object, initialized by CO_LEDs_init()
  */
-typedef struct{
-    uint32_t            LEDtmr50ms;     /**< 50ms led timer */
-    uint8_t             LEDtmr200ms;    /**< 200ms led timer */
-    uint8_t             LEDtmrflash_1;  /**< single flash led timer */
-    uint8_t             LEDtmrflash_2;  /**< double flash led timer */
-    uint8_t             LEDtmrflash_3;  /**< triple flash led timer */
-    uint8_t             LEDtmrflash_4;  /**< quadruple flash led timer */
-    uint8_t             LEDred;         /**< red led #CO_LED_BITFIELD_t */
-    uint8_t             LEDgreen;       /**< green led #CO_LED_BITFIELD_t */
+typedef struct {
+    uint32_t LEDtmr50ms;   /**< 50ms led timer */
+    uint8_t LEDtmr200ms;   /**< 200ms led timer */
+    uint8_t LEDtmrflash_1; /**< single flash led timer */
+    uint8_t LEDtmrflash_2; /**< double flash led timer */
+    uint8_t LEDtmrflash_3; /**< triple flash led timer */
+    uint8_t LEDtmrflash_4; /**< quadruple flash led timer */
+    uint8_t LEDred;        /**< red led #CO_LED_BITFIELD_t */
+    uint8_t LEDgreen;      /**< green led #CO_LED_BITFIELD_t */
 } CO_LEDs_t;
-
 
 /**
  * Initialize LEDs object.
@@ -118,8 +107,7 @@ typedef struct{
  *
  * @return #CO_ReturnError_t CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
-CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs);
-
+CO_ReturnError_t CO_LEDs_init(CO_LEDs_t* LEDs);
 
 /**
  * Process indicator states
@@ -127,8 +115,7 @@ CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs);
  * Function must be called cyclically.
  *
  * @param LEDs This object.
- * @param timeDifference_us Time difference from previous function call in
- *                          [microseconds].
+ * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param NMTstate NMT operating state.
  * @param LSSconfig Node is in LSS configuration state indication.
  * @param ErrCANbusOff CAN bus off indication (highest priority).
@@ -140,24 +127,15 @@ CO_ReturnError_t CO_LEDs_init(CO_LEDs_t *LEDs);
  * @param firmwareDownload Firmware download is in progress indication.
  * @param [out] timerNext_us info to OS - see CO_process().
  */
-void CO_LEDs_process(CO_LEDs_t *LEDs,
-                     uint32_t timeDifference_us,
-                     CO_NMT_internalState_t NMTstate,
-                     bool_t LSSconfig,
-                     bool_t ErrCANbusOff,
-                     bool_t ErrCANbusWarn,
-                     bool_t ErrRpdo,
-                     bool_t ErrSync,
-                     bool_t ErrHbCons,
-                     bool_t ErrOther,
-                     bool_t firmwareDownload,
-                     uint32_t *timerNext_us);
+void CO_LEDs_process(CO_LEDs_t* LEDs, uint32_t timeDifference_us, CO_NMT_internalState_t NMTstate, bool_t LSSconfig,
+                     bool_t ErrCANbusOff, bool_t ErrCANbusWarn, bool_t ErrRpdo, bool_t ErrSync, bool_t ErrHbCons,
+                     bool_t ErrOther, bool_t firmwareDownload, uint32_t* timerNext_us);
 
 /** @} */ /* CO_LEDs */
 
 #ifdef __cplusplus
 }
-#endif /*__cplusplus*/
+#endif /* __cplusplus */
 
 #endif /* (CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE */
 

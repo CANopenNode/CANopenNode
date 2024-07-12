@@ -45,7 +45,7 @@ void myFunc(OD_t *od) {
         /* Locking is necessary from mainline thread, but must not be used from
          * timer interval (real-time) thread. Locking is not necessary in the
          * CANoopen initialization section. Locking is also not necessary, if
-         * OD variable is not mappable to PDO and not accessed from RT thread.*/
+         * OD variable is not mappable to PDO and not accessed from RT thread. */
         CO_LOCK_OD(CANmodule);
         odRet = io1008.read(&io1008.stream, &buf[0], sizeof(buf), &bytesRd);
         CO_UNLOCK_OD(CANmodule);
@@ -75,10 +75,10 @@ If OD object has OD extension enabled, then direct access to its OD variables mu
 #include ODxyz.h
 
 void myFuncGlob(void) {
-    //Direct address instead of OD_find()
+    /* Direct address instead of OD_find() */
     OD_entry_t *entry_errReg = ODxyz_1001_errorRegister;
 
-    //Direct access to OD variable
+    /* Direct access to OD variable */
     uint32_t devType = ODxyz_0.x1000_deviceType;
     ODxyz_0.x1018_identity.serialNumber = 0x12345678;
 }

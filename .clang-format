@@ -16,7 +16,7 @@ AlignConsecutiveBitFields:
 AlignConsecutiveDeclarations: None
 AlignEscapedNewlines: Right
 AlignOperands: Align
-SortIncludes: true
+SortIncludes: false
 InsertBraces: true # Control statements must have curly brackets
 AlignTrailingComments: true
 AllowAllArgumentsOnNextLine: true
@@ -135,7 +135,7 @@ PenaltyIndentedWhitespace: 0
 PointerAlignment: Left
 PPIndentWidth: -1
 ReferenceAlignment: Pointer
-ReflowComments: false
+ReflowComments: true
 RemoveBracesLLVM: false
 SeparateDefinitionBlocks: Always
 ShortNamespaceLines: 1
