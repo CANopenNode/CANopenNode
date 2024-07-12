@@ -740,6 +740,7 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
         while (CO_FLAG_READ(RPDO->CANrxNew[bufNo])) {
             rpdoReceived = true;
             uint8_t* dataRPDO = RPDO->CANrxData[bufNo];
+            OD_size_t verifyLength = 0U;
 
             /* Clear the flag. If between the copy operation CANrxNew is set
              * by receive thread, then copy the latest data again. */
@@ -752,6 +753,12 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
                 /* get mappedLength from temporary storage */
                 OD_size_t* dataOffset = &OD_IO->stream.dataOffset;
                 uint8_t mappedLength = (uint8_t)(*dataOffset);
+
+                /* additional safety check. */
+                verifyLength += (OD_size_t)mappedLength;
+                if (verifyLength > CO_PDO_MAX_SIZE) {
+                    break;
+                }
 
                 /* length of OD variable may be larger than mappedLength */
                 OD_size_t ODdataLength = OD_IO->stream.dataLength;
@@ -794,11 +801,17 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
             }
 
 #else
+            verifyLength = (OD_size_t)PDO->dataLength;
             for (uint8_t i = 0; i < PDO->dataLength; i++) {
                 *PDO->mapPointer[i] = dataRPDO[i];
             }
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS */
 
+            if (verifyLength > CO_PDO_MAX_SIZE || verifyLength != (OD_size_t)PDO->dataLength) {
+                /* bug in software, should not happen */
+                CO_errorReport(PDO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL,
+                               (0x100000 | verifyLength));
+            }
         } /* while (CO_FLAG_READ(RPDO->CANrxNew[bufNo])) */
 
         /* verify RPDO timeout */
@@ -1114,6 +1127,8 @@ static CO_ReturnError_t
 CO_TPDOsend(CO_TPDO_t* TPDO) {
     CO_PDO_common_t* PDO = &TPDO->PDO_common;
     uint8_t* dataTPDO = &TPDO->CANtxBuff->data[0];
+    OD_size_t verifyLength = 0U;
+
 #if OD_FLAGS_PDO_SIZE > 0
     bool_t eventDriven = ((TPDO->transmissionType == (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_ACYCLIC)
                           || (TPDO->transmissionType >= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_EVENT_LO));
@@ -1126,6 +1141,12 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
 
         /* get mappedLength from temporary storage */
         uint8_t mappedLength = (uint8_t)stream->dataOffset;
+
+        /* additional safety check */
+        verifyLength += (OD_size_t)mappedLength;
+        if (verifyLength > CO_PDO_MAX_SIZE) {
+            break;
+        }
 
         /* length of OD variable may be larger than mappedLength */
         OD_size_t ODdataLength = stream->dataLength;
@@ -1177,6 +1198,7 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
         dataTPDO += mappedLength;
     }
 #else
+    verifyLength = (OD_size_t)PDO->dataLength;
     for (uint8_t i = 0; i < PDO->dataLength; i++) {
         dataTPDO[i] = *PDO->mapPointer[i];
 
@@ -1189,6 +1211,12 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
 #endif
     }
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS */
+
+    if (verifyLength > CO_PDO_MAX_SIZE || verifyLength != (OD_size_t)PDO->dataLength) {
+        /* bug in software, should not happen */
+        CO_errorReport(PDO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, (0x200000 | verifyLength));
+        return CO_ERROR_DATA_CORRUPT;
+    }
 
     TPDO->sendRequest = false;
 #if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_TIMERS_ENABLE) != 0
