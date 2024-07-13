@@ -80,9 +80,10 @@ typedef struct {
     uint32_t* OD_1007_window;     /**< Pointer to variable in OD, "Synchronous window length" in microseconds */
 
 #if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
-    bool_t isProducer;     /**< True, if device is SYNC producer. Calculated from _COB ID SYNC Message_ variable from
-                              Object dictionary(index 0x1005).*/
-    CO_CANtx_t* CANtxBuff; /**< CAN transmit buffer inside CANdevTx */
+    bool_t isProducer;        /**< True, if device is SYNC producer. Calculated from _COB ID SYNC Message_ variable
+                                 from Object dictionary(index 0x1005).*/
+    CO_CANmodule_t* CANdevTx; /**< From CO_SYNC_init() */
+    CO_CANtx_t* CANtxBuff;    /**< CAN transmit buffer inside CANdevTx */
 #endif
 
 #if ((CO_CONFIG_SYNC)&CO_CONFIG_FLAG_OD_DYNAMIC) || defined CO_DOXYGEN
@@ -92,7 +93,6 @@ typedef struct {
     uint16_t CAN_ID;                  /**< CAN ID of the SYNC message. Calculated from _COB ID SYNC Message_ variable
                                          from Object dictionary (index 0x1005). */
 #if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
-    CO_CANmodule_t* CANdevTx;         /**< From CO_SYNC_init() */
     uint16_t CANdevTxIdx;             /**< From CO_SYNC_init() */
     OD_extension_t OD_1019_extension; /**< Extension for OD object */
 #endif
