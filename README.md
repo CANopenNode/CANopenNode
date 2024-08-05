@@ -179,7 +179,7 @@ Object dictionary editor
 ------------------------
 Object Dictionary is one of the most essential parts of CANopen.
 
-To customize the Object Dictionary it is necessary to use external application: [CANopenEditor](https://github.com/CANopenNode/CANopenEditor). Latest pre-compiled [binaries](https://github.com/CANopenNode/CANopenEditor/archive/refs/heads/build.zip) are also available. Just extract the zip file and run the `EDSEditor.exe`. In Linux it runs with mono, which is available by default on Ubuntu. Just set file permissions to "executable" and then execute the program.
+To customize the Object Dictionary it is necessary to use external application: [CANopenEditor](https://github.com/CANopenNode/CANopenEditor). Binaries are also available there. In Linux it runs with mono, which is available by default on Ubuntu.
 
 In program, in preferences, set exporter to "CANopenNode_V4". Then start new project or open the existing project file.
 
