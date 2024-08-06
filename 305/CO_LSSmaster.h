@@ -144,7 +144,7 @@ CO_ReturnError_t CO_LSSmaster_init(CO_LSSmaster_t* LSSmaster, uint16_t timeout_m
  *
  * On LSS, a "negative ack" is signaled by the slave not answering. Because of that, a low timeout value can
  * significantly increase protocol speed in some cases (e.g. fastscan). However, as soon as there is activity on the
- * bus, LSS messages can be delayed because of their low CAN network priority (see #CO_Default_CAN_ID_t).
+ * bus, LSS messages can be delayed because of their low CAN network priority (see @ref CO_Default_CAN_ID_t).
  *
  * @remark Be aware that a "late response" will seriously mess up LSS, so this value must be selected "as high as
  * necessary and as low as possible". CiA does neither specify nor recommend a value.
@@ -300,7 +300,7 @@ CO_LSSmaster_return_t CO_LSSmaster_InquireLssAddress(CO_LSSmaster_t* LSSmaster, 
  *
  * @param LSSmaster This object.
  * @param timeDifference_us Time difference from previous function call in [microseconds]. Zero when request is started.
- * @param lssInquireCs One of CO_LSS_INQUIRE_xx commands from #CO_LSS_cs_t.
+ * @param lssInquireCs One of CO_LSS_INQUIRE_xx commands from @ref CO_LSS_command_specifiers.
  * @param [out] value read result when function returns successfully
  * @return #CO_LSSmaster_ILLEGAL_ARGUMENT, #CO_LSSmaster_INVALID_STATE, #CO_LSSmaster_WAIT_SLAVE, #CO_LSSmaster_OK,
  * #CO_LSSmaster_TIMEOUT

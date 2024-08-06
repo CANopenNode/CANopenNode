@@ -33,7 +33,7 @@ extern "C" {
  *
  * @ingroup CO_CANopen_301
  * @{
- * See @ref doc/objectDictionary.md
+ * See @ref md_doc_2objectDictionary
  */
 
 #ifndef CO_OD_OWN_TYPES

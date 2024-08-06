@@ -395,8 +395,6 @@ void CO_GTWA_log_print(CO_GTWA_t* gtwa, const char* message);
  * is possible. Can be connected to hardware switch, for example.
  * @param timeDifference_us Time difference from previous function call in [microseconds].
  * @param [out] timerNext_us info to OS - see CO_process().
- *
- * @return CO_ReturnError_t: CO_ERROR_NO on success or CO_ERROR_ILLEGAL_ARGUMENT
  */
 void CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint32_t* timerNext_us);
 

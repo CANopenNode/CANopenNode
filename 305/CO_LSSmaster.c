@@ -28,7 +28,7 @@
 /*
  * @defgroup CO_LSSmaster_state_t
  * @{
- * LSS master slave select state machine. Compared to #CO_LSS_state_t this has information if we
+ * LSS master slave select state machine. Compared to @ref CO_LSS_STATE_state this has information if we
  * currently have selected one or all slaves. This allows for some basic error checking.
  */
 #define CO_LSSmaster_STATE_WAITING             0x00U
@@ -306,9 +306,9 @@ CO_LSSmaster_swStateDeselect(CO_LSSmaster_t* LSSmaster) {
  * - byte 2 -> Manufacturer Error, currently not used
  *
  * enums for the errorCode are
- * - CO_LSS_cfgNodeId_t
- * - CO_LSS_cfgBitTiming_t
- * - CO_LSS_cfgStore_t
+ * - CO_LSS_CFG_NODE_ID_status
+ * - CO_LSS_CFG_BIT_TIMING
+ * - CO_LSS_CFG_STORE_status
  */
 static CO_LSSmaster_return_t
 CO_LSSmaster_configureCheckWait(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference_us, uint8_t csWait) {

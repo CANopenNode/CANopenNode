@@ -1,8 +1,8 @@
 Object Dictionary
 =================
 
-Definitions from CiA 301 {#definitions-from-cia-301}
-----------------------------------------------------
+Definitions from CiA 301
+------------------------
 The **Object Dictionary** is a collection of all the data items which have an influence on the behavior of the application objects, the communication objects and the state machine used on this device. It serves as an interface between the communication and the application.
 The object dictionary is essentially a grouping of objects accessible via the network in an ordered pre-defined fashion. Each object within the object dictionary is addressed using a 16-bit index and a 8-bit sub-index.
 
@@ -11,8 +11,8 @@ A **SDO** (Service Data Object) is providing direct access to object entries of 
 A **PDO** (Process Data Object) is providing real-time data transfer of object entries of a CANopen device's object dictionary. The transfer of PDO is performed with no protocol overhead. The PDO correspond to objects in the object dictionary and provide the interface to the application objects. Data type and mapping of application objects into a PDO is determined by a corresponding PDO mapping structure within the object dictionary.
 
 
-Operation {#operation}
-----------------------
+Operation
+---------
 ### Terms
 The term **OD object** means object from object dictionary located at specific 16-bit index. There are different types of OD objects in CANopen: variables, arrays and records (structures). Each OD object contains pointer to actual data, data length(s) and attribute(s). See @ref OD_objectTypes_t.
 
@@ -85,8 +85,8 @@ void myFuncGlob(void) {
 ```
 
 
-Object Dictionary Example {#object-dictionary-example}
-------------------------------------------------------
+Object Dictionary Example
+-------------------------
 Actual Object dictionary for one CANopen device is defined by pair of OD_xyz.h and ODxyz.c files.
 
 Suffix "xyz" is unique name of the object dictionary. If single default object dictionary is used, suffix is omitted. Such way configuration with multiple object dictionaries is possible.
@@ -239,8 +239,8 @@ OD_t *ODxyz = &_ODxyz;
 ```
 
 
-XML Device Description {#xml-device-description}
-------------------------------------------------
+XML Device Description
+----------------------
 CANopen device description - XML schema definition - is specified by CiA 311 standard.
 
 CiA 311 complies with standard ISO 15745-1:2005/Amd1 (Industrial automation systems and integration - Open systems application integration framework).
@@ -450,8 +450,8 @@ Other elements listed in the above XML example are required by the standard. The
 (4) Default value for DOMAIN is stored as empty string.
 
 
-Object Dictionary Requirements By CANopenNode {#object-dictionary-requirements-by-canopennode}
-----------------------------------------------------------------------------------------------
+Object Dictionary Requirements By CANopenNode
+---------------------------------------------
 * **Used by** column indicates CANopenNode object or its part, which uses the OD object. It also indicates, if OD object is required or optional for actual configuration. For the configuration of the CANopenNode objects see [Stack configuration](301/CO_config.h). If CANopenNode object or its part is disabled in stack configuration, then OD object is not used. Note that OD objects: 1000, 1001 and 1017 and 1018 are mandatory for CANopen.
 * **CO_countLabel** column indicates, which value must have property "CO_countLabel" inside OD object.
 

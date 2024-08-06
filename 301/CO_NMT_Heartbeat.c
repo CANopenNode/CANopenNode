@@ -72,7 +72,7 @@ OD_write_1017(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 CO_ReturnError_t
 CO_NMT_init(CO_NMT_t* NMT, OD_entry_t* OD_1017_ProducerHbTime, CO_EM_t* em, uint8_t nodeId, uint16_t NMTcontrol,
             uint16_t firstHBTime_ms, CO_CANmodule_t* NMT_CANdevRx, uint16_t NMT_rxIdx, uint16_t CANidRxNMT,
-#if ((CO_CONFIG_NMT)&CO_CONFIG_NMT_MASTER) != 0
+#if (((CO_CONFIG_NMT)&CO_CONFIG_NMT_MASTER) != 0) || defined CO_DOXYGEN
             CO_CANmodule_t* NMT_CANdevTx, uint16_t NMT_txIdx, uint16_t CANidTxNMT,
 #endif
             CO_CANmodule_t* HB_CANdevTx, uint16_t HB_txIdx, uint16_t CANidTxHB, uint32_t* errInfo) {

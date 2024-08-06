@@ -44,7 +44,7 @@ extern "C" {
  *
  * @ingroup CO_CANopen_301
  * @{
- * For CAN identifier see #CO_Default_CAN_ID_t
+ * For CAN identifier see @ref CO_Default_CAN_ID_t
  *
  * SYNC message is used for synchronization of the nodes on network. One node can be SYNC producer, others can be SYNC
  * consumers. Synchronous TPDOs are transmitted after the CANopen SYNC message. Synchronous received PDOs are

@@ -75,7 +75,7 @@ extern "C" {
  */
 typedef struct {
     CO_LSS_address_t lssAddress;  /**< From #CO_LSSslave_init */
-    uint8_t lssState;             /**< #CO_LSS_state_t */
+    uint8_t lssState;             /**< @ref CO_LSS_STATE_state */
     CO_LSS_address_t lssSelect;   /**< Received LSS Address by select */
     CO_LSS_address_t lssFastscan; /**< Received LSS Address by fastscan */
     uint8_t fastscanPos;          /**< Current state of fastscan */
@@ -160,7 +160,7 @@ bool_t CO_LSSslave_process(CO_LSSslave_t* LSSslave);
  * Get current LSS state
  *
  * @param LSSslave This object.
- * @return #CO_LSS_state_t
+ * @return @ref CO_LSS_STATE_state
  */
 static inline uint8_t
 CO_LSSslave_getState(CO_LSSslave_t* LSSslave) {

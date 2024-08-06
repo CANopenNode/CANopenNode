@@ -57,15 +57,13 @@ Documentation, support and contributions
 ----------------------------------------
 All code is documented in the source header files. Some additional documents are in `doc` directory.
 
-To generate complete html documentation, run [doxygen](http://www.doxygen.nl/) in the project base directory: `sudo apt install doxygen graphviz pdf2svg; doxygen > /dev/null`
+To generate complete html documentation, run [doxygen](https://www.doxygen.nl/index.html) in the project base directory: `sudo apt install doxygen graphviz pdf2svg; doxygen > /dev/null`
 
 Complete generated documentation is also available online: https://canopennode.github.io
 
 Tutorial, demo device and tests are available in [CANopenDemo](https://github.com/CANopenNode/CANopenDemo) repository.
 
 Report issues on https://github.com/CANopenNode/CANopenNode/issues
-
-Older discussion group is on Sourceforge: http://sourceforge.net/p/canopennode/discussion/387151/
 
 Contributions are welcome. Best way to contribute your code is to fork a project, modify it and then send a pull request. Please follow the [Recommended C style and coding rules](https://github.com/MaJerle/c-code-style), use .clang-format file for automatic code formatting.
 

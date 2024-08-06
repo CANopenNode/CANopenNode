@@ -5,7 +5,7 @@
  * @ingroup     CO_SRDO
  * @author      Robert Grüning
  * @copyright   2020 Robert Grüning
- * @copyright   2024 temi54c1l8@github
+ * @copyright   2024 temi54c1l8(at)github
  * @copyright   2024 Janez Paternoster
  *
  * This file is part of <https://github.com/CANopenNode/CANopenNode>, a CANopen Stack.

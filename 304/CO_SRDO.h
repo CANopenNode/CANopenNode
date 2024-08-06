@@ -5,7 +5,7 @@
  * @ingroup     CO_SRDO
  * @author      Robert Grüning
  * @copyright   2020 Robert Grüning
- * @copyright   2024 temi54c1l8@github
+ * @copyright   2024 temi54c1l8(at)github
  * @copyright   2024 Janez Paternoster
  *
  * This file is part of <https://github.com/CANopenNode/CANopenNode>, a CANopen Stack.
@@ -52,24 +52,23 @@ extern "C" {
  * distinction between sending and receiving SRDO is made at runtime (for PDO it is compile time). If the security
  * protocol is used, at least one SRDO is mandatory.
  *
- * If there is erroneous structure of OD entries for SRDO parameters, then @CO_SRDO_init() function returns error and
+ * If there is erroneous structure of OD entries for SRDO parameters, then CO_SRDO_init() function returns error and
  * CANopen device doesn't work. It is necessary to repair Object Dictionary and reprogram the device.
  *
- * If there are erroneous values inside SRDO parameters, then Emergency message CO_EM_SRDO_CONFIGURATION is sent. Info
- * code (32bit) contains OD index, subindex and additional byte, which helps to determine erroneous OD object.
+ * If there are erroneous values inside SRDO parameters, then Emergency message @ref CO_EM_SRDO_CONFIGURATION is sent.
+ * Info code (32bit) contains OD index, subindex and additional byte, which helps to determine erroneous OD object.
  *
- * SRDO configuration consists of one @CO_SRDO_init_start(), @CO_SRDO_init() for each SRDO and one @CO_SRDO_init_end().
- * These may be called in CANopen initialization section after all other CANopen objects are initialized. If SRDO OD
- * parameters are edited (in NMT pre-operational state), NMT communication reset is necessary. Alternatively SRDO
- * configuration may be executed just after transition to NMT operational state.
+ * SRDO is first configured in CANopen in CANopen initialization section after all other CANopen objects are
+ * initialized. It consists of one CO_SRDOGuard_init() and CO_SRDO_init() for each SRDO. On transition to NMT
+ * operational CO_SRDO_config() must be called for each SRDO.
  *
- * @CO_SRDO_process() must be executed cyclically, similar as PDO processing. Function is fast, no time consuming tasks.
- * Function returns @CO_SRDO_state_t value, which may be used to determine working-state or safe-state of safety related
- * device. If return values from all SRDO objects are >= CO_SRDO_state_communicationEstablished, then working state is
- * allowed. Otherwise SR device must be in safe state.
+ * CO_SRDO_process() must be executed cyclically, similar as PDO processing. Function is fast, no time consuming tasks.
+ * Function returns @ref CO_SRDO_state_t value, which may be used to determine working-state or safe-state of safety
+ * related device. If return values from all SRDO objects are >= @ref CO_SRDO_state_communicationEstablished, then
+ * working state is allowed. Otherwise SR device must be in safe state.
  *
  * Requirement for mapped objects:
- *  - @OD_attributes_t must have set bit ODA_RSRDO or ODA_RSRDO or ODA_TRSRDO (by CANopenEditor).
+ *  - @ref OD_attributes_t must have set bit ODA_RSRDO or ODA_RSRDO or ODA_TRSRDO (by CANopenEditor).
  */
 
 /** Maximum size of SRDO message, 8 for standard CAN */
@@ -84,7 +83,7 @@ extern "C" {
 #endif
 
 #ifndef CO_SRDO_OWN_TYPES
-/** Variable of type CO_SRDO_size_t contains data length in bytes of SRDO */
+/** Variable of type @ref CO_SRDO_size_t contains data length in bytes of SRDO */
 typedef uint8_t CO_SRDO_size_t;
 #endif
 
@@ -100,7 +99,7 @@ typedef enum {
     CO_SRDO_state_error_rxTimeoutSCT = -3,  /**< SRDO inverted message didn't receive inside SCT time */
     CO_SRDO_state_error_rxNotInverted = -2, /**< Received SRDO messages was not inverted */
     CO_SRDO_state_error_rxShort = -1,       /**< Received SRDO message is too short */
-    CO_SRDO_state_unknown = 0,              /**< unknown state, set by @CO_SRDO_init */
+    CO_SRDO_state_unknown = 0,              /**< unknown state, set by CO_SRDO_init() */
     CO_SRDO_state_nmtNotOperational = 1,    /**< Internal NMT operating state is not NMT operational */
     CO_SRDO_state_initializing = 2,         /**< Just entered NMT operational state, SRDO message not yet received or
                                                transmitted */
@@ -119,7 +118,7 @@ typedef enum {
 typedef struct {
     bool_t NMTisOperational;   /**< True if NMT operating state is operational */
     bool_t configurationValid; /**< True if all SRDO objects are properly configured. Set after successful finish of all
-                                  @CO_SRDO_init() functions. Cleared on configuration change. */
+                                  CO_SRDO_init() functions. Cleared on configuration change. */
     OD_IO_t OD_IO_configurationValid; /**< Object for input / output on the OD variable 13FE:00. Configuration of any of
                                          the the SRDO parameters will write 0 to that variable. */
     OD_entry_t* OD_13FE_entry;        /**< From CO_SRDOGuard_init() */
@@ -176,7 +175,7 @@ typedef struct {
 /**
  * Initialize SRDOGuard object.
  *
- * Function must be called in the communication reset section before @CO_SRDO_init functions.
+ * Function must be called in the communication reset section before CO_SRDO_init() functions.
  *
  * @param SRDOGuard This object will be initialized.
  * @param OD_13FE_configurationValid Pointer to _Configuration valid_ variable from Object dictionary (index 0x13FE).
@@ -203,15 +202,14 @@ CO_ReturnError_t CO_SRDOGuard_init(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13F
  * @param defaultCOB_ID Default COB ID for this SRDO for plain data (without NodeId).
  * @param OD_130x_SRDOCommPar Pointer to _SRDO communication parameter_ record from Object dictionary (index 0x1301+).
  * @param OD_138x_SRDOMapPar Pointer to _SRDO mapping parameter_ record from Object dictionary (index 0x1381+).
- * @param OD_13FE_configurationValid Pointer to _Configuration valid_ variable from Object dictionary (index 0x13FE).
- * @param OD_13FF_safetyConfigurationSignature Pointer to _Safety configuration signature_ variable from Object
- * dictionary (index 0x13FF).
- * @param CANdevRx CAN device used for SRDO reception.
- * @param CANdevRxIdxNormal Index of receive buffer in the above CAN device.
- * @param CANdevRxIdxInverted Index of receive buffer in the above CAN device.
- * @param CANdevTx CAN device used for SRDO transmission.
- * @param CANdevTxIdxNormal Index of transmit buffer in the above CAN device.
- * @param CANdevTxIdxInverted Index of transmit buffer in the above CAN device.
+ * @param CANdevRxNormal CAN device used for SRDO reception for normal object.
+ * @param CANdevRxInverted CAN device used for SRDO reception for inverted object.
+ * @param CANdevRxIdxNormal Index of receive buffer in the above CAN device (normal).
+ * @param CANdevRxIdxInverted Index of receive buffer in the above CAN device (inverted).
+ * @param CANdevTxNormal CAN device used for SRDO transmission for normal object.
+ * @param CANdevTxInverted CAN device used for SRDO transmission for inverted object.
+ * @param CANdevTxIdxNormal Index of transmit buffer in the above CAN device (normal).
+ * @param CANdevTxIdxInverted Index of transmit buffer in the above CAN device (inverted).
  * @param [out] errInfo Additional information in case of error, may be NULL.
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OD_PARAMETERS.
@@ -239,17 +237,29 @@ void CO_SRDO_initCallbackPre(CO_SRDO_t* SRDO, void* object, void (*pFunctSignalP
 #endif
 
 /**
+ * Configure SRDO object.
+ *
+ * Function must be called in on transition to NMT operational. Function is also called from CO_SRDO_init() function.
+ *
+ * @param SRDO This object will be configured.
+ * @param SRDO_Index OD index of this SRDO, 0 for the first.
+ * @param SRDOGuard SRDOGuard object.
+ * @param [out] errInfo Additional information in case of error, may be NULL.
+ *
+ * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OD_PARAMETERS.
+ */
+CO_ReturnError_t CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, uint32_t* errInfo);
+
+/**
  * Send SRDO on event
  *
- * Sends SRDO before the next refresh timer tiggers. The message itself is send in @CO_SRDO_process(). Note that RTOS
+ * Sends SRDO before the next refresh timer tiggers. The message itself is send in CO_SRDO_process(). Note that RTOS
  * have to trigger its processing quickly. After the transmission the timer is reset to the full refresh time.
  *
  * @param SRDO This object.
- * @return CO_ReturnError_t CO_ERROR_NO if request is granted
+ * @return #CO_ReturnError_t: CO_ERROR_NO if request is granted
  */
 CO_ReturnError_t CO_SRDO_requestSend(CO_SRDO_t* SRDO);
-
-CO_ReturnError_t CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, uint32_t* errInfo);
 
 /**
  * Process transmitting/receiving individual SRDO message.

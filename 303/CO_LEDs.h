@@ -61,13 +61,14 @@ extern "C" {
  * - quadruple flash: PDO has not been received before the event timer elapsed
  * - on: CAN bus off
  *
- * To apply on/off state to led diode, use #CO_LED_RED and #CO_LED_GREEN macros. For CANopen leds use CO_LED_BITFIELD_t
- * CO_LED_CANopen. Other bitfields are available for implementing custom leds.
+ * To apply on/off state to the led diode, use #CO_LED_RED or #CO_LED_GREEN macros with one of the @ref CO_LED_bitmasks.
+ * For CANopen leds use #CO_LED_CANopen bitmask.
  */
 
 /**
- * @defgroup CO_LED_BITFIELD_t Bitfield for combining with red or green led
+ * @defgroup CO_LED_bitmasks CO_LED bitmasks
  * @{
+ * Bitmasks for the LED indicators
  */
 #define CO_LED_flicker               0x01U /**< LED flickering 10Hz */
 #define CO_LED_blink                 0x02U /**< LED blinking 2,5Hz */
@@ -76,13 +77,12 @@ extern "C" {
 #define CO_LED_flash_3               0x10U /**< LED triple flash */
 #define CO_LED_flash_4               0x20U /**< LED quadruple flash */
 #define CO_LED_CANopen               0x80U /**< LED CANopen according to CiA 303-3 */
+/** @} */
 
-/** @} */ /* CO_LED_BITFIELD_t */
-
-/** Get on/off state for green led for specified bitfield */
-#define CO_LED_RED(LEDs, BITFIELD)   ((((LEDs)->LEDred & BITFIELD) != 0U) ? 1U : 0U)
-/** Get on/off state for green led for specified bitfield */
-#define CO_LED_GREEN(LEDs, BITFIELD) ((((LEDs)->LEDgreen & BITFIELD) != 0U) ? 1U : 0U)
+/** Get on/off state for red led for one of the @ref CO_LED_bitmasks */
+#define CO_LED_RED(LEDs, BITMASK)   ((((LEDs)->LEDred & BITMASK) != 0U) ? 1U : 0U)
+/** Get on/off state for green led for one of the @ref CO_LED_bitmasks */
+#define CO_LED_GREEN(LEDs, BITMASK) ((((LEDs)->LEDgreen & BITMASK) != 0U) ? 1U : 0U)
 
 /**
  * LEDs object, initialized by CO_LEDs_init()
@@ -94,8 +94,8 @@ typedef struct {
     uint8_t LEDtmrflash_2; /**< double flash led timer */
     uint8_t LEDtmrflash_3; /**< triple flash led timer */
     uint8_t LEDtmrflash_4; /**< quadruple flash led timer */
-    uint8_t LEDred;        /**< red led #CO_LED_BITFIELD_t */
-    uint8_t LEDgreen;      /**< green led #CO_LED_BITFIELD_t */
+    uint8_t LEDred;        /**< red led bitfield, to be combined with @ref CO_LED_bitmasks */
+    uint8_t LEDgreen;      /**< green led bitfield, to be combined with @ref CO_LED_bitmasks */
 } CO_LEDs_t;
 
 /**

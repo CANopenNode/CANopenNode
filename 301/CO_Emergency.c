@@ -298,22 +298,22 @@ CO_EM_receive(void* object, void* msg) {
 
 CO_ReturnError_t
 CO_EM_init(CO_EM_t* em, CO_CANmodule_t* CANdevTx, const OD_entry_t* OD_1001_errReg,
-#if ((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0
+#if (((CO_CONFIG_EM) & (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY)) != 0) || defined CO_DOXYGEN
            CO_EM_fifo_t* fifo, uint8_t fifoSize,
 #endif
-#if ((CO_CONFIG_EM)&CO_CONFIG_EM_PRODUCER) != 0
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
            OD_entry_t* OD_1014_cobIdEm, uint16_t CANdevTxIdx,
-#if ((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_INHIBIT) != 0
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN
            OD_entry_t* OD_1015_InhTime,
 #endif
 #endif
-#if ((CO_CONFIG_EM)&CO_CONFIG_EM_HISTORY) != 0
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_HISTORY) != 0) || defined CO_DOXYGEN
            OD_entry_t* OD_1003_preDefErr,
 #endif
-#if ((CO_CONFIG_EM)&CO_CONFIG_EM_STATUS_BITS) != 0
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_STATUS_BITS) != 0) || defined CO_DOXYGEN
            OD_entry_t* OD_statusBits,
 #endif
-#if ((CO_CONFIG_EM)&CO_CONFIG_EM_CONSUMER) != 0
+#if (((CO_CONFIG_EM)&CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
            CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx,
 #endif
            const uint8_t nodeId, uint32_t* errInfo) {

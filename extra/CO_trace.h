@@ -128,8 +128,6 @@ typedef struct {
  * @param triggerTime Pointer to variable, which will show last trigger time of the variable.
  * @param idx_OD_traceConfig Index in Object Dictionary.
  * @param idx_OD_trace Index in Object Dictionary.
- *
- * @return 0 on success, -1 on error.
  */
 void CO_trace_init(
         CO_trace_t             *trace,
@@ -157,8 +155,6 @@ void CO_trace_init(
  *
  * @param trace This object.
  * @param timestamp Timestamp (usually in millisecond resolution).
- *
- * @return 0 on success, -1 on error.
  */
 void CO_trace_process(CO_trace_t *trace, uint32_t timestamp);
 

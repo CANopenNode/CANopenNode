@@ -31,11 +31,14 @@
 #ifndef CO_CONFIG_SDO_CLI
 #define CO_CONFIG_SDO_CLI (0)
 #endif
+
+#ifndef CO_DOXYGEN
 #ifndef CO_CONFIG_SDO_CLI_BUFFER_SIZE
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_BLOCK) != 0
 #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 1000U
 #else
 #define CO_CONFIG_SDO_CLI_BUFFER_SIZE 32U
+#endif
 #endif
 #endif
 
