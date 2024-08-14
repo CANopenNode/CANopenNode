@@ -35,6 +35,7 @@ STM32
 * https://github.com/CANopenNode/CanOpenSTM32
 * CANopenNode version: (v4.0)
 
+
 PIC32, dsPIC30, dsPIC33
 -----------------------
 * CANopenNode integration with 16 and 32 bit PIC microcontrollers from Microchip.
@@ -43,6 +44,7 @@ PIC32, dsPIC30, dsPIC33
 * Features: OD storage for PIC32, SDO client demo for PIC32, error counters
 * Development tools: MPLAB X
 * Demo hardware: Explorer 16 from Microchip, [Max32 board](https://reference.digilentinc.com/reference/microprocessor/max32/start)
+* Example with smallest resuorces (less than 2kb RAM), 4TPDO+4RPDO: 16-bit dsPIC30F4011
 
 
 [Analog Devices Inc](https://www.analog.com): MAX32662, MAX32690
@@ -54,7 +56,7 @@ PIC32, dsPIC30, dsPIC33
 * Features: LED indicators, error counters
 * Development tools: Maxim Micros SDK
 * Demo hardware: MAX32662-EVKIT and MAX32690-EVKIT
-* Information updated 2023-02-17 
+* Information updated 2023-02-17
 
 
 Zephyr RTOS

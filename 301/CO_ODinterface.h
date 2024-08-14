@@ -401,8 +401,8 @@ OD_getFlagsPDO(OD_entry_t* entry) {
  * event driven transmission, then TPDO will be transmitted after this function call. If OD variable is mapped to more
  * than one TPDO with event driven transmission, only the first matched TPDO will be transmitted.
  *
- * TPDO event driven transmission is enabled, if TPDO communication parameter, transmission type is set to 0, 254 or
- * 255. For other transmission types (synchronous) flagPDO bit is ignored.
+ * TPDO event driven transmission is enabled, if TPDO communication parameter, transmission type is set to 0, 254
+ * or 255. For other transmission types (synchronous) flagPDO bit is ignored.
  *
  * @param flagsPDO TPDO request flags returned by @ref OD_getFlagsPDO.
  * @param subIndex subIndex of the OD variable.

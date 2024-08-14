@@ -3,7 +3,7 @@ CANopenNode
 
 CANopenNode is free and open source CANopen protocol stack.
 
-CANopen is the internationally standardized (EN 50325-4) ([CiA301](http://can-cia.org/standardization/technical-documents)) higher-layer protocol for embedded control system built on top of CAN. For more information on CANopen see http://www.can-cia.org/
+CANopen is the internationally standardized (EN 50325-4) ([CiA301](https://www.can-cia.org/cia-groups/technical-documents)) higher-layer protocol for embedded control system built on top of CAN. For more information on CANopen see http://www.can-cia.org/
 
 CANopenNode is written in ANSI C in object-oriented way. It runs on different microcontrollers, as standalone application or with RTOS.
 
@@ -17,19 +17,19 @@ This is version 4 of CANopenNode with new Object Dictionary implementation. For 
 Characteristics
 ---------------
 ### CANopen
- - [Object Dictionary](https://www.can-cia.org/can-knowledge/canopen/device-architecture/) offers clear and flexible organisation of any variables. Variables can be accessed directly or via read/write functions.
- - [NMT](https://www.can-cia.org/can-knowledge/canopen/network-management/) slave to start, stop, reset device. Simple NMT master.
- - [Heartbeat](https://www.can-cia.org/can-knowledge/canopen/error-control-protocols/) producer/consumer error control for monitoring of CANopen devices. An older alternative, 'node guarding', is also available.
- - [PDO](https://www.can-cia.org/can-knowledge/canopen/pdo-protocol/) for broadcasting process data with high priority and no protocol overhead. Variables from Object Dictionary can be dynamically mapped to the TPDO, which is then transmitted according to communication rules and received as RPDO by another device.
- - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) server enables expedited, segmented and block transfer access to all Object Dictionary variables inside CANopen device.
- - [SDO](https://www.can-cia.org/can-knowledge/canopen/sdo-protocol/) client can access any Object Dictionary variable on any CANopen device inside the network.
- - [Emergency](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/) message producer/consumer.
- - [Sync](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/) producer/consumer enables network synchronized transmission of the PDO objects, etc.
- - [Time-stamp](https://www.can-cia.org/can-knowledge/canopen/special-function-protocols/) producer/consumer enables date and time synchronization in millisecond resolution.
- - [LSS](https://www.can-cia.org/can-knowledge/canopen/cia305/) CANopen node-id and bitrate setup, master and slave, LSS fastscan.
- - [CANopen gateway](https://www.can-cia.org/can-knowledge/canopen/cia309/), CiA309-3 Ascii command interface for NMT master, LSS master and SDO client.
+ - [Object Dictionary](https://www.can-cia.org/can-knowledge/canopen-internal-device-architecture/) offers clear and flexible organisation of any variables. Variables can be accessed directly or via read/write functions.
+ - [NMT](https://www.can-cia.org/can-knowledge/network-management/) slave to start, stop, reset device. Simple NMT master.
+ - [Heartbeat](https://www.can-cia.org/can-knowledge/error-control-protocols) producer/consumer error control for monitoring of CANopen devices. An older alternative, 'node guarding', is also available.
+ - [PDO](https://www.can-cia.org/can-knowledge/pdo-protocol/) for broadcasting process data with high priority and no protocol overhead. Variables from Object Dictionary can be dynamically mapped to the TPDO, which is then transmitted according to communication rules and received as RPDO by another device.
+ - [SDO](https://www.can-cia.org/can-knowledge/sdo-protocol/) server enables expedited, segmented and block transfer access to all Object Dictionary variables inside CANopen device.
+ - [SDO](https://www.can-cia.org/can-knowledge/sdo-protocol/) client can access any Object Dictionary variable on any CANopen device inside the network.
+ - [Emergency](https://www.can-cia.org/can-knowledge/special-function-protocols/) message producer/consumer.
+ - [Sync](https://www.can-cia.org/can-knowledge/special-function-protocols/) producer/consumer enables network synchronized transmission of the PDO objects, etc.
+ - [Time-stamp](https://www.can-cia.org/can-knowledge/special-function-protocols/) producer/consumer enables date and time synchronization in millisecond resolution.
+ - [LSS](https://www.can-cia.org/can-knowledge/cia-305-layer-setting-services-lss/) CANopen node-id and bitrate setup, master and slave, LSS fastscan.
+ - [CANopen gateway](https://www.can-cia.org/can-knowledge/cia-309-series-accessing-canopen-via-tcp/), CiA309-3 Ascii command interface for NMT master, LSS master and SDO client.
  - [CANopen Safety](https://standards.globalspec.com/std/1284438/en-50325-5), EN 50325-5, CiA304, "PDO like" communication in safety-relevant networks
- - [CANopen Conformance Test Tool](https://www.can-cia.org/services/test-center/conformance-test-tool/) passed.
+ - [CANopen Conformance Test Tool](https://www.can-cia.org/services/canopen-conformance-test-tool/) passed.
 
 ### Other
  - [Suitable for 16-bit microcontrollers and above](#device-support)
