@@ -70,7 +70,7 @@ extern "C" {
  * data to addresses specified inside entries. This function internally calls @ref CO_storage_init().
  *
  * @param storage This object will be initialized. It must be defined by application and must exist permanently.
- * @param CANmodule CAN device, used for @ref CO_LOCK_OD() macro.
+ * @param CANmodule CAN device, for optional usage.
  * @param storageModule Pointer to storage module passed to CO_eeprom functions.
  * @param OD_1010_StoreParameters OD entry for 0x1010 -"Store parameters". Entry is optional, may be NULL.
  * @param OD_1011_RestoreDefaultParam OD entry for 0x1011 -"Restore default parameters". Entry is optional, may be NULL.

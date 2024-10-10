@@ -31,9 +31,7 @@ storeBlank(CO_storage_entry_t* entry, CO_CANmodule_t* CANmodule) {
 
     /* Open a file and write data to it */
     /* file = open(entry->pathToFileOrPointerToMemory); */
-    CO_LOCK_OD(CANmodule);
     /* write(entry->addr, entry->len, file); */
-    CO_UNLOCK_OD(CANmodule);
 
     return ODR_OK;
 }

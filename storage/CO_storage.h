@@ -109,7 +109,7 @@ typedef struct {
  * because loading data is target specific.
  *
  * @param storage This object will be initialized. It must be defined by application and must exist permanently.
- * @param CANmodule CAN device, used for @ref CO_LOCK_OD() macro.
+ * @param CANmodule CAN device, for optional usage.
  * @param OD_1010_StoreParameters OD entry for 0x1010 -"Store parameters". Entry is optional, may be NULL.
  * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 -"Restore default parameters". Entry is optional, may be
  * NULL.
