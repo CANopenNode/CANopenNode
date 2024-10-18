@@ -182,13 +182,15 @@ OD_getSub(const OD_entry_t* entry, uint8_t subIndex, OD_IO_t* io, bool_t odOrig)
         return ODR_DEV_INCOMPAT;
     }
 
+    ODR_t ret = ODR_OK;
     OD_stream_t* stream = &io->stream;
 
     /* attribute, dataOrig and dataLength, depends on object type */
     switch (entry->odObjectType & (uint8_t)ODT_TYPE_MASK) {
         case ODT_VAR: {
             if (subIndex > 0U) {
-                return ODR_SUB_NOT_EXIST;
+                ret = ODR_SUB_NOT_EXIST;
+                break;
             }
             CO_PROGMEM OD_obj_var_t* odo = entry->odObject;
 
@@ -199,7 +201,8 @@ OD_getSub(const OD_entry_t* entry, uint8_t subIndex, OD_IO_t* io, bool_t odOrig)
         }
         case ODT_ARR: {
             if (subIndex >= entry->subEntriesCount) {
-                return ODR_SUB_NOT_EXIST;
+                ret = ODR_SUB_NOT_EXIST;
+                break;
             }
             CO_PROGMEM OD_obj_array_t* odo = entry->odObject;
 
@@ -225,7 +228,8 @@ OD_getSub(const OD_entry_t* entry, uint8_t subIndex, OD_IO_t* io, bool_t odOrig)
                 }
             }
             if (odo == NULL) {
-                return ODR_SUB_NOT_EXIST;
+                ret = ODR_SUB_NOT_EXIST;
+                break;
             }
 
             stream->attribute = odo->attribute;
@@ -234,32 +238,34 @@ OD_getSub(const OD_entry_t* entry, uint8_t subIndex, OD_IO_t* io, bool_t odOrig)
             break;
         }
         default: {
-            return ODR_DEV_INCOMPAT;
+            ret = ODR_DEV_INCOMPAT;
             break;
         }
     }
 
-    /* Access data from the original OD location */
-    if ((entry->extension == NULL) || odOrig) {
-        io->read = OD_readOriginal;
-        io->write = OD_writeOriginal;
-        stream->object = NULL;
+    if (ret == ODR_OK) {
+        /* Access data from the original OD location */
+        if ((entry->extension == NULL) || odOrig) {
+            io->read = OD_readOriginal;
+            io->write = OD_writeOriginal;
+            stream->object = NULL;
+        }
+        /* Access data from extension specified by application */
+        else {
+            io->read = (entry->extension->read != NULL) ? entry->extension->read : OD_readDisabled;
+            io->write = (entry->extension->write != NULL) ? entry->extension->write : OD_writeDisabled;
+            stream->object = entry->extension->object;
+        }
+
+        /* Reset stream data offset */
+        stream->dataOffset = 0;
+
+        /* Add informative data */
+        stream->index = entry->index;
+        stream->subIndex = subIndex;
     }
-    /* Access data from extension specified by application */
-    else {
-        io->read = (entry->extension->read != NULL) ? entry->extension->read : OD_readDisabled;
-        io->write = (entry->extension->write != NULL) ? entry->extension->write : OD_writeDisabled;
-        stream->object = entry->extension->object;
-    }
 
-    /* Reset stream data offset */
-    stream->dataOffset = 0;
-
-    /* Add informative data */
-    stream->index = entry->index;
-    stream->subIndex = subIndex;
-
-    return ODR_OK;
+    return ret;
 }
 
 uint32_t
