@@ -480,7 +480,7 @@ CO_LSSmaster_ActivateBit(CO_LSSmaster_t* LSSmaster, uint16_t switchDelay_ms) {
 
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
         LSSmaster->TXbuff->data[0] = CO_LSS_CFG_ACTIVATE_BIT_TIMING;
-        (void)CO_setUint16(&LSSmaster->TXbuff->data[1], CO_SWAP_32(switchDelay_ms));
+        (void)CO_setUint16(&LSSmaster->TXbuff->data[1], CO_SWAP_16(switchDelay_ms));
         (void)memset(&LSSmaster->TXbuff->data[3], 0, sizeof(LSSmaster->TXbuff->data) - 3U);
         (void)CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
