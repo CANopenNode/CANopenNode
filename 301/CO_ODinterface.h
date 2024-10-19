@@ -322,7 +322,7 @@ OD_entry_t* OD_find(OD_t* od, uint16_t index);
  * Read and write functions may be called from different threads, so critical sections in custom functions must be
  * observed, see @ref CO_critical_sections.
  *
- * @param entry OD entry returned by @ref OD_find().
+ * @param entry Object Dictionary entry.
  * @param subIndex Sub-index of the variable from the OD object.
  * @param [out] io Structure will be populated on success.
  * @param odOrig If true, then potential IO extension on entry will be ignored and access to data entry in the original
@@ -335,7 +335,7 @@ ODR_t OD_getSub(const OD_entry_t* entry, uint8_t subIndex, OD_IO_t* io, bool_t o
 /**
  * Return index from OD entry
  *
- * @param entry OD entry returned by @ref OD_find().
+ * @param entry Object Dictionary entry.
  *
  * @return OD index
  */
@@ -375,25 +375,6 @@ OD_rwRestart(OD_stream_t* stream) {
 }
 
 /**
- * Get TPDO request flags for OD entry.
- *
- * flagsPDO can be used for @ref OD_requestTPDO() or @ref OD_TPDOtransmitted().
- *
- * @param entry OD entry returned by @ref OD_find().
- *
- * @return pointer to flagsPDO
- */
-static inline uint8_t*
-OD_getFlagsPDO(OD_entry_t* entry) {
-#if OD_FLAGS_PDO_SIZE > 0
-    if ((entry != NULL) && (entry->extension != NULL)) {
-        return &entry->extension->flagsPDO[0];
-    }
-#endif
-    return NULL;
-}
-
-/**
  * Request TPDO, to which OD variable is mapped
  *
  * Function clears the flagPDO bit, which corresponds to OD variable at specific OD index and subindex. For this
@@ -404,16 +385,16 @@ OD_getFlagsPDO(OD_entry_t* entry) {
  * TPDO event driven transmission is enabled, if TPDO communication parameter, transmission type is set to 0, 254
  * or 255. For other transmission types (synchronous) flagPDO bit is ignored.
  *
- * @param flagsPDO TPDO request flags returned by @ref OD_getFlagsPDO.
+ * @param entry Object Dictionary entry.
  * @param subIndex subIndex of the OD variable.
  */
 static inline void
-OD_requestTPDO(uint8_t* flagsPDO, uint8_t subIndex) {
+OD_requestTPDO(OD_entry_t* entry, uint8_t subIndex) {
 #if OD_FLAGS_PDO_SIZE > 0
-    if ((flagsPDO != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
+    if ((entry != NULL) && (entry->extension != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
         /* clear subIndex-th bit */
         uint8_t mask = ~(1U << (subIndex & 0x07U));
-        flagsPDO[subIndex >> 3] &= mask;
+        entry->extension->flagsPDO[subIndex >> 3] &= mask;
     }
 #endif
 }
@@ -421,20 +402,20 @@ OD_requestTPDO(uint8_t* flagsPDO, uint8_t subIndex) {
 /**
  * Check if requested TPDO was transmitted
  *
- * @param flagsPDO TPDO request flags returned by @ref OD_getFlagsPDO.
+ * @param entry Object Dictionary entry.
  * @param subIndex subIndex of the OD variable.
  *
- * @return Return true if event driven TPDO with mapping to OD variable, indicated by flagsPDO and subIndex, was
+ * @return Return true if event driven TPDO with mapping to OD variable, indicated by entry and subIndex, was
  * transmitted since last @ref OD_requestTPDO call. If there was no @ref OD_requestTPDO call yet and TPDO was
  * transmitted by other event, function also returns true.
  */
 static inline bool_t
-OD_TPDOtransmitted(uint8_t* flagsPDO, uint8_t subIndex) {
+OD_TPDOtransmitted(OD_entry_t* entry, uint8_t subIndex) {
 #if OD_FLAGS_PDO_SIZE > 0
-    if ((flagsPDO != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
+    if ((entry != NULL) && (entry->extension != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
         /* return true, if subIndex-th bit is set */
         uint8_t mask = 1U << (subIndex & 0x07U);
-        if ((flagsPDO[subIndex >> 3] & mask) != 0U) {
+        if ((entry->extension->flagsPDO[subIndex >> 3] & mask) != 0U) {
             return true;
         }
     }
@@ -472,7 +453,7 @@ uint32_t OD_getSDOabCode(ODR_t returnCode);
  * Read and write functions may be called from different threads, so critical sections in custom functions must be
  * observed, see @ref CO_critical_sections.
  *
- * @param entry OD entry returned by @ref OD_find().
+ * @param entry Object Dictionary entry.
  * @param extension Extension object, which must be initialized externally. Extension object must exist permanently. If
  * NULL, extension will be removed.
  *
@@ -496,7 +477,7 @@ OD_extension_init(OD_entry_t* entry, OD_extension_t* extension) {
 /**
  * Get variable from Object Dictionary
  *
- * @param entry OD entry returned by @ref OD_find().
+ * @param entry Object Dictionary entry.
  * @param subIndex Sub-index of the variable from the OD object.
  * @param [out] val Value will be written here.
  * @param len Size of value to retrieve from OD.
@@ -571,7 +552,7 @@ OD_get_f64(const OD_entry_t* entry, uint8_t subIndex, float64_t* val, bool_t odO
 /**
  * Set variable in Object Dictionary
  *
- * @param entry OD entry returned by @ref OD_find().
+ * @param entry Object Dictionary entry.
  * @param subIndex Sub-index of the variable from the OD object.
  * @param val Pointer to value to write.
  * @param len Size of value to write.
@@ -649,7 +630,7 @@ OD_set_f64(const OD_entry_t* entry, uint8_t subIndex, float64_t val, bool_t odOr
  * Function always returns "dataOrig" pointer, which points to data in the original OD location. Take care, if IO
  * extension is enabled on OD entry. Take also care that "dataOrig" could be not aligned to data type.
  *
- * @param entry OD entry returned by @ref OD_find().
+ * @param entry Object Dictionary entry.
  * @param subIndex Sub-index of the variable from the OD object.
  * @param len Required length of the variable. If len is different than zero, then actual length of the variable must
  * match len or error is returned.
