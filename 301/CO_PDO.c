@@ -295,7 +295,7 @@ PDO_initMapping(CO_PDO_common_t* PDO, OD_t* OD, OD_entry_t* OD_PDOMapPar, bool_t
         }
         return CO_ERROR_OD_PARAMETERS;
     }
-    if (mappedObjectsCount > CO_PDO_MAX_SIZE) {
+    if (mappedObjectsCount > CO_PDO_MAX_MAPPED_ENTRIES) {
         *erroneousMap = 1;
         return CO_ERROR_NO;
     }
