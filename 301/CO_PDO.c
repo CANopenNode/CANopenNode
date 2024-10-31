@@ -30,6 +30,12 @@
 #endif
 #endif
 
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_OD_IO_ACCESS) == 0
+#error Bitwise PDO mapping is not possible without CO_CONFIG_PDO_OD_IO_ACCESS
+#endif
+#endif
+
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_OD_IO_ACCESS) != 0
 /*
  * Custom function for write dummy OD object. Will be used only from RPDO.
