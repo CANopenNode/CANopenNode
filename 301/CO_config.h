@@ -482,6 +482,10 @@ extern "C" {
  *   flexibility for application program, but consumes some additional memory
  *   and processor resources. If this option is not enabled, then data from OD
  *   variables are fetched directly from memory allocated by Object dictionary.
+ * - CO_CONFIG_PDO_BITWISE_MAPPING - Use bitwise mapping instead of byte-wise
+ *   By default, the OD_IO structure contains the number of bytes mapped to
+ *   the PDO in the OD_IO.dataOffset field. If the bitwise mapping is enabled,
+ *   this fild stores the number of bits mapped to the PDO.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received RPDO CAN message.
  *   Callback is configured by CO_RPDO_initCallbackPre().
@@ -495,12 +499,13 @@ extern "C" {
      | CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_PDO_OD_IO_ACCESS | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE                  \
      | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
-#define CO_CONFIG_RPDO_ENABLE        0x01
-#define CO_CONFIG_TPDO_ENABLE        0x02
-#define CO_CONFIG_RPDO_TIMERS_ENABLE 0x04
-#define CO_CONFIG_TPDO_TIMERS_ENABLE 0x08
-#define CO_CONFIG_PDO_SYNC_ENABLE    0x10
-#define CO_CONFIG_PDO_OD_IO_ACCESS   0x20
+#define CO_CONFIG_RPDO_ENABLE            0x01
+#define CO_CONFIG_TPDO_ENABLE            0x02
+#define CO_CONFIG_RPDO_TIMERS_ENABLE     0x04
+#define CO_CONFIG_TPDO_TIMERS_ENABLE     0x08
+#define CO_CONFIG_PDO_SYNC_ENABLE        0x10
+#define CO_CONFIG_PDO_OD_IO_ACCESS       0x20
+#define CO_CONFIG_PDO_BITWISE_MAPPING    0x40
 /** @} */ /* CO_STACK_CONFIG_SYNC_PDO */
 
 /**
