@@ -182,16 +182,16 @@ CO_LSSmaster_switchStateSelectInitiate(CO_LSSmaster_t* LSSmaster, CO_LSS_address
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
         (void)memset(&LSSmaster->TXbuff->data[6], 0, sizeof(LSSmaster->TXbuff->data) - 6U);
         LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_VENDOR;
-        (void)CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.vendorID);
+        (void)CO_setUint32(&LSSmaster->TXbuff->data[1], CO_SWAP_32(lssAddress->identity.vendorID));
         (void)CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
         LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_PRODUCT;
-        (void)CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.productCode);
+        (void)CO_setUint32(&LSSmaster->TXbuff->data[1], CO_SWAP_32(lssAddress->identity.productCode));
         (void)CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
         LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_REV;
-        (void)CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.revisionNumber);
+        (void)CO_setUint32(&LSSmaster->TXbuff->data[1], CO_SWAP_32(lssAddress->identity.revisionNumber));
         (void)CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
         LSSmaster->TXbuff->data[0] = CO_LSS_SWITCH_STATE_SEL_SERIAL;
-        (void)CO_setUint32(&LSSmaster->TXbuff->data[1], lssAddress->identity.serialNumber);
+        (void)CO_setUint32(&LSSmaster->TXbuff->data[1], CO_SWAP_32(lssAddress->identity.serialNumber));
         (void)CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
         ret = CO_LSSmaster_WAIT_SLAVE;
@@ -480,7 +480,7 @@ CO_LSSmaster_ActivateBit(CO_LSSmaster_t* LSSmaster, uint16_t switchDelay_ms) {
 
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
         LSSmaster->TXbuff->data[0] = CO_LSS_CFG_ACTIVATE_BIT_TIMING;
-        (void)CO_setUint16(&LSSmaster->TXbuff->data[1], switchDelay_ms);
+        (void)CO_setUint16(&LSSmaster->TXbuff->data[1], CO_SWAP_16(switchDelay_ms));
         (void)memset(&LSSmaster->TXbuff->data[3], 0, sizeof(LSSmaster->TXbuff->data) - 3U);
         (void)CO_CANsend(LSSmaster->CANdevTx, LSSmaster->TXbuff);
 
@@ -514,6 +514,7 @@ CO_LSSmaster_inquireCheckWait(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference
     if (CO_FLAG_READ(LSSmaster->CANrxNew)) {
         uint8_t cs = LSSmaster->CANrxData[0];
         *value = CO_getUint32(&LSSmaster->CANrxData[1]);
+        *value = CO_SWAP_32(*value);
         CO_FLAG_CLEAR(LSSmaster->CANrxNew);
 
         if (cs == csWait) {
@@ -645,7 +646,7 @@ CO_LSSmaster_FsSendMsg(CO_LSSmaster_t* LSSmaster, uint32_t idNumber, uint8_t bit
 
     CO_FLAG_CLEAR(LSSmaster->CANrxNew);
     LSSmaster->TXbuff->data[0] = CO_LSS_IDENT_FASTSCAN;
-    (void)CO_setUint32(&LSSmaster->TXbuff->data[1], idNumber);
+    (void)CO_setUint32(&LSSmaster->TXbuff->data[1], CO_SWAP_32(idNumber));
     LSSmaster->TXbuff->data[5] = bitCheck;
     LSSmaster->TXbuff->data[6] = lssSub;
     LSSmaster->TXbuff->data[7] = lssNext;
