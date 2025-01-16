@@ -807,10 +807,10 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
             }
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS */
 
-            if (verifyLength > CO_PDO_MAX_SIZE || verifyLength != (OD_size_t)PDO->dataLength) {
+            if ((verifyLength > CO_PDO_MAX_SIZE) || (verifyLength != (OD_size_t)PDO->dataLength)) {
                 /* bug in software, should not happen */
                 CO_errorReport(PDO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL,
-                               (0x100000 | verifyLength));
+                               (0x100000U | verifyLength));
             }
         } /* while (CO_FLAG_READ(RPDO->CANrxNew[bufNo])) */
 
@@ -1212,9 +1212,9 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
     }
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS */
 
-    if (verifyLength > CO_PDO_MAX_SIZE || verifyLength != (OD_size_t)PDO->dataLength) {
+    if ((verifyLength > CO_PDO_MAX_SIZE) || (verifyLength != (OD_size_t)PDO->dataLength)) {
         /* bug in software, should not happen */
-        CO_errorReport(PDO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, (0x200000 | verifyLength));
+        CO_errorReport(PDO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, (0x200000U | verifyLength));
         return CO_ERROR_DATA_CORRUPT;
     }
 
