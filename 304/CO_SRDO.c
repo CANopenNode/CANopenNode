@@ -311,6 +311,12 @@ OD_write_13FE(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
         return ODR_DATA_DEV_STATE;
     }
 
+#ifdef CO_CONFORMANCE_TEST_TOOL_ADAPTATION
+    if (OD_not_write_same_value(stream, buf, count)) {
+        return ODR_OK;
+    }
+#endif
+
     uint8_t configurationValid = CO_getUint8(buf);
     if (configurationValid == CO_SRDO_VALID_MAGIC) {
         SRDOGuard->configurationValid = true;
@@ -334,6 +340,12 @@ OD_write_13FF(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
         /* Data cannot be transferred or stored to the application because of the present device state. */
         return ODR_DATA_DEV_STATE;
     }
+
+#ifdef CO_CONFORMANCE_TEST_TOOL_ADAPTATION
+    if (OD_not_write_same_value(stream, buf, count)) {
+        return ODR_OK;
+    }
+#endif
 
     /* set OD object 13FE:00 to CO_SRDO_INVALID */
     configurationValidUnset(SRDOGuard);
