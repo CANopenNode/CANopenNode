@@ -386,7 +386,7 @@ CO_SDOclientDownloadInitiate(CO_SDOclient_t* SDO_C, uint16_t index, uint8_t subI
     } else
 #endif
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_BLOCK) != 0
-        if (blockEnable && ((sizeIndicated == 0U) || (sizeIndicated > (size_t)(CO_CONFIG_SDO_CLI_PST)))) {
+    if (blockEnable && ((sizeIndicated == 0U) || (sizeIndicated > (size_t)(CO_CONFIG_SDO_CLI_PST)))) {
         SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_INITIATE_REQ;
     } else
 #endif
@@ -1068,7 +1068,7 @@ CO_SDOclientUploadInitiate(CO_SDOclient_t* SDO_C, uint16_t index, uint8_t subInd
     } else
 #endif
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_BLOCK) != 0
-        if (blockEnable) {
+    if (blockEnable) {
         SDO_C->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ;
     } else
 #endif

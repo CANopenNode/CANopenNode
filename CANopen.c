@@ -989,7 +989,7 @@ CO_CANopenInit(CO_t* co, CO_NMT_t* NMT, CO_EM_t* em, OD_t* od, OD_entry_t* OD_st
         co->nodeIdUnconfigured = true;
     } else
 #endif
-        if ((nodeId < 1U) || (nodeId > 127U)) {
+    if ((nodeId < 1U) || (nodeId > 127U)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     } else { /* MISRA C 2004 14.10 */
     }
