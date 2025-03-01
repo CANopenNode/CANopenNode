@@ -465,13 +465,16 @@ validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t
     /* may be unused */
     (void)crcOperation;
     (void)crcClient;
-    (void)bufOffsetWrOrig;
 
     /* write data */
     OD_size_t countWritten = 0;
-
+    OD_size_t sumCountWritten = 0;
+    ODR_t odRet;
     CO_LOCK_OD(SDO->CANdevTx);
-    ODR_t odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->buf, SDO->bufOffsetWr, &countWritten);
+    do {
+        odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->buf, SDO->bufOffsetWr, &countWritten);
+        sumCountWritten += countWritten;
+    } while ((odRet == ODR_PARTIAL) && (SDO->buf > sumCountWritten));
     CO_UNLOCK_OD(SDO->CANdevTx);
 
     SDO->bufOffsetWr = 0;
