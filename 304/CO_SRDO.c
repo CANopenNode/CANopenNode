@@ -620,15 +620,17 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
     /* Configure CAN rx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_RX)) {
         /* Normal Configuration */
-        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0], SRDO->CANdevRxIdx[0], (uint16_t)COB_ID1_normal, 0x7FF, false,
-                                 (void*)SRDO, CO_SRDO_receive_normal);
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0], SRDO->CANdevRxIdx[0],
+                                 (CO_CANident_t)(COB_ID1_normal & CO_COB_STD_MASK), CO_COB_STD_MASK, false, (void*)SRDO,
+                                 CO_SRDO_receive_normal);
 
         if (ret != CO_ERROR_NO) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 5, 11);
         }
 
         /* Inverted Configuration */
-        ret = CO_CANrxBufferInit(SRDO->CANdevRx[1], SRDO->CANdevRxIdx[1], (uint16_t)COB_ID2_inverted, 0x7FF, false,
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[1], SRDO->CANdevRxIdx[1],
+                                 (CO_CANident_t)(COB_ID2_inverted & CO_COB_STD_MASK), CO_COB_STD_MASK, false,
                                  (void*)SRDO, CO_SRDO_receive_inverted);
 
         if (ret != CO_ERROR_NO) {

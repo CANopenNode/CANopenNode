@@ -74,8 +74,8 @@ OD_write_1012(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
     /* verify written value */
     uint32_t cobIdTimeStamp = CO_getUint32(buf);
-    CO_CANident_t CAN_ID = (CO_CANident_t)(cobIdTimeStamp & 0x7FFU);
-    if (((cobIdTimeStamp & 0x3FFFF800U) != 0U) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
+    CO_CANident_t CAN_ID = (CO_CANident_t)(cobIdTimeStamp & COB_CAN_ID_MASK);
+    if (!CO_IS_VALID_CAN_ID(cobIdTimeStamp) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
 

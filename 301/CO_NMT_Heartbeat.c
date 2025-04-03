@@ -71,11 +71,11 @@ OD_write_1017(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
 CO_ReturnError_t
 CO_NMT_init(CO_NMT_t* NMT, OD_entry_t* OD_1017_ProducerHbTime, CO_EM_t* em, uint8_t nodeId, uint16_t NMTcontrol,
-            uint16_t firstHBTime_ms, CO_CANmodule_t* NMT_CANdevRx, uint16_t NMT_rxIdx, uint16_t CANidRxNMT,
+            uint16_t firstHBTime_ms, CO_CANmodule_t* NMT_CANdevRx, uint16_t NMT_rxIdx, CO_CANident_t CANidRxNMT,
 #if (((CO_CONFIG_NMT)&CO_CONFIG_NMT_MASTER) != 0) || defined CO_DOXYGEN
-            CO_CANmodule_t* NMT_CANdevTx, uint16_t NMT_txIdx, uint16_t CANidTxNMT,
+            CO_CANmodule_t* NMT_CANdevTx, uint16_t NMT_txIdx, CO_CANident_t CANidTxNMT,
 #endif
-            CO_CANmodule_t* HB_CANdevTx, uint16_t HB_txIdx, uint16_t CANidTxHB, uint32_t* errInfo) {
+            CO_CANmodule_t* HB_CANdevTx, uint16_t HB_txIdx, CO_CANident_t CANidTxHB, uint32_t* errInfo) {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
@@ -126,7 +126,7 @@ CO_NMT_init(CO_NMT_t* NMT, OD_entry_t* OD_1017_ProducerHbTime, CO_EM_t* em, uint
     }
 
     /* configure NMT CAN reception */
-    ret = CO_CANrxBufferInit(NMT_CANdevRx, NMT_rxIdx, CANidRxNMT, 0x7FF, false, (void*)NMT, CO_NMT_receive);
+    ret = CO_CANrxBufferInit(NMT_CANdevRx, NMT_rxIdx & CO_COB_STD_MASK, CANidRxNMT, CO_COB_STD_MASK, false, (void*)NMT, CO_NMT_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }

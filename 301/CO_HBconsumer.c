@@ -204,7 +204,7 @@ CO_HBconsumer_initEntry(CO_HBconsumer_t* HBcons, uint8_t idx, uint8_t nodeId, ui
         }
 
         /* configure Heartbeat consumer (or disable) CAN reception */
-        ret = CO_CANrxBufferInit(HBcons->CANdevRx, HBcons->CANdevRxIdxStart + idx, COB_ID, 0x7FF, false,
+        ret = CO_CANrxBufferInit(HBcons->CANdevRx, HBcons->CANdevRxIdxStart + idx, COB_ID, CO_COB_STD_MASK, false,
                                  (void*)&HBcons->monitoredNodes[idx], CO_HBcons_receive);
     }
     return ret;

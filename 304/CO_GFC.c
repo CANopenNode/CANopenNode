@@ -75,7 +75,7 @@ CO_GFC_initCallbackEnterSafeState(CO_GFC_t* GFC, void* object, void (*pFunctSign
 
 CO_ReturnError_t
 CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC_CANdevRx, uint16_t GFC_rxIdx,
-            uint16_t CANidRxGFC, CO_CANmodule_t* GFC_CANdevTx, uint16_t GFC_txIdx, uint16_t CANidTxGFC) {
+            CO_CANident_t CANidRxGFC, CO_CANmodule_t* GFC_CANdevTx, uint16_t GFC_txIdx, CO_CANident_t CANidTxGFC) {
     if ((GFC == NULL) || (OD_1300_gfcParameter == NULL) || (GFC_CANdevRx == NULL) || (GFC_CANdevTx == NULL)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
@@ -107,8 +107,8 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
 #if ((CO_CONFIG_GFC)&CO_CONFIG_GFC_CONSUMER) != 0
     GFC->functSignalObjectSafe = NULL;
     GFC->pFunctSignalSafe = NULL;
-    const CO_ReturnError_t r = CO_CANrxBufferInit(GFC_CANdevRx, GFC_rxIdx, CANidRxGFC, 0x7FF, false, (void*)GFC,
-                                                  CO_GFC_receive);
+    const CO_ReturnError_t r = CO_CANrxBufferInit(GFC_CANdevRx, GFC_rxIdx, CANidRxGFC & CO_COB_STD_MASK, CO_COB_STD_MASK, false,
+                                                  (void*)GFC, CO_GFC_receive);
     if (r != CO_ERROR_NO) {
         return r;
     }
