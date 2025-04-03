@@ -93,6 +93,19 @@ extern "C" {
  */
 #define CO_CONFIG_FLAG_OD_DYNAMIC   0x4000
 
+/**
+ * Enable transmission and reception of extended CAN identifiers
+ *
+ * To use extended CAN identifiers, make sure @ref CO_CANident_t is set to
+ * an integer type with at least 30 bits. Bits 0-28 are the CAN identifier
+ * and bit 29 indicates whether the identifier is extended or not.
+ * If you set the identifier type to 16 bit, this flag does nothing,
+ * all identifiers are always 11 bit and no special handling is required.
+ *
+ * This flag is common to multiple configuration macros.
+ */
+#define CO_CONFIG_FLAG_ALLOW_EXT_ID 0x8000
+
 /** This flag may be set globally for mainline objects to
  * @ref CO_CONFIG_FLAG_CALLBACK_PRE */
 #ifdef CO_DOXYGEN

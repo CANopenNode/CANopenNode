@@ -28,7 +28,7 @@
 #ifndef CO_CONFIG_EM
 #define CO_CONFIG_EM                                                                                                   \
     (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE                                 \
-     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 #ifndef CO_CONFIG_EM_ERR_STATUS_BITS_COUNT
 #define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10U * 8U)
@@ -284,7 +284,7 @@ typedef struct {
     CO_CANtx_t* CANtxBuff;            /**< CAN transmit buffer */
     OD_extension_t OD_1014_extension; /**< Extension for OD object */
 #if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_CONFIGURABLE) != 0) || defined CO_DOXYGEN
-    uint16_t producerCanId; /**< COB ID of emergency message, from Object dictionary */
+    CO_CANident_t producerCanId; /**< COB ID of emergency message, from Object dictionary */
     uint16_t CANdevTxIdx;   /**< From CO_EM_init() */
 #endif
 #if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN

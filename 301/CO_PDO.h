@@ -30,7 +30,7 @@
 #define CO_CONFIG_PDO                                                                                                  \
     (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE | CO_CONFIG_RPDO_TIMERS_ENABLE | CO_CONFIG_TPDO_TIMERS_ENABLE       \
      | CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_PDO_OD_IO_ACCESS | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE                  \
-     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 
 #if (((CO_CONFIG_PDO) & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE)) != 0) || defined CO_DOXYGEN
@@ -180,8 +180,8 @@ typedef struct {
     bool_t isRPDO;                            /**< True for RPDO, false for TPDO */
     OD_t* OD;                                 /**< From CO_xPDO_init() */
     uint16_t CANdevIdx;                       /**< From CO_xPDO_init() */
-    uint16_t preDefinedCanId;                 /**< From CO_xPDO_init() */
-    uint16_t configuredCanId;                 /**< Currently configured CAN identifier */
+    CO_CANident_t preDefinedCanId;            /**< From CO_xPDO_init() */
+    CO_CANident_t configuredCanId;            /**< Currently configured CAN identifier */
     OD_extension_t OD_communicationParam_ext; /**< Extension for OD object */
     OD_extension_t OD_mappingParam_extension; /**< Extension for OD object */
 #endif
@@ -248,7 +248,7 @@ CO_ReturnError_t CO_RPDO_init(CO_RPDO_t* RPDO, OD_t* OD, CO_EM_t* em,
 #if (((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
                               CO_SYNC_t* SYNC,
 #endif
-                              uint16_t preDefinedCanId, OD_entry_t* OD_14xx_RPDOCommPar, OD_entry_t* OD_16xx_RPDOMapPar,
+                              CO_CANident_t preDefinedCanId, OD_entry_t* OD_14xx_RPDOCommPar, OD_entry_t* OD_16xx_RPDOMapPar,
                               CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, uint32_t* errInfo);
 
 #if (((CO_CONFIG_PDO)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
@@ -335,7 +335,7 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
 #if (((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
                               CO_SYNC_t* SYNC,
 #endif
-                              uint16_t preDefinedCanId, OD_entry_t* OD_18xx_TPDOCommPar, OD_entry_t* OD_1Axx_TPDOMapPar,
+                              CO_CANident_t preDefinedCanId, OD_entry_t* OD_18xx_TPDOCommPar, OD_entry_t* OD_1Axx_TPDOMapPar,
                               CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx, uint32_t* errInfo);
 
 /**

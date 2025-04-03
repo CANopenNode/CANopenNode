@@ -47,6 +47,14 @@
 #define CO_CONFIG_SDO_CLI_PST 21U
 #endif
 
+#if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
+#define COB_CAN_ID_MASK         CO_COB_EXT_MASK
+#define CO_IS_VALID_CAN_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
+#else
+#define COB_CAN_ID_MASK         CO_COB_STD_MASK
+#define CO_IS_VALID_CAN_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
+#endif
+
 /*
  * Read received message from CAN module.
  *
@@ -166,12 +174,12 @@ OD_write_1280(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
         case 1: { /* COB-ID client -> server */
             uint32_t COB_ID = CO_getUint32(buf);
-            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
-            uint16_t CAN_ID_cur = (uint16_t)(SDO_C->COB_IDClientToServer & 0x7FFU);
+            CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & COB_CAN_ID_MASK);
+            CO_CANident_t CAN_ID_cur = (CO_CANident_t)(SDO_C->COB_IDClientToServer & COB_CAN_ID_MASK);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
             /* SDO client must not be valid when changing COB_ID */
-            if (((COB_ID & 0x3FFFF800U) != 0U) || (valid && SDO_C->valid && (CAN_ID != CAN_ID_cur))
+            if (!CO_IS_VALID_CAN_ID(COB_ID) || (valid && SDO_C->valid && (CAN_ID != CAN_ID_cur))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))) {
                 return ODR_INVALID_VALUE;
             }
@@ -181,12 +189,12 @@ OD_write_1280(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
         case 2: { /* COB-ID server -> client */
             uint32_t COB_ID = CO_getUint32(buf);
-            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
-            uint16_t CAN_ID_cur = (uint16_t)(SDO_C->COB_IDServerToClient & 0x7FFU);
+            CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & COB_CAN_ID_MASK);
+            CO_CANident_t CAN_ID_cur = (CO_CANident_t)(SDO_C->COB_IDServerToClient & COB_CAN_ID_MASK);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
             /* SDO client must not be valid when changing COB_ID */
-            if (((COB_ID & 0x3FFFF800U) != 0U) || (valid && SDO_C->valid && (CAN_ID != CAN_ID_cur))
+            if (!CO_IS_VALID_CAN_ID(COB_ID) || (valid && SDO_C->valid && (CAN_ID != CAN_ID_cur))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID))) {
                 return ODR_INVALID_VALUE;
             }
@@ -332,8 +340,12 @@ CO_SDOclient_setup(CO_SDOclient_t* SDO_C, uint32_t COB_IDClientToServer, uint32_
 #endif
 
     /* verify valid bit */
-    uint16_t CanIdC2S = ((COB_IDClientToServer & 0x80000000UL) == 0U) ? (uint16_t)(COB_IDClientToServer & 0x7FFU) : 0U;
-    uint16_t CanIdS2C = ((COB_IDServerToClient & 0x80000000UL) == 0U) ? (uint16_t)(COB_IDServerToClient & 0x7FFU) : 0U;
+    CO_CANident_t CanIdC2S = ((COB_IDClientToServer & 0x80000000UL) == 0U)
+                                 ? (CO_CANident_t)(COB_IDClientToServer & COB_CAN_ID_MASK)
+                                 : 0U;
+    CO_CANident_t CanIdS2C = ((COB_IDServerToClient & 0x80000000UL) == 0U)
+                                 ? (CO_CANident_t)(COB_IDServerToClient & COB_CAN_ID_MASK)
+                                 : 0U;
     if ((CanIdC2S != 0U) && (CanIdS2C != 0U)) {
         SDO_C->valid = true;
     } else {
@@ -343,8 +355,8 @@ CO_SDOclient_setup(CO_SDOclient_t* SDO_C, uint32_t COB_IDClientToServer, uint32_
     }
 
     /* configure SDO client CAN reception */
-    CO_ReturnError_t ret = CO_CANrxBufferInit(SDO_C->CANdevRx, SDO_C->CANdevRxIdx, CanIdS2C, 0x7FF, false, (void*)SDO_C,
-                                              CO_SDOclient_receive);
+    CO_ReturnError_t ret = CO_CANrxBufferInit(SDO_C->CANdevRx, SDO_C->CANdevRxIdx, CanIdS2C, COB_CAN_ID_MASK, false,
+                                              (void*)SDO_C, CO_SDOclient_receive);
 
     /* configure SDO client CAN transmission */
     SDO_C->CANtxBuff = CO_CANtxBufferInit(SDO_C->CANdevTx, SDO_C->CANdevTxIdx, CanIdC2S, false, 8, false);

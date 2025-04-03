@@ -43,6 +43,9 @@ extern "C" {
 #ifndef CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC
 #define CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC CO_CONFIG_FLAG_OD_DYNAMIC
 #endif
+#ifndef CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID
+#define CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID (0)
+#endif
 #ifdef CO_DEBUG_COMMON
 #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_CLIENT
 #define CO_DEBUG_SDO_CLIENT(msg) CO_DEBUG_COMMON(msg)
@@ -132,8 +135,9 @@ typedef unsigned char uint8_t;           /**< UNSIGNED8 in CANopen (0005h), 8-bi
 typedef unsigned int uint16_t;           /**< UNSIGNED16 in CANopen (0006h), 16-bit unsigned integer */
 typedef unsigned long int uint32_t;      /**< UNSIGNED32 in CANopen (0007h), 32-bit unsigned integer */
 typedef unsigned long long int uint64_t; /**< UNSIGNED64 in CANopen (001Bh), 64-bit unsigned integer */
-typedef float float32_t;  /**< REAL32 in CANopen (0008h), single precision floating point value, 32-bit */
-typedef double float64_t; /**< REAL64 in CANopen (0011h), double precision floating point value, 64-bit */
+typedef float float32_t;        /**< REAL32 in CANopen (0008h), single precision floating point value, 32-bit */
+typedef double float64_t;       /**< REAL64 in CANopen (0011h), double precision floating point value, 64-bit */
+typedef uint16_t CO_CANident_t; /**< Used for CAN Ids should be either 16 bit (std) or 32 bit (ext) */
 /** @} */
 
 /**
@@ -176,7 +180,7 @@ void CANrx_callback(void* object, void* rxMsg);
  * @param rxMsg Pointer to received message
  * @return 11-bit CAN standard identifier.
  */
-static inline uint16_t
+static inline CO_CANident_t
 CO_CANrxMsg_readIdent(void* rxMsg) {
     return 0;
 }
@@ -423,6 +427,22 @@ typedef struct {
      || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) || ((CAN_ID) >= 0x701U))
 #endif
 
+#define CO_CAN_STD_MASK                        0x000007FFU
+#define CO_CAN_EXT_MASK                        0x1FFFFFFFU
+
+#define CO_COB_BIT29                           0x20000000U
+#define CO_COB_BIT30                           0x40000000U
+#define CO_COB_BIT31                           0x80000000U
+#define CO_COB_EXT_BIT                         CO_COB_BIT29
+#define CO_COB_VALID_BIT                       CO_COB_BIT31
+
+#define CO_COB_EXT_MASK                        ((CO_CANident_t)(CO_CAN_EXT_MASK | CO_COB_EXT_BIT))
+#define CO_COB_STD_MASK                        ((CO_CANident_t)(CO_CAN_STD_MASK | CO_COB_EXT_BIT))
+
+#define CO_IS_EXTENDED_CAN_ID(CAN_ID)          (((CAN_ID)&CO_COB_EXT_BIT) != 0)
+#define CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob) (((cob)&0x3FFFF800U) == 0)
+#define CO_CHECK_CAN_ID_IN_COB(cob)            (CO_IS_EXTENDED_CAN_ID(cob) || (((cob)&0x0FFFF800U) == 0))
+
 /**
  * @defgroup CO_CAN_ERR_status_t CAN error status bitmasks
  * @{
@@ -431,15 +451,15 @@ typedef struct {
  * reached, if counters are more or equal to 128. Transmitter goes in error state 'bus off' if transmit error counter is
  * more or equal to 256.
  */
-#define CO_CAN_ERRTX_WARNING    0x0001U /**< 0x0001 CAN transmitter warning */
-#define CO_CAN_ERRTX_PASSIVE    0x0002U /**< 0x0002 CAN transmitter passive */
-#define CO_CAN_ERRTX_BUS_OFF    0x0004U /**< 0x0004 CAN transmitter bus off */
-#define CO_CAN_ERRTX_OVERFLOW   0x0008U /**< 0x0008 CAN transmitter overflow */
-#define CO_CAN_ERRTX_PDO_LATE   0x0080U /**< 0x0080 TPDO is outside sync window */
-#define CO_CAN_ERRRX_WARNING    0x0100U /**< 0x0100 CAN receiver warning */
-#define CO_CAN_ERRRX_PASSIVE    0x0200U /**< 0x0200 CAN receiver passive */
-#define CO_CAN_ERRRX_OVERFLOW   0x0800U /**< 0x0800 CAN receiver overflow */
-#define CO_CAN_ERR_WARN_PASSIVE 0x0303U /**< 0x0303 combination */
+#define CO_CAN_ERRTX_WARNING                   0x0001U /**< 0x0001 CAN transmitter warning */
+#define CO_CAN_ERRTX_PASSIVE                   0x0002U /**< 0x0002 CAN transmitter passive */
+#define CO_CAN_ERRTX_BUS_OFF                   0x0004U /**< 0x0004 CAN transmitter bus off */
+#define CO_CAN_ERRTX_OVERFLOW                  0x0008U /**< 0x0008 CAN transmitter overflow */
+#define CO_CAN_ERRTX_PDO_LATE                  0x0080U /**< 0x0080 TPDO is outside sync window */
+#define CO_CAN_ERRRX_WARNING                   0x0100U /**< 0x0100 CAN receiver warning */
+#define CO_CAN_ERRRX_PASSIVE                   0x0200U /**< 0x0200 CAN receiver passive */
+#define CO_CAN_ERRRX_OVERFLOW                  0x0800U /**< 0x0800 CAN receiver overflow */
+#define CO_CAN_ERR_WARN_PASSIVE                0x0303U /**< 0x0303 combination */
 
 /** @} */ /* CO_CAN_ERR_status_t */
 
@@ -531,7 +551,7 @@ void CO_CANmodule_disable(CO_CANmodule_t* CANmodule);
  * Return #CO_ReturnError_t: CO_ERROR_NO CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY (not enough masks for
  * configuration).
  */
-CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, uint16_t mask,
+CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, CO_CANident_t ident, CO_CANident_t mask,
                                     bool_t rtr, void* object, void (*CANrx_callback)(void* object, void* message));
 
 /**
@@ -551,8 +571,8 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, u
  * @return Pointer to CAN transmit message buffer. 8 bytes data array inside buffer should be written, before
  * CO_CANsend() function is called. Zero is returned in case of wrong arguments.
  */
-CO_CANtx_t* CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, bool_t rtr, uint8_t noOfBytes,
-                               bool_t syncFlag);
+CO_CANtx_t* CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, CO_CANident_t ident, bool_t rtr,
+                               uint8_t noOfBytes, bool_t syncFlag);
 
 /**
  * Send CAN message.

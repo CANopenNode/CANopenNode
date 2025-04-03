@@ -246,7 +246,7 @@ CO_ngm_receive(void* object, void* msg) {
 
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     const uint8_t* data = CO_CANrxMsg_readData(msg);
-    uint16_t ident = CO_CANrxMsg_readIdent(msg);
+    CO_CANident_t ident = CO_CANrxMsg_readIdent(msg);
     CO_nodeGuardingMasterNode_t* node = &ngm->nodes[0];
 
     if (DLC == 1) {

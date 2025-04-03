@@ -29,7 +29,7 @@
 
 /* default configuration, see CO_config.h */
 #ifndef CO_CONFIG_SDO_CLI
-#define CO_CONFIG_SDO_CLI (0)
+#define CO_CONFIG_SDO_CLI (CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 
 #ifndef CO_DOXYGEN

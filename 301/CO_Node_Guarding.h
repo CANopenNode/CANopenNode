@@ -167,7 +167,7 @@ extern "C" {
 typedef struct {
     uint32_t guardTime_us;           /**< Guard time in microseconds */
     uint32_t guardTimer;             /**< Guard timer in microseconds, counting down */
-    uint16_t ident;                  /**< CAN identifier (CO_CAN_ID_HEARTBEAT + Node Id) */
+    CO_CANident_t ident;             /**< CAN identifier (CO_CAN_ID_HEARTBEAT + Node Id) */
     CO_NMT_internalState_t NMTstate; /**< NMT operating state */
     uint8_t toggle;                  /**< toggle bit7, expected from the next received message */
     bool_t responseRecived;          /**< True, if response was received since last rtr message */
