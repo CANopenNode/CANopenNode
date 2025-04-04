@@ -54,6 +54,9 @@ extern "C" {
 #define CO_DEBUG_SDO_SERVER(msg) CO_DEBUG_COMMON(msg)
 #endif
 #endif
+#ifndef CO_CONFIG_CAN
+#define CO_CONFIG_CAN (CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
+#endif
 
 /**
  * @defgroup CO_driver Driver
@@ -135,9 +138,8 @@ typedef unsigned char uint8_t;           /**< UNSIGNED8 in CANopen (0005h), 8-bi
 typedef unsigned int uint16_t;           /**< UNSIGNED16 in CANopen (0006h), 16-bit unsigned integer */
 typedef unsigned long int uint32_t;      /**< UNSIGNED32 in CANopen (0007h), 32-bit unsigned integer */
 typedef unsigned long long int uint64_t; /**< UNSIGNED64 in CANopen (001Bh), 64-bit unsigned integer */
-typedef float float32_t;        /**< REAL32 in CANopen (0008h), single precision floating point value, 32-bit */
-typedef double float64_t;       /**< REAL64 in CANopen (0011h), double precision floating point value, 64-bit */
-typedef uint16_t CO_CANident_t; /**< Used for CAN Ids should be either 16 bit (std) or 32 bit (ext) */
+typedef float float32_t;  /**< REAL32 in CANopen (0008h), single precision floating point value, 32-bit */
+typedef double float64_t; /**< REAL64 in CANopen (0011h), double precision floating point value, 64-bit */
 /** @} */
 
 /**
@@ -180,7 +182,7 @@ void CANrx_callback(void* object, void* rxMsg);
  * @param rxMsg Pointer to received message
  * @return 11-bit CAN standard identifier.
  */
-static inline CO_CANident_t
+static inline uint16_t
 CO_CANrxMsg_readIdent(void* rxMsg) {
     return 0;
 }
@@ -427,9 +429,24 @@ typedef struct {
      || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) || ((CAN_ID) >= 0x701U))
 #endif
 
+/**
+ * Typedef to for CAN identifier
+ */
+#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0)
+typedef uint32_t CO_CANident_t; /**< Allow extended ids */
+#else
+typedef uint16_t CO_CANident_t; /**< Use std ids only */
+#endif
+
+/**
+ * Masks std and ext identifiers
+ */
 #define CO_CAN_STD_MASK                        0x000007FFU
 #define CO_CAN_EXT_MASK                        0x1FFFFFFFU
 
+/**
+ * Common masks for COB-IDs
+ */
 #define CO_COB_BIT29                           0x20000000U
 #define CO_COB_BIT30                           0x40000000U
 #define CO_COB_BIT31                           0x80000000U
@@ -440,6 +457,10 @@ typedef struct {
 #define CO_COB_STD_MASK                        ((CO_CANident_t)(CO_CAN_STD_MASK | CO_COB_EXT_BIT))
 
 #define CO_IS_EXTENDED_CAN_ID(CAN_ID)          (((CAN_ID)&CO_COB_EXT_BIT) != 0)
+
+/**
+ * Helper to verify COB-IDs
+ */
 #define CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob) (((cob)&0x3FFFF800U) == 0)
 #define CO_CHECK_CAN_ID_IN_COB(cob)            (CO_IS_EXTENDED_CAN_ID(cob) || (((cob)&0x0FFFF800U) == 0))
 

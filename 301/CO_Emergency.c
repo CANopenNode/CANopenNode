@@ -29,11 +29,14 @@
 #endif
 
 #if ((CO_CONFIG_EM)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#define COB_CAN_ID_MASK         CO_COB_EXT_MASK
-#define CO_IS_VALID_CAN_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
+#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
+#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
+#endif
+#define CO_COB_ID_MASK       CO_COB_EXT_MASK
+#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
 #else
-#define COB_CAN_ID_MASK         CO_COB_STD_MASK
-#define CO_IS_VALID_CAN_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
+#define CO_COB_ID_MASK       CO_COB_STD_MASK
+#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
 #endif
 
 /* fifo buffer example for fifoSize = 7 (actual capacity = 6)                 *
@@ -87,11 +90,11 @@ OD_write_1014(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
     /* Verify written value. COB ID must not change, if emergency is enabled */
     uint32_t COB_IDEmergency32 = CO_getUint32(buf);
-    CO_CANident_t newCanId = (CO_CANident_t)(COB_IDEmergency32 & COB_CAN_ID_MASK);
+    CO_CANident_t newCanId = (CO_CANident_t)(COB_IDEmergency32 & CO_COB_ID_MASK);
     CO_CANident_t curCanId = (em->producerCanId == CO_CAN_ID_EMERGENCY) ? (CO_CAN_ID_EMERGENCY + em->nodeId)
                                                                         : em->producerCanId;
     bool_t newEnabled = ((COB_IDEmergency32 & 0x80000000U) == 0U) && (newCanId != 0U);
-    if (!CO_IS_VALID_CAN_ID(COB_IDEmergency32) || ((COB_IDEmergency32 & 0x40000000U) != 0)
+    if (!CO_CHECK_COB_ID(COB_IDEmergency32) || ((COB_IDEmergency32 & 0x40000000U) != 0)
         || CO_IS_RESTRICTED_CAN_ID(newCanId) || ((em->producerEnabled && newEnabled) && (newCanId != curCanId))) {
         return ODR_INVALID_VALUE;
     }
@@ -372,7 +375,7 @@ CO_EM_init(CO_EM_t* em, CO_CANmodule_t* CANdevTx, const OD_entry_t* OD_1001_errR
     uint32_t COB_IDEmergency32;
     ODR_t odRet;
     odRet = OD_get_u32(OD_1014_cobIdEm, 0, &COB_IDEmergency32, true);
-    if ((odRet != ODR_OK) || !CO_IS_VALID_CAN_ID(COB_IDEmergency32) || ((COB_IDEmergency32 & 0x40000000U) != 0)) {
+    if ((odRet != ODR_OK) || !CO_CHECK_COB_ID(COB_IDEmergency32) || ((COB_IDEmergency32 & 0x40000000U) != 0)) {
         if (errInfo != NULL) {
             *errInfo = OD_getIndex(OD_1014_cobIdEm);
         }
@@ -383,7 +386,7 @@ CO_EM_init(CO_EM_t* em, CO_CANmodule_t* CANdevTx, const OD_entry_t* OD_1001_errR
     }
 
 #if ((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_CONFIGURABLE) != 0
-    CO_CANident_t producerCanId = (CO_CANident_t)(COB_IDEmergency32 & COB_CAN_ID_MASK);
+    CO_CANident_t producerCanId = (CO_CANident_t)(COB_IDEmergency32 & CO_COB_ID_MASK);
     em->producerEnabled = ((COB_IDEmergency32 & 0x80000000U) == 0U) && (producerCanId != 0U);
 
     em->OD_1014_extension.object = em;
@@ -465,7 +468,7 @@ CO_EM_init(CO_EM_t* em, CO_CANmodule_t* CANdevTx, const OD_entry_t* OD_1001_errR
 #if ((CO_CONFIG_EM)&CO_CONFIG_EM_CONSUMER) != 0
     em->pFunctSignalRx = NULL;
     /* configure SDO server CAN reception */
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CO_CAN_ID_EMERGENCY, COB_CAN_ID_MASK ^ 0x7FU, false, (void*)em,
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CO_CAN_ID_EMERGENCY, CO_COB_ID_MASK ^ 0x7FU, false, (void*)em,
                              CO_EM_receive);
 #endif /* (CO_CONFIG_EM) & CO_CONFIG_EM_CONSUMER */
 

@@ -49,24 +49,22 @@ typedef uint_fast8_t bool_t;
 typedef float float32_t;
 typedef double float64_t;
 
-typedef uint16_t CO_CANident_t;
-
 /* Access to received CAN message */
-#define CO_CANrxMsg_readIdent(msg) ((CO_CANident_t)0)
+#define CO_CANrxMsg_readIdent(msg) ((uint16_t)0)
 #define CO_CANrxMsg_readDLC(msg)   ((uint8_t)0)
 #define CO_CANrxMsg_readData(msg)  ((const uint8_t*)NULL)
 
 /* Received message object */
 typedef struct {
-    CO_CANident_t ident;
-    CO_CANident_t mask;
+    uint16_t ident;
+    uint16_t mask;
     void* object;
     void (*CANrx_callback)(void* object, void* message);
 } CO_CANrx_t;
 
 /* Transmit message object */
 typedef struct {
-    CO_CANident_t ident;
+    uint32_t ident;
     uint8_t DLC;
     uint8_t data[8];
     volatile bool_t bufferFull;

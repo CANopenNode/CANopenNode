@@ -31,11 +31,14 @@
 #endif
 
 #if ((CO_CONFIG_PDO)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#define COB_CAN_ID_MASK         CO_COB_EXT_MASK
-#define CO_IS_VALID_CAN_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
+#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
+#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
+#endif
+#define CO_COB_ID_MASK       CO_COB_EXT_MASK
+#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
 #else
-#define COB_CAN_ID_MASK         CO_COB_STD_MASK
-#define CO_IS_VALID_CAN_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
+#define CO_COB_ID_MASK       CO_COB_STD_MASK
+#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
 #endif
 
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_OD_IO_ACCESS) != 0
@@ -393,10 +396,10 @@ OD_read_PDO_commParam(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t
         /* Only common part of the CO_RPDO_t or CO_TPDO_t will be used */
         CO_PDO_common_t* PDO = stream->object;
         uint32_t COB_ID = CO_getUint32(buf);
-        CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & COB_CAN_ID_MASK);
+        CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_COB_ID_MASK);
 
         /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-        if ((CAN_ID != 0U) && (CAN_ID == (PDO->preDefinedCanId & (COB_CAN_ID_MASK ^ 0x7FU)))) {
+        if ((CAN_ID != 0U) && (CAN_ID == (PDO->preDefinedCanId & (CO_COB_ID_MASK ^ 0x7FU)))) {
             COB_ID = (COB_ID & (CO_COB_BIT31 | CO_COB_BIT30)) | PDO->preDefinedCanId;
         }
 
@@ -507,12 +510,12 @@ OD_write_14xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
     switch (stream->subIndex) {
         case 1: { /* COB-ID used by PDO */
             uint32_t COB_ID = CO_getUint32(buf);
-            CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & COB_CAN_ID_MASK);
+            CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_COB_ID_MASK);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
             /* PDO must be disabled on change, CAN_ID == 0 is
              * not allowed, mapping must be configured before enabling the PDO */
-            if (!CO_IS_VALID_CAN_ID(COB_ID) || (valid && PDO->valid && (CAN_ID != PDO->configuredCanId))
+            if (!CO_CHECK_COB_ID(COB_ID) || (valid && PDO->valid && (CAN_ID != PDO->configuredCanId))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID)) || (valid && (PDO->mappedObjectsCount == 0U))) {
                 return ODR_INVALID_VALUE;
             }
@@ -527,7 +530,7 @@ OD_write_14xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
                     CAN_ID = 0;
                 }
 
-                CO_ReturnError_t ret = CO_CANrxBufferInit(PDO->CANdev, PDO->CANdevIdx, CAN_ID, COB_CAN_ID_MASK, false,
+                CO_ReturnError_t ret = CO_CANrxBufferInit(PDO->CANdev, PDO->CANdevIdx, CAN_ID, CO_COB_ID_MASK, false,
                                                           (void*)RPDO, CO_PDO_receive);
 
                 if (valid && (ret == CO_ERROR_NO)) {
@@ -629,7 +632,7 @@ CO_RPDO_init(CO_RPDO_t* RPDO, OD_t* OD, CO_EM_t* em,
     }
 
     bool_t valid = (COB_ID & 0x80000000U) == 0U;
-    CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & COB_CAN_ID_MASK);
+    CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_COB_ID_MASK);
     if (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U))) {
         valid = false;
         if (erroneousMap == 0U) {
@@ -646,11 +649,11 @@ CO_RPDO_init(CO_RPDO_t* RPDO, OD_t* OD, CO_EM_t* em,
     }
 
     /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & COB_CAN_ID_MASK))) {
+    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & CO_COB_ID_MASK))) {
         CAN_ID = preDefinedCanId;
     }
 
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CAN_ID, COB_CAN_ID_MASK, false, (void*)RPDO, CO_PDO_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CAN_ID, CO_COB_ID_MASK, false, (void*)RPDO, CO_PDO_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
@@ -896,12 +899,12 @@ OD_write_18xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
     switch (stream->subIndex) {
         case 1: { /* COB-ID used by PDO */
             uint32_t COB_ID = CO_getUint32(buf);
-            CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & COB_CAN_ID_MASK);
+            CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_COB_ID_MASK);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
             /* PDO must be disabled on change, CAN_ID == 0 is
              * not allowed, mapping must be configured before enabling the PDO */
-            if (!CO_IS_VALID_CAN_ID(COB_ID) || (valid && (PDO->valid && (CAN_ID != PDO->configuredCanId)))
+            if (!CO_CHECK_COB_ID(COB_ID) || (valid && (PDO->valid && (CAN_ID != PDO->configuredCanId)))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID)) || (valid && (PDO->mappedObjectsCount == 0U))) {
                 return ODR_INVALID_VALUE;
             }
@@ -1053,7 +1056,7 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
     }
 
     bool_t valid = (COB_ID & 0x80000000U) == 0U;
-    CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & COB_CAN_ID_MASK);
+    CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_COB_ID_MASK);
     if (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U))) {
         valid = false;
         if (erroneousMap == 0U) {
@@ -1070,7 +1073,7 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
     }
 
     /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & (COB_CAN_ID_MASK ^ 0x7FU)))) {
+    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & (CO_COB_ID_MASK ^ 0x7FU)))) {
         CAN_ID = preDefinedCanId;
     }
 

@@ -96,11 +96,9 @@ extern "C" {
 /**
  * Enable transmission and reception of extended CAN identifiers
  *
- * To use extended CAN identifiers, make sure @ref CO_CANident_t is set to
- * an integer type with at least 30 bits. Bits 0-28 are the CAN identifier
+ * To use extended CAN identifiers, make sure your driver use the appropriate
+ * integer type  with at least 30 bits. Bits 0-28 are the CAN identifier
  * and bit 29 indicates whether the identifier is extended or not.
- * If you set the identifier type to 16 bit, this flag does nothing,
- * all identifiers are always 11 bit and no special handling is required.
  *
  * This flag is common to multiple configuration macros.
  */
@@ -128,6 +126,27 @@ extern "C" {
 #define CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC CO_CONFIG_FLAG_OD_DYNAMIC
 #endif
 /** @} */ /* CO_STACK_CONFIG_COMMON */
+
+/** This flag may be set globally to @ref CO_CONFIG_FLAG_ALLOW_EXT_ID */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID (0)
+#endif
+/** @} */ /* CO_STACK_CONFIG_COMMON */
+
+/**
+ * @defgroup CO_STACK_CONFIG_CAN CAN Driver
+ * @{
+ */
+/**
+ * Configuration of @ref CO_driver.
+ *
+ * Possible flags, can be ORed:
+ * - #CO_CONFIG_FLAG_ALLOW_EXT_ID - Enable extended CAN identifier
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_CAN (CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
+#endif
+/** @} */ /* CO_STACK_CONFIG_CAN */
 
 /**
  * @defgroup CO_STACK_CONFIG_NMT_HB NMT master/slave and HB producer/consumer
@@ -244,11 +263,12 @@ extern "C" {
  *   Callback is configured by CO_EM_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_EM_process().
+ * - #CO_CONFIG_FLAG_ALLOW_EXT_ID - Enable extended CAN identifier
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_EM                                                                                                   \
     (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE                                 \
-     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 #define CO_CONFIG_EM_PRODUCER          0x01
 #define CO_CONFIG_EM_PROD_CONFIGURABLE 0x02
@@ -364,11 +384,12 @@ extern "C" {
  *   inside CO_SDOserver_process().
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of additional SDO
  *   servers (Writing to object 0x1201+ re-configures the additional server).
+ * - #CO_CONFIG_FLAG_ALLOW_EXT_ID - Enable extended CAN identifier
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_SDO_SRV                                                                                              \
     (CO_CONFIG_SDO_SRV_SEGMENTED | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT                \
-     | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+     | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 #define CO_CONFIG_SDO_SRV_SEGMENTED 0x02
 #define CO_CONFIG_SDO_SRV_BLOCK     0x04
@@ -404,9 +425,10 @@ extern "C" {
  *   CO_SDOclientUploadInitiate(), CO_SDOclientUpload().
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of SDO clients
  *   (Writing to object 0x1280+ re-configures the client).
+ * - #CO_CONFIG_FLAG_ALLOW_EXT_ID - Enable extended CAN identifier
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_SDO_CLI (0)
+#define CO_CONFIG_SDO_CLI (CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 #define CO_CONFIG_SDO_CLI_ENABLE    0x01
 #define CO_CONFIG_SDO_CLI_SEGMENTED 0x02
@@ -445,9 +467,12 @@ extern "C" {
  *   Callback is configured by CO_TIME_initCallbackPre().
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration - writing to
  *   object 0x1012 enables / disables time producer or consumer.
+ * - #CO_CONFIG_FLAG_ALLOW_EXT_ID - Enable extended CAN identifier
  */
 #ifdef CO_DOXYGEN
-#define CO_CONFIG_TIME (CO_CONFIG_TIME_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+#define CO_CONFIG_TIME                                                                                                 \
+    (CO_CONFIG_TIME_ENABLE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC                     \
+     | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 #define CO_CONFIG_TIME_ENABLE   0x01
 #define CO_CONFIG_TIME_PRODUCER 0x02
@@ -470,11 +495,12 @@ extern "C" {
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SYNC_process().
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of SYNC.
+ * - #CO_CONFIG_FLAG_ALLOW_EXT_ID - Enable extended CAN identifier
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_SYNC                                                                                                 \
     (CO_CONFIG_SYNC_ENABLE | CO_CONFIG_SYNC_PRODUCER | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE                           \
-     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 #define CO_CONFIG_SYNC_ENABLE   0x01
 #define CO_CONFIG_SYNC_PRODUCER 0x02
@@ -501,12 +527,13 @@ extern "C" {
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_TPDO_process().
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration of PDO.
+ * - #CO_CONFIG_FLAG_ALLOW_EXT_ID - Enable extended CAN identifier
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_PDO                                                                                                  \
     (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE | CO_CONFIG_RPDO_TIMERS_ENABLE | CO_CONFIG_TPDO_TIMERS_ENABLE       \
      | CO_CONFIG_PDO_SYNC_ENABLE | CO_CONFIG_PDO_OD_IO_ACCESS | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE                  \
-     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
 #endif
 #define CO_CONFIG_RPDO_ENABLE        0x01
 #define CO_CONFIG_TPDO_ENABLE        0x02
