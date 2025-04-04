@@ -157,12 +157,16 @@ typedef struct {
     uint8_t mappedObjectsCount; /**< Number of mapped objects in PDO */
 #if (((CO_CONFIG_PDO)&CO_CONFIG_PDO_OD_IO_ACCESS) != 0) || defined CO_DOXYGEN
     OD_IO_t OD_IO[CO_PDO_MAX_MAPPED_ENTRIES]; /**< Object dictionary interface for all mapped entries. OD_IO.dataOffset
-                                                 has special usage with PDO. It stores information about mappedLength
-                                                 of the variable. mappedLength can be less or equal to the
-                                                 OD_IO.dataLength. mappedLength greater than OD_IO.dataLength indicates
+                                                 has special usage with PDO. It stores information about the number of bytes
+                                                 mapped to the PDO. If CO_CONFIG_PDO_BITWISE_MAPPING is enabled, it stores a
+                                                 number of bits instead. In either case, the number of bits mapped to the PDO
+                                                 can not be more than the size of the variable (OD_IO.dataLength) in bits.
+                                                 mappedLengthBits can be less or equal to the OD_IO.dataLength*8.
+                                                 mappedLengthBits greater than OD_IO.dataLength*8 indicates
                                                  erroneous mapping. OD_IO.dataOffset is set to 0 before read/write
                                                  function call and after the call OD_IO.dataOffset is set back to
-                                                 mappedLength. */
+                                                 mappedLength (if CO_CONFIG_PDO_BITWISE_MAPPING is disabled) or
+                                                 mappedLengthBits (if CO_CONFIG_PDO_BITWISE_MAPPING is enabled). */
 #if OD_FLAGS_PDO_SIZE > 0
     uint8_t* flagPDObyte[CO_PDO_MAX_MAPPED_ENTRIES];   /**< Pointer to byte, which contains PDO flag bit from @ref
                                                           OD_extension_t */
