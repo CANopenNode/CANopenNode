@@ -454,7 +454,7 @@ validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t
 #if ((CO_CONFIG_SDO_SRV)&CO_CONFIG_SDO_SRV_BLOCK) != 0
     /* calculate crc on current data */
     if (SDO->block_crcEnabled && crcOperation > 0) {
-        SDO->block_crc = crc16_ccitt(SDO->buf, bufOffsetWrOrig, SDO->block_crc);
+        SDO->block_crc = CO_crc16_ccitt(SDO->buf, bufOffsetWrOrig, SDO->block_crc);
         if (crcOperation == 2 && crcClient != SDO->block_crc) {
             *abortCode = CO_SDO_AB_CRC;
             SDO->state = CO_SDO_ST_ABORT;
@@ -580,7 +580,7 @@ readFromOd(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, OD_size_t countMi
 #if ((CO_CONFIG_SDO_SRV)&CO_CONFIG_SDO_SRV_BLOCK) != 0
         /* update the crc */
         if (calculateCrc && SDO->block_crcEnabled) {
-            SDO->block_crc = crc16_ccitt(&SDO->buf[countRemain], countRd, SDO->block_crc);
+            SDO->block_crc = CO_crc16_ccitt(&SDO->buf[countRemain], countRd, SDO->block_crc);
         }
 #endif
     }
@@ -941,7 +941,7 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
                         /* data were already loaded from OD variable, verify crc */
                         if ((SDO->CANrxData[0] & 0x04) != 0) {
                             SDO->block_crcEnabled = true;
-                            SDO->block_crc = crc16_ccitt(SDO->buf, SDO->bufOffsetWr, 0);
+                            SDO->block_crc = CO_crc16_ccitt(SDO->buf, SDO->bufOffsetWr, 0);
                         } else {
                             SDO->block_crcEnabled = false;
                         }

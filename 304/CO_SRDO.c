@@ -512,20 +512,20 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
         uint16_t tmp_u16;
         uint32_t tmp_u32;
 
-        crcResult = crc16_ccitt(&informationDirection, 1, crcResult);
+        crcResult = CO_crc16_ccitt(&informationDirection, 1, crcResult);
         tmp_u16 = CO_SWAP_16(safetyCycleTime);
-        crcResult = crc16_ccitt((uint8_t*)&tmp_u16, 2, crcResult);
-        crcResult = crc16_ccitt(&safetyRelatedValidationTime, 1, crcResult);
+        crcResult = CO_crc16_ccitt((uint8_t*)&tmp_u16, 2, crcResult);
+        crcResult = CO_crc16_ccitt(&safetyRelatedValidationTime, 1, crcResult);
         tmp_u32 = CO_SWAP_32(COB_ID1_normal);
-        crcResult = crc16_ccitt((uint8_t*)&tmp_u32, 4, crcResult);
+        crcResult = CO_crc16_ccitt((uint8_t*)&tmp_u32, 4, crcResult);
         tmp_u32 = CO_SWAP_32(COB_ID2_inverted);
-        crcResult = crc16_ccitt((uint8_t*)&tmp_u32, 4, crcResult);
-        crcResult = crc16_ccitt(&mappedObjectsCount, 1, crcResult);
+        crcResult = CO_crc16_ccitt((uint8_t*)&tmp_u32, 4, crcResult);
+        crcResult = CO_crc16_ccitt(&mappedObjectsCount, 1, crcResult);
         for (uint8_t i = 0; i < mappedObjectsCount; i++) {
             uint8_t crcsubindex = i + 1U;
-            crcResult = crc16_ccitt(&crcsubindex, 1, crcResult);
+            crcResult = CO_crc16_ccitt(&crcsubindex, 1, crcResult);
             tmp_u32 = CO_SWAP_32(mapping[i]);
-            crcResult = crc16_ccitt((uint8_t*)&tmp_u32, 4, crcResult);
+            crcResult = CO_crc16_ccitt((uint8_t*)&tmp_u32, 4, crcResult);
         }
 
         if (crcResult != crcSignatureFromOD) {
