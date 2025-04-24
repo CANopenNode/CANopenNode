@@ -25,6 +25,15 @@
 
 #if ((CO_CONFIG_LSS)&CO_CONFIG_LSS_MASTER) != 0
 
+#if ((CO_CONFIG_LSS)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
+#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
+#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
+#endif
+#define CO_COB_ID_MASK CO_COB_EXT_MASK
+#else
+#define CO_COB_ID_MASK CO_COB_STD_MASK
+#endif
+
 /*
  * @defgroup CO_LSSmaster_state_t
  * @{
@@ -136,8 +145,8 @@ CO_LSSmaster_init(CO_LSSmaster_t* LSSmaster, uint16_t timeout_ms, CO_CANmodule_t
 #endif
 
     /* configure LSS CAN Slave response message reception */
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidLssSlave & CO_COB_STD_MASK, CO_COB_STD_MASK, false,
-                             (void*)LSSmaster, CO_LSSmaster_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidLssSlave, CO_COB_ID_MASK, false, (void*)LSSmaster,
+                             CO_LSSmaster_receive);
 
     /* configure LSS CAN Master message transmission */
     LSSmaster->CANdevTx = CANdevTx;

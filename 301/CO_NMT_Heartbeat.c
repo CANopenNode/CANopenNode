@@ -20,6 +20,15 @@
 
 #include "301/CO_NMT_Heartbeat.h"
 
+#if ((CO_CONFIG_NMT)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
+#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
+#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
+#endif
+#define CO_COB_ID_MASK CO_COB_EXT_MASK
+#else
+#define CO_COB_ID_MASK CO_COB_STD_MASK
+#endif
+
 /*
  * Read received message from CAN module.
  *
@@ -126,7 +135,7 @@ CO_NMT_init(CO_NMT_t* NMT, OD_entry_t* OD_1017_ProducerHbTime, CO_EM_t* em, uint
     }
 
     /* configure NMT CAN reception */
-    ret = CO_CANrxBufferInit(NMT_CANdevRx, NMT_rxIdx & CO_COB_STD_MASK, CANidRxNMT, CO_COB_STD_MASK, false, (void*)NMT, CO_NMT_receive);
+    ret = CO_CANrxBufferInit(NMT_CANdevRx, NMT_rxIdx, CANidRxNMT, CO_COB_ID_MASK, false, (void*)NMT, CO_NMT_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }

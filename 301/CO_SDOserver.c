@@ -292,7 +292,7 @@ CO_SDOserver_init(CO_SDOserver_t* SDO, OD_t* OD, OD_entry_t* OD_1200_SDOsrvPar, 
 #endif
 
     /* configure CAN identifiers and SDO server parameters if available */
-    uint16_t CanId_ClientToServer, CanId_ServerToClient;
+    CO_CANident_t CanId_ClientToServer, CanId_ServerToClient;
 
     if (OD_1200_SDOsrvPar == NULL) {
         /* configure default SDO channel */
@@ -300,8 +300,8 @@ CO_SDOserver_init(CO_SDOserver_t* SDO, OD_t* OD, OD_entry_t* OD_1200_SDOsrvPar, 
             return CO_ERROR_ILLEGAL_ARGUMENT;
         }
 
-        CanId_ClientToServer = CO_CAN_ID_SDO_CLI + nodeId;
-        CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
+        CanId_ClientToServer = (CO_CANident_t)(CO_CAN_ID_SDO_CLI + nodeId);
+        CanId_ServerToClient = (CO_CANident_t)(CO_CAN_ID_SDO_SRV + nodeId);
         SDO->valid = true;
     } else {
         uint16_t OD_SDOsrvParIdx = OD_getIndex(OD_1200_SDOsrvPar);
@@ -312,8 +312,8 @@ CO_SDOserver_init(CO_SDOserver_t* SDO, OD_t* OD, OD_entry_t* OD_1200_SDOsrvPar, 
                 return CO_ERROR_ILLEGAL_ARGUMENT;
             }
 
-            CanId_ClientToServer = CO_CAN_ID_SDO_CLI + nodeId;
-            CanId_ServerToClient = CO_CAN_ID_SDO_SRV + nodeId;
+            CanId_ClientToServer = (CO_CANident_t)(CO_CAN_ID_SDO_CLI + nodeId);
+            CanId_ServerToClient = (CO_CANident_t)(CO_CAN_ID_SDO_SRV + nodeId);
             SDO->valid = true;
 
             (void)OD_set_u32(OD_1200_SDOsrvPar, 1, CanId_ClientToServer, true);
