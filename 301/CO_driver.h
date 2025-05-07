@@ -43,9 +43,6 @@ extern "C" {
 #ifndef CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC
 #define CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC CO_CONFIG_FLAG_OD_DYNAMIC
 #endif
-#ifndef CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID
-#define CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID (0)
-#endif
 #ifdef CO_DEBUG_COMMON
 #if (CO_CONFIG_DEBUG) & CO_CONFIG_DEBUG_SDO_CLIENT
 #define CO_DEBUG_SDO_CLIENT(msg) CO_DEBUG_COMMON(msg)
@@ -55,7 +52,7 @@ extern "C" {
 #endif
 #endif
 #ifndef CO_CONFIG_CAN
-#define CO_CONFIG_CAN (CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
+#define CO_CONFIG_CAN (0)
 #endif
 
 /**
@@ -432,7 +429,7 @@ typedef struct {
 /**
  * Typedef to for CAN identifier
  */
-#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0)
+#if (((CO_CONFIG_CAN)&CO_CONFIG_CAN_ALLOW_EXT_ID) != 0)
 typedef uint32_t CO_CANident_t; /**< Allow extended ids */
 #else
 typedef uint16_t CO_CANident_t; /**< Use std ids only */
@@ -453,9 +450,6 @@ typedef uint16_t CO_CANident_t; /**< Use std ids only */
 #define CO_COB_EXT_BIT                         CO_COB_BIT29
 #define CO_COB_VALID_BIT                       CO_COB_BIT31
 
-#define CO_COB_EXT_MASK                        ((CO_CANident_t)(CO_CAN_EXT_MASK | CO_COB_EXT_BIT))
-#define CO_COB_STD_MASK                        ((CO_CANident_t)(CO_CAN_STD_MASK | CO_COB_EXT_BIT))
-
 #define CO_IS_EXTENDED_CAN_ID(CAN_ID)          (((CAN_ID)&CO_COB_EXT_BIT) != 0)
 
 /**
@@ -463,6 +457,14 @@ typedef uint16_t CO_CANident_t; /**< Use std ids only */
  */
 #define CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob) (((cob)&0x3FFFF800U) == 0)
 #define CO_CHECK_CAN_ID_IN_COB(cob)            (CO_IS_EXTENDED_CAN_ID(cob) || (((cob)&0x0FFFF800U) == 0))
+
+#if (((CO_CONFIG_CAN)&CO_CONFIG_CAN_ALLOW_EXT_ID) != 0)
+#define CO_CAN_ID_MASK       (CO_CAN_EXT_MASK | CO_COB_EXT_BIT)
+#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
+#else
+#define CO_CAN_ID_MASK       (CO_CAN_STD_MASK)
+#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
+#endif
 
 /**
  * @defgroup CO_CAN_ERR_status_t CAN error status bitmasks
@@ -472,15 +474,15 @@ typedef uint16_t CO_CANident_t; /**< Use std ids only */
  * reached, if counters are more or equal to 128. Transmitter goes in error state 'bus off' if transmit error counter is
  * more or equal to 256.
  */
-#define CO_CAN_ERRTX_WARNING                   0x0001U /**< 0x0001 CAN transmitter warning */
-#define CO_CAN_ERRTX_PASSIVE                   0x0002U /**< 0x0002 CAN transmitter passive */
-#define CO_CAN_ERRTX_BUS_OFF                   0x0004U /**< 0x0004 CAN transmitter bus off */
-#define CO_CAN_ERRTX_OVERFLOW                  0x0008U /**< 0x0008 CAN transmitter overflow */
-#define CO_CAN_ERRTX_PDO_LATE                  0x0080U /**< 0x0080 TPDO is outside sync window */
-#define CO_CAN_ERRRX_WARNING                   0x0100U /**< 0x0100 CAN receiver warning */
-#define CO_CAN_ERRRX_PASSIVE                   0x0200U /**< 0x0200 CAN receiver passive */
-#define CO_CAN_ERRRX_OVERFLOW                  0x0800U /**< 0x0800 CAN receiver overflow */
-#define CO_CAN_ERR_WARN_PASSIVE                0x0303U /**< 0x0303 combination */
+#define CO_CAN_ERRTX_WARNING    0x0001U /**< 0x0001 CAN transmitter warning */
+#define CO_CAN_ERRTX_PASSIVE    0x0002U /**< 0x0002 CAN transmitter passive */
+#define CO_CAN_ERRTX_BUS_OFF    0x0004U /**< 0x0004 CAN transmitter bus off */
+#define CO_CAN_ERRTX_OVERFLOW   0x0008U /**< 0x0008 CAN transmitter overflow */
+#define CO_CAN_ERRTX_PDO_LATE   0x0080U /**< 0x0080 TPDO is outside sync window */
+#define CO_CAN_ERRRX_WARNING    0x0100U /**< 0x0100 CAN receiver warning */
+#define CO_CAN_ERRRX_PASSIVE    0x0200U /**< 0x0200 CAN receiver passive */
+#define CO_CAN_ERRRX_OVERFLOW   0x0800U /**< 0x0800 CAN receiver overflow */
+#define CO_CAN_ERR_WARN_PASSIVE 0x0303U /**< 0x0303 combination */
 
 /** @} */ /* CO_CAN_ERR_status_t */
 

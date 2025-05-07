@@ -24,17 +24,6 @@
 
 #if ((CO_CONFIG_TIME)&CO_CONFIG_TIME_ENABLE) != 0
 
-#if ((CO_CONFIG_TIME)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
-#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
-#endif
-#define CO_COB_ID_MASK       CO_COB_EXT_MASK
-#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
-#else
-#define CO_COB_ID_MASK       CO_COB_STD_MASK
-#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
-#endif
-
 /*
  * Read received message from CAN module.
  *
@@ -77,7 +66,7 @@ OD_write_1012(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
     /* verify written value */
     uint32_t cobIdTimeStamp = CO_getUint32(buf);
-    CO_CANident_t CAN_ID = (CO_CANident_t)(cobIdTimeStamp & CO_COB_ID_MASK);
+    CO_CANident_t CAN_ID = (CO_CANident_t)(cobIdTimeStamp & CO_CAN_ID_MASK);
     if (!CO_CHECK_COB_ID(cobIdTimeStamp) || CO_IS_RESTRICTED_CAN_ID(CAN_ID)) {
         return ODR_INVALID_VALUE;
     }
@@ -125,14 +114,14 @@ CO_TIME_init(CO_TIME_t* TIME, OD_entry_t* OD_1012_cobIdTimeStamp, CO_CANmodule_t
 #endif
 
     /* Configure object variables */
-    CO_CANident_t cobId = (CO_CANident_t)(cobIdTimeStamp & CO_COB_ID_MASK);
+    CO_CANident_t cobId = (CO_CANident_t)(cobIdTimeStamp & CO_CAN_ID_MASK);
     TIME->isConsumer = (cobIdTimeStamp & 0x80000000UL) != 0U;
     TIME->isProducer = (cobIdTimeStamp & 0x40000000UL) != 0U;
     CO_FLAG_CLEAR(TIME->CANrxNew);
 
     /* configure TIME consumer message reception */
     if (TIME->isConsumer) {
-        CO_ReturnError_t ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, cobId, CO_COB_ID_MASK, false, (void*)TIME,
+        CO_ReturnError_t ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, cobId, CO_CAN_ID_MASK, false, (void*)TIME,
                                                   CO_TIME_receive);
         if (ret != CO_ERROR_NO) {
             return ret;

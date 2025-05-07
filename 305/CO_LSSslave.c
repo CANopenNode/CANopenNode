@@ -26,15 +26,6 @@
 
 #if ((CO_CONFIG_LSS)&CO_CONFIG_LSS_SLAVE) != 0
 
-#if ((CO_CONFIG_LSS)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
-#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
-#endif
-#define CO_COB_ID_MASK CO_COB_EXT_MASK
-#else
-#define CO_COB_ID_MASK CO_COB_STD_MASK
-#endif
-
 /* 'bit' must be unsigned or additional range check must be added: bit>=CO_LSS_FASTSCAN_BIT0 */
 #define CO_LSS_FASTSCAN_BITCHECK_VALID(bit)       ((bit <= CO_LSS_FASTSCAN_BIT31) || (bit == CO_LSS_FASTSCAN_CONFIRM))
 /* 'index' must be unsigned or additional range check must be added: index>=CO_LSS_FASTSCAN_VENDOR_ID */
@@ -215,7 +206,8 @@ CO_LSSslave_init(CO_LSSslave_t* LSSslave, CO_LSS_address_t* lssAddress, uint16_t
     CO_FLAG_CLEAR(LSSslave->sendResponse);
 
     /* configure LSS CAN Master message reception */
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidLssMaster, CO_COB_ID_MASK, false, (void*)LSSslave, CO_LSSslave_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidLssMaster, CO_CAN_ID_MASK, false, (void*)LSSslave,
+                             CO_LSSslave_receive);
 
     /* configure LSS CAN Slave response message transmission */
     LSSslave->CANdevTx = CANdevTx;

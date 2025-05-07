@@ -22,17 +22,6 @@
 
 #if ((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_ENABLE) != 0
 
-#if ((CO_CONFIG_SYNC)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
-#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
-#endif
-#define CO_COB_ID_MASK       CO_COB_EXT_MASK
-#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
-#else
-#define CO_COB_ID_MASK       CO_COB_STD_MASK
-#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
-#endif
-
 /*
  * Read received message from CAN module.
  *
@@ -91,7 +80,7 @@ OD_write_1005(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
     CO_SYNC_t* SYNC = stream->object;
     uint32_t cobIdSync = CO_getUint32(buf);
-    CO_CANident_t CAN_ID = (CO_CANident_t)(cobIdSync & CO_COB_ID_MASK);
+    CO_CANident_t CAN_ID = (CO_CANident_t)(cobIdSync & CO_CAN_ID_MASK);
 
     /* verify written value */
 #if ((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0
@@ -109,7 +98,7 @@ OD_write_1005(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
     /* Configure CAN receive and transmit buffers */
     if (CAN_ID != SYNC->CAN_ID) {
-        CO_ReturnError_t CANret = CO_CANrxBufferInit(SYNC->CANdevRx, SYNC->CANdevRxIdx, CAN_ID, CO_COB_ID_MASK, false,
+        CO_ReturnError_t CANret = CO_CANrxBufferInit(SYNC->CANdevRx, SYNC->CANdevRxIdx, CAN_ID, CO_CAN_ID_MASK, false,
                                                      (void*)SYNC, CO_SYNC_receive);
 
         if (CANret != CO_ERROR_NO) {
@@ -284,7 +273,7 @@ CO_SYNC_init(CO_SYNC_t* SYNC, CO_EM_t* em, OD_entry_t* OD_1005_cobIdSync, OD_ent
     SYNC->CANdevTx = CANdevTx;
 #endif
 #if ((CO_CONFIG_SYNC)&CO_CONFIG_FLAG_OD_DYNAMIC) != 0
-    SYNC->CAN_ID = (CO_CANident_t)(cobIdSync & CO_COB_ID_MASK);
+    SYNC->CAN_ID = (CO_CANident_t)(cobIdSync & CO_CAN_ID_MASK);
     SYNC->CANdevRx = CANdevRx;
     SYNC->CANdevRxIdx = CANdevRxIdx;
 #if ((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0
@@ -293,14 +282,14 @@ CO_SYNC_init(CO_SYNC_t* SYNC, CO_EM_t* em, OD_entry_t* OD_1005_cobIdSync, OD_ent
 #endif
 
     /* configure SYNC CAN reception and transmission */
-    CO_ReturnError_t ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, (CO_CANident_t)(cobIdSync & CO_COB_ID_MASK),
-                                              CO_COB_ID_MASK, false, (void*)SYNC, CO_SYNC_receive);
+    CO_ReturnError_t ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, (CO_CANident_t)(cobIdSync & CO_CAN_ID_MASK),
+                                              CO_CAN_ID_MASK, false, (void*)SYNC, CO_SYNC_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
 
 #if ((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0
-    SYNC->CANtxBuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, (CO_CANident_t)(cobIdSync & CO_COB_ID_MASK), false,
+    SYNC->CANtxBuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, (CO_CANident_t)(cobIdSync & CO_CAN_ID_MASK), false,
                                          (syncCounterOvf != 0U) ? 1U : 0U, false);
 
     if (SYNC->CANtxBuff == NULL) {

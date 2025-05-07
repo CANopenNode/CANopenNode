@@ -28,7 +28,7 @@
 #ifndef CO_CONFIG_EM
 #define CO_CONFIG_EM                                                                                                   \
     (CO_CONFIG_EM_PRODUCER | CO_CONFIG_EM_HISTORY | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE                                 \
-     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT)
 #endif
 #ifndef CO_CONFIG_EM_ERR_STATUS_BITS_COUNT
 #define CO_CONFIG_EM_ERR_STATUS_BITS_COUNT (10U * 8U)

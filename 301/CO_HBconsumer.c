@@ -28,15 +28,6 @@
 #error CO_CONFIG_HB_CONS_CALLBACK_CHANGE and CO_CONFIG_HB_CONS_CALLBACK_MULTI cannot be set simultaneously!
 #endif
 
-#if ((CO_CONFIG_HB_CONS)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
-#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
-#endif
-#define CO_COB_ID_MASK CO_COB_EXT_MASK
-#else
-#define CO_COB_ID_MASK CO_COB_STD_MASK
-#endif
-
 /*
  * Read received message from CAN module.
  *
@@ -213,7 +204,7 @@ CO_HBconsumer_initEntry(CO_HBconsumer_t* HBcons, uint8_t idx, uint8_t nodeId, ui
         }
 
         /* configure Heartbeat consumer (or disable) CAN reception */
-        ret = CO_CANrxBufferInit(HBcons->CANdevRx, HBcons->CANdevRxIdxStart + idx, COB_ID, CO_COB_ID_MASK, false,
+        ret = CO_CANrxBufferInit(HBcons->CANdevRx, HBcons->CANdevRxIdxStart + idx, COB_ID, CO_CAN_ID_MASK, false,
                                  (void*)&HBcons->monitoredNodes[idx], CO_HBcons_receive);
     }
     return ret;

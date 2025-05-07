@@ -35,15 +35,6 @@
 #warning CO_CONFORMANCE_TEST_TOOL_ADAPTATION may be used only for conformance testing (because of CTT limitations)
 #endif
 
-#if ((CO_CONFIG_SRDO)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
-#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
-#endif
-#define CO_COB_ID_MASK CO_COB_EXT_MASK
-#else
-#define CO_COB_ID_MASK CO_COB_STD_MASK
-#endif
-
 /* values for informationDirection and configurationValid */
 #define CO_SRDO_INVALID                 (0U)
 #define CO_SRDO_TX                      (1U)
@@ -629,7 +620,7 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
     /* Configure CAN rx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_RX)) {
         /* Normal Configuration */
-        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0], SRDO->CANdevRxIdx[0], (CO_CANident_t)COB_ID1_normal, CO_COB_ID_MASK,
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0], SRDO->CANdevRxIdx[0], (CO_CANident_t)COB_ID1_normal, CO_CAN_ID_MASK,
                                  false, (void*)SRDO, CO_SRDO_receive_normal);
 
         if (ret != CO_ERROR_NO) {
@@ -638,7 +629,7 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
 
         /* Inverted Configuration */
         ret = CO_CANrxBufferInit(SRDO->CANdevRx[1], SRDO->CANdevRxIdx[1], (CO_CANident_t)COB_ID2_inverted,
-                                 CO_COB_ID_MASK, false, (void*)SRDO, CO_SRDO_receive_inverted);
+                                 CO_CAN_ID_MASK, false, (void*)SRDO, CO_SRDO_receive_inverted);
 
         if (ret != CO_ERROR_NO) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 6, 11);

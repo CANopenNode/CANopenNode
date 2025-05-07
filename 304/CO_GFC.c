@@ -23,14 +23,6 @@
 
 #if ((CO_CONFIG_GFC)&CO_CONFIG_GFC_ENABLE) != 0
 
-#if ((CO_CONFIG_GFC)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
-#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
-#endif
-#define CO_COB_ID_MASK CO_COB_EXT_MASK
-#else
-#define CO_COB_ID_MASK CO_COB_STD_MASK
-#endif
 /*
  * Custom function for reading or writing OD object.
  *
@@ -115,7 +107,7 @@ CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC
 #if ((CO_CONFIG_GFC)&CO_CONFIG_GFC_CONSUMER) != 0
     GFC->functSignalObjectSafe = NULL;
     GFC->pFunctSignalSafe = NULL;
-    const CO_ReturnError_t r = CO_CANrxBufferInit(GFC_CANdevRx, GFC_rxIdx, CANidRxGFC, CO_COB_ID_MASK, false,
+    const CO_ReturnError_t r = CO_CANrxBufferInit(GFC_CANdevRx, GFC_rxIdx, CANidRxGFC, CO_CAN_ID_MASK, false,
                                                   (void*)GFC, CO_GFC_receive);
     if (r != CO_ERROR_NO) {
         return r;

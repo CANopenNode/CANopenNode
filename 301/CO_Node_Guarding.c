@@ -22,15 +22,6 @@
 
 #if ((CO_CONFIG_NODE_GUARDING)&CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0
 
-#if ((CO_CONFIG_NODE_GUARDING)&CO_CONFIG_FLAG_ALLOW_EXT_ID) != 0
-#if (((CO_CONFIG_CAN)&CO_CONFIG_FLAG_ALLOW_EXT_ID) == 0)
-#error CO_CONFIG_CAN must have CO_CONFIG_FLAG_ALLOW_EXT_ID enabled
-#endif
-#define CO_COB_ID_MASK CO_COB_EXT_MASK
-#else
-#define CO_COB_ID_MASK CO_COB_STD_MASK
-#endif
-
 /*
  * Read received message from CAN module.
  *
@@ -164,7 +155,7 @@ CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t* ngs, OD_entry_t* OD_100C_Guard
     }
 
     /* configure CAN reception */
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidNodeGuarding, CO_COB_ID_MASK, true, (void*)ngs,
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidNodeGuarding, CO_CAN_ID_MASK, true, (void*)ngs,
                              CO_ngs_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
@@ -292,7 +283,7 @@ CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t* ngm, CO_EM_t* em, CO_CANmodu
     ngm->em = em;
 
     /* configure CAN reception. One buffer will receive all messages from CAN-id 0x700 to 0x7FF. */
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CO_CAN_ID_HEARTBEAT, CO_COB_ID_MASK ^ 0x7FU, false, (void*)ngm,
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CO_CAN_ID_HEARTBEAT, CO_CAN_ID_MASK ^ 0x7FU, false, (void*)ngm,
                              CO_ngm_receive);
     if (ret != CO_ERROR_NO) {
         return ret;

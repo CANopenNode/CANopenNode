@@ -29,7 +29,7 @@
 #ifndef CO_CONFIG_SYNC
 #define CO_CONFIG_SYNC                                                                                                 \
     (CO_CONFIG_SYNC_ENABLE | CO_CONFIG_SYNC_PRODUCER | CO_CONFIG_GLOBAL_RT_FLAG_CALLBACK_PRE                           \
-     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC | CO_CONFIG_GLOBAL_FLAG_ALLOW_EXT_ID)
+     | CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
 #endif
 
 #if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
