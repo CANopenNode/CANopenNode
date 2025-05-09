@@ -423,7 +423,7 @@ typedef struct {
 #define CO_IS_RESTRICTED_CAN_ID(CAN_ID)                                                                                \
     (((CAN_ID) <= 0x7FU) || (((CAN_ID) >= 0x101U) && ((CAN_ID) <= 0x180U))                                             \
      || (((CAN_ID) >= 0x581U) && ((CAN_ID) <= 0x5FFU)) || (((CAN_ID) >= 0x601U) && ((CAN_ID) <= 0x67FU))               \
-     || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) || ((CAN_ID) >= 0x701U))
+     || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) || (((CAN_ID) >= 0x701U) && ((CAN_ID) <= 0x7FFU)))
 #endif
 
 /**
