@@ -524,10 +524,11 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
 
             if (abortCode == CO_SDO_AB_NONE) {
                 OD_size_t countWritten = 0;
+                ODR_t odRet;
 
                 /* write data to Object Dictionary */
                 CO_LOCK_OD(SDO_C->CANdevTx);
-                ODR_t odRet = SDO_C->OD_IO.write(&SDO_C->OD_IO.stream, buf, (OD_size_t)count, &countWritten);
+                odRet = SDO_C->OD_IO.write(&SDO_C->OD_IO.stream, buf, (OD_size_t)count, &countWritten);
                 CO_UNLOCK_OD(SDO_C->CANdevTx);
 
                 /* verify for errors in write */
@@ -1135,10 +1136,11 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
             OD_size_t countBuf = ((countData > 0U) && (countData <= countFifo)) ? countData : (OD_size_t)countFifo;
             OD_size_t countRd = 0;
             uint8_t buf[CO_CONFIG_SDO_CLI_BUFFER_SIZE + 1U];
+            ODR_t odRet;
 
             /* load data from OD variable into the buffer */
             CO_LOCK_OD(SDO_C->CANdevTx);
-            ODR_t odRet = SDO_C->OD_IO.read(&SDO_C->OD_IO.stream, buf, countBuf, &countRd);
+            odRet = SDO_C->OD_IO.read(&SDO_C->OD_IO.stream, buf, countBuf, &countRd);
             CO_UNLOCK_OD(SDO_C->CANdevTx);
 
             if ((odRet != ODR_OK) && (odRet != ODR_PARTIAL)) {
