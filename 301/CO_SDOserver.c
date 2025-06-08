@@ -469,9 +469,10 @@ validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t
 
     /* write data */
     OD_size_t countWritten = 0;
+    ODR_t odRet;
 
     CO_LOCK_OD(SDO->CANdevTx);
-    ODR_t odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->buf, SDO->bufOffsetWr, &countWritten);
+    odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, SDO->buf, SDO->bufOffsetWr, &countWritten);
     CO_UNLOCK_OD(SDO->CANdevTx);
 
     SDO->bufOffsetWr = 0;
@@ -523,9 +524,10 @@ readFromOd(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, OD_size_t countMi
 
         /* load data from OD variable into the buffer */
         OD_size_t countRd = 0;
+        ODR_t odRet;
 
         CO_LOCK_OD(SDO->CANdevTx);
-        ODR_t odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, &SDO->buf[countRemain], countRdRequest, &countRd);
+        odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, &SDO->buf[countRemain], countRdRequest, &countRd);
         CO_UNLOCK_OD(SDO->CANdevTx);
 
         if ((odRet != ODR_OK) && (odRet != ODR_PARTIAL)) {
@@ -742,9 +744,10 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
 
                         /* Copy data */
                         OD_size_t countWritten = 0;
+                        ODR_t odRet;
 
                         CO_LOCK_OD(SDO->CANdevTx);
-                        ODR_t odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, buf, dataSizeToWrite, &countWritten);
+                        odRet = SDO->OD_IO.write(&SDO->OD_IO.stream, buf, dataSizeToWrite, &countWritten);
                         CO_UNLOCK_OD(SDO->CANdevTx);
 
                         if (odRet != ODR_OK) {
@@ -1194,9 +1197,10 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
 #else /* Expedited transfer only */
                 /* load data from OD variable */
                 OD_size_t count = 0;
+                ODR_t odRet;
 
                 CO_LOCK_OD(SDO->CANdevTx);
-                ODR_t odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, &SDO->CANtxBuff->data[4], 4, &count);
+                odRet = SDO->OD_IO.read(&SDO->OD_IO.stream, &SDO->CANtxBuff->data[4], 4, &count);
                 CO_UNLOCK_OD(SDO->CANdevTx);
 
                 /* strings are allowed to be shorter */
