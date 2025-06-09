@@ -97,8 +97,8 @@ CO_CANmodule_disable(CO_CANmodule_t* CANmodule) {
 }
 
 CO_ReturnError_t
-CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, uint16_t mask, bool_t rtr, void* object,
-                   void (*CANrx_callback)(void* object, void* message)) {
+CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, CO_CANident_t ident, CO_CANident_t mask, bool_t rtr,
+                   void* object, void (*CANrx_callback)(void* object, void* message)) {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     if ((CANmodule != NULL) && (object != NULL) && (CANrx_callback != NULL) && (index < CANmodule->rxSize)) {
@@ -126,7 +126,7 @@ CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, ui
 }
 
 CO_CANtx_t*
-CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, bool_t rtr, uint8_t noOfBytes,
+CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, CO_CANident_t ident, bool_t rtr, uint8_t noOfBytes,
                    bool_t syncFlag) {
     CO_CANtx_t* buffer = NULL;
 

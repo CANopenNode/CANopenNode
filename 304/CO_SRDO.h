@@ -134,7 +134,7 @@ typedef struct {
     CO_SRDOGuard_t* SRDOGuard;       /**< From CO_SRDO_init() */
     OD_t* OD;                        /**< From CO_SRDO_init() */
     CO_EM_t* em;                     /**< From CO_SRDO_init() */
-    uint16_t defaultCOB_ID;          /**< From CO_SRDO_init() */
+    CO_CANident_t defaultCOB_ID;     /**< From CO_SRDO_init() */
     uint8_t nodeId;                  /**< From CO_SRDO_init() */
     CO_CANmodule_t* CANdevTx[2];     /**< From CO_SRDO_init() */
     uint16_t CANdevTxIdx[2];         /**< From CO_SRDO_init() */
@@ -215,7 +215,7 @@ CO_ReturnError_t CO_SRDOGuard_init(CO_SRDOGuard_t* SRDOGuard, OD_entry_t* OD_13F
  * @return #CO_ReturnError_t: CO_ERROR_NO, CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OD_PARAMETERS.
  */
 CO_ReturnError_t CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_t* OD, CO_EM_t* em,
-                              uint8_t nodeId, uint16_t defaultCOB_ID, OD_entry_t* OD_130x_SRDOCommPar,
+                              uint8_t nodeId, CO_CANident_t defaultCOB_ID, OD_entry_t* OD_130x_SRDOCommPar,
                               OD_entry_t* OD_138x_SRDOMapPar, CO_CANmodule_t* CANdevRxNormal,
                               CO_CANmodule_t* CANdevRxInverted, uint16_t CANdevRxIdxNormal,
                               uint16_t CANdevRxIdxInverted, CO_CANmodule_t* CANdevTxNormal,

@@ -180,8 +180,8 @@ CO_LSSslave_receive(void* object, void* msg) {
 
 CO_ReturnError_t
 CO_LSSslave_init(CO_LSSslave_t* LSSslave, CO_LSS_address_t* lssAddress, uint16_t* pendingBitRate,
-                 uint8_t* pendingNodeID, CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, uint16_t CANidLssMaster,
-                 CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx, uint16_t CANidLssSlave) {
+                 uint8_t* pendingNodeID, CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, CO_CANident_t CANidLssMaster,
+                 CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx, CO_CANident_t CANidLssSlave) {
     CO_ReturnError_t ret = CO_ERROR_NO;
 
     /* verify arguments */
@@ -206,7 +206,8 @@ CO_LSSslave_init(CO_LSSslave_t* LSSslave, CO_LSS_address_t* lssAddress, uint16_t
     CO_FLAG_CLEAR(LSSslave->sendResponse);
 
     /* configure LSS CAN Master message reception */
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidLssMaster, 0x7FF, false, (void*)LSSslave, CO_LSSslave_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidLssMaster, CO_CAN_ID_MASK, false, (void*)LSSslave,
+                             CO_LSSslave_receive);
 
     /* configure LSS CAN Slave response message transmission */
     LSSslave->CANdevTx = CANdevTx;
