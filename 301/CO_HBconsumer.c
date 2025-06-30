@@ -75,7 +75,10 @@ static CO_ReturnError_t CO_HBconsumer_initEntry(CO_HBconsumer_t* HBcons, uint8_t
  */
 static ODR_t
 OD_write_1016(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten) {
-    CO_HBconsumer_t* HBcons = stream->object;
+    CO_HBconsumer_t* HBcons;
+    if (stream != NULL) {
+        HBcons = stream->object;
+    }
 
     if ((stream == NULL) || (buf == NULL) || (stream->subIndex < 1U)
         || (stream->subIndex > HBcons->numberOfMonitoredNodes) || (count != sizeof(uint32_t))
