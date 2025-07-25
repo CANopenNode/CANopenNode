@@ -914,6 +914,14 @@ OD_write_18xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
                 return ODR_INVALID_VALUE;
             }
 
+            /* For compatibility you should refuse to enable RTR if it is not supported, but for legacy (easy to use) this code is commented out
+            #if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) == 0
+            if( rtr_en ) {
+                return ODR_INVALID_VALUE;
+            }
+            #endif
+            */
+
             /* parameter changed? */
             if ((valid != PDO->valid) || (CAN_ID != PDO->configuredCanId) || (rtr_en != TPDO->rtr_en)) {
                 /* if default CAN-ID is written, store to OD without Node-ID */
