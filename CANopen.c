@@ -199,6 +199,11 @@
 #else
 #define CO_TX_CNT_TPDO 0
 #endif
+#if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) != 0
+#define CO_RX_CNT_TPDO_RTR CO_TX_CNT_TPDO
+#else
+#define CO_RX_CNT_TPDO_RTR 0
+#endif
 
 #if ((CO_CONFIG_LEDS)&CO_CONFIG_LEDS_ENABLE) != 0
 #define OD_CNT_LEDS 1
@@ -272,7 +277,8 @@
 #define CO_RX_IDX_TIME     (CO_RX_IDX_EM_CONS + (uint16_t)CO_RX_CNT_EM_CONS)
 #define CO_RX_IDX_SRDO     (CO_RX_IDX_TIME + (uint16_t)CO_RX_CNT_TIME)
 #define CO_RX_IDX_RPDO     (CO_RX_IDX_SRDO + ((uint16_t)CO_RX_CNT_SRDO * 2U))
-#define CO_RX_IDX_SDO_SRV  (CO_RX_IDX_RPDO + (uint16_t)CO_RX_CNT_RPDO)
+#define CO_RX_IDX_TPDO_RTR (CO_RX_IDX_RPDO + (uint16_t)CO_RX_CNT_RPDO)
+#define CO_RX_IDX_SDO_SRV  (CO_RX_IDX_TPDO_RTR + (uint16_t)CO_RX_CNT_TPDO_RTR)
 #define CO_RX_IDX_SDO_CLI  (CO_RX_IDX_SDO_SRV + (uint16_t)CO_RX_CNT_SDO_SRV)
 #define CO_RX_IDX_HB_CONS  (CO_RX_IDX_SDO_CLI + (uint16_t)CO_RX_CNT_SDO_CLI)
 #define CO_RX_IDX_NG_SLV   (CO_RX_IDX_HB_CONS + (uint16_t)CO_RX_CNT_HB_CONS)
@@ -1242,7 +1248,11 @@ CO_CANopenInitPDO(CO_t* co, CO_EM_t* em, OD_t* od, uint8_t nodeId, uint32_t* err
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0
                                co->SYNC,
 #endif
-                               preDefinedCanId, TPDOcomm, TPDOmap, co->CANmodule, CO_GET_CO(TX_IDX_TPDO) + i, errInfo);
+                               preDefinedCanId, TPDOcomm, TPDOmap, co->CANmodule, CO_GET_CO(TX_IDX_TPDO) + i,
+#if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) != 0
+                               CO_GET_CO(RX_IDX_TPDO_RTR) + i,
+#endif
+                               errInfo);
             if (err != CO_ERROR_NO) {
                 return err;
             }
