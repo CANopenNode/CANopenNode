@@ -867,6 +867,21 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
  *      T P D O
  ******************************************************************************/
 #if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_ENABLE) != 0
+
+#if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) != 0
+static void
+CO_TPDO_RTR_receive(void* object, void* msg) {
+    CO_TPDO_t* TPDO = object;
+    CO_PDO_common_t* PDO = &TPDO->PDO_common;
+    uint8_t DLC = CO_CANrxMsg_readDLC(msg);
+	bool_t RTR = ( CO_CANrxMsg_readIdent(msg) & 0x0800U ) != 0U;
+
+    if ( (PDO->valid) && (DLC == 0U) && RTR ) {
+		TPDO->rtrRequest = true;
+	}
+}
+#endif
+
 #if ((CO_CONFIG_PDO)&CO_CONFIG_FLAG_OD_DYNAMIC) != 0
 /*
  * Custom function for writing OD object "TPDO communication parameter"
@@ -890,6 +905,7 @@ OD_write_18xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
             uint32_t COB_ID = CO_getUint32(buf);
             uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
+            bool_t rtr_en = (COB_ID & 0x40000000U) == 0U;
 
             /* bits 11...29 must be zero, PDO must be disabled on change, CAN_ID == 0 is
              * not allowed, mapping must be configured before enabling the PDO */
@@ -898,14 +914,23 @@ OD_write_18xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
                 return ODR_INVALID_VALUE;
             }
 
+            /* For compatibility you should refuse to enable RTR if it is not supported, but for legacy (easy to use) this code is commented out
+            #if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) == 0
+            if( rtr_en ) {
+                return ODR_INVALID_VALUE;
+            }
+            #endif
+            */
+
             /* parameter changed? */
-            if ((valid != PDO->valid) || (CAN_ID != PDO->configuredCanId)) {
+            if ((valid != PDO->valid) || (CAN_ID != PDO->configuredCanId) || (rtr_en != TPDO->rtr_en)) {
                 /* if default CAN-ID is written, store to OD without Node-ID */
                 if (CAN_ID == PDO->preDefinedCanId) {
                     (void)CO_setUint32(bufCopy, COB_ID & 0xFFFFFF80U);
                 }
                 if (!valid) {
                     CAN_ID = 0;
+					rtr_en = false;
                 }
 
                 CO_CANtx_t* CANtxBuff = CO_CANtxBufferInit(
@@ -919,6 +944,7 @@ OD_write_18xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
                 TPDO->CANtxBuff = CANtxBuff;
                 PDO->valid = valid;
                 PDO->configuredCanId = CAN_ID;
+                TPDO->rtr_en = rtr_en;
             }
             break;
         }
@@ -991,7 +1017,11 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
              CO_SYNC_t* SYNC,
 #endif
              uint16_t preDefinedCanId, OD_entry_t* OD_18xx_TPDOCommPar, OD_entry_t* OD_1Axx_TPDOMapPar,
-             CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx, uint32_t* errInfo) {
+             CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx,
+#if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) != 0
+             uint16_t CANdevRxIdx,
+#endif
+             uint32_t* errInfo) {
     CO_PDO_common_t* PDO = &TPDO->PDO_common;
     ODR_t odRet;
 
@@ -1045,6 +1075,7 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
     }
 
     bool_t valid = (COB_ID & 0x80000000U) == 0U;
+    bool_t rtr_en = (COB_ID & 0x40000000U) == 0U;
     uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
     if (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U))) {
         valid = false;
@@ -1059,6 +1090,7 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
     }
     if (!valid) {
         CAN_ID = 0;
+		rtr_en = false;
     }
 
     /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
@@ -1072,8 +1104,16 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
     if (TPDO->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
+    
+#if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) != 0
+    ret = CO_CANrxBufferInit(CANdevTx, CANdevRxIdx, CAN_ID, 0x7FF, true, (void*)TPDO, CO_TPDO_RTR_receive);
+    if (ret != CO_ERROR_NO) {
+        return ret;
+    }
+#endif
 
     PDO->valid = valid;
+	TPDO->rtr_en = rtr_en;
 
     /* Configure communication parameter - inhibit time and event-timer (opt) */
 #if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_TIMERS_ENABLE) != 0
@@ -1237,6 +1277,15 @@ CO_TPDO_process(CO_TPDO_t* TPDO,
     (void)timerNext_us;
 #endif
     (void)syncWas;
+
+    #if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) != 0
+	if( TPDO->rtrRequest) {
+		TPDO->rtrRequest = false;
+		if( TPDO->rtr_en ) {
+			TPDO->sendRequest = true;
+		}
+	}
+    #endif
 
     if (PDO->valid && NMTisOperational) {
 
