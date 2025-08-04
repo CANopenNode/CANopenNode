@@ -125,6 +125,10 @@ CO_GTWA_log_print(CO_GTWA_t* gtwa, const char* message) {
     if ((gtwa != NULL) && (message != NULL)) {
         const char* c;
 
+        /* add newline between messages */
+        if (CO_fifo_getOccupied(&gtwa->logFifo) > 0U) {
+            CO_fifo_putc_ov(&gtwa->logFifo, '\n');
+        }
         for (c = &message[0]; *c != '\0'; c++) {
             CO_fifo_putc_ov(&gtwa->logFifo, (const uint8_t)*c);
         }
@@ -1918,6 +1922,8 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 #if ((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_LOG) != 0
             /* print message log */
             case CO_GTWA_ST_LOG: {
+                CO_fifo_putc_ov(&gtwa->logFifo, '\r');
+                CO_fifo_putc_ov(&gtwa->logFifo, '\n');
                 do {
                     gtwa->respBufCount = CO_fifo_read(&gtwa->logFifo, (uint8_t*)gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
                                                       NULL);
