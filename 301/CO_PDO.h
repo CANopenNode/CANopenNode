@@ -297,7 +297,12 @@ typedef struct {
     CO_CANtx_t* CANtxBuff;      /**< CAN transmit buffer inside CANdev */
     uint8_t transmissionType;   /**< Copy of the variable from object dictionary */
     bool_t sendRequest;         /**< If this flag is set and TPDO is event driven (transmission type is 0, 254 or 255),
-                                   then PDO will be sent by CO_TPDO_process(). */
+                                    then PDO will be sent by CO_TPDO_process(). */
+#if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) != 0
+	bool_t rtrRequest;			/**< If this flag is set and the bit 30 COB-ID is set to zero,
+									then PDO will be sent by CO_TPDO_process(). */
+#endif
+	bool_t rtr_en;				/**< Enable RTR function according to bit 30 of COB-ID*/
 #if (((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
     CO_SYNC_t* SYNC;        /**< From CO_TPDO_init() */
     uint8_t syncStartValue; /**< Copy of the variable from object dictionary */
@@ -336,7 +341,11 @@ CO_ReturnError_t CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
                               CO_SYNC_t* SYNC,
 #endif
                               uint16_t preDefinedCanId, OD_entry_t* OD_18xx_TPDOCommPar, OD_entry_t* OD_1Axx_TPDOMapPar,
-                              CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx, uint32_t* errInfo);
+                              CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx,
+#if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_RTR_ENABLE) != 0
+                              uint16_t CANdevRxIdx,
+#endif
+                              uint32_t* errInfo);
 
 /**
  * Request transmission of TPDO message.
