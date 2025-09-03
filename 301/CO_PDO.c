@@ -81,8 +81,8 @@ OD_read_dummy(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countR
 static ODR_t
 PDOconfigMap(CO_PDO_common_t* PDO, uint32_t map, uint8_t mapIndex, bool_t isRPDO, OD_t* OD) {
     uint16_t index = (uint16_t)(map >> 16);
-    uint8_t subIndex = (uint8_t)(map >> 8);
-    uint8_t mappedLengthBits = (uint8_t)map;
+    uint8_t subIndex = (uint8_t)(map >> 8) & 0xFF;
+    uint8_t mappedLengthBits = (uint8_t)map & 0xFF;
     uint8_t mappedLength = mappedLengthBits >> 3;
     OD_IO_t* OD_IO = &PDO->OD_IO[mapIndex];
 
