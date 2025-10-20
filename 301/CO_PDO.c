@@ -638,7 +638,7 @@ CO_RPDO_init(CO_RPDO_t* RPDO, OD_t* OD, CO_EM_t* em,
     }
 
     /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & CO_CAN_ID_MASK))) {
+    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & (CO_CAN_ID_MASK ^ 0x7FU)))) {
         CAN_ID = preDefinedCanId;
     }
 
