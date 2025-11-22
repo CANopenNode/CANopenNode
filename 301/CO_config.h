@@ -485,7 +485,7 @@ extern "C" {
  * - CO_CONFIG_PDO_BITWISE_MAPPING - Use bitwise mapping instead of byte-wise
  *   By default, the OD_IO structure contains the number of bytes mapped to
  *   the PDO in the OD_IO.dataOffset field. If the bitwise mapping is enabled,
- *   this fild stores the number of bits mapped to the PDO. Bitwise PDO mapping
+ *   this field stores the number of bits mapped to the PDO. Bitwise PDO mapping
  *   is not possible without CO_CONFIG_PDO_OD_IO_ACCESS
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
  *   received RPDO CAN message.
