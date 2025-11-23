@@ -182,7 +182,7 @@ extern "C" {
 #define CO_EM_CAN_BUS_WARNING           0x01U /**< 0x01 communication info CAN bus warning limit reached */
 #define CO_EM_RXMSG_WRONG_LENGTH        0x02U /**< 0x02 communication info Wrong data length of the received CAN message */
 #define CO_EM_RXMSG_OVERFLOW            0x03U /**< 0x03 communication info Previous received CAN message wasn't processed */
-#define CO_EM_RPDO_WRONG_LENGTH         0x04U /**< 0x04 communication info Wrong data length of received PDO */
+#define CO_EM_04_unused          		0x04U /**< 0x04 communication info (unused) */
 #define CO_EM_RPDO_OVERFLOW             0x05U /**< 0x05 communication info Previous received PDO wasn't processed yet */
 #define CO_EM_CAN_RX_BUS_PASSIVE        0x06U /**< 0x06 communication info CAN receive bus is passive */
 #define CO_EM_CAN_TX_BUS_PASSIVE        0x07U /**< 0x07 communication info CAN transmit bus is passive */
@@ -195,7 +195,7 @@ extern "C" {
 #define CO_EM_0E_unused                 0x0EU /**< 0x0E communication info (unused) */
 #define CO_EM_0F_unused                 0x0FU /**< 0x0F communication info (unused) */
 
-#define CO_EM_10_unused                 0x10U /**< 0x10 communication critical (unused) */
+#define CO_EM_RPDO_WRONG_LENGTH         0x10U /**< 0x10 communication critical Wrong data length of received PDO */
 #define CO_EM_11_unused                 0x11U /**< 0x11 communication critical (unused) */
 #define CO_EM_CAN_TX_BUS_OFF            0x12U /**< 0x12 communication critical CAN transmit bus is off */
 #define CO_EM_CAN_RXB_OVERFLOW          0x13U /**< 0x13 communication critical CAN module receive buffer overflowed */
