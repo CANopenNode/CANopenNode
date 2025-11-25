@@ -30,6 +30,12 @@
 #endif
 #endif
 
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_OD_IO_ACCESS) == 0
+#error Bitwise PDO mapping is not possible without CO_CONFIG_PDO_OD_IO_ACCESS
+#endif
+#endif
+
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_OD_IO_ACCESS) != 0
 /*
  * Custom function for write dummy OD object. Will be used only from RPDO.
@@ -112,14 +118,25 @@ PDOconfigMap(CO_PDO_common_t* PDO, uint32_t map, uint8_t mapIndex, bool_t isRPDO
 
     /* verify access attributes, byte alignment and length */
     OD_attr_t testAttribute = isRPDO ? (OD_attr_t)(ODA_RPDO) : (OD_attr_t)(ODA_TPDO);
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+    /* If the bitwise mapping is enabled, check only length in bits */
+    if (((OD_IOcopy.stream.attribute & testAttribute) == 0U)
+        || ((OD_IOcopy.stream.dataLength * 8) < mappedLengthBits)) {
+#else
+    /* If the bitwise mapping is disabled, theck the alignment and length in bytes*/
     if (((OD_IOcopy.stream.attribute & testAttribute) == 0U) || ((mappedLengthBits & 0x07U) != 0U)
         || (OD_IOcopy.stream.dataLength < mappedLength)) {
+#endif /* (CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING) */
         return ODR_NO_MAP; /* Object cannot be mapped to the PDO. */
     }
 
     /* Copy values and store mappedLength temporary. */
     *OD_IO = OD_IOcopy;
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+    OD_IO->stream.dataOffset = mappedLengthBits;
+#else
     OD_IO->stream.dataOffset = mappedLength;
+#endif
 
     /* get TPDO request flag byte from extension */
 #if OD_FLAGS_PDO_SIZE > 0
@@ -193,7 +210,11 @@ PDO_initMapping(CO_PDO_common_t* PDO, OD_t* OD, OD_entry_t* OD_PDOMapPar, bool_t
             pdoDataLength += OD_IO->stream.dataOffset;
         }
     }
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+    if ((pdoDataLength > CO_PDO_MAX_SIZE * 8) || ((pdoDataLength == 0U) && (mappedObjectsCount > 0U))) {
+#else
     if ((pdoDataLength > CO_PDO_MAX_SIZE) || ((pdoDataLength == 0U) && (mappedObjectsCount > 0U))) {
+#endif
         if (*erroneousMap == 0U) {
             *erroneousMap = 1;
         }
@@ -242,14 +263,22 @@ OD_write_PDO_mapping(OD_stream_t* stream, const void* buf, OD_size_t count, OD_s
             size_t dataLength = (size_t)OD_IO->stream.dataLength;
             size_t mappedLength = (size_t)OD_IO->stream.dataOffset;
 
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+            if (mappedLength > dataLength * 8) {
+#else
             if (mappedLength > dataLength) {
+#endif
                 /* erroneous map since device initial values */
                 return ODR_NO_MAP;
             }
             pdoDataLength += mappedLength;
         }
 
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+        if (pdoDataLength > CO_PDO_MAX_SIZE * 8) {
+#else
         if (pdoDataLength > CO_PDO_MAX_SIZE) {
+#endif
             return ODR_MAP_LEN;
         }
         if ((pdoDataLength == 0U) && (mappedObjectsCount > 0U)) {
@@ -289,7 +318,7 @@ PDO_initMapping(CO_PDO_common_t* PDO, OD_t* OD, OD_entry_t* OD_PDOMapPar, bool_t
         }
         return CO_ERROR_OD_PARAMETERS;
     }
-    if (mappedObjectsCount > CO_PDO_MAX_SIZE) {
+    if (mappedObjectsCount > CO_PDO_MAX_MAPPED_ENTRIES) {
         *erroneousMap = 1;
         return CO_ERROR_NO;
     }
@@ -439,9 +468,17 @@ CO_PDO_receive(void* object, void* msg) {
     uint8_t err = RPDO->receiveError;
 
     if (PDO->valid) {
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+        if (DLC >= (PDO->dataLength + 7) / 8) {
+#else
         if (DLC >= PDO->dataLength) {
+#endif
             /* indicate errors in PDO length */
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+            if (DLC == (PDO->dataLength + 7) / 8) {
+#else
             if (DLC == PDO->dataLength) {
+#endif
                 if (err == CO_RPDO_RX_ACK_ERROR) {
                     err = CO_RPDO_RX_OK;
                 }
@@ -746,6 +783,15 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
              * by receive thread, then copy the latest data again. */
             CO_FLAG_CLEAR(RPDO->CANrxNew[bufNo]);
 
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+            /* Copy everything regardless of the actual PDO size to UINT64 to simplify bit shifting */
+            uint64_t buf64 = 0;
+            (void)memcpy(&buf64, dataRPDO, CO_PDO_MAX_SIZE);
+#ifdef CO_BIG_ENDIAN
+            /* For big endian we need to swap all bytes */
+            buf64 = CO_SWAP_64(buf64);
+#endif /* CO_BIG_ENDIAN */
+#endif /* ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) */
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_OD_IO_ACCESS) != 0
             for (uint8_t i = 0; i < PDO->mappedObjectsCount; i++) {
                 OD_IO_t* OD_IO = &PDO->OD_IO[i];
@@ -756,7 +802,11 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
 
                 /* additional safety check. */
                 verifyLength += (OD_size_t)mappedLength;
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+                if (verifyLength > CO_PDO_MAX_SIZE * 8) {
+#else
                 if (verifyLength > CO_PDO_MAX_SIZE) {
+#endif
                     break;
                 }
 
@@ -765,6 +815,22 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
                 if (ODdataLength > CO_PDO_MAX_SIZE) {
                     ODdataLength = CO_PDO_MAX_SIZE;
                 }
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+                /* Prepare data for writing into OD variable. If mappedLength
+                 * is smaller than ODdataLength, then use auxiliary buffer */
+                uint8_t* dataOD;
+                /* Apply the bitmask */
+                uint64_t shiftedData = buf64 & (UINT64_MAX >> (64 - mappedLength));
+                /* Shift the original buffer to get ready for the next mapping */
+                buf64 >>= mappedLength;
+#ifdef CO_BIG_ENDIAN
+                /* Adjust the pointer ignoring unused most significant bytes */
+                dataOD = (uint8_t *)&shiftedData + 8 - ODdataLength;
+#else
+                /* For little-endian we have a pointer to LSB */
+                dataOD = (uint8_t *)&shiftedData;
+#endif
+#else
                 /* Prepare data for writing into OD variable. If mappedLength
                  * is smaller than ODdataLength, then use auxiliary buffer */
                 uint8_t buf[CO_PDO_MAX_SIZE];
@@ -789,6 +855,7 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
                     }
                 }
 #endif
+#endif /* (CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING */
 
                 /* Set stream.dataOffset to zero, perform OD_IO.write()
                  * and store mappedLength back to stream.dataOffset */
@@ -807,7 +874,11 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
             }
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS */
 
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+            if ((verifyLength > (CO_PDO_MAX_SIZE * 8)) || (verifyLength != (OD_size_t)PDO->dataLength)) {
+#else
             if ((verifyLength > CO_PDO_MAX_SIZE) || (verifyLength != (OD_size_t)PDO->dataLength)) {
+#endif
                 /* bug in software, should not happen */
                 CO_errorReport(PDO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL,
                                (0x100000U | verifyLength));
@@ -1066,8 +1137,13 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
         CAN_ID = preDefinedCanId;
     }
 
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+    TPDO->CANtxBuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, CAN_ID, false, (PDO->dataLength + 7) / 8,
+                                         TPDO->transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240);
+#else
     TPDO->CANtxBuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, CAN_ID, false, PDO->dataLength,
                                          TPDO->transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240);
+#endif
 
     if (TPDO->CANtxBuff == NULL) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -1135,6 +1211,9 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
 #endif
 
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_OD_IO_ACCESS) != 0
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+        uint64_t buf64 = 0;
+#endif
     for (uint8_t i = 0; i < PDO->mappedObjectsCount; i++) {
         OD_IO_t* OD_IO = &PDO->OD_IO[i];
         OD_stream_t* stream = &OD_IO->stream;
@@ -1144,7 +1223,11 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
 
         /* additional safety check */
         verifyLength += (OD_size_t)mappedLength;
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+        if (verifyLength > CO_PDO_MAX_SIZE * 8) {
+#else
         if (verifyLength > CO_PDO_MAX_SIZE) {
+#endif
             break;
         }
 
@@ -1154,6 +1237,9 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
             ODdataLength = CO_PDO_MAX_SIZE;
         }
         /* If mappedLength is smaller than ODdataLength, use auxiliary buffer */
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+        uint64_t buf = 0;
+#else
         uint8_t buf[CO_PDO_MAX_SIZE];
         uint8_t* dataTPDOCopy;
         if (ODdataLength > mappedLength) {
@@ -1162,13 +1248,28 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
         } else {
             dataTPDOCopy = dataTPDO;
         }
+#endif /* (CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING) */
 
         /* Set stream.dataOffset to zero, perform OD_IO.read() and store mappedLength back to stream.dataOffset */
         stream->dataOffset = 0;
         OD_size_t countRd;
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+        OD_IO->read(stream, &buf, ODdataLength, &countRd);
+#ifdef CO_BIG_ENDIAN
+        /* Shift right according to the OD data length in bytes to compensate the difference in byte length
+         * For LE not needed, low bytes from the OD entry are copied to low bytes of u64 */
+        buf >>= 64 - 8 * ODdataLength;
+#endif /* CO_BIG_ENDIAN */
+        /* Apply the mask and merge with the rest */
+        buf &= (UINT64_MAX >> (64 - mappedLength));
+        buf <<= (verifyLength  - mappedLength);
+        buf64 |= buf;
+#else
         OD_IO->read(stream, dataTPDOCopy, ODdataLength, &countRd);
+#endif /* (CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING) */
         stream->dataOffset = mappedLength;
 
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) == 0
         /* swap multibyte data if big-endian */
 #ifdef CO_BIG_ENDIAN
         if ((stream->attribute & ODA_MB) != 0) {
@@ -1186,6 +1287,7 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
         if (ODdataLength > mappedLength) {
             (void)memcpy(dataTPDO, buf, mappedLength);
         }
+#endif /* (CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING) == 0*/
 
         /* In event driven TPDO indicate transmission of OD variable */
 #if OD_FLAGS_PDO_SIZE > 0
@@ -1195,7 +1297,9 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
         }
 #endif
 
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) == 0
         dataTPDO += mappedLength;
+#endif
     }
 #else
     verifyLength = (OD_size_t)PDO->dataLength;
@@ -1212,11 +1316,23 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
     }
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_PDO_OD_IO_ACCESS */
 
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+    if ((verifyLength > (CO_PDO_MAX_SIZE * 8)) || (verifyLength != (OD_size_t)PDO->dataLength)) {
+#else
     if ((verifyLength > CO_PDO_MAX_SIZE) || (verifyLength != (OD_size_t)PDO->dataLength)) {
+#endif
         /* bug in software, should not happen */
         CO_errorReport(PDO->em, CO_EM_GENERIC_SOFTWARE_ERROR, CO_EMC_SOFTWARE_INTERNAL, (0x200000U | verifyLength));
         return CO_ERROR_DATA_CORRUPT;
     }
+
+#if ((CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING)) != 0
+#ifdef CO_BIG_ENDIAN
+    buf64 = CO_SWAP_64(buf64);
+#endif
+    /* Copy the calculated uint64 data to the PDO buffer */
+    (void)memcpy(dataTPDO, &buf64, CO_PDO_MAX_SIZE);
+#endif /* (CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING) */
 
     TPDO->sendRequest = false;
 #if ((CO_CONFIG_PDO)&CO_CONFIG_TPDO_TIMERS_ENABLE) != 0

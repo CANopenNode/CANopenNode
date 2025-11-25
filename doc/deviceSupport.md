@@ -62,14 +62,14 @@ PIC32, dsPIC30, dsPIC33
 Zephyr RTOS
 -----------
 * CANopenNode integration with Zephyr RTOS
-* https://github.com/zephyrproject-rtos/zephyr/tree/master/subsys/canbus/canopen
-* Example integration: https://docs.zephyrproject.org/latest/samples/subsys/canbus/canopen/README.html
+* https://github.com/zephyrproject-rtos/zephyr/tree/main/modules/canopennode
+* Example integration: https://github.com/zephyrproject-rtos/zephyr/tree/main/samples/modules/canopennode
 * CANopenNode version: v1.3
 * Status: stable
 * Features: OD storage, LED indicators, Program Download, SDO server demo for Zephyr RTOS
 * Development tools: Zephyr SDK
-* Demo hardware: Any development board with CAN interface and Zephyr support (see https://docs.zephyrproject.org/latest/boards/index.html)
-* Information updated 2020-09-28
+* Demo hardware: Any development board with CAN interface and Zephyr support (see https://docs.zephyrproject.org/latest/boards/index.html#features=can)
+* Information updated 2025-11-13
 
 
 Mbed-os RTOS + STM32 (F091RC, L496ZG)

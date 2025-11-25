@@ -728,7 +728,7 @@ CO_delete(CO_t* co) {
 #endif
 
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_ENABLE) != 0
-    free(co->SDOclient);
+    CO_free(co->SDOclient);
 #endif
 
     /* SDOserver */

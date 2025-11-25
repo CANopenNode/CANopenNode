@@ -378,6 +378,7 @@ CO_GTWA_write(CO_GTWA_t* gtwa, const char* buf, size_t count) {
  * This function enables recording of system log messages including CANopen events. Function can be called by
  * application for recording any message. Message is copied to internal fifo buffer. In case fifo is full, old messages
  * will be owerwritten. Message log fifo can be read with non-standard command "log". After log is read, it is emptied.
+ * Message must not contain "\r\n" inside. Newline character '\n' will be added between the messages automatically.
  *
  * @param gtwa This object
  * @param message Null terminated string

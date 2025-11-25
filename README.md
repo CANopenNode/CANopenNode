@@ -20,7 +20,7 @@ Characteristics
  - [Object Dictionary](https://www.can-cia.org/can-knowledge/canopen-internal-device-architecture/) offers clear and flexible organisation of any variables. Variables can be accessed directly or via read/write functions.
  - [NMT](https://www.can-cia.org/can-knowledge/network-management/) slave to start, stop, reset device. Simple NMT master.
  - [Heartbeat](https://www.can-cia.org/can-knowledge/error-control-protocols) producer/consumer error control for monitoring of CANopen devices. An older alternative, 'node guarding', is also available.
- - [PDO](https://www.can-cia.org/can-knowledge/pdo-protocol/) for broadcasting process data with high priority and no protocol overhead. Variables from Object Dictionary can be dynamically mapped to the TPDO, which is then transmitted according to communication rules and received as RPDO by another device.
+ - [PDO](https://www.can-cia.org/can-knowledge/pdo-protocol/) for broadcasting process data with high priority and no protocol overhead. Variables from Object Dictionary can be dynamically mapped to the TPDO, which is then transmitted according to communication rules and received as RPDO by another device. Bitwise mapping is available.
  - [SDO](https://www.can-cia.org/can-knowledge/sdo-protocol/) server enables expedited, segmented and block transfer access to all Object Dictionary variables inside CANopen device.
  - [SDO](https://www.can-cia.org/can-knowledge/sdo-protocol/) client can access any Object Dictionary variable on any CANopen device inside the network.
  - [Emergency](https://www.can-cia.org/can-knowledge/special-function-protocols/) message producer/consumer.
