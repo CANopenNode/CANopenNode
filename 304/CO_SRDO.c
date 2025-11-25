@@ -165,7 +165,7 @@ OD_read_SRDO_communicationParam(OD_stream_t* stream, void* buf, OD_size_t count,
         CO_SRDO_t* SRDO = stream->object;
 
         uint32_t value = CO_getUint32(buf);
-        uint16_t defaultCOB_ID = SRDO->defaultCOB_ID + ((uint16_t)(stream->subIndex) - 5U);
+        CO_CANident_t defaultCOB_ID = (CO_CANident_t)(SRDO->defaultCOB_ID + (stream->subIndex - 5U));
 
         /* If default COB ID is used, then OD entry does not contain $NodeId. Add it here. */
         if ((value == defaultCOB_ID) && (SRDO->nodeId <= 64U)) {
@@ -225,7 +225,7 @@ OD_write_SRDO_communicationParam(OD_stream_t* stream, const void* buf, OD_size_t
     } else if ((stream->subIndex == 5U) || (stream->subIndex == 6U)) { /* COB_ID */
         uint32_t value = CO_getUint32(buf);
         uint16_t index = (uint16_t)(stream->subIndex) - 5U;
-        uint16_t defaultCOB_ID = SRDO->defaultCOB_ID + index;
+        CO_CANident_t defaultCOB_ID = (CO_CANident_t)(SRDO->defaultCOB_ID + index);
 
         /* check value range, the spec does not specify if COB-ID flags are allowed */
         if ((value < 0x101U) || (value > 0x180U) || ((value & 1U) == index)) {
@@ -601,7 +601,7 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
     /* Configure CAN tx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_TX)) {
         /* Normal Configuration */
-        SRDO->CANtxBuff[0] = CO_CANtxBufferInit(SRDO->CANdevTx[0], SRDO->CANdevTxIdx[0], (uint16_t)COB_ID1_normal,
+        SRDO->CANtxBuff[0] = CO_CANtxBufferInit(SRDO->CANdevTx[0], SRDO->CANdevTxIdx[0], (CO_CANident_t)COB_ID1_normal,
                                                 false, SRDO->dataLength, false);
 
         if (SRDO->CANtxBuff[0] == NULL) {
@@ -609,8 +609,8 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
         }
 
         /* Inverted Configuration */
-        SRDO->CANtxBuff[1] = CO_CANtxBufferInit(SRDO->CANdevTx[1], SRDO->CANdevTxIdx[1], (uint16_t)COB_ID2_inverted,
-                                                false, SRDO->dataLength, false);
+        SRDO->CANtxBuff[1] = CO_CANtxBufferInit(SRDO->CANdevTx[1], SRDO->CANdevTxIdx[1],
+                                                (CO_CANident_t)COB_ID2_inverted, false, SRDO->dataLength, false);
 
         if (SRDO->CANtxBuff[1] == NULL) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 6, 10);
@@ -620,16 +620,16 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
     /* Configure CAN rx buffers */
     if ((err == 0U) && configurationInProgress && (informationDirection == CO_SRDO_RX)) {
         /* Normal Configuration */
-        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0], SRDO->CANdevRxIdx[0], (uint16_t)COB_ID1_normal, 0x7FF, false,
-                                 (void*)SRDO, CO_SRDO_receive_normal);
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[0], SRDO->CANdevRxIdx[0], (CO_CANident_t)COB_ID1_normal, CO_CAN_ID_MASK,
+                                 false, (void*)SRDO, CO_SRDO_receive_normal);
 
         if (ret != CO_ERROR_NO) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 5, 11);
         }
 
         /* Inverted Configuration */
-        ret = CO_CANrxBufferInit(SRDO->CANdevRx[1], SRDO->CANdevRxIdx[1], (uint16_t)COB_ID2_inverted, 0x7FF, false,
-                                 (void*)SRDO, CO_SRDO_receive_inverted);
+        ret = CO_CANrxBufferInit(SRDO->CANdevRx[1], SRDO->CANdevRxIdx[1], (CO_CANident_t)COB_ID2_inverted,
+                                 CO_CAN_ID_MASK, false, (void*)SRDO, CO_SRDO_receive_inverted);
 
         if (ret != CO_ERROR_NO) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 6, 11);
@@ -657,7 +657,7 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
 
 CO_ReturnError_t
 CO_SRDO_init(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, OD_t* OD, CO_EM_t* em, uint8_t nodeId,
-             uint16_t defaultCOB_ID, OD_entry_t* OD_130x_SRDOCommPar, OD_entry_t* OD_138x_SRDOMapPar,
+             CO_CANident_t defaultCOB_ID, OD_entry_t* OD_130x_SRDOCommPar, OD_entry_t* OD_138x_SRDOMapPar,
              CO_CANmodule_t* CANdevRxNormal, CO_CANmodule_t* CANdevRxInverted, uint16_t CANdevRxIdxNormal,
              uint16_t CANdevRxIdxInverted, CO_CANmodule_t* CANdevTxNormal, CO_CANmodule_t* CANdevTxInverted,
              uint16_t CANdevTxIdxNormal, uint16_t CANdevTxIdxInverted, uint32_t* errInfo) {

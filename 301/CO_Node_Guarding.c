@@ -92,7 +92,7 @@ OD_write_100D(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
 
 CO_ReturnError_t
 CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t* ngs, OD_entry_t* OD_100C_GuardTime,
-                          OD_entry_t* OD_100D_LifeTimeFactor, CO_EM_t* em, uint16_t CANidNodeGuarding,
+                          OD_entry_t* OD_100D_LifeTimeFactor, CO_EM_t* em, CO_CANident_t CANidNodeGuarding,
                           CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, CO_CANmodule_t* CANdevTx,
                           uint16_t CANdevTxIdx, uint32_t* errInfo) {
     CO_ReturnError_t ret = CO_ERROR_NO;
@@ -155,7 +155,8 @@ CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t* ngs, OD_entry_t* OD_100C_Guard
     }
 
     /* configure CAN reception */
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidNodeGuarding, 0x7FF, true, (void*)ngs, CO_ngs_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidNodeGuarding, CO_CAN_ID_MASK, true, (void*)ngs,
+                             CO_ngs_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
@@ -246,7 +247,7 @@ CO_ngm_receive(void* object, void* msg) {
 
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     const uint8_t* data = CO_CANrxMsg_readData(msg);
-    uint16_t ident = CO_CANrxMsg_readIdent(msg);
+    CO_CANident_t ident = CO_CANrxMsg_readIdent(msg);
     CO_nodeGuardingMasterNode_t* node = &ngm->nodes[0];
 
     if (DLC == 1) {
@@ -282,7 +283,8 @@ CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t* ngm, CO_EM_t* em, CO_CANmodu
     ngm->em = em;
 
     /* configure CAN reception. One buffer will receive all messages from CAN-id 0x700 to 0x7FF. */
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CO_CAN_ID_HEARTBEAT, 0x780, false, (void*)ngm, CO_ngm_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CO_CAN_ID_HEARTBEAT, CO_CAN_ID_MASK ^ 0x7FU, false, (void*)ngm,
+                             CO_ngm_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }

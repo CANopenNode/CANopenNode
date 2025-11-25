@@ -284,8 +284,8 @@ typedef struct {
     CO_CANtx_t* CANtxBuff;            /**< CAN transmit buffer */
     OD_extension_t OD_1014_extension; /**< Extension for OD object */
 #if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_CONFIGURABLE) != 0) || defined CO_DOXYGEN
-    uint16_t producerCanId; /**< COB ID of emergency message, from Object dictionary */
-    uint16_t CANdevTxIdx;   /**< From CO_EM_init() */
+    CO_CANident_t producerCanId; /**< COB ID of emergency message, from Object dictionary */
+    uint16_t CANdevTxIdx;        /**< From CO_EM_init() */
 #endif
 #if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_INHIBIT) != 0) || defined CO_DOXYGEN
     uint32_t inhibitEmTime_us;        /**< Inhibit time for emergency message, from Object dictionary */
@@ -303,7 +303,7 @@ typedef struct {
 #endif
 
 #if (((CO_CONFIG_EM)&CO_CONFIG_EM_CONSUMER) != 0) || defined CO_DOXYGEN
-    void (*pFunctSignalRx)(const uint16_t ident, const uint16_t errorCode, const uint8_t errorRegister,
+    void (*pFunctSignalRx)(const CO_CANident_t ident, const uint16_t errorCode, const uint8_t errorRegister,
                            const uint8_t errorBit, const uint32_t infoCode); /**< From CO_EM_initCallbackRx() or NULL */
 #endif
 
@@ -393,7 +393,7 @@ void CO_EM_initCallbackPre(CO_EM_t* em, void* object, void (*pFunctSignal)(void*
  * @param em This object.
  * @param pFunctSignalRx Pointer to the callback function. Not called if NULL.
  */
-void CO_EM_initCallbackRx(CO_EM_t* em, void (*pFunctSignalRx)(const uint16_t ident, const uint16_t errorCode,
+void CO_EM_initCallbackRx(CO_EM_t* em, void (*pFunctSignalRx)(const CO_CANident_t ident, const uint16_t errorCode,
                                                               const uint8_t errorRegister, const uint8_t errorBit,
                                                               const uint32_t infoCode));
 #endif

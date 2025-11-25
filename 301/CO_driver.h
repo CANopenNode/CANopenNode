@@ -51,6 +51,9 @@ extern "C" {
 #define CO_DEBUG_SDO_SERVER(msg) CO_DEBUG_COMMON(msg)
 #endif
 #endif
+#ifndef CO_CONFIG_CAN
+#define CO_CONFIG_CAN (0)
+#endif
 
 /**
  * @defgroup CO_driver Driver
@@ -420,7 +423,47 @@ typedef struct {
 #define CO_IS_RESTRICTED_CAN_ID(CAN_ID)                                                                                \
     (((CAN_ID) <= 0x7FU) || (((CAN_ID) >= 0x101U) && ((CAN_ID) <= 0x180U))                                             \
      || (((CAN_ID) >= 0x581U) && ((CAN_ID) <= 0x5FFU)) || (((CAN_ID) >= 0x601U) && ((CAN_ID) <= 0x67FU))               \
-     || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) || ((CAN_ID) >= 0x701U))
+     || (((CAN_ID) >= 0x6E0U) && ((CAN_ID) <= 0x6FFU)) || (((CAN_ID) >= 0x701U) && ((CAN_ID) <= 0x7FFU)))
+#endif
+
+/**
+ * Typedef to for CAN identifier
+ */
+#if (((CO_CONFIG_CAN)&CO_CONFIG_CAN_ALLOW_EXT_ID) != 0)
+typedef uint32_t CO_CANident_t; /**< Allow extended ids */
+#else
+typedef uint16_t CO_CANident_t; /**< Use std ids only */
+#endif
+
+/**
+ * Masks std and ext identifiers
+ */
+#define CO_CAN_STD_MASK                        0x000007FFU
+#define CO_CAN_EXT_MASK                        0x1FFFFFFFU
+
+/**
+ * Common masks for COB-IDs
+ */
+#define CO_COB_BIT29                           0x20000000U
+#define CO_COB_BIT30                           0x40000000U
+#define CO_COB_BIT31                           0x80000000U
+#define CO_COB_EXT_BIT                         CO_COB_BIT29
+#define CO_COB_VALID_BIT                       CO_COB_BIT31
+
+#define CO_IS_EXTENDED_CAN_ID(CAN_ID)          (((CAN_ID)&CO_COB_EXT_BIT) != 0)
+
+/**
+ * Helper to verify COB-IDs
+ */
+#define CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob) (((cob)&0x3FFFF800U) == 0)
+#define CO_CHECK_CAN_ID_IN_COB(cob)            (CO_IS_EXTENDED_CAN_ID(cob) || (((cob)&0x0FFFF800U) == 0))
+
+#if (((CO_CONFIG_CAN)&CO_CONFIG_CAN_ALLOW_EXT_ID) != 0)
+#define CO_CAN_ID_MASK       (CO_CAN_EXT_MASK | CO_COB_EXT_BIT)
+#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB(cob)
+#else
+#define CO_CAN_ID_MASK       (CO_CAN_STD_MASK)
+#define CO_CHECK_COB_ID(cob) CO_CHECK_CAN_ID_IN_COB_ASSUME_STD(cob)
 #endif
 
 /**
@@ -531,7 +574,7 @@ void CO_CANmodule_disable(CO_CANmodule_t* CANmodule);
  * Return #CO_ReturnError_t: CO_ERROR_NO CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY (not enough masks for
  * configuration).
  */
-CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, uint16_t mask,
+CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, CO_CANident_t ident, CO_CANident_t mask,
                                     bool_t rtr, void* object, void (*CANrx_callback)(void* object, void* message));
 
 /**
@@ -551,8 +594,8 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, u
  * @return Pointer to CAN transmit message buffer. 8 bytes data array inside buffer should be written, before
  * CO_CANsend() function is called. Zero is returned in case of wrong arguments.
  */
-CO_CANtx_t* CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, uint16_t ident, bool_t rtr, uint8_t noOfBytes,
-                               bool_t syncFlag);
+CO_CANtx_t* CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, CO_CANident_t ident, bool_t rtr,
+                               uint8_t noOfBytes, bool_t syncFlag);
 
 /**
  * Send CAN message.

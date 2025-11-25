@@ -90,7 +90,7 @@ typedef struct {
     CO_CANmodule_t* CANdevRx;         /**< From CO_SYNC_init() */
     uint16_t CANdevRxIdx;             /**< From CO_SYNC_init() */
     OD_extension_t OD_1005_extension; /**< Extension for OD object */
-    uint16_t CAN_ID;                  /**< CAN ID of the SYNC message. Calculated from _COB ID SYNC Message_ variable
+    CO_CANident_t CAN_ID;             /**< CAN ID of the SYNC message. Calculated from _COB ID SYNC Message_ variable
                                          from Object dictionary (index 0x1005). */
 #if (((CO_CONFIG_SYNC)&CO_CONFIG_SYNC_PRODUCER) != 0) || defined CO_DOXYGEN
     uint16_t CANdevTxIdx;             /**< From CO_SYNC_init() */
