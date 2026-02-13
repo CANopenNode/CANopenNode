@@ -21,6 +21,8 @@
 #ifndef CO_OD_INTERFACE_H
 #define CO_OD_INTERFACE_H
 
+#include <stdint.h>
+
 #include "301/CO_driver.h"
 
 #ifdef __cplusplus
@@ -393,7 +395,7 @@ OD_requestTPDO(OD_entry_t* entry, uint8_t subIndex) {
 #if OD_FLAGS_PDO_SIZE > 0
     if ((entry != NULL) && (entry->extension != NULL) && (subIndex < (OD_FLAGS_PDO_SIZE * 8U))) {
         /* clear subIndex-th bit */
-        uint8_t mask = ~(1U << (subIndex & 0x07U));
+        uint8_t mask = (uint8_t)~(1U << (subIndex & 0x07U));
         entry->extension->flagsPDO[subIndex >> 3] &= mask;
     }
 #endif

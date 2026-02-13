@@ -21,6 +21,8 @@
 #ifndef CO_PDO_H
 #define CO_PDO_H
 
+#include <stdint.h>
+
 #include "301/CO_ODinterface.h"
 #include "301/CO_Emergency.h"
 #include "301/CO_SYNC.h"

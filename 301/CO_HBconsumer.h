@@ -21,6 +21,8 @@
 #ifndef CO_HB_CONS_H
 #define CO_HB_CONS_H
 
+#include <stdint.h>
+
 #include "301/CO_driver.h"
 #include "301/CO_ODinterface.h"
 #include "301/CO_NMT_Heartbeat.h"
