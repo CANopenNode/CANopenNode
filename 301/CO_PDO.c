@@ -308,7 +308,7 @@ static CO_ReturnError_t
 PDO_initMapping(CO_PDO_common_t* PDO, OD_t* OD, OD_entry_t* OD_PDOMapPar, bool_t isRPDO, uint32_t* errInfo,
                 uint32_t* erroneousMap) {
     ODR_t odRet;
-    size_t pdoDataLength = 0;
+    uint8_t pdoDataLength = 0;
 
     /* number of mapped application objects in PDO */
     uint8_t mappedObjectsCount = 0;
