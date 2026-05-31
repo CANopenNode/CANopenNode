@@ -890,9 +890,11 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
 #if ((CO_CONFIG_PDO)&CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
         if (RPDO->timeoutTime_us > 0U) {
             if (rpdoReceived) {
-                if (RPDO->timeoutTimer > RPDO->timeoutTime_us) {
-                    CO_errorReset(PDO->em, CO_EM_RPDO_TIME_OUT, RPDO->timeoutTimer);
-                }
+                /* Do NOT call CO_errorReset here. CO_EM_RPDO_TIME_OUT is a
+                 * single shared bit for all RPDOs. Resetting it when one RPDO
+                 * recovers would clear the error even if other RPDOs are still
+                 * timed out. The reset is handled in CO_process_RPDO() after
+                 * all RPDOs are processed, only when none remain in timeout. */
                 /* enable monitoring */
                 RPDO->timeoutTimer = 1;
             } else if ((RPDO->timeoutTimer > 0U) && (RPDO->timeoutTimer < RPDO->timeoutTime_us)) {
