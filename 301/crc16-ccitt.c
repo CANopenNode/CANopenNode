@@ -63,13 +63,13 @@ static const uint16_t crc16_ccitt_table[256] = {
     0x9FF8U, 0x6E17U, 0x7E36U, 0x4E55U, 0x5E74U, 0x2E93U, 0x3EB2U, 0x0ED1U, 0x1EF0U};
 
 void
-crc16_ccitt_single(uint16_t* crc, const uint8_t chr) {
+CO_crc16_ccitt_single(uint16_t* crc, const uint8_t chr) {
     uint8_t tmp = (uint8_t)(*crc >> 8U) ^ chr;
     *crc = (uint16_t)((*crc << 8U) ^ crc16_ccitt_table[tmp]);
 }
 
 uint16_t
-crc16_ccitt(const uint8_t block[], size_t blockLength, uint16_t crc) {
+CO_crc16_ccitt(const uint8_t block[], size_t blockLength, uint16_t crc) {
     size_t i;
 
     for (i = 0U; i < blockLength; i++) {
