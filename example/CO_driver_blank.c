@@ -166,8 +166,11 @@ CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer) {
     }
     /* if no buffer is free, message will be sent by interrupt */
     else {
-        buffer->bufferFull = true;
-        CANmodule->CANtxCount++;
+        /* Only increment count if buffer wasn't already full */
+        if (!buffer->bufferFull) {
+            buffer->bufferFull = true;
+            CANmodule->CANtxCount++;
+        }
     }
     CO_UNLOCK_CAN_SEND(CANmodule);
 
