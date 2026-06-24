@@ -140,8 +140,8 @@ typedef struct {
  */
 CO_ReturnError_t CO_LSSslave_init(CO_LSSslave_t* LSSslave, CO_LSS_address_t* lssAddress, uint16_t* pendingBitRate,
                                   uint8_t* pendingNodeID, CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx,
-                                  uint16_t CANidLssMaster, CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx,
-                                  uint16_t CANidLssSlave);
+                                  CO_CANident_t CANidLssMaster, CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx,
+                                  CO_CANident_t CANidLssSlave);
 
 /**
  * Process LSS communication

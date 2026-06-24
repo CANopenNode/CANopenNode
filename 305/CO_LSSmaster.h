@@ -136,8 +136,8 @@ typedef struct {
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_LSSmaster_init(CO_LSSmaster_t* LSSmaster, uint16_t timeout_ms, CO_CANmodule_t* CANdevRx,
-                                   uint16_t CANdevRxIdx, uint16_t CANidLssSlave, CO_CANmodule_t* CANdevTx,
-                                   uint16_t CANdevTxIdx, uint16_t CANidLssMaster);
+                                   uint16_t CANdevRxIdx, CO_CANident_t CANidLssSlave, CO_CANmodule_t* CANdevTx,
+                                   uint16_t CANdevTxIdx, CO_CANident_t CANidLssMaster);
 
 /**
  * Change LSS master timeout

@@ -106,9 +106,10 @@ typedef struct {
  * @return #CO_ReturnError_t CO_ERROR_NO on success.
  */
 CO_ReturnError_t CO_nodeGuardingSlave_init(CO_nodeGuardingSlave_t* ngs, OD_entry_t* OD_100C_GuardTime,
-                                           OD_entry_t* OD_100D_LifeTimeFactor, CO_EM_t* em, uint16_t CANidNodeGuarding,
-                                           CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, CO_CANmodule_t* CANdevTx,
-                                           uint16_t CANdevTxIdx, uint32_t* errInfo);
+                                           OD_entry_t* OD_100D_LifeTimeFactor, CO_EM_t* em,
+                                           CO_CANident_t CANidNodeGuarding, CO_CANmodule_t* CANdevRx,
+                                           uint16_t CANdevRxIdx, CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx,
+                                           uint32_t* errInfo);
 
 /**
  * Process Node Guarding slave.
@@ -167,7 +168,7 @@ extern "C" {
 typedef struct {
     uint32_t guardTime_us;           /**< Guard time in microseconds */
     uint32_t guardTimer;             /**< Guard timer in microseconds, counting down */
-    uint16_t ident;                  /**< CAN identifier (CO_CAN_ID_HEARTBEAT + Node Id) */
+    CO_CANident_t ident;             /**< CAN identifier (CO_CAN_ID_HEARTBEAT + Node Id) */
     CO_NMT_internalState_t NMTstate; /**< NMT operating state */
     uint8_t toggle;                  /**< toggle bit7, expected from the next received message */
     bool_t responseRecived;          /**< True, if response was received since last rtr message */

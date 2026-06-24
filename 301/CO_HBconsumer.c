@@ -186,7 +186,7 @@ CO_HBconsumer_initEntry(CO_HBconsumer_t* HBcons, uint8_t idx, uint8_t nodeId, ui
 
     /* Configure one monitored node */
     if (ret == CO_ERROR_NO) {
-        uint16_t COB_ID;
+        CO_CANident_t COB_ID;
 
         CO_HBconsNode_t* monitoredNode = &HBcons->monitoredNodes[idx];
         monitoredNode->nodeId = nodeId;
@@ -200,7 +200,7 @@ CO_HBconsumer_initEntry(CO_HBconsumer_t* HBcons, uint8_t idx, uint8_t nodeId, ui
 
         /* is channel used */
         if ((monitoredNode->nodeId != 0U) && (monitoredNode->time_us != 0U)) {
-            COB_ID = monitoredNode->nodeId + (uint16_t)CO_CAN_ID_HEARTBEAT;
+            COB_ID = (CO_CANident_t)(monitoredNode->nodeId + CO_CAN_ID_HEARTBEAT);
             monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
         } else {
             COB_ID = 0;
@@ -209,7 +209,7 @@ CO_HBconsumer_initEntry(CO_HBconsumer_t* HBcons, uint8_t idx, uint8_t nodeId, ui
         }
 
         /* configure Heartbeat consumer (or disable) CAN reception */
-        ret = CO_CANrxBufferInit(HBcons->CANdevRx, HBcons->CANdevRxIdxStart + idx, COB_ID, 0x7FF, false,
+        ret = CO_CANrxBufferInit(HBcons->CANdevRx, HBcons->CANdevRxIdxStart + idx, COB_ID, CO_CAN_ID_MASK, false,
                                  (void*)&HBcons->monitoredNodes[idx], CO_HBcons_receive);
     }
     return ret;

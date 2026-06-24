@@ -414,11 +414,11 @@ OD_read_PDO_commParam(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t
         /* Only common part of the CO_RPDO_t or CO_TPDO_t will be used */
         CO_PDO_common_t* PDO = stream->object;
         uint32_t COB_ID = CO_getUint32(buf);
-        uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
+        CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_CAN_ID_MASK);
 
         /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-        if ((CAN_ID != 0U) && (CAN_ID == (PDO->preDefinedCanId & 0xFF80U))) {
-            COB_ID = (COB_ID & 0xFFFF0000U) | PDO->preDefinedCanId;
+        if ((CAN_ID != 0U) && (CAN_ID == (PDO->preDefinedCanId & (CO_CAN_ID_MASK ^ 0x7FU)))) {
+            COB_ID = (COB_ID & (CO_COB_BIT31 | CO_COB_BIT30)) | PDO->preDefinedCanId;
         }
 
         /* If PDO is not valid, set bit 31 */
@@ -536,12 +536,12 @@ OD_write_14xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
     switch (stream->subIndex) {
         case 1: { /* COB-ID used by PDO */
             uint32_t COB_ID = CO_getUint32(buf);
-            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
+            CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_CAN_ID_MASK);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
-            /* bits 11...29 must be zero, PDO must be disabled on change, CAN_ID == 0 is
+            /* PDO must be disabled on change, CAN_ID == 0 is
              * not allowed, mapping must be configured before enabling the PDO */
-            if (((COB_ID & 0x3FFFF800U) != 0U) || (valid && PDO->valid && (CAN_ID != PDO->configuredCanId))
+            if (!CO_CHECK_COB_ID(COB_ID) || (valid && PDO->valid && (CAN_ID != PDO->configuredCanId))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID)) || (valid && (PDO->mappedObjectsCount == 0U))) {
                 return ODR_INVALID_VALUE;
             }
@@ -556,7 +556,7 @@ OD_write_14xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
                     CAN_ID = 0;
                 }
 
-                CO_ReturnError_t ret = CO_CANrxBufferInit(PDO->CANdev, PDO->CANdevIdx, CAN_ID, 0x7FF, false,
+                CO_ReturnError_t ret = CO_CANrxBufferInit(PDO->CANdev, PDO->CANdevIdx, CAN_ID, CO_CAN_ID_MASK, false,
                                                           (void*)RPDO, CO_PDO_receive);
 
                 if (valid && (ret == CO_ERROR_NO)) {
@@ -621,7 +621,7 @@ CO_RPDO_init(CO_RPDO_t* RPDO, OD_t* OD, CO_EM_t* em,
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0
              CO_SYNC_t* SYNC,
 #endif
-             uint16_t preDefinedCanId, OD_entry_t* OD_14xx_RPDOCommPar, OD_entry_t* OD_16xx_RPDOMapPar,
+             CO_CANident_t preDefinedCanId, OD_entry_t* OD_14xx_RPDOCommPar, OD_entry_t* OD_16xx_RPDOMapPar,
              CO_CANmodule_t* CANdevRx, uint16_t CANdevRxIdx, uint32_t* errInfo) {
     CO_PDO_common_t* PDO = &RPDO->PDO_common;
     CO_ReturnError_t ret;
@@ -658,7 +658,7 @@ CO_RPDO_init(CO_RPDO_t* RPDO, OD_t* OD, CO_EM_t* em,
     }
 
     bool_t valid = (COB_ID & 0x80000000U) == 0U;
-    uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
+    CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_CAN_ID_MASK);
     if (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U))) {
         valid = false;
         if (erroneousMap == 0U) {
@@ -675,11 +675,11 @@ CO_RPDO_init(CO_RPDO_t* RPDO, OD_t* OD, CO_EM_t* em,
     }
 
     /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & 0xFF80U))) {
+    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & (CO_CAN_ID_MASK ^ 0x7FU)))) {
         CAN_ID = preDefinedCanId;
     }
 
-    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CAN_ID, 0x7FF, false, (void*)RPDO, CO_PDO_receive);
+    ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CAN_ID, CO_CAN_ID_MASK, false, (void*)RPDO, CO_PDO_receive);
     if (ret != CO_ERROR_NO) {
         return ret;
     }
@@ -959,12 +959,12 @@ OD_write_18xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
     switch (stream->subIndex) {
         case 1: { /* COB-ID used by PDO */
             uint32_t COB_ID = CO_getUint32(buf);
-            uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
+            CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_CAN_ID_MASK);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
-            /* bits 11...29 must be zero, PDO must be disabled on change, CAN_ID == 0 is
+            /* PDO must be disabled on change, CAN_ID == 0 is
              * not allowed, mapping must be configured before enabling the PDO */
-            if (((COB_ID & 0x3FFFF800U) != 0U) || (valid && (PDO->valid && (CAN_ID != PDO->configuredCanId)))
+            if (!CO_CHECK_COB_ID(COB_ID) || (valid && (PDO->valid && (CAN_ID != PDO->configuredCanId)))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID)) || (valid && (PDO->mappedObjectsCount == 0U))) {
                 return ODR_INVALID_VALUE;
             }
@@ -1061,7 +1061,7 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0
              CO_SYNC_t* SYNC,
 #endif
-             uint16_t preDefinedCanId, OD_entry_t* OD_18xx_TPDOCommPar, OD_entry_t* OD_1Axx_TPDOMapPar,
+             CO_CANident_t preDefinedCanId, OD_entry_t* OD_18xx_TPDOCommPar, OD_entry_t* OD_1Axx_TPDOMapPar,
              CO_CANmodule_t* CANdevTx, uint16_t CANdevTxIdx, uint32_t* errInfo) {
     CO_PDO_common_t* PDO = &TPDO->PDO_common;
     ODR_t odRet;
@@ -1116,7 +1116,7 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
     }
 
     bool_t valid = (COB_ID & 0x80000000U) == 0U;
-    uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
+    CO_CANident_t CAN_ID = (CO_CANident_t)(COB_ID & CO_CAN_ID_MASK);
     if (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U))) {
         valid = false;
         if (erroneousMap == 0U) {
@@ -1133,7 +1133,7 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
     }
 
     /* If default CAN-ID is stored in OD (without Node-ID), add Node-ID */
-    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & 0xFF80U))) {
+    if ((CAN_ID != 0U) && (CAN_ID == (preDefinedCanId & (CO_CAN_ID_MASK ^ 0x7FU)))) {
         CAN_ID = preDefinedCanId;
     }
 
