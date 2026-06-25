@@ -49,12 +49,12 @@ typedef uint_fast8_t bool_t;
 typedef float float32_t;
 typedef double float64_t;
 
-/* Access to received CAN message */
+/* Access to received CAN frame */
 #define CO_CANrxMsg_readIdent(msg) ((uint16_t)0)
 #define CO_CANrxMsg_readDLC(msg)   ((uint8_t)0)
 #define CO_CANrxMsg_readData(msg)  ((const uint8_t*)NULL)
 
-/* Received message object */
+/* Received frame object */
 typedef struct {
     uint16_t ident;
     uint16_t mask;
@@ -62,7 +62,7 @@ typedef struct {
     void (*CANrx_callback)(void* object, void* message);
 } CO_CANrx_t;
 
-/* Transmit message object */
+/* Transmit frame object */
 typedef struct {
     uint32_t ident;
     uint8_t DLC;
@@ -109,7 +109,7 @@ typedef struct {
 #define CO_LOCK_OD(CAN_MODULE)
 #define CO_UNLOCK_OD(CAN_MODULE)
 
-/* Synchronization between CAN receive and message processing threads. */
+/* Synchronization between CAN receive and data processing threads. */
 #define CO_MemoryBarrier()
 #define CO_FLAG_READ(rxNew) ((rxNew) != NULL)
 #define CO_FLAG_SET(rxNew)                                                                                             \

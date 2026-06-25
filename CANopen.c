@@ -34,10 +34,10 @@
 
 /* Verify parameters from "OD.h" and calculate necessary values for each object:
  * - verify OD_CNT_xx or set default
- * - calculate number of CANrx and CYNtx messages: CO_RX_CNT_xx and CO_TX_CNT_xx
+ * - calculate number of CANrx and CANtx frames: CO_RX_CNT_xx and CO_TX_CNT_xx
  * - set optional undefined OD_ENTRY_Hxxxx to NULL.
  * - calculate indexes: CO_RX_IDX_xx and CO_TX_IDX_xx
- * - calculate total count of CAN message buffers: CO_CNT_ALL_RX_MSGS and CO_CNT_ALL_TX_MSGS. */
+ * - calculate total count of CAN frame buffers: CO_CNT_ALL_RX_MSGS and CO_CNT_ALL_TX_MSGS. */
 #if OD_CNT_NMT != 1
 #error OD_CNT_NMT from OD.h not correct!
 #endif
@@ -347,9 +347,9 @@ CO_new(CO_config_t* config, uint32_t* heapMemoryUsed) {
      * - allocate memory, verify allocation and calculate size of heap used
      * - if CO_MULTIPLE_OD is defined:
      *   - use config structure
-     *   - calculate number of CANrx and CYNtx messages: RX_CNT_xx and TX_CNT_xx
+     *   - calculate number of CANrx and CANtx frames: RX_CNT_xx and TX_CNT_xx
      *   - calculate indexes: RX_IDX_xx and TX_IDX_xx
-     *   - calculate total count of CAN message buffers: CNT_ALL_RX_MSGS and CNT_ALL_TX_MSGS. */
+     *   - calculate total count of CAN frame buffers: CNT_ALL_RX_MSGS and CNT_ALL_TX_MSGS. */
     do {
 #ifdef CO_MULTIPLE_OD
         /* verify arguments */

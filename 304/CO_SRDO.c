@@ -51,7 +51,7 @@ CO_SRDO_receive_normal(void* object, void* msg) {
     const uint8_t* data = CO_CANrxMsg_readData(msg);
 
     if ((SRDO->informationDirection == CO_SRDO_RX) && (DLC >= SRDO->dataLength) && !CO_FLAG_READ(SRDO->CANrxNew[1])) {
-        /* copy data into appropriate buffer and set 'new message' flag */
+        /* copy data into appropriate buffer and set 'new frame' flag */
         (void)memcpy(SRDO->CANrxData[0], data, sizeof(SRDO->CANrxData[0]));
         CO_FLAG_SET(SRDO->CANrxNew[0]);
 
@@ -74,7 +74,7 @@ CO_SRDO_receive_inverted(void* object, void* msg) {
     const uint8_t* data = CO_CANrxMsg_readData(msg);
 
     if ((SRDO->informationDirection == CO_SRDO_RX) && (DLC >= SRDO->dataLength) && CO_FLAG_READ(SRDO->CANrxNew[0])) {
-        /* copy data into appropriate buffer and set 'new message' flag */
+        /* copy data into appropriate buffer and set 'new frame' flag */
         (void)memcpy(SRDO->CANrxData[1], data, sizeof(SRDO->CANrxData[1]));
         CO_FLAG_SET(SRDO->CANrxNew[1]);
 
@@ -893,7 +893,7 @@ CO_SRDO_process(CO_SRDO_t* SRDO, uint32_t timeDifference_us, uint32_t* timerNext
                         }
                     }
 
-                    /* copy data from CAN messages into mapped data from Object Dictionary */
+                    /* copy data from CAN frames into mapped data from Object Dictionary */
                     if (data_ok) {
                         size_t verifyLength[2] = {0, 0};
                         for (uint8_t i = 0; i < SRDO->mappedObjectsCount; i++) {

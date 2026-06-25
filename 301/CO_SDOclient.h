@@ -158,7 +158,7 @@ typedef struct {
     uint16_t CANdevRxIdx;     /**< From CO_SDOclient_init() */
     CO_CANmodule_t* CANdevTx; /**< From CO_SDOclient_init() */
     uint16_t CANdevTxIdx;     /**< From CO_SDOclient_init() */
-    CO_CANtx_t* CANtxBuff;    /**< CAN transmit buffer inside CANdevTx for CAN tx message */
+    CO_CANtx_t* CANtxBuff;    /**< CAN transmit buffer inside CANdevTx */
 #if (((CO_CONFIG_SDO_CLI)&CO_CONFIG_FLAG_OD_DYNAMIC) != 0) || defined CO_DOXYGEN
 
     uint32_t COB_IDClientToServer;    /**< Copy of CANopen COB_ID Client -> Server, meaning of the specific bits:

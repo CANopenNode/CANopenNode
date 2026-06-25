@@ -237,7 +237,7 @@ tmrTask_thread(void) {
     }
 }
 
-/* CAN interrupt function executes on received CAN message ********************/
+/* CAN interrupt function executes on received CAN frame **********************/
 void /* interrupt */
 CO_CAN1InterruptHandler(void) {
 

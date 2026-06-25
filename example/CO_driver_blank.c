@@ -77,11 +77,11 @@ CO_CANmodule_init(CO_CANmodule_t* CANmodule, void* CANptr, CO_CANrx_t rxArray[],
         /* CAN module filters are used, they will be configured with */
         /* CO_CANrxBufferInit() functions, called by separate CANopen */
         /* init functions. */
-        /* Configure all masks so, that received message must match filter */
+        /* Configure all masks so, that received CAN frame must match filter */
     } else {
-        /* CAN module filters are not used, all messages with standard 11-bit */
+        /* CAN module filters are not used, all CAN frames with standard 11-bit */
         /* identifier will be received */
-        /* Configure mask 0 so, that all messages with standard identifier are accepted */
+        /* Configure mask 0 so, that all CAN frames with standard identifier are accepted */
     }
 
     /* configure CAN interrupt registers */
@@ -159,12 +159,12 @@ CO_CANsend(CO_CANmodule_t* CANmodule, CO_CANtx_t* buffer) {
     }
 
     CO_LOCK_CAN_SEND(CANmodule);
-    /* if CAN TX buffer is free, copy message to it */
+    /* if CAN TX buffer is free, copy data to it */
     if (1 && CANmodule->CANtxCount == 0) {
         CANmodule->bufferInhibitFlag = buffer->syncFlag;
-        /* copy message and txRequest */
+        /* copy data and txRequest */
     }
-    /* if no buffer is free, message will be sent by interrupt */
+    /* if no buffer is free, CAN frame will be sent by interrupt */
     else {
         /* Only increment count if buffer wasn't already full */
         if (!buffer->bufferFull) {
@@ -182,9 +182,9 @@ CO_CANclearPendingSyncPDOs(CO_CANmodule_t* CANmodule) {
     uint32_t tpdoDeleted = 0U;
 
     CO_LOCK_CAN_SEND(CANmodule);
-    /* Abort message from CAN module, if there is synchronous TPDO.
+    /* Abort frame from CAN module, if there is synchronous TPDO.
      * Take special care with this functionality. */
-    if (/* messageIsOnCanBuffer && */ CANmodule->bufferInhibitFlag) {
+    if (/* CAN frameIsOnCanBuffer && */ CANmodule->bufferInhibitFlag) {
         /* clear TXREQ */
         CANmodule->bufferInhibitFlag = false;
         tpdoDeleted = 1U;
@@ -274,17 +274,17 @@ CO_CANinterrupt(CO_CANmodule_t* CANmodule) {
 
     /* receive interrupt */
     if (1) {
-        CO_CANrxMsg_t* rcvMsg;     /* pointer to received message in CAN module */
-        uint16_t index;            /* index of received message */
-        uint32_t rcvMsgIdent;      /* identifier of the received message */
-        CO_CANrx_t* buffer = NULL; /* receive message buffer from CO_CANmodule_t object. */
+        CO_CANrxMsg_t* rcvMsg;     /* pointer to received CAN frame in CAN module */
+        uint16_t index;            /* index of received CAN frame */
+        uint32_t rcvMsgIdent;      /* identifier of the received CAN frame */
+        CO_CANrx_t* buffer = NULL; /* receive CAN frame buffer from CO_CANmodule_t object. */
         bool_t msgMatched = false;
 
-        rcvMsg = 0; /* get message from module here */
+        rcvMsg = 0; /* get CAN frame from module here */
         rcvMsgIdent = rcvMsg->ident;
         if (CANmodule->useCANrxFilters) {
-            /* CAN module filters are used. Message with known 11-bit identifier has been received */
-            index = 0; /* get index of the received message here. Or something similar */
+            /* CAN module filters are used. CAN frame with known 11-bit identifier has been received */
+            index = 0; /* get index of the received CAN frame here. Or something similar */
             if (index < CANmodule->rxSize) {
                 buffer = &CANmodule->rxArray[index];
                 /* verify also RTR */
@@ -293,7 +293,7 @@ CO_CANinterrupt(CO_CANmodule_t* CANmodule) {
                 }
             }
         } else {
-            /* CAN module filters are not used, message with any standard 11-bit identifier */
+            /* CAN module filters are not used, CAN frame with any standard 11-bit identifier */
             /* has been received. Search rxArray form CANmodule for the same CAN-ID. */
             buffer = &CANmodule->rxArray[0];
             for (index = CANmodule->rxSize; index > 0U; index--) {
@@ -305,7 +305,7 @@ CO_CANinterrupt(CO_CANmodule_t* CANmodule) {
             }
         }
 
-        /* Call specific function, which will process the message */
+        /* Call specific function, which will process the CAN frame */
         if (msgMatched && (buffer != NULL) && (buffer->CANrx_callback != NULL)) {
             buffer->CANrx_callback(buffer->object, (void*)rcvMsg);
         }
@@ -317,24 +317,24 @@ CO_CANinterrupt(CO_CANmodule_t* CANmodule) {
     else if (0) {
         /* Clear interrupt flag */
 
-        /* First CAN message (bootup) was sent successfully */
+        /* First CAN frame (bootup) was sent successfully */
         CANmodule->firstCANtxMessage = false;
-        /* clear flag from previous message */
+        /* clear flag from previous CAN frame */
         CANmodule->bufferInhibitFlag = false;
-        /* Are there any new messages waiting to be send */
+        /* Are there any new CAN frames waiting to be send */
         if (CANmodule->CANtxCount > 0U) {
-            uint16_t i; /* index of transmitting message */
+            uint16_t i; /* index of transmitting CAN frame */
 
             /* first buffer */
             CO_CANtx_t* buffer = &CANmodule->txArray[0];
-            /* search through whole array of pointers to transmit message buffers. */
+            /* search through whole array of pointers to transmit CAN frame buffers. */
             for (i = CANmodule->txSize; i > 0U; i--) {
-                /* if message buffer is full, send it. */
+                /* if CAN frame buffer is full, send it. */
                 if (buffer->bufferFull) {
                     buffer->bufferFull = false;
                     CANmodule->CANtxCount--;
 
-                    /* Copy message to CAN buffer */
+                    /* Copy CAN frame to CAN buffer */
                     CANmodule->bufferInhibitFlag = buffer->syncFlag;
                     /* canSend... */
                     break; /* exit for loop */
@@ -342,7 +342,7 @@ CO_CANinterrupt(CO_CANmodule_t* CANmodule) {
                 buffer++;
             } /* end of for loop */
 
-            /* Clear counter if no more messages */
+            /* Clear counter if no more CAN frames */
             if (i == 0U) {
                 CANmodule->CANtxCount = 0U;
             }

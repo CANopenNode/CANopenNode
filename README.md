@@ -93,11 +93,11 @@ Flowchart of a typical CANopenNode implementation:
 | - Fast response.     |  | - Realtime thread with |  | - Processing of time  |
 | - Detect CAN ID.     |  |   constant interval,   |  |   consuming tasks     |
 | - Partially process  |  |   typically 1ms.       |  |   in CANopen objects: |
-|   messages and copy  |  | - Network synchronized |  |    - SDO server,      |
-|   data to target     |  | - Copy inputs (RPDOs,  |  |    - Emergency,       |
-|   CANopen objects.   |  |   HW) to Object Dict.  |  |    - Network state,   |
-|                      |  | - May call application |  |    - Heartbeat.       |
-|                      |  |   for some processing. |  |    - LSS slave        |
+|   CAN frames and     |  | - Network synchronized |  |    - SDO server,      |
+|   copy data to       |  | - Copy inputs (RPDOs,  |  |    - Emergency,       |
+|   the target         |  |   HW) to Object Dict.  |  |    - Network state,   |
+|   CANopenNode        |  | - May call application |  |    - Heartbeat.       |
+|   objects.           |  |   for some processing. |  |    - LSS slave        |
 |                      |  | - Copy variables from  |  | - Gateway (optional): |
 |                      |  |   Object Dictionary to |  |    - NMT master       |
 |                      |  |   outputs (TPDOs, HW). |  |    - SDO client       |

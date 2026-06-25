@@ -51,7 +51,7 @@ extern "C" {
  * or stdio in OS or sockets, etc.
  *
  * For example, one wants to read 'Heartbeat producer time' parameter (0x1017,0) on remote node (with id=4). Parameter
- * is 16-bit integer. He can can enter command string: `[1] 4 read 0x1017 0 i16`. CANopenNode will use SDO client, send
+ * is 16-bit integer. He can enter command string: `[1] 4 read 0x1017 0 i16`. CANopenNode will use SDO client, send
  * request to remote node via CAN, wait for response via CAN and prints `[1] OK` to output stream on success.
  *
  * This module is usually initialized and processed in CANopen.c file. Application should register own callback function
