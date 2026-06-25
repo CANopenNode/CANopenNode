@@ -243,11 +243,11 @@ typedef struct {
     CO_config_t* config; /**< Remember the configuration parameters */
 #endif
     CO_CANmodule_t* CANmodule; /**< One CAN module object, initialised by @ref CO_CANmodule_init() */
-    CO_CANrx_t* CANrx;         /**< CAN receive message objects */
-    CO_CANtx_t* CANtx;         /**< CAN transmit message objects */
+    CO_CANrx_t* CANrx;         /**< CAN frame receive objects */
+    CO_CANtx_t* CANtx;         /**< CAN frame transmit objects */
 #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN
-    uint16_t CNT_ALL_RX_MSGS; /**< Number of all CAN receive message objects. */
-    uint16_t CNT_ALL_TX_MSGS; /**< Number of all CAN transmit message objects. */
+    uint16_t CNT_ALL_RX_MSGS; /**< Number of all CAN frame receive objects. */
+    uint16_t CNT_ALL_TX_MSGS; /**< Number of all CAN frame transmit objects. */
 #endif
     CO_NMT_t* NMT; /**< NMT and heartbeat object, initialised by @ref CO_NMT_init() */
 #if defined CO_MULTIPLE_OD || defined CO_DOXYGEN

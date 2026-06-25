@@ -23,9 +23,9 @@
 #if ((CO_CONFIG_NODE_GUARDING)&CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE) != 0
 
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
@@ -232,12 +232,12 @@ CO_nodeGuardingSlave_process(CO_nodeGuardingSlave_t* ngs, CO_NMT_internalState_t
 
 #if ((CO_CONFIG_NODE_GUARDING)&CO_CONFIG_NODE_GUARDING_MASTER_ENABLE) != 0
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  *
- * Function receives messages from CAN identifier from 0x700 to 0x7FF. It
+ * Function receives frames with CAN identifier from 0x700 to 0x7FF. It
  * searches matching node->ident from nodes array.
  */
 static void
@@ -281,7 +281,7 @@ CO_nodeGuardingMaster_init(CO_nodeGuardingMaster_t* ngm, CO_EM_t* em, CO_CANmodu
     /* Configure object variables */
     ngm->em = em;
 
-    /* configure CAN reception. One buffer will receive all messages from CAN-id 0x700 to 0x7FF. */
+    /* configure CAN reception. One buffer will receive all CAN frames from CAN-id 0x700 to 0x7FF. */
     ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CO_CAN_ID_HEARTBEAT, 0x780, false, (void*)ngm, CO_ngm_receive);
     if (ret != CO_ERROR_NO) {
         return ret;

@@ -21,9 +21,9 @@
 #include "301/CO_NMT_Heartbeat.h"
 
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void

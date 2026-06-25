@@ -180,8 +180,8 @@ extern "C" {
  */
 #define CO_EM_NO_ERROR                  0x00U /**< 0x00 Error Reset or No Error */
 #define CO_EM_CAN_BUS_WARNING           0x01U /**< 0x01 communication info CAN bus warning limit reached */
-#define CO_EM_RXMSG_WRONG_LENGTH        0x02U /**< 0x02 communication info Wrong data length of the received CAN message */
-#define CO_EM_RXMSG_OVERFLOW            0x03U /**< 0x03 communication info Previous received CAN message wasn't processed */
+#define CO_EM_RXMSG_WRONG_LENGTH        0x02U /**< 0x02 communication info Wrong data length of the received CAN frame */
+#define CO_EM_RXMSG_OVERFLOW            0x03U /**< 0x03 communication info Previous received CAN frame wasn't processed */
 #define CO_EM_RPDO_WRONG_LENGTH         0x04U /**< 0x04 communication info Wrong data length of received PDO */
 #define CO_EM_RPDO_OVERFLOW             0x05U /**< 0x05 communication info Previous received PDO wasn't processed yet */
 #define CO_EM_CAN_RX_BUS_PASSIVE        0x06U /**< 0x06 communication info CAN receive bus is passive */
@@ -281,7 +281,7 @@ typedef struct {
 #if (((CO_CONFIG_EM)&CO_CONFIG_EM_PRODUCER) != 0) || defined CO_DOXYGEN
     bool_t producerEnabled;           /**< True, if emergency producer is enabled, from Object dictionary */
     uint8_t nodeId;                   /**< Copy of CANopen node ID, from CO_EM_init() */
-    CO_CANtx_t* CANtxBuff;            /**< CAN transmit buffer */
+    CO_CANtx_t* CANtxBuff;            /**< CAN transmit buffer inside CANdevTx */
     OD_extension_t OD_1014_extension; /**< Extension for OD object */
 #if (((CO_CONFIG_EM)&CO_CONFIG_EM_PROD_CONFIGURABLE) != 0) || defined CO_DOXYGEN
     uint16_t producerCanId; /**< COB ID of emergency message, from Object dictionary */

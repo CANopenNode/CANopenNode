@@ -46,7 +46,7 @@ extern "C" {
  * @ingroup CO_CANopen_301
  * @{
  * Node guarding master pools each node guarding slave at time intervals, called guard time. Master sends a CAN RTR
- * message, and slave responds. Slave also monitors presence of RTR message from master and indicates error, if it
+ * frame, and slave responds. Slave also monitors presence of RTR frame from master and indicates error, if it
  * wasn't received within life time. ('Life time' is 'Guard time' multiplied by 'Life time factor').
  *
  * Adding Node guarding to the project:
@@ -73,7 +73,7 @@ extern "C" {
  */
 typedef struct {
     CO_EM_t* em;                      /**< From CO_nodeGuardingSlave_init() */
-    volatile void* CANrxNew;          /**< Indicates, if new rtr message received from CAN bus */
+    volatile void* CANrxNew;          /**< Indicates, if new NodeGuarding rtr message received from CAN bus */
     uint32_t guardTime_us;            /**< Guard time in microseconds, calculated from OD_0x100C */
     uint32_t lifeTime_us;             /**< Life time in microseconds, calculated from guardTime_us * lifeTimeFactor */
     uint32_t lifeTimer;               /**< Timer for monitoring Life time, counting down from lifeTime_us. */
@@ -83,7 +83,7 @@ typedef struct {
     OD_extension_t OD_100C_extension; /**< Extension for OD object */
     OD_extension_t OD_100D_extension; /**< Extension for OD object */
     CO_CANmodule_t* CANdevTx;         /**< From CO_nodeGuardingSlave_init() */
-    CO_CANtx_t* CANtxBuff;            /**< CAN transmit buffer for the message */
+    CO_CANtx_t* CANtxBuff;            /**< CAN transmit buffer inside CANdevTx */
 } CO_nodeGuardingSlave_t;
 
 /**
@@ -95,7 +95,7 @@ typedef struct {
  * @param OD_100C_GuardTime OD entry for 0x100C -"Guard time", entry is required.
  * @param OD_100D_LifeTimeFactor OD entry for 0x100D -"Life time factor", entry is required.
  * @param em Emergency object.
- * @param CANidNodeGuarding CAN identifier for Node Guarding rtr and response message (usually CO_CAN_ID_HEARTBEAT +
+ * @param CANidNodeGuarding CAN identifier for Node Guarding rtr and response CAN frame (usually CO_CAN_ID_HEARTBEAT +
  * nodeId).
  * @param CANdevRx CAN device for Node Guarding rtr reception.
  * @param CANdevRxIdx Index of the receive buffer in the above CAN device.
@@ -182,7 +182,7 @@ typedef struct {
     CO_EM_t* em;               /**< From CO_nodeGuardingMaster_init() */
     CO_CANmodule_t* CANdevTx;  /**< From CO_nodeGuardingMaster_init() */
     uint16_t CANdevTxIdx;      /**< From CO_nodeGuardingMaster_init() */
-    CO_CANtx_t* CANtxBuff;     /**< CAN transmit buffer for the message */
+    CO_CANtx_t* CANtxBuff;     /**< CAN transmit buffer inside CANdevTx */
     bool_t allMonitoredActive; /**< True, if all monitored nodes are active or no node is monitored. Can be read by the
                                   application */
     bool_t allMonitoredOperational; /**< True, if all monitored nodes are NMT operational or no node is monitored. Can

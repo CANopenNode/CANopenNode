@@ -94,7 +94,7 @@ typedef enum {
     CO_SRDO_state_error_internal = -10,     /**< internal software error */
     CO_SRDO_state_error_configuration = -9, /**< error in parameters, emergency message was sent */
     CO_SRDO_state_error_txNotInverted = -6, /**< Transmitting SRDO messages was not inverted */
-    CO_SRDO_state_error_txFail = -5,        /**< SRDO CAN message transmission failed */
+    CO_SRDO_state_error_txFail = -5,        /**< SRDO message transmission failed */
     CO_SRDO_state_error_rxTimeoutSRVT = -4, /**< SRDO message didn't receive inside SRVT time */
     CO_SRDO_state_error_rxTimeoutSCT = -3,  /**< SRDO inverted message didn't receive inside SCT time */
     CO_SRDO_state_error_rxNotInverted = -2, /**< Received SRDO messages was not inverted */

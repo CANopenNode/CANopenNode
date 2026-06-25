@@ -34,9 +34,9 @@
 #define CO_LSS_BIT_TIMING_VALID(index)            ((index != 5U) && (index <= CO_LSS_BIT_TIMING_AUTO))
 
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
@@ -205,10 +205,10 @@ CO_LSSslave_init(CO_LSSslave_t* LSSslave, CO_LSS_address_t* lssAddress, uint16_t
     LSSslave->activeNodeID = *pendingNodeID;
     CO_FLAG_CLEAR(LSSslave->sendResponse);
 
-    /* configure LSS CAN Master message reception */
+    /* configure LSS CANopen Master message reception */
     ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidLssMaster, 0x7FF, false, (void*)LSSslave, CO_LSSslave_receive);
 
-    /* configure LSS CAN Slave response message transmission */
+    /* configure LSS CANopen Slave response message transmission */
     LSSslave->CANdevTx = CANdevTx;
     LSSslave->TXbuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, CANidLssSlave, false, 8, false);
 

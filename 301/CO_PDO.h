@@ -70,7 +70,7 @@ extern "C" {
  * ### CAN identifiers for PDO
  *
  * Each PDO can be configured with any valid 11-bit CAN identifier. Lower numbers have higher priorities on CAN bus. As
- * a general rule, each CAN message is identified with own CAN-ID, which must be unique and produced by single source.
+ * a general rule, each CAN frame is identified with own CAN-ID, which must be unique and produced by single source.
  * The same is with PDO objects: Any TPDO produced on the CANopen network must have unique CAN-ID and there can be zero
  * to many RPDOs (from different devices) configured to match the CAN-ID of the TPDO of interest.
  *
@@ -196,7 +196,7 @@ typedef struct {
  ******************************************************************************/
 #if (((CO_CONFIG_PDO)&CO_CONFIG_RPDO_ENABLE) != 0) || defined CO_DOXYGEN
 /**
- * Number of buffers for received CAN message for RPDO
+ * Number of buffers for received CAN frame for RPDO
  */
 #if (((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
 #define CO_RPDO_CAN_BUFFERS_COUNT 2

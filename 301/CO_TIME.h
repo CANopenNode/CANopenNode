@@ -78,7 +78,7 @@ typedef struct {
     uint32_t producerInterval_ms; /**< Interval for time producer in milli seconds */
     uint32_t producerTimer_ms;    /**< Sync producer timer */
     CO_CANmodule_t* CANdevTx;     /**< From CO_TIME_init() */
-    CO_CANtx_t* CANtxBuff;        /**< CAN transmit buffer */
+    CO_CANtx_t* CANtxBuff;        /**< CAN transmit buffer inside CANdevTx */
 #endif
 #if (((CO_CONFIG_TIME)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0) || defined CO_DOXYGEN
     void (*pFunctSignalPre)(void* object); /**< From CO_TIME_initCallbackPre() or NULL */
