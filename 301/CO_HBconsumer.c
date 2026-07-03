@@ -377,11 +377,13 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
 #endif
             }
 
-            if (monitoredNode->HBstate != CO_HBconsumer_ACTIVE) {
-                allMonitoredActiveCurrent = false;
-            }
-            if (monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
-                allMonitoredOperationalCurrent = false;
+            if (monitoredNode->HBstate != CO_HBconsumer_UNKNOWN) {
+                if (monitoredNode->HBstate != CO_HBconsumer_ACTIVE) {
+                    allMonitoredActiveCurrent = false;
+                }
+                if (monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
+                    allMonitoredOperationalCurrent = false;
+                }
             }
 #if (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0)                                                     \
     || (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)
