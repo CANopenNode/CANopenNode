@@ -21,6 +21,7 @@
 #define OD_DEFINITION
 #include "301/CO_ODinterface.h"
 
+#ifndef CO_OVERRIDE_OD_READ_ORIGINAL
 ODR_t
 OD_readOriginal(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* countRead) {
     if ((stream == NULL) || (buf == NULL) || (countRead == NULL)) {
@@ -61,7 +62,9 @@ OD_readOriginal(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t* coun
     *countRead = dataLenToCopy;
     return returnCode;
 }
+#endif /* CO_OVERRIDE_OD_READ_ORIGINAL */
 
+#ifndef CO_OVERRIDE_OD_WRITE_ORIGINAL
 ODR_t
 OD_writeOriginal(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* countWritten) {
     if ((stream == NULL) || (buf == NULL) || (countWritten == NULL)) {
@@ -115,6 +118,7 @@ OD_writeOriginal(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_
     *countWritten = dataLenToCopy;
     return returnCode;
 }
+#endif /* CO_OVERRIDE_OD_WRITE_ORIGINAL */
 
 /* Read value from variable from Object Dictionary disabled, see OD_IO_t */
 static ODR_t
