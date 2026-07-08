@@ -47,6 +47,7 @@ main(void) {
     CO_ReturnError_t err;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     uint32_t heapMemoryUsed;
+    /* Blank target keeps this NULL; real ports must provide the CAN module context before CAN initialization. */
     void* CANptr = NULL;           /* CAN module address */
     uint8_t pendingNodeId = 10;    /* read from dip switches or nonvolatile memory, configurable by LSS slave */
     uint8_t activeNodeId = 10;     /* Copied from CO_pendingNodeId in the communication reset section */
