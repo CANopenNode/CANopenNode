@@ -1345,10 +1345,10 @@ CO_process(CO_t* co, bool_t enableGateway, uint32_t timeDifference_us, uint32_t*
         bool_t ErrSync = CO_isError(co->em, CO_EM_SYNC_TIME_OUT);
         bool_t ErrHbCons = CO_isError(co->em, CO_EM_HEARTBEAT_CONSUMER);
         bool_t ErrHbConsRemote = CO_isError(co->em, CO_EM_HB_CONSUMER_REMOTE_RESET);
+        bool_t ErrRpdo = CO_isError(co->em, CO_EM_RPDO_TIME_OUT);
         CO_LEDs_process(co->LEDs, timeDifference_us, unc ? CO_NMT_INITIALIZING : NMTstate, LSSslave_configuration,
                         (CANerrorStatus & CO_CAN_ERRTX_BUS_OFF) != 0U, (CANerrorStatus & CO_CAN_ERR_WARN_PASSIVE) != 0U,
-                        false, /* RPDO event timer timeout */
-                        unc ? false : ErrSync, unc ? false : (ErrHbCons || ErrHbConsRemote),
+                        unc ? false : ErrRpdo, unc ? false : ErrSync, unc ? false : (ErrHbCons || ErrHbConsRemote),
                         CO_getErrorRegister(co->em) != 0U, CO_STATUS_FIRMWARE_DOWNLOAD_IN_PROGRESS, timerNext_us);
     }
 #endif
