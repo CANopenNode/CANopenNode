@@ -19,8 +19,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-#ifndef CRC16_CCITT_H
-#define CRC16_CCITT_H
+#ifndef CO_CRC16_CCITT_H
+#define CO_CRC16_CCITT_H
 
 #include "301/CO_driver.h"
 
@@ -55,7 +55,7 @@ extern "C" {
  * be initialized (zero for xmodem).
  * @param chr One byte of data
  */
-void crc16_ccitt_single(uint16_t* crc, const uint8_t chr);
+void CO_crc16_ccitt_single(uint16_t* crc, const uint8_t chr);
 
 /**
  * Calculate CRC sum on block of data.
@@ -67,7 +67,7 @@ void crc16_ccitt_single(uint16_t* crc, const uint8_t chr);
  *
  * @return Calculated CRC.
  */
-uint16_t crc16_ccitt(const uint8_t block[], size_t blockLength, uint16_t crc);
+uint16_t CO_crc16_ccitt(const uint8_t block[], size_t blockLength, uint16_t crc);
 
 /** @} */ /* CO_crc16_ccitt */
 
@@ -77,4 +77,4 @@ uint16_t crc16_ccitt(const uint8_t block[], size_t blockLength, uint16_t crc);
 
 #endif /* (CO_CONFIG_CRC16) & CO_CONFIG_CRC16_ENABLE */
 
-#endif /* CRC16_CCITT_H */
+#endif /* CO_CRC16_CCITT_H */
