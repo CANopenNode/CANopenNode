@@ -1439,11 +1439,14 @@ CO_process_RPDO(CO_t* co, bool_t syncWas, uint32_t timeDifference_us, uint32_t* 
     }
 
     bool_t NMTisOperational = CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL;
+#if ((CO_CONFIG_PDO)&CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
+    bool_t anyTimeout = false;
+#endif
 
     for (uint16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
         CO_RPDO_process(&co->RPDO[i],
 #if ((CO_CONFIG_PDO)&CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
-                        timeDifference_us, timerNext_us,
+                        timeDifference_us, &anyTimeout, timerNext_us,
 #endif
                         NMTisOperational, syncWas);
     }
@@ -1452,14 +1455,6 @@ CO_process_RPDO(CO_t* co, bool_t syncWas, uint32_t timeDifference_us, uint32_t* 
     /* CO_EM_RPDO_TIME_OUT is a single shared bit for all RPDOs. Only reset it
      * after processing all RPDOs, and only when none remain in timeout.
      * CO_errorReset() is a no-op when the error bit is already clear. */
-    bool_t anyTimeout = false;
-    for (uint16_t i = 0; i < CO_GET_CNT(RPDO); i++) {
-        CO_RPDO_t* rpdo = &co->RPDO[i];
-        if (rpdo->timeoutTime_us > 0U && rpdo->timeoutTimer > rpdo->timeoutTime_us) {
-            anyTimeout = true;
-            break;
-        }
-    }
     if (!anyTimeout) {
         CO_errorReset(co->em, CO_EM_RPDO_TIME_OUT, 0);
     }

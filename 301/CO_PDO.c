@@ -741,7 +741,7 @@ CO_RPDO_initCallbackPre(CO_RPDO_t* RPDO, void* object, void (*pFunctSignalPre)(v
 void
 CO_RPDO_process(CO_RPDO_t* RPDO,
 #if ((CO_CONFIG_PDO)&CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
-                uint32_t timeDifference_us, uint32_t* timerNext_us,
+                uint32_t timeDifference_us, bool_t* timeoutState, uint32_t* timerNext_us,
 #endif
                 bool_t NMTisOperational, bool_t syncWas) {
     (void)syncWas;
@@ -890,11 +890,6 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
 #if ((CO_CONFIG_PDO)&CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
         if (RPDO->timeoutTime_us > 0U) {
             if (rpdoReceived) {
-                /* Do NOT call CO_errorReset here. CO_EM_RPDO_TIME_OUT is a
-                 * single shared bit for all RPDOs. Resetting it when one RPDO
-                 * recovers would clear the error even if other RPDOs are still
-                 * timed out. The reset is handled in CO_process_RPDO() after
-                 * all RPDOs are processed, only when none remain in timeout. */
                 /* enable monitoring */
                 RPDO->timeoutTimer = 1;
             } else if ((RPDO->timeoutTimer > 0U) && (RPDO->timeoutTimer < RPDO->timeoutTime_us)) {
@@ -904,6 +899,11 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
                     CO_errorReport(PDO->em, CO_EM_RPDO_TIME_OUT, CO_EMC_RPDO_TIMEOUT, RPDO->timeoutTimer);
                 }
             } else { /* MISRA C 2004 14.10 */
+            }
+            if ((timeoutState != NULL) && RPDO->timeoutTimer > RPDO->timeoutTime_us) {
+                /* This output variable indicates that the RPDO has timed out. It can be used across all
+                * RPDOs to determine if any have timed out. If it remains false, CO_errorReset can be called. */
+                *timeoutState = true;
             }
 #if ((CO_CONFIG_PDO)&CO_CONFIG_FLAG_TIMERNEXT) != 0
             if ((timerNext_us != NULL) && (RPDO->timeoutTimer < RPDO->timeoutTime_us)) {
