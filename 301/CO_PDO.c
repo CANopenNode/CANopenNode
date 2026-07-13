@@ -819,8 +819,10 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
                 /* Prepare data for writing into OD variable. If mappedLength
                  * is smaller than ODdataLength, then use auxiliary buffer */
                 uint8_t* dataOD;
-                /* Apply the bitmask */
-                uint64_t shiftedData = buf64 & (UINT64_MAX >> (64 - mappedLength));
+                /* Apply the bitmask. mappedLength of 0 is a valid (if unusual)
+                 * mapping - "(64 - mappedLength)" would then shift by 64,
+                 * which is undefined behaviour, so handle it explicitly. */
+                uint64_t shiftedData = (mappedLength == 0U) ? 0U : (buf64 & (UINT64_MAX >> (64 - mappedLength)));
                 /* Shift the original buffer to get ready for the next mapping */
                 buf64 >>= mappedLength;
 #ifdef CO_BIG_ENDIAN
@@ -1262,10 +1264,16 @@ CO_TPDOsend(CO_TPDO_t* TPDO) {
          * For LE not needed, low bytes from the OD entry are copied to low bytes of u64 */
         buf >>= 64 - 8 * ODdataLength;
 #endif /* CO_BIG_ENDIAN */
-        /* Apply the mask and merge with the rest */
-        buf &= (UINT64_MAX >> (64 - mappedLength));
-        buf <<= (verifyLength  - mappedLength);
-        buf64 |= buf;
+        /* Apply the mask and merge with the rest. mappedLength of 0 is a
+         * valid (if unusual) mapping - it must contribute nothing to buf64.
+         * Skip the shifts in that case, since "(64 - mappedLength)" and/or
+         * "(verifyLength - mappedLength)" can then evaluate to 64, and
+         * shifting a 64-bit value by 64 is undefined behaviour. */
+        if (mappedLength > 0U) {
+            buf &= (UINT64_MAX >> (64 - mappedLength));
+            buf <<= (verifyLength - mappedLength);
+            buf64 |= buf;
+        }
 #else
         OD_IO->read(stream, dataTPDOCopy, ODdataLength, &countRd);
 #endif /* (CO_CONFIG_PDO) & (CO_CONFIG_PDO_BITWISE_MAPPING) */
