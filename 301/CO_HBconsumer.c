@@ -342,15 +342,15 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
                     }
 #endif
                     monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
-                    /* reset timer */
-                    monitoredNode->timeoutTimer = 0;
-                    timeDifference_us_copy = 0;
                 }
                 CO_FLAG_CLEAR(monitoredNode->CANrxNew);
+                /* reset timer */
+                monitoredNode->timeoutTimer = 0;
+                timeDifference_us_copy = 0;
             }
 
             /* Verify timeout */
-            if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
+            if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE || monitoredNode->HBstate == CO_HBconsumer_RESTART) {
                 monitoredNode->timeoutTimer += timeDifference_us_copy;
 
                 if (monitoredNode->timeoutTimer >= monitoredNode->time_us) {
