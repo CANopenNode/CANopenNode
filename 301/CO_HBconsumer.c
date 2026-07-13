@@ -18,6 +18,8 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
+#include <stdint.h>
+
 #include "301/CO_HBconsumer.h"
 
 #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_ENABLE) != 0
@@ -91,7 +93,7 @@ OD_write_1016(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
     uint32_t val = CO_getUint32(buf);
     uint8_t nodeId = (uint8_t)((val >> 16) & 0xFFU);
     uint16_t consumer_time = (uint16_t)(val & 0xFFFFU);
-    CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - 1U, nodeId, consumer_time);
+    CO_ReturnError_t ret = CO_HBconsumer_initEntry(HBcons, stream->subIndex - (uint8_t)1U, nodeId, consumer_time);
     if (ret != CO_ERROR_NO) {
         return ODR_PAR_INCOMPAT;
     }
@@ -120,8 +122,8 @@ CO_HBconsumer_init(CO_HBconsumer_t* HBcons, CO_EM_t* em, CO_HBconsNode_t* monito
     HBcons->CANdevRxIdxStart = CANdevRxIdxStart;
 
     /* get actual number of monitored nodes */
-    HBcons->numberOfMonitoredNodes = ((OD_1016_HBcons->subEntriesCount - 1U) < monitoredNodesCount)
-                                         ? (OD_1016_HBcons->subEntriesCount - 1U)
+    HBcons->numberOfMonitoredNodes = ((OD_1016_HBcons->subEntriesCount - (uint8_t)1U) < monitoredNodesCount)
+                                         ? (OD_1016_HBcons->subEntriesCount - (uint8_t)1U)
                                          : monitoredNodesCount;
 
     for (uint8_t i = 0; i < HBcons->numberOfMonitoredNodes; i++) {

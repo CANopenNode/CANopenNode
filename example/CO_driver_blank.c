@@ -24,6 +24,7 @@
 
 void
 CO_CANsetConfigurationMode(void* CANptr) {
+    (void)(CANptr);
     /* Put CAN module in configuration mode */
 }
 
@@ -37,6 +38,7 @@ CO_CANsetNormalMode(CO_CANmodule_t* CANmodule) {
 CO_ReturnError_t
 CO_CANmodule_init(CO_CANmodule_t* CANmodule, void* CANptr, CO_CANrx_t rxArray[], uint16_t rxSize, CO_CANtx_t txArray[],
                   uint16_t txSize, uint16_t CANbitRate) {
+    (void)(CANbitRate);
     uint16_t i;
 
     /* verify arguments */

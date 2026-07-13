@@ -18,6 +18,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
+#include <stdint.h>
 #include <string.h>
 
 #include "301/CO_PDO.h"
@@ -290,7 +291,7 @@ OD_write_PDO_mapping(OD_stream_t* stream, const void* buf, OD_size_t count, OD_s
         PDO->mappedObjectsCount = mappedObjectsCount;
     } else {
         uint32_t val = CO_getUint32(buf);
-        ODR_t odRet = PDOconfigMap(PDO, val, stream->subIndex - 1U, PDO->isRPDO, PDO->OD);
+        ODR_t odRet = PDOconfigMap(PDO, val, stream->subIndex - (uint8_t)1U, PDO->isRPDO, PDO->OD);
         if (odRet != ODR_OK) {
             return odRet;
         }
@@ -307,7 +308,7 @@ static CO_ReturnError_t
 PDO_initMapping(CO_PDO_common_t* PDO, OD_t* OD, OD_entry_t* OD_PDOMapPar, bool_t isRPDO, uint32_t* errInfo,
                 uint32_t* erroneousMap) {
     ODR_t odRet;
-    size_t pdoDataLength = 0;
+    uint8_t pdoDataLength = 0;
 
     /* number of mapped application objects in PDO */
     uint8_t mappedObjectsCount = 0;

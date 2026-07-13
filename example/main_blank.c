@@ -20,6 +20,8 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include "CANopen.h"
 #include "OD.h"
@@ -81,7 +83,7 @@ main(void) {
         log_printf("Error: Can't allocate memory\n");
         return 0;
     } else {
-        log_printf("Allocated %u bytes for CANopen objects\n", heapMemoryUsed);
+        log_printf("Allocated %" PRIu32 " bytes for CANopen objects\n", heapMemoryUsed);
     }
 
 #if (CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE
@@ -139,7 +141,7 @@ main(void) {
                              activeNodeId, &errInfo);
         if (err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             if (err == CO_ERROR_OD_PARAMETERS) {
-                log_printf("Error: Object Dictionary entry 0x%X\n", errInfo);
+                log_printf("Error: Object Dictionary entry 0x%" PRIu32 "\n", errInfo);
             } else {
                 log_printf("Error: CANopen initialization failed: %d\n", err);
             }
@@ -149,7 +151,7 @@ main(void) {
         err = CO_CANopenInitPDO(CO, CO->em, OD, activeNodeId, &errInfo);
         if (err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
             if (err == CO_ERROR_OD_PARAMETERS) {
-                log_printf("Error: Object Dictionary entry 0x%X\n", errInfo);
+                log_printf("Error: Object Dictionary entry 0x%" PRIu32 "\n", errInfo);
             } else {
                 log_printf("Error: PDO initialization failed: %d\n", err);
             }
