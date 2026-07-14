@@ -64,9 +64,9 @@
 /* @} */ /* CO_LSSmaster_fs_t */
 
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
@@ -77,10 +77,10 @@ CO_LSSmaster_receive(void* object, void* msg) {
 
     LSSmaster = (CO_LSSmaster_t*)object; /* this is the correct pointer type of the first argument */
 
-    /* verify message length and message overflow (previous message was not processed yet). */
+    /* verify frame length and frame overflow (previous frame was not processed yet). */
     if ((DLC == 8U) && !CO_FLAG_READ(LSSmaster->CANrxNew) && (LSSmaster->command != CO_LSSmaster_COMMAND_WAITING)) {
 
-        /* copy data and set 'new message' flag */
+        /* copy data and set 'new frame' flag */
         (void)memcpy(LSSmaster->CANrxData, data, sizeof(LSSmaster->CANrxData));
 
         CO_FLAG_SET(LSSmaster->CANrxNew);
@@ -135,11 +135,11 @@ CO_LSSmaster_init(CO_LSSmaster_t* LSSmaster, uint16_t timeout_ms, CO_CANmodule_t
     LSSmaster->functSignalObject = NULL;
 #endif
 
-    /* configure LSS CAN Slave response message reception */
+    /* configure LSS CANopen Slave response message reception */
     ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, CANidLssSlave, CO_CAN_ID_MASK, false, (void*)LSSmaster,
                              CO_LSSmaster_receive);
 
-    /* configure LSS CAN Master message transmission */
+    /* configure LSS CANopen Master message transmission */
     LSSmaster->CANdevTx = CANdevTx;
     LSSmaster->TXbuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, CANidLssMaster, false, 8, false);
 

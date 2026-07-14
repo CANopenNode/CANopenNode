@@ -48,9 +48,9 @@
 #endif
 
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
@@ -59,8 +59,8 @@ CO_SDOclient_receive(void* object, void* msg) {
     uint8_t DLC = CO_CANrxMsg_readDLC(msg);
     const uint8_t* data = CO_CANrxMsg_readData(msg);
 
-    /* Ignore messages in idle state and messages with wrong length. Ignore
-     * message also if previous message was not processed yet and not abort */
+    /* Ignore frames in idle state and frames with wrong length. Ignore
+     * frame also if previous frame was not processed yet and not abort */
     if ((SDO_C->state != CO_SDO_ST_IDLE) && (DLC == 8U) && (!CO_FLAG_READ(SDO_C->CANrxNew) || (data[0] == 0x80U))) {
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_SDO_CLI_BLOCK) != 0
         bool_t state_not_upload_blk_sublock_sreq = (SDO_C->state != CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_SREQ);
@@ -68,7 +68,7 @@ CO_SDOclient_receive(void* object, void* msg) {
         if ((data[0] == 0x80U) /* abort from server */
             || (state_not_upload_blk_sublock_sreq && state_not_upload_blk_sublock_crsp)) {
 #endif
-            /* copy data and set 'new message' flag */
+            /* copy data and set 'new frame' flag */
             (void)memcpy((void*)&SDO_C->CANrxData[0], (const void*)&data[0], 8);
             CO_FLAG_SET(SDO_C->CANrxNew);
 #if ((CO_CONFIG_SDO_CLI)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
@@ -108,7 +108,7 @@ CO_SDOclient_receive(void* object, void* msg) {
                     }
                 }
             }
-            /* If message is duplicate or sequence didn't start yet, ignore it. Otherwise seqno is wrong,
+            /* If CAN frame is duplicate or sequence didn't start yet, ignore it. Otherwise seqno is wrong,
              * so break sub-block. Data after last good seqno will be re-transmitted. */
             else if ((seqno != SDO_C->block_seqno) && (SDO_C->block_seqno != 0U)) {
                 state = CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP;
@@ -848,7 +848,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
 #endif
                 }
 
-                /* reset timeout timer and send message */
+                /* reset timeout timer and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
                 SDO_C->state = CO_SDO_ST_DOWNLOAD_INITIATE_RSP;
@@ -883,7 +883,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
                     SDO_C->finished = true;
                 }
 
-                /* reset timeout timer and send message */
+                /* reset timeout timer and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
                 SDO_C->state = CO_SDO_ST_DOWNLOAD_SEGMENT_RSP;
@@ -905,7 +905,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
                     (void)memcpy((void*)(&SDO_C->CANtxBuff->data[4]), (const void*)(&size), sizeof(size));
                 }
 
-                /* reset timeout timer and send message */
+                /* reset timeout timer and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
                 SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_INITIATE_RSP;
@@ -956,7 +956,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
                     }
                 }
 #endif
-                /* reset timeout timer and send message */
+                /* reset timeout timer and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
                 break;
@@ -967,7 +967,7 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
                 SDO_C->CANtxBuff->data[1] = (uint8_t)SDO_C->block_crc;
                 SDO_C->CANtxBuff->data[2] = (uint8_t)(SDO_C->block_crc >> 8);
 
-                /* reset timeout timer and send message */
+                /* reset timeout timer and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
                 SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_END_RSP;
@@ -1548,7 +1548,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
                 SDO_C->CANtxBuff->data[2] = (uint8_t)(SDO_C->index >> 8);
                 SDO_C->CANtxBuff->data[3] = SDO_C->subIndex;
 
-                /* reset timeout timer and send message */
+                /* reset timeout timer and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
                 SDO_C->state = CO_SDO_ST_UPLOAD_INITIATE_RSP;
@@ -1564,7 +1564,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
                 }
                 SDO_C->CANtxBuff->data[0] = 0x60U | SDO_C->toggle;
 
-                /* reset timeout timer and send message */
+                /* reset timeout timer and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
                 SDO_C->state = CO_SDO_ST_UPLOAD_SEGMENT_RSP;
@@ -1593,7 +1593,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
                 SDO_C->CANtxBuff->data[4] = SDO_C->block_blksize;
                 SDO_C->CANtxBuff->data[5] = CO_CONFIG_SDO_CLI_PST;
 
-                /* reset timeout timer and send message */
+                /* reset timeout timer and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 (void)CO_CANsend(SDO_C->CANdevTx, SDO_C->CANtxBuff);
                 SDO_C->state = CO_SDO_ST_UPLOAD_BLK_INITIATE_RSP;
@@ -1603,7 +1603,7 @@ CO_SDOclientUpload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t sen
             case CO_SDO_ST_UPLOAD_BLK_INITIATE_REQ2: {
                 SDO_C->CANtxBuff->data[0] = 0xA3;
 
-                /* reset timeout timers, seqno and send message */
+                /* reset timeout timers, seqno and send CAN frame */
                 SDO_C->timeoutTimer = 0;
                 SDO_C->block_timeoutTimer = 0;
                 SDO_C->block_seqno = 0;

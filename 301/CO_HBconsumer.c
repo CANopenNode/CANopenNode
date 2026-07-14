@@ -29,9 +29,9 @@
 #endif
 
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
@@ -41,7 +41,7 @@ CO_HBcons_receive(void* object, void* msg) {
     const uint8_t* data = CO_CANrxMsg_readData(msg);
 
     if (DLC == 1U) {
-        /* copy data and set 'new message' flag. */
+        /* copy data and set 'new frame' flag. */
         HBconsNode->NMTstate = (CO_NMT_internalState_t)data[0];
         CO_FLAG_SET(HBconsNode->CANrxNew);
 #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_FLAG_CALLBACK_PRE) != 0
@@ -317,7 +317,7 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
                 /* continue, if node is not monitored */
                 continue;
             }
-            /* Verify if received message is heartbeat or bootup */
+            /* Verify if received frame is heartbeat or bootup */
             if (CO_FLAG_READ(monitoredNode->CANrxNew)) {
                 if (monitoredNode->NMTstate == CO_NMT_INITIALIZING) {
                     /* bootup message */

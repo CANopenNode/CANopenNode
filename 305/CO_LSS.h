@@ -69,7 +69,7 @@ extern "C" {
  * @{
  *
  * The LSS protocols are executed between the LSS master device and the LSS slave device(s) to implement the LSS
- * services. Some LSS protocols require a sequence of CAN messages.
+ * services. Some LSS protocols require a sequence of CAN frames.
  *
  * As identifying method only "LSS fastscan" is supported.
  */

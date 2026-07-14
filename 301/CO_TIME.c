@@ -25,9 +25,9 @@
 #if ((CO_CONFIG_TIME)&CO_CONFIG_TIME_ENABLE) != 0
 
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void
@@ -119,7 +119,7 @@ CO_TIME_init(CO_TIME_t* TIME, OD_entry_t* OD_1012_cobIdTimeStamp, CO_CANmodule_t
     TIME->isProducer = (cobIdTimeStamp & 0x40000000UL) != 0U;
     CO_FLAG_CLEAR(TIME->CANrxNew);
 
-    /* configure TIME consumer message reception */
+    /* configure TIME consumer frame reception */
     if (TIME->isConsumer) {
         CO_ReturnError_t ret = CO_CANrxBufferInit(CANdevRx, CANdevRxIdx, cobId, CO_CAN_ID_MASK, false, (void*)TIME,
                                                   CO_TIME_receive);
@@ -129,7 +129,7 @@ CO_TIME_init(CO_TIME_t* TIME, OD_entry_t* OD_1012_cobIdTimeStamp, CO_CANmodule_t
     }
 
 #if ((CO_CONFIG_TIME)&CO_CONFIG_TIME_PRODUCER) != 0
-    /* configure TIME producer message transmission */
+    /* configure TIME producer frame transmission */
     TIME->CANdevTx = CANdevTx;
     TIME->CANtxBuff = CO_CANtxBufferInit(CANdevTx, CANdevTxIdx, cobId, false, CO_TIME_MSG_LENGTH, false);
 

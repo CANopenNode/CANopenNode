@@ -271,9 +271,9 @@ OD_write_statusBits(OD_stream_t* stream, const void* buf, OD_size_t count, OD_si
 
 #if ((CO_CONFIG_EM)&CO_CONFIG_EM_CONSUMER) != 0
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
  */
 static void

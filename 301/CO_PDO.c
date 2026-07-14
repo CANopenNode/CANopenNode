@@ -452,12 +452,12 @@ OD_read_PDO_commParam(OD_stream_t* stream, void* buf, OD_size_t count, OD_size_t
 /* @} */ /* CO_PDO_receiveErrors_t */
 
 /*
- * Read received message from CAN module.
+ * Read received frame from CAN module.
  *
- * Function will be called (by CAN receive interrupt) every time, when CAN message with correct identifier
+ * Function will be called (by CAN receive interrupt) every time, when CAN frame with correct identifier
  * will be received. For more information and description of parameters see file CO_driver.h.
- * If new message arrives and previous message wasn't processed yet, then
- * previous message will be lost and overwritten by the new message.
+ * If new CAN frame arrives and previous frame wasn't processed yet, then
+ * previous frame will be lost and overwritten by the new frame.
  */
 static void
 CO_PDO_receive(void* object, void* msg) {
@@ -488,7 +488,7 @@ CO_PDO_receive(void* object, void* msg) {
                 }
             }
 
-            /* Determine, to which of the two rx buffers copy the message. */
+            /* Determine, to which of the two rx buffers copy the data from the CAN frame. */
             uint8_t bufNo = 0;
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0
             if (RPDO->synchronous && (RPDO->SYNC != NULL) && RPDO->SYNC->CANrxToggle) {
@@ -496,7 +496,7 @@ CO_PDO_receive(void* object, void* msg) {
             }
 #endif
 
-            /* copy data into appropriate buffer and set 'new message' flag */
+            /* copy data into appropriate buffer and set 'new frame' flag */
             (void)memcpy(RPDO->CANrxData[bufNo], data, CO_PDO_MAX_SIZE);
             CO_FLAG_SET(RPDO->CANrxNew[bufNo]);
 
@@ -584,7 +584,7 @@ OD_write_14xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
             }
 
             bool_t synchronous = transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240;
-            /* Remove old message from the second buffer. */
+            /* Remove old frame from the second buffer. */
             if (RPDO->synchronous != synchronous) {
                 CO_FLAG_CLEAR(RPDO->CANrxNew[1]);
             }
@@ -741,7 +741,7 @@ CO_RPDO_initCallbackPre(CO_RPDO_t* RPDO, void* object, void (*pFunctSignalPre)(v
 void
 CO_RPDO_process(CO_RPDO_t* RPDO,
 #if ((CO_CONFIG_PDO)&CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
-                uint32_t timeDifference_us, uint32_t* timerNext_us,
+                uint32_t timeDifference_us, bool_t* timeoutState, uint32_t* timerNext_us,
 #endif
                 bool_t NMTisOperational, bool_t syncWas) {
     (void)syncWas;
@@ -756,7 +756,7 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
         && (syncWas || !RPDO->synchronous)
 #endif
     ) {
-        /* Verify errors in length of received RPDO CAN message */
+        /* Verify errors in length of received RPDO message */
         if (RPDO->receiveError > CO_RPDO_RX_ACK) {
             bool_t setError = RPDO->receiveError != CO_RPDO_RX_OK;
             uint16_t code = (RPDO->receiveError == CO_RPDO_RX_SHORT) ? CO_EMC_PDO_LENGTH : CO_EMC_PDO_LENGTH_EXC;
@@ -764,7 +764,7 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
             RPDO->receiveError = setError ? CO_RPDO_RX_ACK_ERROR : CO_RPDO_RX_ACK_NO_ERROR;
         }
 
-        /* Determine, which of the two rx buffers contains relevant message. */
+        /* Determine, which of the two rx buffers contains relevant data. */
         uint8_t bufNo = 0;
 #if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0
         if (RPDO->synchronous && (RPDO->SYNC != NULL) && !RPDO->SYNC->CANrxToggle) {
@@ -890,9 +890,6 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
 #if ((CO_CONFIG_PDO)&CO_CONFIG_RPDO_TIMERS_ENABLE) != 0
         if (RPDO->timeoutTime_us > 0U) {
             if (rpdoReceived) {
-                if (RPDO->timeoutTimer > RPDO->timeoutTime_us) {
-                    CO_errorReset(PDO->em, CO_EM_RPDO_TIME_OUT, RPDO->timeoutTimer);
-                }
                 /* enable monitoring */
                 RPDO->timeoutTimer = 1;
             } else if ((RPDO->timeoutTimer > 0U) && (RPDO->timeoutTimer < RPDO->timeoutTime_us)) {
@@ -902,6 +899,11 @@ CO_RPDO_process(CO_RPDO_t* RPDO,
                     CO_errorReport(PDO->em, CO_EM_RPDO_TIME_OUT, CO_EMC_RPDO_TIMEOUT, RPDO->timeoutTimer);
                 }
             } else { /* MISRA C 2004 14.10 */
+            }
+            if ((timeoutState != NULL) && RPDO->timeoutTimer > RPDO->timeoutTime_us) {
+                /* This output variable indicates that the RPDO has timed out. It can be used across all
+                * RPDOs to determine if any have timed out. If it remains false, CO_errorReset can be called. */
+                *timeoutState = true;
             }
 #if ((CO_CONFIG_PDO)&CO_CONFIG_FLAG_TIMERNEXT) != 0
             if ((timerNext_us != NULL) && (RPDO->timeoutTimer < RPDO->timeoutTime_us)) {

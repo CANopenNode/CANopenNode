@@ -599,7 +599,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
      ***************************************************************************/
     /* if idle, search for new command, skip comments or empty lines */
     while (CO_fifo_CommSearch(&gtwa->commFifo, false) && (gtwa->state == CO_GTWA_ST_IDLE)) {
-        char tok[20];
+        char tok[21];
         size_t n;
         uint32_t ui[3];
         int32_t i;

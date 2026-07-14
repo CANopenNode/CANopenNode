@@ -60,7 +60,7 @@ extern "C" {
  * objects. Callbacks can optionally be registered by application, which
  * configures threads in operating system. Callbacks are called after something
  * has been preprocessed by higher priority thread and must be further
- * processed by lower priority thread. For example when CAN message is received
+ * processed by lower priority thread. For example when CAN frame is received
  * and preprocessed, callback should wake up mainline processing function.
  * See also @ref CO_process() function.
  *
@@ -149,7 +149,7 @@ extern "C" {
  *   CO_NMT_initCallbackChanged().
  * - CO_CONFIG_NMT_MASTER - Enable simple NMT master
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received NMT CAN message.
+ *   received NMT CANopen message.
  *   Callback is configured by CO_NMT_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_NMT_process().
@@ -177,7 +177,7 @@ extern "C" {
  * - CO_CONFIG_HB_CONS_QUERY_FUNCT - Enable functions for query HB state or
  *   NMT state of the specific monitored node.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received heartbeat CAN message.
+ *   received heartbeat CANopen message.
  *   Callback is configured by CO_HBconsumer_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_HBconsumer_process().
@@ -364,7 +364,7 @@ extern "C" {
  * - CO_CONFIG_SDO_SRV_BLOCK - Enable SDO server block transfer. If set, then
  *   CO_CONFIG_SDO_SRV_SEGMENTED must also be set.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received SDO CAN message.
+ *   received SDO CANopen message.
  *   Callback is configured by CO_SDOserver_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SDOserver_process().
@@ -403,7 +403,7 @@ extern "C" {
  *   server is the same as node-ID of the SDO client. (SDO client is the same
  *   device as SDO server.) Transfer data directly without communication on CAN.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received SDO CAN message.
+ *   received SDO CANopen message.
  *   Callback is configured by CO_SDOclient_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SDOclientDownloadInitiate(), CO_SDOclientDownload(),
@@ -447,7 +447,7 @@ extern "C" {
  * - CO_CONFIG_TIME_ENABLE - Enable TIME object and TIME consumer.
  * - CO_CONFIG_TIME_PRODUCER - Enable TIME producer.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received TIME CAN message.
+ *   received TIME CANopen message.
  *   Callback is configured by CO_TIME_initCallbackPre().
  * - #CO_CONFIG_FLAG_OD_DYNAMIC - Enable dynamic configuration - writing to
  *   object 0x1012 enables / disables time producer or consumer.
@@ -471,7 +471,7 @@ extern "C" {
  * - CO_CONFIG_SYNC_ENABLE - Enable SYNC object and SYNC consumer.
  * - CO_CONFIG_SYNC_PRODUCER - Enable SYNC producer.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received SYNC CAN message.
+ *   received SYNC CANopen message.
  *   Callback is configured by CO_SYNC_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SYNC_process().
@@ -507,7 +507,7 @@ extern "C" {
  *   this field stores the number of bits mapped to the PDO. Bitwise PDO mapping
  *   is not possible without CO_CONFIG_PDO_OD_IO_ACCESS
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received RPDO CAN message.
+ *   received RPDO CANopen message.
  *   Callback is configured by CO_RPDO_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_TPDO_process().
@@ -591,7 +591,7 @@ extern "C" {
  * - CO_CONFIG_SRDO_ENABLE - Enable the SRDO object.
  * - CO_CONFIG_SRDO_CHECK_TX - Enable checking data before sending.
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received RSRDO CAN message.
+ *   received RSRDO CANopen message.
  *   Callback is configured by CO_SRDO_initCallbackPre().
  * - #CO_CONFIG_FLAG_TIMERNEXT - Enable calculation of timerNext_us variable
  *   inside CO_SRDO_process() (Tx SRDO only).
@@ -605,8 +605,7 @@ extern "C" {
 /**
  * SRDO Tx time delay
  *
- * minimum time between the first and second SRDO (Tx) message
- * in us
+ * minimum time between the first and second SRDO (Tx) CANopen message in us
  */
 #ifdef CO_DOXYGEN
 #define CO_CONFIG_SRDO_MINIMUM_DELAY 0
@@ -627,7 +626,7 @@ extern "C" {
  *   directly from CO_LSSslave_receive() function.
  * - CO_CONFIG_LSS_MASTER - Enable LSS master
  * - #CO_CONFIG_FLAG_CALLBACK_PRE - Enable custom callback after preprocessing
- *   received CAN message.
+ *   received CAN frame.
  *   Callback is configured by CO_LSSmaster_initCallbackPre().
  */
 #ifdef CO_DOXYGEN
@@ -683,8 +682,8 @@ extern "C" {
 /**
  * Number of loops of #CO_SDOclientDownload() in case of block download
  *
- * If SDO clint has block download in progress and OS has buffer for CAN tx
- * messages, then #CO_SDOclientDownload() functionion can be called multiple
+ * If SDO client has block download in progress and OS has buffer for CAN tx
+ * frames, then #CO_SDOclientDownload() function can be called multiple
  * times within own loop (up to 127). This can speed-up SDO block transfer.
  */
 #ifdef CO_DOXYGEN

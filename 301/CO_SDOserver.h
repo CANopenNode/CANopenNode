@@ -358,7 +358,7 @@ typedef enum {
  */
 typedef struct {
     CO_CANmodule_t* CANdevTx;      /**< From CO_SDOserver_init() */
-    CO_CANtx_t* CANtxBuff;         /**< CAN transmit buffer inside CANdevTx for CAN tx message */
+    CO_CANtx_t* CANtxBuff;         /**< CAN transmit buffer inside CANdevTx */
     OD_t* OD;                      /**< From CO_SDOserver_init() */
     uint8_t nodeId;                /**< From CO_SDOserver_init() */
     bool_t valid;                  /**< If true, SDO channel is valid */

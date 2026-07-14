@@ -70,7 +70,7 @@ extern "C" {
  * ### CAN identifiers for PDO
  *
  * Each PDO can be configured with any valid 11-bit CAN identifier. Lower numbers have higher priorities on CAN bus. As
- * a general rule, each CAN message is identified with own CAN-ID, which must be unique and produced by single source.
+ * a general rule, each CAN frame is identified with own CAN-ID, which must be unique and produced by single source.
  * The same is with PDO objects: Any TPDO produced on the CANopen network must have unique CAN-ID and there can be zero
  * to many RPDOs (from different devices) configured to match the CAN-ID of the TPDO of interest.
  *
@@ -196,7 +196,7 @@ typedef struct {
  ******************************************************************************/
 #if (((CO_CONFIG_PDO)&CO_CONFIG_RPDO_ENABLE) != 0) || defined CO_DOXYGEN
 /**
- * Number of buffers for received CAN message for RPDO
+ * Number of buffers for received CAN frame for RPDO
  */
 #if (((CO_CONFIG_PDO)&CO_CONFIG_PDO_SYNC_ENABLE) != 0) || defined CO_DOXYGEN
 #define CO_RPDO_CAN_BUFFERS_COUNT 2
@@ -278,13 +278,16 @@ void CO_RPDO_initCallbackPre(CO_RPDO_t* RPDO, void* object, void (*pFunctSignalP
  *
  * @param RPDO This object.
  * @param timeDifference_us Time difference from previous function call.
+ * @param [out] timeoutState Pointer to a boolean variable that will be set to true if a RPDO has timed out.
+ * It can be used across all RPDOs to determine if any have timed out. If it remains false, CO_errorReset should be
+ * called. Can be NULL if not needed.
  * @param [out] timerNext_us info to OS - see CO_process().
  * @param NMTisOperational True if this node is in NMT_OPERATIONAL state.
  * @param syncWas True, if CANopen SYNC message was just received or transmitted.
  */
 void CO_RPDO_process(CO_RPDO_t* RPDO,
 #if (((CO_CONFIG_PDO)&CO_CONFIG_RPDO_TIMERS_ENABLE) != 0) || defined CO_DOXYGEN
-                     uint32_t timeDifference_us, uint32_t* timerNext_us,
+                     uint32_t timeDifference_us, bool_t* timeoutState, uint32_t* timerNext_us,
 #endif
                      bool_t NMTisOperational, bool_t syncWas);
 #endif /* (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE */

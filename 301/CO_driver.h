@@ -62,7 +62,7 @@ extern "C" {
  * @ingroup CO_CANopen_301
  * @{
  * CANopenNode is designed for speed and portability. It runs efficiently on devices from simple 16-bit microcontrollers
- * to PC computers. It can run in multiple threads. Reception of CAN messages is pre-processed with very fast functions.
+ * to PC computers. It can run in multiple threads. Reception of CAN frames is pre-processed with very fast functions.
  * Time critical objects, such as PDO or SYNC are processed in real-time thread and other objects are processed in
  * normal thread. See Flowchart in [README.md](index.html) for more information.
  *
@@ -72,8 +72,13 @@ extern "C" {
  * Heartbeat, etc. Code is written in C language and tries to be object oriented. So each CANopenNode Object is
  * implemented in a pair of .h/.c files. It basically contains a structure with all necessary variables and some
  * functions which operates on it. CANopenNode Object is usually connected with one or more CAN receive or transmit
- * Message Objects. (CAN message Object is a CAN message with specific 11-bit CAN identifier (usually one fixed or a
- * range).)
+ * frames.
+ *
+ * #### Terminology
+ * - **CAN frame** is a single CAN frame, which is transmitted or received on the CAN bus. By default it consists of
+ *   11-bit identifier, 0-8 bytes of data, and some control bits.
+ * - **CANopen message** is an application-layer message in the CANopen protocol that defines the meaning of a CAN frame
+ *   (e.g., PDO, SDO, NMT, EMCY) and represents structured communication between devices on top of the CAN bus.
  *
  * #### Hardware interface of CANopenNode
  * It consists of minimum three files:
@@ -140,35 +145,35 @@ typedef double float64_t; /**< REAL64 in CANopen (0011h), double precision float
 /** @} */
 
 /**
- * @defgroup CO_CAN_Message_reception Reception of CAN messages
+ * @defgroup CO_CAN_Frame_reception Reception of CAN frames
  * @{
  *
- * Target specific definitions and description of CAN message reception
+ * Target specific definitions and description of CAN frame reception
  *
- * CAN messages in CANopenNode are usually received by its own thread or higher priority interrupt. Received CAN
- * messages are first filtered by hardware or by software. Thread then examines its 11-bit CAN-id and mask and
+ * CAN frames in CANopenNode are usually received by its own thread or higher priority interrupt. Received CAN
+ * frames are first filtered by hardware or by software. Thread then examines its 11-bit CAN-id and mask and
  * determines, to which \ref CO_obj "CANopenNode Object" it belongs to. After that it calls predefined CANrx_callback()
- * function, which quickly pre-processes the message and fetches the relevant data. CANrx_callback() function is defined
+ * function, which quickly pre-processes the frame and fetches the relevant data. CANrx_callback() function is defined
  * by each \ref CO_obj "CANopenNode Object" separately. Pre-processed fetched data are later processed in another
  * thread.
  *
- * If \ref CO_obj "CANopenNode Object" reception of specific CAN message, it must first configure its own CO_CANrx_t
+ * If \ref CO_obj "CANopenNode Object" reception of specific CAN frame, it must first configure its own CO_CANrx_t
  * object with the CO_CANrxBufferInit() function.
  */
 
 /**
- * CAN receive callback function which pre-processes received CAN message
+ * CAN receive callback function which pre-processes received CAN frame
  *
  * It is called by fast CAN receive thread. Each \ref CO_obj "CANopenNode Object" defines its own and registers it with
  * CO_CANrxBufferInit(), by passing function pointer.
  *
  * @param object pointer to specific \ref CO_obj "CANopenNode Object", registered with CO_CANrxBufferInit()
- * @param rxMsg pointer to received CAN message
+ * @param rxMsg pointer to received CAN frame
  */
 void CANrx_callback(void* object, void* rxMsg);
 
 /**
- * CANrx_callback() can read CAN identifier from received CAN message
+ * CANrx_callback() can read CAN identifier from received CAN frame
  *
  * Must be defined in the **CO_driver_target.h** file.
  *
@@ -176,7 +181,7 @@ void CANrx_callback(void* object, void* rxMsg);
  * inline function or macro. `rxMsg` parameter should cast to a pointer to structure. For best efficiency structure may
  * have the same alignment as CAN registers inside CAN module.
  *
- * @param rxMsg Pointer to received message
+ * @param rxMsg Pointer to received frame
  * @return 11-bit CAN standard identifier.
  */
 static inline uint16_t
@@ -185,11 +190,11 @@ CO_CANrxMsg_readIdent(void* rxMsg) {
 }
 
 /**
- * CANrx_callback() can read Data Length Code from received CAN message
+ * CANrx_callback() can read Data Length Code from received CAN frame
  *
  * See also CO_CANrxMsg_readIdent():
  *
- * @param rxMsg Pointer to received message
+ * @param rxMsg Pointer to received CAN frame
  * @return data length in bytes (0 to 8)
  */
 static inline uint8_t
@@ -198,11 +203,11 @@ CO_CANrxMsg_readDLC(void* rxMsg) {
 }
 
 /**
- * CANrx_callback() can read pointer to data from received CAN message
+ * CANrx_callback() can read pointer to data from received CAN frame
  *
  * See also CO_CANrxMsg_readIdent():
  *
- * @param rxMsg Pointer to received message
+ * @param rxMsg Pointer to received frame
  * @return pointer to data buffer
  */
 static inline const uint8_t*
@@ -211,7 +216,7 @@ CO_CANrxMsg_readData(void* rxMsg) {
 }
 
 /**
- * Configuration object for CAN received message for specific \ref CO_obj "CANopenNode Object".
+ * Configuration object for received CAN frame for specific \ref CO_obj "CANopenNode Object".
  *
  * Must be defined in the **CO_driver_target.h** file.
  *
@@ -229,21 +234,21 @@ typedef struct {
 /** @} */
 
 /**
- * @defgroup CO_CAN_Message_transmission Transmission of CAN messages
+ * @defgroup CO_CAN_Frame_transmission Transmission of CAN frames
  * @{
  *
- * Target specific definitions and description of CAN message transmission
+ * Target specific definitions and description of CAN frame transmission
  *
- * If \ref CO_obj "CANopenNode Object" needs transmitting CAN message, it must first configure its own CO_CANtx_t object
- * with the CO_CANtxBufferInit() function. CAN message can then be sent with CO_CANsend() function. If at that moment
- * CAN transmit buffer inside microcontroller's CAN module is free, message is copied directly to the CAN module.
- * Otherwise CO_CANsend() function sets _bufferFull_ flag to true. Message will be then sent by CAN TX interrupt as soon
- * as CAN module is freed. Until message is not copied to CAN module, its contents must not change. If there are
+ * If \ref CO_obj "CANopenNode Object" needs transmitting CAN frame, it must first configure its own CO_CANtx_t object
+ * with the CO_CANtxBufferInit() function. CAN frame can then be sent with CO_CANsend() function. If at that moment
+ * CAN transmit buffer inside microcontroller's CAN module is free, frame is copied directly to the CAN module.
+ * Otherwise CO_CANsend() function sets _bufferFull_ flag to true. Frame will be then sent by CAN TX interrupt as soon
+ * as CAN module is freed. Until frame is not copied to CAN module, its contents must not change. If there are
  * multiple CO_CANtx_t objects with _bufferFull_ flag set to true, then CO_CANtx_t with lower index will be sent first.
  */
 
 /**
- * Configuration object for CAN transmit message for specific \ref CO_obj "CANopenNode Object".
+ * Configuration object for transmit CAN frame for specific \ref CO_obj "CANopenNode Object".
  *
  * Must be defined in the **CO_driver_target.h** file.
  *
@@ -252,10 +257,10 @@ typedef struct {
  */
 typedef struct {
     uint32_t ident;             /**< CAN identifier as aligned in CAN module */
-    uint8_t DLC;                /**< Length of CAN message */
+    uint8_t DLC;                /**< Length of CAN frame */
     uint8_t data[8];            /**< 8 data bytes */
-    volatile bool_t bufferFull; /**< True if previous message is still in the buffer */
-    volatile bool_t syncFlag;   /**< Synchronous PDO messages has this flag set. It prevents them to be sent outside the
+    volatile bool_t bufferFull; /**< True if previous frame is still in the buffer */
+    volatile bool_t syncFlag;   /**< Synchronous PDO frames has this flag set. It prevents them to be sent outside the
                                    synchronous window */
 } CO_CANtx_t;
 
@@ -278,14 +283,14 @@ typedef struct {
     volatile bool_t CANnormal;       /**< CAN module is in normal mode */
     volatile bool_t useCANrxFilters; /**< Value different than zero indicates, that CAN module hardware filters are used
                                         for CAN reception. If there is not enough hardware filters, they won't be used.
-                                        In this case will be *all* received CAN messages processed by software. */
-    volatile bool_t bufferInhibitFlag; /**< If flag is true, then message in transmit buffer is synchronous PDO message,
+                                        In this case will be *all* received CAN frames processed by software. */
+    volatile bool_t bufferInhibitFlag; /**< If flag is true, then frame in transmit buffer is synchronous PDO message,
                                           which will be aborted, if CO_clearPendingSyncPDOs() function will be called by
                                           application. This may be necessary if Synchronous window time was expired. */
     volatile bool_t
-        firstCANtxMessage; /**< Equal to 1, when the first transmitted message (bootup message) is in CAN TX buffers */
+        firstCANtxMessage; /**< Equal to 1, when the first transmitted frame (bootup message) is in CAN TX buffers */
     volatile uint16_t
-        CANtxCount;  /**< Number of messages in transmit buffer, which are waiting to be copied to the CAN module */
+        CANtxCount;  /**< Number of frames in transmit buffer, which are waiting to be copied to the CAN module */
     uint32_t errOld; /**< Previous state of CAN errors */
 } CO_CANmodule_t;
 
@@ -347,10 +352,10 @@ typedef struct {
  *   (e.g. when using a RTOS), you should always lock the OD.
  *
  * #### Synchronization functions for CAN receive
- * After CAN message is received, it is pre-processed in CANrx_callback(), which copies some data into appropriate
- * object and at the end sets **new_message** flag. This flag is then pooled in another thread, which further processes
- * the message. The problem is, that compiler optimization may shuffle memory operations, so it is necessary to ensure,
- * that **new_message** flag is surely set at the end. It is necessary to use [Memory
+ * After CAN frame is received, it is pre-processed in CANrx_callback(), which copies some data into appropriate
+ * object and at the end sets **new_frame** flag. This flag is then pooled in another thread, which further processes
+ * the data. The problem is, that compiler optimization may shuffle memory operations, so it is necessary to ensure,
+ * that **new_frame** flag is surely set at the end. It is necessary to use [Memory
  * barrier](https://en.wikipedia.org/wiki/Memory_barrier).
  *
  * If receive function runs inside IRQ, no further synchronization is needed. Otherwise, some kind of synchronization
@@ -365,15 +370,15 @@ typedef struct {
 #define CO_LOCK_OD(CAN_MODULE)         /**< Lock critical section when accessing Object Dictionary */
 #define CO_UNLOCK_OD(CAN_MODULE)       /**< Unock critical section when accessing Object Dictionary */
 
-/** Check if new message has arrived */
+/** Check if new CAN frame has arrived */
 #define CO_FLAG_READ(rxNew)            ((rxNew) != NULL)
-/** Set new message flag */
+/** Set new CAN frame flag */
 #define CO_FLAG_SET(rxNew)                                                                                             \
     {                                                                                                                  \
         __sync_synchronize();                                                                                          \
         rxNew = (void*)1L;                                                                                             \
     }
-/** Clear new message flag */
+/** Clear new CAN frame flag */
 #define CO_FLAG_CLEAR(rxNew)                                                                                           \
     {                                                                                                                  \
         __sync_synchronize();                                                                                          \
@@ -387,7 +392,7 @@ typedef struct {
  * @defgroup CO_Default_CAN_ID_t Default CANopen identifiers
  * @{
  *
- * Default CANopen identifiers for CANopen communication objects. Same as 11-bit addresses of CAN messages. These are
+ * Default CANopen identifiers for CANopen communication objects. Same as 11-bit addresses of CAN frames. These are
  * default identifiers and can be changed in CANopen. Especially PDO identifiers are configured in PDO linking phase of
  * the CANopen network configuration.
  */
@@ -404,7 +409,7 @@ typedef struct {
 #define CO_CAN_ID_TPDO_3      0x380U /**< 0x380 Default TPDO3 (+nodeID) */
 #define CO_CAN_ID_RPDO_3      0x400U /**< 0x400 Default RPDO3 (+nodeID) */
 #define CO_CAN_ID_TPDO_4      0x480U /**< 0x480 Default TPDO4 (+nodeID) */
-#define CO_CAN_ID_RPDO_4      0x500U /**< 0x500 Default RPDO5 (+nodeID) */
+#define CO_CAN_ID_RPDO_4      0x500U /**< 0x500 Default RPDO4 (+nodeID) */
 #define CO_CAN_ID_SDO_SRV     0x580U /**< 0x580 SDO response from server (+nodeID) */
 #define CO_CAN_ID_SDO_CLI     0x600U /**< 0x600 SDO request from client (+nodeID) */
 #define CO_CAN_ID_HEARTBEAT   0x700U /**< 0x700 Heartbeat message */
@@ -495,11 +500,11 @@ typedef enum {
     CO_ERROR_OUT_OF_MEMORY = -2,    /**< Memory allocation failed */
     CO_ERROR_TIMEOUT = -3,          /**< Function timeout */
     CO_ERROR_ILLEGAL_BAUDRATE = -4, /**< Illegal baudrate passed to function CO_CANmodule_init() */
-    CO_ERROR_RX_OVERFLOW = -5,      /**< Previous message was not processed yet */
+    CO_ERROR_RX_OVERFLOW = -5,      /**< Previous CAN frame was not processed yet */
     CO_ERROR_RX_PDO_OVERFLOW = -6,  /**< previous PDO was not processed yet */
-    CO_ERROR_RX_MSG_LENGTH = -7,    /**< Wrong receive message length */
+    CO_ERROR_RX_MSG_LENGTH = -7,    /**< Wrong receive CAN frame length */
     CO_ERROR_RX_PDO_LENGTH = -8,    /**< Wrong receive PDO length */
-    CO_ERROR_TX_OVERFLOW = -9,      /**< Previous message is still waiting, buffer full */
+    CO_ERROR_TX_OVERFLOW = -9,      /**< Previous CAN frame is still waiting, buffer full */
     CO_ERROR_TX_PDO_WINDOW = -10,   /**< Synchronous TPDO is outside window */
     CO_ERROR_TX_UNCONFIGURED = -11, /**< Transmit buffer was not configured properly */
     CO_ERROR_OD_PARAMETERS = -12,   /**< Error in Object Dictionary parameters */
@@ -534,9 +539,9 @@ void CO_CANsetNormalMode(CO_CANmodule_t* CANmodule);
  *
  * @param CANmodule This object will be initialized.
  * @param CANptr Pointer to CAN device.
- * @param rxArray Array for handling received CAN messages
+ * @param rxArray Array for handling received CAN frames
  * @param rxSize Size of the above array. Must be equal to number of receiving CAN objects.
- * @param txArray Array for handling transmitting CAN messages
+ * @param txArray Array for handling transmitting CAN frames
  * @param txSize Size of the above array. Must be equal to number of transmitting CAN objects.
  * @param CANbitRate Valid values are (in kbps): 10, 20, 50, 125, 250, 500, 800, 1000. If value is illegal, bitrate
  * defaults to 125.
@@ -554,7 +559,7 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t* CANmodule, void* CANptr, CO_C
 void CO_CANmodule_disable(CO_CANmodule_t* CANmodule);
 
 /**
- * Configure CAN message receive buffer.
+ * Configure CAN frame receive buffer.
  *
  * Function configures specific CAN receive buffer. It sets CAN identifier and connects buffer with specific object.
  * Function must be called for each member in _rxArray_ from CO_CANmodule_t.
@@ -563,12 +568,12 @@ void CO_CANmodule_disable(CO_CANmodule_t* CANmodule);
  * @param index Index of the specific buffer in _rxArray_.
  * @param ident 11-bit standard CAN Identifier. If two or more CANrx buffers have the same _ident_, then buffer with
  * lowest _index_ has precedence and other CANrx buffers will be ignored.
- * @param mask 11-bit mask for identifier. Most usually set to 0x7FF. Received message (rcvMsg) will be accepted if the
- * following condition is true: (((rcvMsgId ^ ident) & mask) == 0).
- * @param rtr If true, 'Remote Transmit Request' messages will be accepted.
+ * @param mask 11-bit mask for identifier. Most usually set to 0x7FF. Received CAN frame (rcvMsg) will be accepted
+ * if the following condition is true: (((rcvMsgId ^ ident) & mask) == 0).
+ * @param rtr If true, 'Remote Transmit Request' CAN frames will be accepted.
  * @param object CANopen object, to which buffer is connected. It will be used as an argument to CANrx_callback. Its
  * type is (void), CANrx_callback will change its type back to the correct object type.
- * @param CANrx_callback Pointer to function, which will be called, if received CAN message matches the identifier. It
+ * @param CANrx_callback Pointer to function, which will be called, if received CAN frame matches the identifier. It
  * must be fast function.
  *
  * Return #CO_ReturnError_t: CO_ERROR_NO CO_ERROR_ILLEGAL_ARGUMENT or CO_ERROR_OUT_OF_MEMORY (not enough masks for
@@ -578,7 +583,7 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, C
                                     bool_t rtr, void* object, void (*CANrx_callback)(void* object, void* message));
 
 /**
- * Configure CAN message transmit buffer.
+ * Configure CAN frame transmit buffer.
  *
  * Function configures specific CAN transmit buffer. Function must be called for each member in _txArray_ from
  * CO_CANmodule_t.
@@ -586,19 +591,19 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, C
  * @param CANmodule This object.
  * @param index Index of the specific buffer in _txArray_.
  * @param ident 11-bit standard CAN Identifier.
- * @param rtr If true, 'Remote Transmit Request' messages will be transmitted.
- * @param noOfBytes Length of CAN message in bytes (0 to 8 bytes).
- * @param syncFlag This flag bit is used for synchronous TPDO messages. If it is set, message will not be sent, if
+ * @param rtr If true, 'Remote Transmit Request' CAN frames will be transmitted.
+ * @param noOfBytes Length of CAN frame in bytes (0 to 8 bytes).
+ * @param syncFlag This flag bit is used for synchronous TPDO messages. If it is set, CAN frame will not be sent, if
  * current time is outside synchronous window.
  *
- * @return Pointer to CAN transmit message buffer. 8 bytes data array inside buffer should be written, before
+ * @return Pointer to transmit CAN frame buffer. 8 bytes data array inside buffer should be written, before
  * CO_CANsend() function is called. Zero is returned in case of wrong arguments.
  */
 CO_CANtx_t* CO_CANtxBufferInit(CO_CANmodule_t* CANmodule, uint16_t index, CO_CANident_t ident, bool_t rtr,
                                uint8_t noOfBytes, bool_t syncFlag);
 
 /**
- * Send CAN message.
+ * Send CAN frame.
  *
  * @param CANmodule This object.
  * @param buffer Pointer to transmit buffer, returned by CO_CANtxBufferInit(). Data bytes must be written in buffer
