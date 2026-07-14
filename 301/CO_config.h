@@ -117,6 +117,25 @@ extern "C" {
 /** @} */ /* CO_STACK_CONFIG_COMMON */
 
 /**
+ * @defgroup CO_STACK_CONFIG_CAN CAN Driver
+ * @{
+ */
+/**
+ * Configuration of @ref CO_driver.
+ *
+ * Possible flags, can be ORed:
+ * - CO_CONFIG_CAN_ALLOW_EXT_ID - Enable transmission and reception of extended CAN identifiers
+ *   To use extended CAN identifiers, make sure your driver use the appropriate
+ *   integer type  with at least 30 bits. Bits 0-28 are the CAN identifier
+ *   and bit 29 indicates whether the identifier is extended or not.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_CAN (0)
+#endif
+#define CO_CONFIG_CAN_ALLOW_EXT_ID 0x01
+/** @} */ /* CO_STACK_CONFIG_CAN */
+
+/**
  * @defgroup CO_STACK_CONFIG_NMT_HB NMT master/slave and HB producer/consumer
  * Specified in standard CiA 301
  * @{

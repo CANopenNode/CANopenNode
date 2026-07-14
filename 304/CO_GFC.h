@@ -81,8 +81,8 @@ typedef struct {
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT.
  */
 CO_ReturnError_t CO_GFC_init(CO_GFC_t* GFC, OD_entry_t* OD_1300_gfcParameter, CO_CANmodule_t* GFC_CANdevRx,
-                             uint16_t GFC_rxIdx, uint16_t CANidRxGFC, CO_CANmodule_t* GFC_CANdevTx, uint16_t GFC_txIdx,
-                             uint16_t CANidTxGFC);
+                             uint16_t GFC_rxIdx, CO_CANident_t CANidRxGFC, CO_CANmodule_t* GFC_CANdevTx, uint16_t GFC_txIdx,
+                             CO_CANident_t CANidTxGFC);
 
 #if (((CO_CONFIG_GFC)&CO_CONFIG_GFC_CONSUMER) != 0) || defined CO_DOXYGEN
 /**
