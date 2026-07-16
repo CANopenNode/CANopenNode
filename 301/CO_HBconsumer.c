@@ -327,7 +327,7 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
                                                                monitoredNode->functSignalObjectRemoteReset);
                     }
 #endif
-                    if (monitoredNode->HBstate != CO_HBconsumer_UNKOWN) {
+                    if (monitoredNode->HBstate != CO_HBconsumer_UNKNOWN) {
                         CO_errorReport(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, CO_EMC_HEARTBEAT, i);
                         monitoredNode->HBstate = CO_HBconsumer_RESTART;
                     }
