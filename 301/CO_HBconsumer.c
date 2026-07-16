@@ -327,10 +327,10 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
                                                                monitoredNode->functSignalObjectRemoteReset);
                     }
 #endif
-                    if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
+                    if (monitoredNode->HBstate != CO_HBconsumer_UNKNOWN) {
                         CO_errorReport(HBcons->em, CO_EM_HB_CONSUMER_REMOTE_RESET, CO_EMC_HEARTBEAT, i);
+                        monitoredNode->HBstate = CO_HBconsumer_RESTART;
                     }
-                    monitoredNode->HBstate = CO_HBconsumer_UNKNOWN;
 
                 } else {
                     /* heartbeat message */
@@ -342,15 +342,15 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
                     }
 #endif
                     monitoredNode->HBstate = CO_HBconsumer_ACTIVE;
-                    /* reset timer */
-                    monitoredNode->timeoutTimer = 0;
-                    timeDifference_us_copy = 0;
                 }
                 CO_FLAG_CLEAR(monitoredNode->CANrxNew);
+                /* reset timer */
+                monitoredNode->timeoutTimer = 0;
+                timeDifference_us_copy = 0;
             }
 
             /* Verify timeout */
-            if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE) {
+            if (monitoredNode->HBstate == CO_HBconsumer_ACTIVE || monitoredNode->HBstate == CO_HBconsumer_RESTART) {
                 monitoredNode->timeoutTimer += timeDifference_us_copy;
 
                 if (monitoredNode->timeoutTimer >= monitoredNode->time_us) {
@@ -377,11 +377,13 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
 #endif
             }
 
-            if (monitoredNode->HBstate != CO_HBconsumer_ACTIVE) {
-                allMonitoredActiveCurrent = false;
-            }
-            if (monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
-                allMonitoredOperationalCurrent = false;
+            if (monitoredNode->HBstate != CO_HBconsumer_UNKNOWN) {
+                if (monitoredNode->HBstate != CO_HBconsumer_ACTIVE) {
+                    allMonitoredActiveCurrent = false;
+                }
+                if (monitoredNode->NMTstate != CO_NMT_OPERATIONAL) {
+                    allMonitoredOperationalCurrent = false;
+                }
             }
 #if (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0)                                                     \
     || (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)

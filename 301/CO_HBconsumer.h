@@ -64,6 +64,7 @@ typedef enum {
     CO_HBconsumer_UNKNOWN = 0x01U,      /**< Consumer enabled, but no heartbeat received yet */
     CO_HBconsumer_ACTIVE = 0x02U,       /**< Heartbeat received within set time */
     CO_HBconsumer_TIMEOUT = 0x03U,      /**< No heatbeat received for set time */
+    CO_HBconsumer_RESTART = 0x04U,      /**< Monitored node was reset */
 } CO_HBconsumer_state_t;
 
 /**
