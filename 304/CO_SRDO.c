@@ -487,7 +487,7 @@ CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuard_t* SRDOGuard, u
     if ((err == 0U) && configurationInProgress) {
         if (cp_highestSubindexSupported != 6U) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 0, 2);
-        } else if (informationDirection > 3U) {
+        } else if (informationDirection > 2U) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 1, 2);
         } else if (safetyCycleTime < ((CO_CONFIG_SRDO_MINIMUM_DELAY / 1000U) + 1U)) {
             err = ERR_INFO(0x1301UL + SRDO_Index, 2, 2);
