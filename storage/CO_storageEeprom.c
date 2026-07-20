@@ -154,17 +154,17 @@ CO_storageEeprom_init(CO_storage_t* storage, CO_CANmodule_t* CANmodule, void* st
         bool_t dataCorrupt = false;
         if (signatureInEeprom != signatureOfEntry) {
             dataCorrupt = true;
-        } else {
-            /* Read data into storage location */
-            CO_eeprom_readBlock(entry->storageModule, entry->addr, entry->eepromAddr, entry->len);
-
-            /* Verify CRC, except for auto storage variables */
-            if (!isAuto) {
-                uint16_t crc = crc16_ccitt(entry->addr, entry->len, 0);
-                if (crc != entry->crc) {
-                    dataCorrupt = true;
-                }
+        } else if (!isAuto) {
+            /* Verify CRC before loading data, so corrupt EEPROM content does not overwrite defaults in RAM. */
+            uint16_t crc = CO_eeprom_getCrcBlock(entry->storageModule, entry->eepromAddr, entry->len);
+            if (crc != entry->crc) {
+                dataCorrupt = true;
+            } else {
+                CO_eeprom_readBlock(entry->storageModule, entry->addr, entry->eepromAddr, entry->len);
             }
+        } else {
+            /* Auto storage entries don't use the CRC guard on startup. */
+            CO_eeprom_readBlock(entry->storageModule, entry->addr, entry->eepromAddr, entry->len);
         }
 
         /* additional info in case of error */
