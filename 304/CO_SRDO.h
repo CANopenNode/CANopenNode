@@ -253,7 +253,7 @@ CO_ReturnError_t CO_SRDO_config(CO_SRDO_t* SRDO, uint8_t SRDO_Index, CO_SRDOGuar
 /**
  * Send SRDO on event
  *
- * Sends SRDO before the next refresh timer tiggers. The message itself is send in CO_SRDO_process(). Note that RTOS
+ * Sends SRDO before the next refresh timer triggers. The message itself is send in CO_SRDO_process(). Note that RTOS
  * have to trigger its processing quickly. After the transmission the timer is reset to the full refresh time.
  *
  * @param SRDO This object.

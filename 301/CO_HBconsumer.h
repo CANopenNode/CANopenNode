@@ -63,7 +63,7 @@ typedef enum {
     CO_HBconsumer_UNCONFIGURED = 0x00U, /**< Consumer entry inactive */
     CO_HBconsumer_UNKNOWN = 0x01U,      /**< Consumer enabled, but no heartbeat received yet */
     CO_HBconsumer_ACTIVE = 0x02U,       /**< Heartbeat received within set time */
-    CO_HBconsumer_TIMEOUT = 0x03U,      /**< No heatbeat received for set time */
+    CO_HBconsumer_TIMEOUT = 0x03U,      /**< No heartbeat received for set time */
 } CO_HBconsumer_state_t;
 
 /**
@@ -104,7 +104,7 @@ typedef struct {
 /**
  * Heartbeat consumer object.
  *
- * Object is initilaized by CO_HBconsumer_init(). It contains an array of CO_HBconsNode_t objects.
+ * Object is initialized by CO_HBconsumer_init(). It contains an array of CO_HBconsNode_t objects.
  */
 typedef struct {
     CO_EM_t* em;                      /**< From CO_HBconsumer_init() */

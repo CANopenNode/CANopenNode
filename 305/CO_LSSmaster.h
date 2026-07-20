@@ -46,7 +46,7 @@ extern "C" {
  * - Activate bit timing parameters
  * - Store configuration
  *
- * The LSS master is initalized during the CANopenNode initialization process. Except for enabling the LSS master in the
+ * The LSS master is initialized during the CANopenNode initialization process. Except for enabling the LSS master in the
  * configurator, no further run-time configuration is needed for basic operation. The LSS master does basic checking of
  * commands and command sequence.
  *
@@ -331,7 +331,7 @@ typedef struct {
  *
  * This initiates searching for a unconfigured node by the means of LSS fastscan mechanism. When this function is
  * finished
- * - a (more or less) arbitrary node is selected and ready for node ID assingment
+ * - a (more or less) arbitrary node is selected and ready for node ID assignment
  * - no node is selected because the given criteria do not match a node
  * - no node is selected because all nodes are already configured
  *
@@ -356,7 +356,7 @@ fastscan.scan[CO_LSS_FASTSCAN_REV] = CO_LSSmaster_FS_SKIP;
 fastscan.scan[CO_LSS_FASTSCAN_SERIAL] = CO_LSSmaster_FS_SCAN;
  * \endcode
  *
- * This example will take 2 scan cyles for verifying vendor ID and product code and 33 scan cycles to find the serial
+ * This example will take 2 scan cycles for verifying vendor ID and product code and 33 scan cycles to find the serial
  * number.
  *
  * For scanning, the following limitations apply:

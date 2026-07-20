@@ -48,14 +48,14 @@ extern "C" {
  *
  * SYNC message is used for synchronization of the nodes on network. One node can be SYNC producer, others can be SYNC
  * consumers. Synchronous TPDOs are transmitted after the CANopen SYNC message. Synchronous received PDOs are
- * accepted(copied to OD) immediatelly after the reception of the next SYNC message.
+ * accepted(copied to OD) immediately after the reception of the next SYNC message.
  *
  * ####Contents of SYNC message
  * By default SYNC message has no data. If _Synchronous counter overflow value_ from Object dictionary (index 0x1019) is
  * different than 0, SYNC message has one data byte: _counter_ incremented by 1 with every SYNC transmission.
  *
  * ####SYNC in CANopenNode
- * According to CANopen, synchronous RPDOs must be processed after reception of the next sync messsage. For that reason,
+ * According to CANopen, synchronous RPDOs must be processed after reception of the next sync message. For that reason,
  * there is a double receive buffer for each synchronous RPDO. At the moment, when SYNC is received or transmitted,
  * internal variable CANrxToggle toggles. That variable is then used by synchronous RPDO to determine, which of the two
  * buffers is used for RPDO reception and which for RPDO processing.

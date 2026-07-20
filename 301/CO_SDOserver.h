@@ -265,7 +265,7 @@ typedef enum {
      *    0 < blksize < 128.
      *  - byte 3..7: Reserved.
      * - SDO server waits for response.
-     * - If c was set to 1 and all segments were successfull received, then communication enters SDO block upload end
+     * - If c was set to 1 and all segments were successful received, then communication enters SDO block upload end
      *   phase. */
     CO_SDO_ST_UPLOAD_BLK_SUBBLOCK_CRSP = 0x65U,
     /**

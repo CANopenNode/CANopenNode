@@ -918,7 +918,7 @@ CO_LSSmaster_IdentifyFastscan(CO_LSSmaster_t* LSSmaster, uint32_t timeDifference
         case CO_LSSmaster_FS_STATE_SCAN:
             ret = CO_LSSmaster_FsScanWait(LSSmaster, timeDifference_us, fastscan->scan[LSSmaster->fsLssSub]);
             if (ret == CO_LSSmaster_SCAN_FINISHED) {
-                /* scanning finished, initiate verifcation. The verification message also contains
+                /* scanning finished, initiate verification. The verification message also contains
                  * the node state machine "switch to next state" request */
                 next = CO_LSSmaster_FsSearchNext(LSSmaster, fastscan);
                 ret = CO_LSSmaster_FsVerifyInitiate(LSSmaster, timeDifference_us, fastscan->scan[LSSmaster->fsLssSub],

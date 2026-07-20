@@ -108,7 +108,7 @@ Communication Specific Parameters
 * Sub Index 0: Contains number of actual errors. 0 can be written to clear error history.
 * sub-index 1 and above:
   * bit 16-31: Manufacturer specific additional information
-  * bit 0-15: Error code as transmited in the Emergency object
+  * bit 0-15: Error code as transmitted in the Emergency object
 
 ### 0x1005 - COB-ID SYNC message
 | Object Type | Count Label    | Storage Group  |
