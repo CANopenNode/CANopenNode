@@ -539,9 +539,9 @@ OD_write_14xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
             uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
             bool_t valid = (COB_ID & 0x80000000U) == 0U;
 
-            /* bits 11...29 must be zero, PDO must be disabled on change, CAN_ID == 0 is
+            /* bits 11...30 must be zero, PDO must be disabled on change, CAN_ID == 0 is
              * not allowed, mapping must be configured before enabling the PDO */
-            if (((COB_ID & 0x3FFFF800U) != 0U) || (valid && PDO->valid && (CAN_ID != PDO->configuredCanId))
+            if (((COB_ID & 0x7FFFF800U) != 0U) || (valid && PDO->valid && (CAN_ID != PDO->configuredCanId))
                 || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID)) || (valid && (PDO->mappedObjectsCount == 0U))) {
                 return ODR_INVALID_VALUE;
             }
