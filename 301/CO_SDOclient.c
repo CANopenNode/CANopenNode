@@ -703,6 +703,11 @@ CO_SDOclientDownload(CO_SDOclient_t* SDO_C, uint32_t timeDifference_us, bool_t s
                             SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_END_REQ;
                         } else {
                             SDO_C->block_blksize = SDO_C->CANrxData[2];
+                            if ((SDO_C->block_blksize < 1U) || (SDO_C->block_blksize > 127U)) {
+                                abortCode = CO_SDO_AB_CMD;
+                                SDO_C->state = CO_SDO_ST_ABORT;
+                                break;
+                            }
                             SDO_C->block_seqno = 0;
                             (void)CO_fifo_altBegin(&SDO_C->bufFifo, 0);
                             SDO_C->state = CO_SDO_ST_DOWNLOAD_BLK_SUBBLOCK_REQ;
