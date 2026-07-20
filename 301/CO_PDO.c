@@ -659,7 +659,8 @@ CO_RPDO_init(CO_RPDO_t* RPDO, OD_t* OD, CO_EM_t* em,
 
     bool_t valid = (COB_ID & 0x80000000U) == 0U;
     uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
-    if (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U))) {
+    bool_t invalidCobId = ((COB_ID & 0x7FFFF800U) != 0U) || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID));
+    if (invalidCobId || (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U)))) {
         valid = false;
         if (erroneousMap == 0U) {
             erroneousMap = 1;
@@ -1119,7 +1120,8 @@ CO_TPDO_init(CO_TPDO_t* TPDO, OD_t* OD, CO_EM_t* em,
 
     bool_t valid = (COB_ID & 0x80000000U) == 0U;
     uint16_t CAN_ID = (uint16_t)(COB_ID & 0x7FFU);
-    if (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U))) {
+    bool_t invalidCobId = ((COB_ID & 0x3FFFF800U) != 0U) || (valid && CO_IS_RESTRICTED_CAN_ID(CAN_ID));
+    if (invalidCobId || (valid && ((PDO->mappedObjectsCount == 0U) || (CAN_ID == 0U)))) {
         valid = false;
         if (erroneousMap == 0U) {
             erroneousMap = 1;
