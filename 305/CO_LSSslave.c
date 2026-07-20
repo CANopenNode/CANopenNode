@@ -135,7 +135,8 @@ CO_LSSslave_receive(void* object, void* msg) {
                                 ack = true;
                                 LSSslave->fastscanPos = lssNext;
 
-                                if ((bitCheck == 0U) && (lssNext < lssSub)) {
+                                if ((bitCheck == 0U) && (lssSub == CO_LSS_FASTSCAN_SERIAL)
+                                    && (lssNext == CO_LSS_FASTSCAN_VENDOR_ID)) {
                                     /* complete match, enter configuration state */
                                     LSSslave->lssState = CO_LSS_STATE_CONFIGURATION;
                                 }
