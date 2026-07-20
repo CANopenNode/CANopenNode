@@ -47,7 +47,7 @@ extern "C" {
  * @{
  * Process data objects are used for real-time data transfer with no protocol overhead.
  *
- * TPDO with specific identifier is transmitted by one device and recieved by zero or more devices as RPDO. PDO
+ * TPDO with specific identifier is transmitted by one device and received by zero or more devices as RPDO. PDO
  * communication parameters(COB-ID, transmission type, etc.) are in the Object Dictionary at index 0x1400+ and 0x1800+.
  * PDO mapping parameters (size and contents of the PDO) are in the Object Dictionary at index 0x1600+ and 0x1A00+.
  *
@@ -113,7 +113,7 @@ extern "C" {
 #define CO_PDO_MAX_MAPPED_ENTRIES 8U
 #endif
 
-/** Number of CANopen RPDO objects, which uses default CAN indentifiers. By default first four RPDOs have pre-defined
+/** Number of CANopen RPDO objects, which uses default CAN identifiers. By default first four RPDOs have pre-defined
  * CAN identifiers, which depends on node-id. This constant may be set to 0 to disable functionality or set to any other
  * value. For example, if there are several logical devices inside single CANopen device, then more than four RPDOs may
  * have pre-defined CAN identifiers. In that case RPDO5 has CAN_ID=0x200+NodeId+1, RPDO6 has CAN_ID=0x300+NodeId+1,
@@ -122,7 +122,7 @@ extern "C" {
 #define CO_RPDO_DEFAULT_CANID_COUNT 4U
 #endif
 
-/** Number of CANopen TPDO objects, which uses default CAN indentifiers. If value is more than four, then pre-defined
+/** Number of CANopen TPDO objects, which uses default CAN identifiers. If value is more than four, then pre-defined
  * pre-defined CAN identifiers are: TPDO5 has CAN_ID=0x180+NodeId+1, TPDO6 has CAN_ID=0x280+NodeId+1, TPDO9 has
  * CAN_ID=0x180+NodeId+2 and so on. For description see @ref CO_RPDO_DEFAULT_CANID_COUNT. */
 #ifndef CO_TPDO_DEFAULT_CANID_COUNT

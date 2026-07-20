@@ -336,7 +336,7 @@ bool_t CO_fifo_trimSpaces(CO_fifo_t* fifo, bool_t* insideComment);
  * Get token from FIFO buffer
  *
  * Function search FIFO buffer for token. Token is string of only graphical characters. Graphical character is any
- * printable character except space with acsii code within limits: 0x20 < code < 0x7F (see isgraph() function).
+ * printable character except space with ascii code within limits: 0x20 < code < 0x7F (see isgraph() function).
  *
  * If token is found, then copy it to the buf, if count is large enough. On success also set readPtr to point to the
  * next graphical character.

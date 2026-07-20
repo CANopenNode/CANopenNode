@@ -4,7 +4,7 @@ Trace usage
 **TRACE DOES NOT WORK IN THE LAST VERSION**
 
 CANopenNode includes optional trace functionality (non-standard). It monitors
-choosen variables from Object Dictionary. On change of state of variable it
+chosen variables from Object Dictionary. On change of state of variable it
 makes a record with timestamp into circular buffer. String with points can later
 be read via SDO.
 
@@ -39,6 +39,6 @@ case CANopenSocket must first receive PDO data from remote node(s) and store it
 to the local Object Dictionary variable. CANopenSocket's trace then monitors
 that variable. Text buffer is then read with the similar command as above. But
 local SDO data access from CANopenSocket itself doesn't occupy CAN bus, so large
-data is transfered realy fast. Besides that, Linux machine has much more RAM to
+data is transferred really fast. Besides that, Linux machine has much more RAM to
 store the monitored data. Except timestamp is less accurate.
 

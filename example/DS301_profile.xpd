@@ -657,7 +657,7 @@
             <description lang="en">* Sub Index 0: Contains number of actual errors. 0 can be written to clear error history.
 * sub-index 1 and above:
   * bit 16-31: Manufacturer specific additional information
-  * bit 0-15: Error code as transmited in the Emergency object</description>
+  * bit 0-15: Error code as transmitted in the Emergency object</description>
             <q1:dataTypeIDRef uniqueIDRef="UID_ARR_1003" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_100300" access="readWrite">

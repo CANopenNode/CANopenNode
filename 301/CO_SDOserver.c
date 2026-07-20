@@ -386,12 +386,12 @@ reverseBytes(void* start, OD_size_t size) {
 
 #if ((CO_CONFIG_SDO_SRV)&CO_CONFIG_SDO_SRV_SEGMENTED) != 0
 /* Helper function for writing data to Object dictionary. Function swaps data if necessary,
- * calcualtes (and verifies CRC) writes data to OD and verifies data lengths.
+ * calculates (and verifies CRC) writes data to OD and verifies data lengths.
  *
  * @param SDO SDO server
  * @param [out] abortCode SDO abort code in case of error
  * @param crcOperation 0=none, 1=calculate, 2=calculate and compare
- * @parma crcClient crc checksum to campare with
+ * @param crcClient crc checksum to compare with
  *
  * Returns true on success, otherwise write also abortCode and sets state to CO_SDO_ST_ABORT */
 static bool_t
@@ -498,11 +498,11 @@ validateAndWriteToOD(CO_SDOserver_t* SDO, CO_SDO_abortCode_t* abortCode, uint8_t
     return true;
 }
 
-/* Helper function for reading data from Object dictionary. Function also swaps data if necessary and calcualtes CRC.
+/* Helper function for reading data from Object dictionary. Function also swaps data if necessary and calculates CRC.
  *
  * @param SDO SDO server
  * @param [out] abortCode SDO abort code in case of error
- * @parma countMinimum if data size in buffer is less than countMinimum, then buffer is refilled from OD variable
+ * @param countMinimum if data size in buffer is less than countMinimum, then buffer is refilled from OD variable
  * @param calculateCrc if true, crc is calculated
  *
  * Returns true on success, otherwise write also abortCode and sets state to CO_SDO_ST_ABORT */

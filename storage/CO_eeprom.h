@@ -51,7 +51,7 @@ bool_t CO_eeprom_init(void* storageModule);
  * @param len Length of data, which will be stored to that location
  * @param [out] overflow set to true, if not enough eeprom memory
  *
- * @return Asigned eeprom address
+ * @return Assigned eeprom address
  */
 size_t CO_eeprom_getAddr(void* storageModule, bool_t isAuto, size_t len, bool_t* overflow);
 

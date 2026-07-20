@@ -44,7 +44,7 @@ PIC32, dsPIC30, dsPIC33
 * Features: OD storage for PIC32, SDO client demo for PIC32, error counters
 * Development tools: MPLAB X
 * Demo hardware: Explorer 16 from Microchip, [Max32 board](https://reference.digilentinc.com/reference/microprocessor/max32/start)
-* Example with smallest resuorces (less than 2kb RAM), 4TPDO+4RPDO: 16-bit dsPIC30F4011
+* Example with smallest resources (less than 2kb RAM), 4TPDO+4RPDO: 16-bit dsPIC30F4011
 
 
 [Analog Devices Inc](https://www.analog.com): MAX32662, MAX32690
