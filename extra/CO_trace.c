@@ -147,7 +147,7 @@ static void findVariable(CO_trace_t *trace) {
         /* third sequence: Output type */
         dtIndex += ((*trace->format) >> 1) * 6;
 
-        if(dtIndex > (sizeof(dataTypes) / sizeof(CO_trace_dataType_t))) {
+        if(dtIndex >= (sizeof(dataTypes) / sizeof(CO_trace_dataType_t))) {
             err = true;
         }
     }
