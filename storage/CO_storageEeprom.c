@@ -35,7 +35,7 @@ storeEeprom(CO_storage_entry_t* entry, CO_CANmodule_t* CANmodule) {
 
     /* save data to the eeprom */
     writeOk = CO_eeprom_writeBlock(entry->storageModule, entry->addr, entry->eepromAddr, entry->len);
-    entry->crc = crc16_ccitt(entry->addr, entry->len, 0);
+    entry->crc = CO_crc16_ccitt(entry->addr, entry->len, 0);
 
     /* Verify, if data in eeprom are equal */
     uint16_t crc_read = CO_eeprom_getCrcBlock(entry->storageModule, entry->eepromAddr, entry->len);
@@ -160,7 +160,7 @@ CO_storageEeprom_init(CO_storage_t* storage, CO_CANmodule_t* CANmodule, void* st
 
             /* Verify CRC, except for auto storage variables */
             if (!isAuto) {
-                uint16_t crc = crc16_ccitt(entry->addr, entry->len, 0);
+                uint16_t crc = CO_crc16_ccitt(entry->addr, entry->len, 0);
                 if (crc != entry->crc) {
                     dataCorrupt = true;
                 }
