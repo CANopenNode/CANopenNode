@@ -239,6 +239,7 @@ typedef struct {
      */
     size_t (*readCallback)(void* object, const char* buf, size_t count, uint8_t* connectionOK);
     void* readCallbackObject; /**< Pointer to object, which will be used inside readCallback, from CO_GTWA_init() */
+    CO_CANmodule_t* CANdev;   /**< CAN module providing the Gateway shared-FIFO critical-section context. */
     uint32_t sequence;        /**< Sequence number of the command */
     int32_t net_default;      /**< Default CANopen Net number is undefined (-1) at startup */
     int16_t node_default;     /**< Default CANopen Node ID number is undefined (-1) at startup */
@@ -300,6 +301,7 @@ typedef struct {
  * Initialize Gateway-ascii object
  *
  * @param gtwa This object will be initialized
+ * @param CANdev CAN module used by CO_LOCK_GTWA()/CO_UNLOCK_GTWA() for shared FIFO access
  * @param SDO_C SDO client object
  * @param SDOclientTimeoutTime_ms Default timeout in milliseconds, 500 typically
  * @param SDOclientBlockTransfer If true, block transfer will be set by default
@@ -310,7 +312,7 @@ typedef struct {
  *
  * @return #CO_ReturnError_t: CO_ERROR_NO or CO_ERROR_ILLEGAL_ARGUMENT
  */
-CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa,
+CO_ReturnError_t CO_GTWA_init(CO_GTWA_t* gtwa, CO_CANmodule_t* CANdev,
 #if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
                               CO_SDOclient_t* SDO_C, uint16_t SDOclientTimeoutTime_ms, bool_t SDOclientBlockTransfer,
 #endif
@@ -350,7 +352,13 @@ void CO_GTWA_initRead(CO_GTWA_t* gtwa,
  */
 static inline size_t
 CO_GTWA_write_getSpace(CO_GTWA_t* gtwa) {
-    return CO_fifo_getSpace(&gtwa->commFifo);
+    size_t space;
+
+    CO_LOCK_GTWA(gtwa->CANdev);
+    space = CO_fifo_getSpace(&gtwa->commFifo);
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+
+    return space;
 }
 
 /**
@@ -368,7 +376,13 @@ CO_GTWA_write_getSpace(CO_GTWA_t* gtwa) {
  */
 static inline size_t
 CO_GTWA_write(CO_GTWA_t* gtwa, const char* buf, size_t count) {
-    return CO_fifo_write(&gtwa->commFifo, (const uint8_t*)buf, count, NULL);
+    size_t written;
+
+    CO_LOCK_GTWA(gtwa->CANdev);
+    written = CO_fifo_write(&gtwa->commFifo, (const uint8_t*)buf, count, NULL);
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+
+    return written;
 }
 
 #if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_LOG) != 0) || defined CO_DOXYGEN
