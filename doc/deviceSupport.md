@@ -72,6 +72,18 @@ Zephyr RTOS
 * Information updated 2025-11-13
 
 
+RT-Thread RTOS
+--------------
+* CANopenNode integration with RT-Thread RTOS.
+* https://github.com/wdfk-prog/canopennode-rtt
+* CANopenNode version: v4.x
+* Status: active
+* Features: RT-Thread CAN device integration, Kconfig and SCons integration, multi-thread runtime, optional storage and LED support, and configurable CiA 301/303/304/305/309 feature groups.
+* Development tools: RT-Thread, SCons, Arm GNU Toolchain
+* Demo hardware: STM32F407 (RT-Thread stm32f407-atk-explorer BSP); protocol tests also use a TQ8MP Linux host with Lely CANopen.
+* Information updated 2026-09-01
+
+
 Mbed-os RTOS + STM32 (F091RC, L496ZG)
 -------------------------------------
 * CANopenNode integration with Mbed-os RTOS
