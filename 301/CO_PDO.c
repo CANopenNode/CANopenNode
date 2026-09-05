@@ -981,9 +981,16 @@ OD_write_18xx(OD_stream_t* stream, const void* buf, OD_size_t count, OD_size_t* 
                     CAN_ID = 0;
                 }
 
+#if ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0
+                /* PDO->dataLength is stored in bits with bitwise mapping; CAN DLC is always bytes. */
+                CO_CANtx_t* CANtxBuff = CO_CANtxBufferInit(
+                    PDO->CANdev, PDO->CANdevIdx, CAN_ID, false, (PDO->dataLength + 7U) / 8U,
+                    TPDO->transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240);
+#else
                 CO_CANtx_t* CANtxBuff = CO_CANtxBufferInit(
                     PDO->CANdev, PDO->CANdevIdx, CAN_ID, false, PDO->dataLength,
                     TPDO->transmissionType <= (uint8_t)CO_PDO_TRANSM_TYPE_SYNC_240);
+#endif
 
                 if (CANtxBuff == NULL) {
                     return ODR_DEV_INCOMPAT;
