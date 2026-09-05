@@ -1145,7 +1145,7 @@ CO_CANopenInit(CO_t* co, CO_NMT_t* NMT, CO_EM_t* em, OD_t* od, OD_entry_t* OD_st
 
 #if ((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII) != 0
     if (CO_GET_CNT(GTWA) == 1U) {
-        err = CO_GTWA_init(co->gtwa,
+        err = CO_GTWA_init(co->gtwa, co->CANmodule,
 #if ((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0
                            &co->SDOclient[0], SDOclientTimeoutTime_ms, SDOclientBlockTransfer,
 #endif

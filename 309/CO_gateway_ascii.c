@@ -44,7 +44,7 @@
 #endif
 
 CO_ReturnError_t
-CO_GTWA_init(CO_GTWA_t* gtwa,
+CO_GTWA_init(CO_GTWA_t* gtwa, CO_CANmodule_t* CANdev,
 #if (((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0) || defined CO_DOXYGEN
              CO_SDOclient_t* SDO_C, uint16_t SDOclientTimeoutTime_ms, bool_t SDOclientBlockTransfer,
 #endif
@@ -60,7 +60,7 @@ CO_GTWA_init(CO_GTWA_t* gtwa,
              uint8_t dummy) {
     (void)dummy;
     /* verify arguments */
-    if ((gtwa == NULL)
+    if ((gtwa == NULL) || (CANdev == NULL)
 #if ((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0
         || (SDO_C == NULL) || (SDOclientTimeoutTime_ms == 0U)
 #endif
@@ -81,6 +81,7 @@ CO_GTWA_init(CO_GTWA_t* gtwa,
     (void)memset(gtwa, 0, sizeof(CO_GTWA_t));
 
     /* initialize variables */
+    gtwa->CANdev = CANdev;
 #if ((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0
     gtwa->SDO_C = SDO_C;
     gtwa->SDOtimeoutTime = SDOclientTimeoutTime_ms;
@@ -119,12 +120,85 @@ CO_GTWA_initRead(CO_GTWA_t* gtwa,
     }
 }
 
+static void
+gtwaCommReset(CO_GTWA_t* gtwa) {
+    CO_LOCK_GTWA(gtwa->CANdev);
+    CO_fifo_reset(&gtwa->commFifo);
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+}
+
+static bool_t
+gtwaCommSearch(CO_GTWA_t* gtwa, bool_t clear) {
+    bool_t found;
+
+    CO_LOCK_GTWA(gtwa->CANdev);
+    found = CO_fifo_CommSearch(&gtwa->commFifo, clear);
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+
+    return found;
+}
+
+static size_t
+gtwaCommReadToken(CO_GTWA_t* gtwa, char* buf, size_t count, uint8_t* closed, bool_t* err) {
+    size_t read;
+
+    CO_LOCK_GTWA(gtwa->CANdev);
+    read = CO_fifo_readToken(&gtwa->commFifo, buf, count, closed, err);
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+
+    return read;
+}
+
+#if ((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_SDO) != 0
+static size_t
+gtwaCommDataTypeScan(CO_GTWA_t* gtwa, CO_fifo_t* dest, uint8_t* status) {
+    size_t size;
+
+    CO_LOCK_GTWA(gtwa->CANdev);
+    size = gtwa->SDOdataType->dataTypeScan(dest, &gtwa->commFifo, status);
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+
+    return size;
+}
+#endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_SDO */
+
 #if ((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_LOG) != 0
+static void
+gtwaLogAppendLineEnd(CO_GTWA_t* gtwa) {
+    CO_LOCK_GTWA(gtwa->CANdev);
+    CO_fifo_putc_ov(&gtwa->logFifo, '\r');
+    CO_fifo_putc_ov(&gtwa->logFifo, '\n');
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+}
+
+static size_t
+gtwaLogRead(CO_GTWA_t* gtwa, uint8_t* buf, size_t count) {
+    size_t read;
+
+    CO_LOCK_GTWA(gtwa->CANdev);
+    read = CO_fifo_read(&gtwa->logFifo, buf, count, NULL);
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+
+    return read;
+}
+
+static size_t
+gtwaLogGetOccupied(CO_GTWA_t* gtwa) {
+    size_t occupied;
+
+    CO_LOCK_GTWA(gtwa->CANdev);
+    occupied = CO_fifo_getOccupied(&gtwa->logFifo);
+    CO_UNLOCK_GTWA(gtwa->CANdev);
+
+    return occupied;
+}
+
 void
 CO_GTWA_log_print(CO_GTWA_t* gtwa, const char* message) {
     if ((gtwa != NULL) && (message != NULL)) {
         const char* c;
 
+        CO_LOCK_GTWA(gtwa->CANdev);
         /* add newline between messages */
         if (CO_fifo_getOccupied(&gtwa->logFifo) > 0U) {
             CO_fifo_putc_ov(&gtwa->logFifo, '\n');
@@ -132,6 +206,7 @@ CO_GTWA_log_print(CO_GTWA_t* gtwa, const char* message) {
         for (c = &message[0]; *c != '\0'; c++) {
             CO_fifo_putc_ov(&gtwa->logFifo, (const uint8_t)*c);
         }
+        CO_UNLOCK_GTWA(gtwa->CANdev);
     }
 }
 #endif /* (CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII_LOG */
@@ -458,7 +533,7 @@ responseWithError(CO_GTWA_t* gtwa, CO_GTWA_respErrorCode_t respErrorCode) {
     }
 
     gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE, "[%" PRId32 "] ERROR:%d #%s\r\n",
-                                          (int32_t)gtwa->sequence, (int32_t)respErrorCode, desc);
+                                          (int32_t)gtwa->sequence, (int)respErrorCode, desc);
     (void)respBufTransfer(gtwa);
 }
 
@@ -478,10 +553,10 @@ responseWithErrorSDO(CO_GTWA_t* gtwa, CO_SDO_abortCode_t abortCode, bool_t postp
 
     if (!postponed) {
         gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
-                                              "[%" PRId32 "] ERROR:0x%08X #%s\r\n", (int32_t)gtwa->sequence,
+                                              "[%" PRId32 "] ERROR:0x%08" PRIX32 " #%s\r\n", (int32_t)gtwa->sequence,
                                               (uint32_t)abortCode, desc);
     } else {
-        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE, "\n...ERROR:0x%08X #%s\r\n",
+        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE, "\n...ERROR:0x%08" PRIX32 " #%s\r\n",
                                               (uint32_t)abortCode, desc);
     }
 
@@ -493,7 +568,7 @@ responseWithErrorSDO(CO_GTWA_t* gtwa, CO_SDO_abortCode_t abortCode, bool_t postp
 static inline void
 responseWithError(CO_GTWA_t* gtwa, CO_GTWA_respErrorCode_t respErrorCode) {
     gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE, "[%" PRId32 "] ERROR:%d\r\n",
-                                          gtwa->sequence, respErrorCode);
+                                          (int32_t)gtwa->sequence, (int)respErrorCode);
     (void)respBufTransfer(gtwa);
 }
 
@@ -501,10 +576,11 @@ responseWithError(CO_GTWA_t* gtwa, CO_GTWA_respErrorCode_t respErrorCode) {
 static inline void
 responseWithErrorSDO(CO_GTWA_t* gtwa, CO_SDO_abortCode_t abortCode, bool_t postponed) {
     if (!postponed) {
-        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE, "[%" PRId32 "] ERROR:0x%08X\r\n",
-                                              gtwa->sequence, abortCode);
+        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE, "[%" PRId32 "] ERROR:0x%08" PRIX32 "\r\n",
+                                              (int32_t)gtwa->sequence, (uint32_t)abortCode);
     } else {
-        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE, "\n...ERROR:0x%08X\r\n", abortCode);
+        gtwa->respBufCount = (size_t)snprintf(gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
+                                              "\n...ERROR:0x%08" PRIX32 "\r\n", (uint32_t)abortCode);
     }
 
     (void)respBufTransfer(gtwa);
@@ -577,7 +653,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
     if (!enable) {
         gtwa->state = CO_GTWA_ST_IDLE;
-        CO_fifo_reset(&gtwa->commFifo);
+        gtwaCommReset(gtwa);
         return;
     }
 
@@ -598,7 +674,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
      * COMMAND PARSER
      ***************************************************************************/
     /* if idle, search for new command, skip comments or empty lines */
-    while (CO_fifo_CommSearch(&gtwa->commFifo, false) && (gtwa->state == CO_GTWA_ST_IDLE)) {
+    while (gtwaCommSearch(gtwa, false) && (gtwa->state == CO_GTWA_ST_IDLE)) {
         char tok[21];
         size_t n;
         uint32_t ui[3];
@@ -608,7 +684,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
         /* parse mandatory token '"["<sequence>"]"' */
         closed = 0xFFU;
-        n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+        n = gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
         /* Break if error in token or token was found, but closed with command delimiter. */
         if (err || ((n > 0U) && (closed != 0U))) {
             err = true;
@@ -639,7 +715,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
          * follows mandatory token <command>, which is not numerical. */
         for (i = 0; i < 3; i++) {
             closed = 0xFFU;
-            n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            n = gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             if (err || (n == 0U)) {
                 /* empty token, break on error */
                 err = true;
@@ -741,7 +817,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* command 2 */
             closed = 0xFFU;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             if (err) {
                 break;
             }
@@ -758,7 +834,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
                 /* value */
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 value = (uint16_t)getU32(tok, CO_CONFIG_GTW_NET_MIN, CO_CONFIG_GTW_NET_MAX, &err);
                 if (err) {
                     break;
@@ -779,7 +855,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
                 /* value */
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 value = (uint8_t)getU32(tok, 1, 127, &err);
                 if (err) {
                     break;
@@ -801,7 +877,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
                 /* value */
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 value = (uint16_t)getU32(tok, 1, 0xFFFF, &err);
                 if (err) {
                     break;
@@ -822,7 +898,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
                 /* value */
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 value = (uint16_t)getU32(tok, 0, 1, &err);
                 if (err) {
                     break;
@@ -854,7 +930,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* index */
             closed = 0U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             idx = (uint16_t)getU32(tok, 0, 0xFFFF, &err);
             if (err) {
                 break;
@@ -862,7 +938,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* subindex */
             closed = 0xFFU;
-            n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            n = gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             subidx = (uint8_t)getU32(tok, 0, 0xFF, &err);
             if (err || (n == 0U)) {
                 err = true;
@@ -872,7 +948,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             /* optional data type */
             if (closed == 0U) {
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 convertToLower(tok, sizeof(tok));
                 gtwa->SDOdataType = CO_GTWA_getDataType(tok, &err);
                 if (err) {
@@ -923,7 +999,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* index */
             closed = 0U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             idx = (uint16_t)getU32(tok, 0, 0xFFFF, &err);
             if (err) {
                 break;
@@ -931,7 +1007,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* subindex */
             closed = 0U;
-            n = CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            n = gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             subidx = (uint8_t)getU32(tok, 0, 0xFF, &err);
             if (err) {
                 break;
@@ -939,7 +1015,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* data type */
             closed = 0U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             convertToLower(tok, sizeof(tok));
             gtwa->SDOdataType = CO_GTWA_getDataType(tok, &err);
             if (err) {
@@ -965,7 +1041,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             }
 
             /* copy data from comm to the SDO buffer, according to data type */
-            size = gtwa->SDOdataType->dataTypeScan(&gtwa->SDO_C->bufFifo, &gtwa->commFifo, &status);
+            size = gtwaCommDataTypeScan(gtwa, &gtwa->SDO_C->bufFifo, &status);
             /* set to true, if command delimiter was found */
             closed = ((status & CO_fifo_st_closed) == 0U) ? 0U : 1U;
             /* set to true, if data are copied only partially */
@@ -1068,7 +1144,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* command 2 */
             closed = 1U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             if (err) {
                 break;
             }
@@ -1110,7 +1186,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* get value */
             closed = 1U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             select = (uint8_t)getU32(tok, 0, 1, &err);
             if (err) {
                 break;
@@ -1145,26 +1221,26 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* get values */
             closed = 0U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             addr->identity.vendorID = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
             }
 
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             addr->identity.productCode = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
             }
 
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             addr->identity.revisionNumber = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
             }
 
             closed = 1U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             addr->identity.serialNumber = getU32(tok, 0, 0xFFFFFFFFU, &err);
             if (err) {
                 break;
@@ -1184,7 +1260,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* get value */
             closed = 1U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             gtwa->lssNID = (uint8_t)getU32(tok, 0, 0xFF, &err);
             if ((gtwa->lssNID > 0x7FU) && (gtwa->lssNID < 0xFFU)) {
                 err = true;
@@ -1212,12 +1288,12 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* First parameter is table selector. We only support the CiA bit timing table from CiA301 ("0") */
             closed = 0U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             (void)getU32(tok, 0, 0, &err);
 
             /* get value */
             closed = 1U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             tableIndex = (uint8_t)getU32(tok, 0, maxIndex, &err);
             if (tableIndex == 5U) {
                 err = true;
@@ -1244,7 +1320,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
             /* get value */
             closed = 1U;
-            (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+            (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
             switchDelay = (uint16_t)getU32(tok, 0, 0xFFFF, &err);
             if (err) {
                 break;
@@ -1285,7 +1361,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                 uint8_t lsssub;
                 /* get value */
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 lsssub = (uint8_t)getU32(tok, 0, 3, &err);
                 if (err) {
                     break;
@@ -1331,7 +1407,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             if (closed == 0U) {
                 /* get value */
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 timeout_ms = (uint16_t)getU32(tok, 0, 0xFFFF, &err);
                 if (err) {
                     break;
@@ -1374,7 +1450,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             if (closed == 0U) {
                 /* get optional token timeout (non standard) */
                 closed = 0xFFU;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 timeout_ms = (uint16_t)getU32(tok, 0, 0xFFFF, &err);
                 if (err) {
                     break;
@@ -1397,14 +1473,14 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             }
             if (closed == 0U) {
                 /* more arguments follow */
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 gtwa->lssNID = (uint8_t)getU32(tok, 1, 127, &err);
                 if (err) {
                     break;
                 }
 
                 closed = 0xFFU;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 gtwa->lssStore = (bool_t)getU32(tok, 0, 1, &err);
                 if (err) {
                     break;
@@ -1419,50 +1495,50 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                 /* more arguments follow */
                 CO_LSSmaster_fastscan_t* fs = &gtwa->lssFastscan;
 
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 fs->scan[CO_LSS_FASTSCAN_VENDOR_ID] = (CO_LSSmaster_scantype_t)getU32(tok, 0, 2, &err);
                 if (err) {
                     break;
                 }
 
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 fs->match.identity.vendorID = getU32(tok, 0, 0xFFFFFFFFU, &err);
                 if (err) {
                     break;
                 }
 
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 fs->scan[CO_LSS_FASTSCAN_PRODUCT] = (CO_LSSmaster_scantype_t)getU32(tok, 0, 2, &err);
                 if (err) {
                     break;
                 }
 
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 fs->match.identity.productCode = getU32(tok, 0, 0xFFFFFFFFU, &err);
                 if (err) {
                     break;
                 }
 
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 fs->scan[CO_LSS_FASTSCAN_REV] = (CO_LSSmaster_scantype_t)getU32(tok, 0, 2, &err);
                 if (err) {
                     break;
                 }
 
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 fs->match.identity.revisionNumber = getU32(tok, 0, 0xFFFFFFFFU, &err);
                 if (err) {
                     break;
                 }
 
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 fs->scan[CO_LSS_FASTSCAN_SERIAL] = (CO_LSSmaster_scantype_t)getU32(tok, 0, 2, &err);
                 if (err) {
                     break;
                 }
 
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 fs->match.identity.serialNumber = getU32(tok, 0, 0xFFFFFFFFU, &err);
                 if (err) {
                     break;
@@ -1493,7 +1569,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             } else {
                 /* get second token */
                 closed = 1U;
-                (void)CO_fifo_readToken(&gtwa->commFifo, tok, sizeof(tok), &closed, &err);
+                (void)gtwaCommReadToken(gtwa, tok, sizeof(tok), &closed, &err);
                 if (err) {
                     break;
                 }
@@ -1546,7 +1622,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
         /* delete command, if it was only partially read */
         if (closed == 0U) {
-            (void)CO_fifo_CommSearch(&gtwa->commFifo, true);
+            (void)gtwaCommSearch(gtwa, true);
         }
         gtwa->state = CO_GTWA_ST_IDLE;
     }
@@ -1625,7 +1701,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                 /* copy data to the SDO buffer if previous dataTypeScan was partial */
                 if (gtwa->SDOdataCopyStatus) {
                     uint8_t status;
-                    gtwa->SDOdataType->dataTypeScan(&gtwa->SDO_C->bufFifo, &gtwa->commFifo, &status);
+                    gtwaCommDataTypeScan(gtwa, &gtwa->SDO_C->bufFifo, &status);
                     /* set to true, if command delimiter was found */
                     closed = ((status & CO_fifo_st_closed) == 0U) ? 0U : 1U;
                     /* set to true, if data are copied only partially */
@@ -1638,7 +1714,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
                         abort_comm = true; /* abort SDO communication */
                         /* clear the rest of the command, if necessary */
                         if (closed != 1U) {
-                            (void)CO_fifo_CommSearch(&gtwa->commFifo, true);
+                            (void)gtwaCommSearch(gtwa, true);
                         }
                     }
                     if (gtwa->state == CO_GTWA_ST_WRITE_ABORTED) {
@@ -1922,14 +1998,12 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 #if ((CO_CONFIG_GTW)&CO_CONFIG_GTW_ASCII_LOG) != 0
             /* print message log */
             case CO_GTWA_ST_LOG: {
-                CO_fifo_putc_ov(&gtwa->logFifo, '\r');
-                CO_fifo_putc_ov(&gtwa->logFifo, '\n');
+                gtwaLogAppendLineEnd(gtwa);
                 do {
-                    gtwa->respBufCount = CO_fifo_read(&gtwa->logFifo, (uint8_t*)gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE,
-                                                      NULL);
+                    gtwa->respBufCount = gtwaLogRead(gtwa, (uint8_t*)gtwa->respBuf, CO_GTWA_RESP_BUF_SIZE);
                     (void)respBufTransfer(gtwa);
 
-                    if (CO_fifo_getOccupied(&gtwa->logFifo) == 0U) {
+                    if (gtwaLogGetOccupied(gtwa) == 0U) {
                         gtwa->state = CO_GTWA_ST_IDLE;
                         break;
                     }
@@ -1968,7 +2042,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
             case CO_GTWA_ST_LED: {
                 uint8_t i;
 
-                if (CO_fifo_CommSearch(&gtwa->commFifo, false)) {
+                if (gtwaCommSearch(gtwa, false)) {
                     gtwa->state = CO_GTWA_ST_IDLE;
                     i = 4;
                 } else {
@@ -2000,7 +2074,7 @@ CO_GTWA_process(CO_GTWA_t* gtwa, bool_t enable, uint32_t timeDifference_us, uint
 
     /* execute next CANopen processing immediately, if idle and more commands available */
     if ((timerNext_us != NULL) && (gtwa->state == CO_GTWA_ST_IDLE)) {
-        if (CO_fifo_CommSearch(&gtwa->commFifo, false)) {
+        if (gtwaCommSearch(gtwa, false)) {
             *timerNext_us = 0;
         }
     }

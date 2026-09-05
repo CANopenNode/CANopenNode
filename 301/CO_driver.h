@@ -366,6 +366,8 @@ typedef struct {
 #define CO_UNLOCK_EMCY(CAN_MODULE)     /**< Unlock critical section in CO_errorReport() or CO_errorReset() */
 #define CO_LOCK_OD(CAN_MODULE)         /**< Lock critical section when accessing Object Dictionary */
 #define CO_UNLOCK_OD(CAN_MODULE)       /**< Unock critical section when accessing Object Dictionary */
+#define CO_LOCK_GTWA(CAN_MODULE)       /**< Lock shared Gateway ASCII FIFO access */
+#define CO_UNLOCK_GTWA(CAN_MODULE)     /**< Unlock shared Gateway ASCII FIFO access */
 
 /** Check if new CAN frame has arrived */
 #define CO_FLAG_READ(rxNew)            ((rxNew) != NULL)
