@@ -385,19 +385,22 @@ CO_HBconsumer_process(CO_HBconsumer_t* HBcons, bool_t NMTisPreOrOperational, uin
             }
 #if (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0)                                                     \
     || (((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_MULTI) != 0)
-            /* Verify, if NMT state of monitored node changed */
-            if (monitoredNode->NMTstate != monitoredNode->NMTstatePrev) {
+            /* Verify, if NMT state of monitored node changed. 
+             * Read the monitored state once for checking and updating prev: state can change during
+             * callback, from interrupt context! */
+            CO_NMT_internalState_t stateCurr = monitoredNode->NMTstate;
+            if (stateCurr != monitoredNode->NMTstatePrev) {
 #if ((CO_CONFIG_HB_CONS)&CO_CONFIG_HB_CONS_CALLBACK_CHANGE) != 0
                 if (HBcons->pFunctSignalNmtChanged != NULL) {
-                    HBcons->pFunctSignalNmtChanged(monitoredNode->nodeId, i, monitoredNode->NMTstate,
+                    HBcons->pFunctSignalNmtChanged(monitoredNode->nodeId, i, stateCurr,
                                                    HBcons->pFunctSignalObjectNmtChanged);
 #else
                 if (monitoredNode->pFunctSignalNmtChanged != NULL) {
-                    monitoredNode->pFunctSignalNmtChanged(monitoredNode->nodeId, i, monitoredNode->NMTstate,
+                    monitoredNode->pFunctSignalNmtChanged(monitoredNode->nodeId, i, stateCurr,
                                                           monitoredNode->pFunctSignalObjectNmtChanged);
 #endif
                 }
-                monitoredNode->NMTstatePrev = monitoredNode->NMTstate;
+                monitoredNode->NMTstatePrev = stateCurr;
             }
 #endif
         }
