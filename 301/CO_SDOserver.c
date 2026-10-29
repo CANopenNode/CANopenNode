@@ -39,6 +39,9 @@
 #if CO_CONFIG_SDO_SRV_BUFFER_SIZE < 900
 #error CO_CONFIG_SDO_SRV_BUFFER_SIZE must be greater or equal than 900.
 #endif
+#if (CO_CONFIG_SDO_SRV_BLKSIZE < 1) || (CO_CONFIG_SDO_SRV_BLKSIZE > 127)
+#error CO_CONFIG_SDO_SRV_BLKSIZE must be from 1 to 127.
+#endif
 #endif
 
 /*
@@ -1293,8 +1296,8 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
 
                 /* calculate number of block segments from free buffer space */
                 OD_size_t count = (CO_CONFIG_SDO_SRV_BUFFER_SIZE - 2) / 7;
-                if (count > 127) {
-                    count = 127;
+                if (count > CO_CONFIG_SDO_SRV_BLKSIZE) {
+                    count = CO_CONFIG_SDO_SRV_BLKSIZE;
                 }
                 SDO->block_blksize = (uint8_t)count;
                 SDO->CANtxBuff->data[4] = SDO->block_blksize;
@@ -1332,8 +1335,8 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
                     /* calculate number of block segments from free buffer space */
                     OD_size_t count;
                     count = (CO_CONFIG_SDO_SRV_BUFFER_SIZE - 2 - SDO->bufOffsetWr) / 7;
-                    if (count >= 127) {
-                        count = 127;
+                    if (count >= CO_CONFIG_SDO_SRV_BLKSIZE) {
+                        count = CO_CONFIG_SDO_SRV_BLKSIZE;
                     } else if (SDO->bufOffsetWr > 0) {
                         /* it is necessary to empty the buffer */
                         if (!validateAndWriteToOD(SDO, &abortCode, 1, 0)) {
@@ -1341,8 +1344,8 @@ CO_SDOserver_process(CO_SDOserver_t* SDO, bool_t NMTisPreOrOperational, uint32_t
                         }
 
                         count = (CO_CONFIG_SDO_SRV_BUFFER_SIZE - 2 - SDO->bufOffsetWr) / 7;
-                        if (count >= 127) {
-                            count = 127;
+                        if (count >= CO_CONFIG_SDO_SRV_BLKSIZE) {
+                            count = CO_CONFIG_SDO_SRV_BLKSIZE;
                         }
                     }
 

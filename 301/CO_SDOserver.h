@@ -33,6 +33,11 @@
 #ifndef CO_CONFIG_SDO_SRV_BUFFER_SIZE
 #define CO_CONFIG_SDO_SRV_BUFFER_SIZE 32U
 #endif
+/* Maximum number of segments per block the server announces for block download, 1 to 127 (the buffer may limit it
+ * further). Lower it if the CAN receive path can't take a long train of frames. */
+#ifndef CO_CONFIG_SDO_SRV_BLKSIZE
+#define CO_CONFIG_SDO_SRV_BLKSIZE 127U
+#endif
 
 #ifdef __cplusplus
 extern "C" {
