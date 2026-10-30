@@ -1,0 +1,26 @@
+{
+  "name": "CANopenNode",
+  "description": "CANopen protocol stack. The application provides CO_driver_target.h (with the CAN driver) and OD.h on its include path.",
+  "keywords": "canopen, can",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CANopenNode/CANopenNode.git"
+  },
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "srcDir": ".",
+    "includeDir": ".",
+    "srcFilter": [
+      "+<CANopen.c>",
+      "+<301/*.c>",
+      "+<303/*.c>",
+      "+<304/*.c>",
+      "+<305/*.c>",
+      "+<309/*.c>",
+      "+<extra/*.c>",
+      "+<storage/CO_storage.c>"
+    ]
+  }
+}
