@@ -372,6 +372,15 @@ extern "C" {
 #endif
 
 /**
+ * Maximum number of segments per block (blksize), which SDO server announces
+ * in block download, 1 to 127. Internal buffer size may limit it further.
+ * Lower it, if CAN receive path can't handle long sequence of frames.
+ */
+#ifdef CO_DOXYGEN
+#define CO_CONFIG_SDO_SRV_BLKSIZE 127
+#endif
+
+/**
  * Configuration of @ref CO_SDOclient
  *
  * Possible flags, can be ORed:
