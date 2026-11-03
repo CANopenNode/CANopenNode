@@ -118,12 +118,13 @@ extern "C" {
 #define CO_EMC402_DEVICE_TEMP_HIGH       0x4210U /**< 0x4210 DS402 Excess temperature device */
 #define CO_EMC402_DEVICE_TEMP_LOW        0x4220U /**< 0x4220 DS402 Too low temperature device */
 
+#define CO_EMC402_TEMP_DRIVE             0x4300U /**< 0x4300 DS402 Temperature drive */
 #define CO_EMC402_DRIVE_TEMP_HIGH        0x4310U /**< 0x4310 DS402 Excess temperature drive */
 #define CO_EMC402_DRIVE_TEMP_LOW         0x4320U /**< 0x4320 DS402 Too low temperature drive */
 
+#define CO_EMC402_TEMP_SUPPLY            0x4400U /**< 0x4400 DS402 Temperature supply */
 #define CO_EMC402_SUPPLY_TEMP_HIGH       0x4410U /**< 0x4410 DS402 Excess temperature supply */
-#define CO_EMC402_TEMP_SUPPLY_HIGH       0x4410U /**< 0x4410 DS402 Excess temperature supply */
-#define CO_EMC402_TEMP_SUPPLY_LOW        0x4420U /**< 0x4420 DS402 Too low temperature supply */
+#define CO_EMC402_SUPPLY_TEMP_LOW        0x4420U /**< 0x4420 DS402 Too low temperature supply */
 
 
 /* Device hardware */
