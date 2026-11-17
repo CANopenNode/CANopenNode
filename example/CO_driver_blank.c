@@ -57,6 +57,7 @@ CO_CANmodule_init(CO_CANmodule_t* CANmodule, void* CANptr, CO_CANrx_t rxArray[],
     CANmodule->firstCANtxMessage = true;
     CANmodule->CANtxCount = 0U;
     CANmodule->errOld = 0U;
+    CANmodule->txOverflowSeen = false;
 
     for (i = 0U; i < rxSize; i++) {
         rxArray[i].ident = 0U;
@@ -220,6 +221,21 @@ CO_CANmodule_process(CO_CANmodule_t* CANmodule) {
 
     err = ((uint32_t)txErrors << 16) | ((uint32_t)rxErrors << 8) | overflow;
 
+    /* CO_CAN_ERRTX_OVERFLOW is set by CO_CANsend(), no error counter changes with it. So it is handled here and not
+     * in the block below, which is entered only when an error counter has changed: on a bus without errors the flag
+     * would never be cleared there, the error would stay active and, with CO_NMT_ERR_ON_ERR_REG, keep the node out of
+     * NMT operational. Clear the flag when all pending CAN frames are sent and the transmitter is not passive, but
+     * not before CO_EM_process() has seen it once (CO_process() calls it after this function). */
+    if ((CANmodule->CANerrorStatus & CO_CAN_ERRTX_OVERFLOW) == 0U) {
+        CANmodule->txOverflowSeen = false;
+    } else if (!CANmodule->txOverflowSeen) {
+        CANmodule->txOverflowSeen = true;
+    } else if ((CANmodule->CANtxCount == 0U) && (txErrors < 128U)) {
+        CANmodule->CANerrorStatus &= 0xFFFFU ^ CO_CAN_ERRTX_OVERFLOW;
+        CANmodule->txOverflowSeen = false;
+    } else { /* MISRA C 2004 14.10 */
+    }
+
     if (CANmodule->errOld != err) {
         uint16_t status = CANmodule->CANerrorStatus;
 
@@ -246,11 +262,6 @@ CO_CANmodule_process(CO_CANmodule_t* CANmodule) {
                 status |= CO_CAN_ERRTX_WARNING | CO_CAN_ERRTX_PASSIVE;
             } else if (txErrors >= 96) {
                 status |= CO_CAN_ERRTX_WARNING;
-            }
-
-            /* if not tx passive clear also overflow */
-            if ((status & CO_CAN_ERRTX_PASSIVE) == 0) {
-                status &= 0xFFFF ^ CO_CAN_ERRTX_OVERFLOW;
             }
         }
 

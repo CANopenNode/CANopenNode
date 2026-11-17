@@ -85,6 +85,7 @@ typedef struct {
     volatile bool_t firstCANtxMessage;
     volatile uint16_t CANtxCount;
     uint32_t errOld;
+    bool_t txOverflowSeen; /* CO_CAN_ERRTX_OVERFLOW was seen by CO_CANmodule_process() */
 } CO_CANmodule_t;
 
 /* Data storage object for one entry */
